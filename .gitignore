@@ -97,3 +97,13 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Master/source assets should live outside this repository
+/SourceAssets/
+*.psd
+*.psb
+*.blend
+*.blend2
+
+# IDE/local tooling
+.idea/
