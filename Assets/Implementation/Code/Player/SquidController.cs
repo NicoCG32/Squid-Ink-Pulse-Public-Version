@@ -23,11 +23,22 @@ public class SquidController : MonoBehaviour
     [Header("Boundaries")]
     public float minY = -9.5f; // Limite inferior
     public float maxY = 9.5f;  // Limite superior
+    [SerializeField] private string topBorderTag = "TopBorder";
+    [SerializeField] private string bottomBorderTag = "BottomBorder";
+
+    [Header("Tilt")]
+    public float baseRotationZ = -90f;
+    public float maxTiltAngle = 12f;
+    public float tiltSmoothSpeed = 8f;
     
     private float currentSpeed;
     private float boostTimer = 0f;
     private bool isBoosting = false;
     private Camera mainCamera;
+    private Collider2D playerCollider;
+    private Collider2D topBorder;
+    private Collider2D bottomBorder;
+    private float previousY;
 
     [Header("Collectibles")]
     public int shrimps = 0;
@@ -37,12 +48,83 @@ public class SquidController : MonoBehaviour
         mainCamera = Camera.main;
         currentSpeed = baseSpeed;
         currentAutoScrollSpeed = baseAutoScrollSpeed;
+        playerCollider = GetComponent<Collider2D>();
+
+        ResolveBorders();
+        UpdateVerticalLimitsFromBorders();
+        ClampPlayerInsideLimits();
+        previousY = transform.position.y;
+
+        Vector3 startEuler = transform.eulerAngles;
+        transform.rotation = Quaternion.Euler(startEuler.x, startEuler.y, baseRotationZ);
     }
 
     void Update()
     {
+        if (topBorder == null || bottomBorder == null)
+        {
+            ResolveBorders();
+            UpdateVerticalLimitsFromBorders();
+        }
+
         HandleMovement();
         HandleBoostLogic();
+        ClampPlayerInsideLimits();
+
+        float deltaY = transform.position.y - previousY;
+        float verticalSpeed = Time.deltaTime > 0f ? deltaY / Time.deltaTime : 0f;
+        UpdateTilt(verticalSpeed);
+        previousY = transform.position.y;
+    }
+
+    private void UpdateTilt(float verticalSpeed)
+    {
+        float speedReference = Mathf.Max(baseSpeed, 0.01f);
+        float normalizedVertical = Mathf.Clamp(verticalSpeed / speedReference, -1f, 1f);
+        float targetZ = baseRotationZ + (normalizedVertical * maxTiltAngle);
+
+        Quaternion targetRotation = Quaternion.Euler(0f, 0f, targetZ);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, tiltSmoothSpeed * Time.deltaTime);
+    }
+
+    private void ResolveBorders()
+    {
+        GameObject topObj = GameObject.FindGameObjectWithTag(topBorderTag);
+        GameObject bottomObj = GameObject.FindGameObjectWithTag(bottomBorderTag);
+
+        if (topObj != null)
+        {
+            topBorder = topObj.GetComponent<Collider2D>();
+        }
+
+        if (bottomObj != null)
+        {
+            bottomBorder = bottomObj.GetComponent<Collider2D>();
+        }
+    }
+
+    private void UpdateVerticalLimitsFromBorders()
+    {
+        if (topBorder == null || bottomBorder == null)
+        {
+            return;
+        }
+
+        float halfHeight = playerCollider != null ? playerCollider.bounds.extents.y : 0f;
+        float candidateMinY = bottomBorder.bounds.max.y + halfHeight;
+        float candidateMaxY = topBorder.bounds.min.y - halfHeight;
+
+        if (candidateMinY <= candidateMaxY)
+        {
+            minY = candidateMinY;
+            maxY = candidateMaxY;
+        }
+    }
+
+    private void ClampPlayerInsideLimits()
+    {
+        float clampedY = Mathf.Clamp(transform.position.y, minY, maxY);
+        transform.position = new Vector3(transform.position.x, clampedY, 0f);
     }
 
     private void HandleMovement()

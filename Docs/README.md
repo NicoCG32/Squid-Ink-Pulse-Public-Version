@@ -1,14 +1,15 @@
 # Documentación de Squid Ink-Pulse
 
-Esta carpeta centraliza la documentación del proyecto y se mantiene separada de la implementación de Unity.
+Esta carpeta centraliza la documentación técnica y de organización del proyecto.
 
 ## Documentos
 
 - `ESTRUCTURA.md`: Estructura oficial de carpetas y criterios de organización.
-- `FLUJO_DE_ASSETS.md`: Flujo para soundtrack y diseños (personajes, enemigos, escenarios).
+- `FLUJO_DE_ASSETS.md`: Flujo operativo de audio, arte y animaciones runtime.
+- `ANIMACIONES_UNITY.md`: Estándar de animaciones para Unity.
 
 ## Organización
 
-- Documentación en `Docs/`.
-- Implementación y assets runtime dentro de `Assets/`.
-- Fuentes maestras pesadas de arte/audio fuera de este repositorio.
+- `Docs/` contiene la documentación oficial.
+- `Assets/` contiene implementación y contenido runtime.
+- El repositorio almacena únicamente contenido operativo para Unity.

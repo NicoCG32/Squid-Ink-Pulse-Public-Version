@@ -7,6 +7,8 @@ TagManager:
   - Enemy
   - Collectible
   - Shrimp
+  - BottomBorder
+  - TopBorder
   layers:
   - Default
   - TransparentFX

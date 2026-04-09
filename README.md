@@ -9,6 +9,7 @@ La mecánica central gira en torno a la adrenalina: acercarte a amenazas como ti
 - `Docs/`: documentación del proyecto y convenciones.
 - `Assets/Implementation/`: código y configuración técnica.
 - `Assets/Content/`: prefabs, audio y arte runtime.
+- `Assets/Content/Animations/`: clips y controladores de animación para runtime.
 - `Assets/Scenes/`: escenas del juego.
 - `Packages/` y `ProjectSettings/`: base Unity del proyecto.
 
@@ -17,11 +18,13 @@ La mecánica central gira en torno a la adrenalina: acercarte a amenazas como ti
 - `Docs/README.md`
 - `Docs/ESTRUCTURA.md`
 - `Docs/FLUJO_DE_ASSETS.md`
+- `Docs/ANIMACIONES_UNITY.md`
 
 ## Notas de organización
 
 - Soundtrack y SFX en `Assets/Content/Audio/`.
 - Diseños runtime de personajes, enemigos y escenarios en `Assets/Content/Art/`.
+- Animaciones runtime en `Assets/Content/Animations/`.
 
 ## Equipo de desarrollo
 
