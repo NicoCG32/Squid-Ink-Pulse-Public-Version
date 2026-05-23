@@ -9,8 +9,9 @@ public class MainMenu : MonoBehaviour
     public void Jugar()
     {
         // 0 Main Menu
-        // 1 Game Scene (Sample Scene por ahora)
-        StartCoroutine(CargarEscenaConDelay(1));
+        // 1 Sample Scene
+        // 2 Zona Epipelágica
+        StartCoroutine(CargarEscenaConDelay(2));
     }
 
     public void Opciones()
