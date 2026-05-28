@@ -1,0 +1,41 @@
+using System;
+using UnityEngine;
+
+[DisallowMultipleComponent]
+public class ShrimpCollector : MonoBehaviour
+{
+    [SerializeField] private GameSessionController session;
+    [SerializeField] private int shrimpCount;
+
+    public int ShrimpCount => shrimpCount;
+    public event Action<int> ShrimpsChanged;
+
+    private void Awake()
+    {
+        WarnIfMissingReferences();
+    }
+
+    public void Collect(GameObject shrimpObject)
+    {
+        if (session == null || !session.IsPlaying)
+        {
+            return;
+        }
+
+        shrimpCount++;
+        ShrimpsChanged?.Invoke(shrimpCount);
+
+        if (shrimpObject != null)
+        {
+            Destroy(shrimpObject);
+        }
+    }
+
+    private void WarnIfMissingReferences()
+    {
+        if (session == null)
+        {
+            Debug.LogWarning("[ShrimpCollector] Falta asignar GameSessionController en el Inspector.", this);
+        }
+    }
+}

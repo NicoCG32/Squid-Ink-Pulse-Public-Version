@@ -4,12 +4,15 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ParallaxLayer : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private SpriteRenderer sourceRenderer;
     [SerializeField] private Transform cameraTransform;
+
+    [Header("Parallax")]
     [SerializeField, Range(0f, 1f)] private float parallaxFactor = 0.2f;
     [SerializeField] private bool followVertical = false;
     [SerializeField] private int extraTilesPerSide = 2;
 
-    private SpriteRenderer sourceRenderer;
     private readonly List<Transform> tiles = new();
 
     private float tileWidthWorld;
@@ -17,28 +20,18 @@ public class ParallaxLayer : MonoBehaviour
     private Vector3 lastCameraPosition;
     private bool initialized;
 
-    private void Awake()
-    {
-        sourceRenderer = GetComponent<SpriteRenderer>();
-
-        if (cameraTransform == null && Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform;
-        }
-    }
-
     private void Start()
     {
         if (cameraTransform == null)
         {
-            Debug.LogError($"[{name}] No se encontró la Main Camera.");
+            Debug.LogError($"[{name}] Falta asignar CameraTransform en el Inspector.", this);
             enabled = false;
             return;
         }
 
         if (sourceRenderer == null || sourceRenderer.sprite == null)
         {
-            Debug.LogError($"[{name}] Este objeto necesita un SpriteRenderer con sprite asignado.");
+            Debug.LogError($"[{name}] Falta asignar SourceRenderer con un sprite valido.", this);
             enabled = false;
             return;
         }
@@ -47,7 +40,7 @@ public class ParallaxLayer : MonoBehaviour
 
         if (tileWidthWorld <= 0f)
         {
-            Debug.LogError($"[{name}] El ancho del sprite es inválido.");
+            Debug.LogError($"[{name}] El ancho del sprite es invalido.", this);
             enabled = false;
             return;
         }
@@ -57,15 +50,17 @@ public class ParallaxLayer : MonoBehaviour
 
         BuildTiles();
 
-        // El padre queda solo como contenedor, el sprite original se oculta
-        sourceRenderer.enabled = false; 
+        sourceRenderer.enabled = false;
         lastCameraPosition = cameraTransform.position;
         initialized = true;
     }
 
     private void LateUpdate()
     {
-        if (!initialized) return;
+        if (!initialized)
+        {
+            return;
+        }
 
         Vector3 cameraDelta = cameraTransform.position - lastCameraPosition;
 
@@ -114,7 +109,10 @@ public class ParallaxLayer : MonoBehaviour
 
     private void RecycleTiles()
     {
-        if (tiles.Count < 3) return;
+        if (tiles.Count < 3)
+        {
+            return;
+        }
 
         Transform leftmost = GetLeftmostTile();
         Transform rightmost = GetRightmostTile();
@@ -125,8 +123,7 @@ public class ParallaxLayer : MonoBehaviour
             leftmost.position = new Vector3(
                 rightmost.position.x + tileWidthWorld,
                 leftmost.position.y,
-                leftmost.position.z
-            );
+                leftmost.position.z);
 
             leftmost = GetLeftmostTile();
             rightmost = GetRightmostTile();
@@ -137,8 +134,7 @@ public class ParallaxLayer : MonoBehaviour
             rightmost.position = new Vector3(
                 leftmost.position.x - tileWidthWorld,
                 rightmost.position.y,
-                rightmost.position.z
-            );
+                rightmost.position.z);
 
             leftmost = GetLeftmostTile();
             rightmost = GetRightmostTile();
