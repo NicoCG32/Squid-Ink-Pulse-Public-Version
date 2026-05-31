@@ -45,6 +45,13 @@ Las máquinas no compiten entre sí; cada una gobierna una escala distinta.
 - `PortalTransitionState`
 - `GadgetRuntimeState`
 
+Nota sobre gadgets:
+- El inventario de gadgets ya existe como modelo runtime por conteo y slots.
+- La asignacion de slots es temporal y deriva del orden de adquisicion: `Gadget1` usa `W` si contiene un activo; `Gadget2` usa `Q` si contiene un activo.
+- `Shell Shield` ocupa slot visual, pero no muestra tecla porque su efecto es pasivo y se consume como salvavidas antes del Game Over.
+- `Ink-Bottle` es activo: al usarse, intenta llevar `InkPulseState` directamente a `Ready`.
+- `GadgetRuntimeState` sigue planificado para cuando existan efectos con fases propias, cooldowns, duraciones o animaciones de activación.
+
 ## Regla base
 
 - Si un sistema cambia comportamiento, habilita una interacción o evita ambigüedad entre otros sistemas, merece estado propio.

@@ -34,11 +34,22 @@ Responsabilidad:
 
 ## HUD
 
-Archivo: `Assets/Implementation/Code/UI/HUD/ChargeBar.cs`
+Archivos:
+- `Assets/Implementation/Code/UI/HUD/ChargeBar.cs`
+- `Assets/Implementation/Code/UI/HUD/ShrimpCounterDisplay.cs`
+- `Assets/Implementation/Code/UI/HUD/GadgetInventoryHud.cs`
 
 Responsabilidad:
 - Mostrar la carga del Ink-Pulse de forma clara.
 - Convertir el estado de gameplay en una señal visual inmediata.
+- Mostrar el total de camarones persistidos en `ShrimpRuntimeWallet`.
+- Mostrar gadgets con su icono dentro del hueco `GadgetN` que ocupan.
+- Mostrar tecla solo si el gadget del hueco es activo: `W` en `Gadget1`, `Q` en `Gadget2`.
+
+Regla visual de inventario:
+- Los slots de inventario no tienen gadget fijo en escena; se llenan por orden de adquisicion.
+- El icono mostrado viene del pickup adquirido y queda registrado en `RuntimeGadgetInventory`.
+- Los pasivos ocupan hueco visual, pero no exponen tecla.
 
 ## UI decorativa
 

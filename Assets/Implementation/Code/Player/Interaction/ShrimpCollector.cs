@@ -12,7 +12,19 @@ public class ShrimpCollector : MonoBehaviour
 
     private void Awake()
     {
+        shrimpCount = ShrimpRuntimeWallet.TotalShrimp;
         WarnIfMissingReferences();
+    }
+
+    private void OnEnable()
+    {
+        ShrimpRuntimeWallet.TotalChanged += HandleRuntimeShrimpChanged;
+        HandleRuntimeShrimpChanged(ShrimpRuntimeWallet.TotalShrimp);
+    }
+
+    private void OnDisable()
+    {
+        ShrimpRuntimeWallet.TotalChanged -= HandleRuntimeShrimpChanged;
     }
 
     public void Collect(GameObject shrimpObject)
@@ -28,13 +40,18 @@ public class ShrimpCollector : MonoBehaviour
             collectedAmount = value.Amount;
         }
 
-        shrimpCount += collectedAmount;
-        ShrimpsChanged?.Invoke(shrimpCount);
+        ShrimpRuntimeWallet.Add(collectedAmount);
 
         if (shrimpObject != null)
         {
             Destroy(shrimpObject);
         }
+    }
+
+    private void HandleRuntimeShrimpChanged(int totalShrimp)
+    {
+        shrimpCount = totalShrimp;
+        ShrimpsChanged?.Invoke(shrimpCount);
     }
 
     private void WarnIfMissingReferences()

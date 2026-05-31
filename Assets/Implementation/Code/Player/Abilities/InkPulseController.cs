@@ -82,6 +82,19 @@ public class InkPulseController : MonoBehaviour
         return true;
     }
 
+    public bool TryForceReady()
+    {
+        if (!IsGameplayActive() || IsPulseActive || IsCharged)
+        {
+            return false;
+        }
+
+        currentCharge = maxCharge;
+        UpdateChargeBar();
+        ApplyState(ResolveState());
+        return CurrentState == InkPulseState.Ready;
+    }
+
     private void HandleActivationInput()
     {
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)

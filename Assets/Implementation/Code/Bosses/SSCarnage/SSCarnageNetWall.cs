@@ -105,6 +105,13 @@ public class SSCarnageNetWall : MonoBehaviour
             return;
         }
 
+        PlayerGadgetInventory gadgetInventory = other.GetComponentInParent<PlayerGadgetInventory>();
+        if (gadgetInventory != null && gadgetInventory.TryConsumeShellShield())
+        {
+            BreakWall();
+            return;
+        }
+
         progression?.NotifyBossFailed();
         hasFailed = true;
         Failed?.Invoke();

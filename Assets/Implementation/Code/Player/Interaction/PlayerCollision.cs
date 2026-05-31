@@ -9,6 +9,7 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private GameSessionController session;
     [SerializeField] private InkPulseController inkPulseController;
     [SerializeField] private ShrimpCollector shrimpCollector;
+    [SerializeField] private PlayerGadgetInventory gadgetInventory;
     [SerializeField] private Collider2D damageCollider;
 
     [Header("Rules")]
@@ -16,6 +17,7 @@ public class PlayerCollision : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
         WarnIfMissingReferences();
     }
 
@@ -55,6 +57,16 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
+        if (gadgetInventory != null && gadgetInventory.TryConsumeShellShield())
+        {
+            if (hazard != null)
+            {
+                Destroy(hazard.gameObject);
+            }
+
+            return;
+        }
+
         if (session == null)
         {
             Debug.LogError("[PlayerCollision] No se puede declarar Game Over sin GameSessionController asignado.", this);
@@ -69,12 +81,20 @@ public class PlayerCollision : MonoBehaviour
         return damageCollider == null || damageCollider.IsTouching(other);
     }
 
+    private void ResolveReferences()
+    {
+        if (gadgetInventory == null)
+        {
+            gadgetInventory = GetComponent<PlayerGadgetInventory>();
+        }
+    }
+
     private void WarnIfMissingReferences()
     {
-        if (session == null || inkPulseController == null || shrimpCollector == null || damageCollider == null)
+        if (session == null || inkPulseController == null || shrimpCollector == null || gadgetInventory == null || damageCollider == null)
         {
             Debug.LogWarning(
-                "[PlayerCollision] Faltan referencias. Asigna Session, InkPulseController, ShrimpCollector y DamageCollider en el Inspector.",
+                "[PlayerCollision] Faltan referencias. Asigna Session, InkPulseController, ShrimpCollector, GadgetInventory y DamageCollider en el Inspector.",
                 this);
         }
     }

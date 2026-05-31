@@ -25,6 +25,7 @@ Responsabilidad:
 - Exponer el estado `InkPulseState`.
 - Activar y finalizar el pulso.
 - Notificar cambios de carga y de estado a UI o sistemas externos.
+- Permitir que `Ink-Bottle` fuerce el estado `Ready` mediante `TryForceReady()`.
 
 ### GrazeDetector
 
@@ -43,17 +44,43 @@ Responsabilidad:
 - Resolver colisiones del jugador con amenazas u objetos relevantes.
 - Disparar consecuencias de daño, derrota o interacción especial.
 - Delegar la identificación de enemigos en `EnemyTagCatalog`.
+- Consultar `PlayerGadgetInventory` antes de declarar Game Over, para consumir `Shell Shield` si existe.
 
 ### ShrimpCollector y ShrimpValue
 
 Archivos:
 - `Assets/Implementation/Code/Player/Interaction/ShrimpCollector.cs`
 - `Assets/Implementation/Code/Player/Interaction/ShrimpValue.cs`
+- `Assets/Implementation/Code/Player/Interaction/ShrimpRuntimeWallet.cs`
 
 Responsabilidad:
 - Registrar la recolección de camarones.
 - Definir cuánto vale cada recogible.
-- Alimentar la economía del juego y la progresión de run.
+- Alimentar una billetera runtime persistente durante la ejecución del juego.
+- Mantener el total entre reinicios de escena mientras el proceso siga abierto.
+
+### PlayerGadgetInventory
+
+Archivos:
+- `Assets/Implementation/Code/Player/Inventory/GadgetDefinitions.cs`
+- `Assets/Implementation/Code/Player/Inventory/RuntimeGadgetInventory.cs`
+- `Assets/Implementation/Code/Player/Inventory/PlayerGadgetInventory.cs`
+- `Assets/Implementation/Code/Player/Inventory/GadgetPickup.cs`
+
+Responsabilidad:
+- Inicializar el inventario runtime de gadgets.
+- Recibir adquisiciones desde prefabs con `GadgetPickup`.
+- Almacenar gadgets en slots de inventario segun el orden de adquisicion.
+- Mostrar tecla solo cuando el gadget del slot es activo.
+- Consumir `Shell Shield` automáticamente cuando una colisión produciría Game Over.
+- Activar gadgets de slot con teclado: `W` para slot 1 y `Q` para slot 2.
+- Consumir `Ink-Bottle` sólo si pudo llevar el Ink-Pulse a `Ready`.
+
+Regla de slots:
+- El prefab no define si un gadget va en `W` o `Q`.
+- Al adquirir un gadget, `RuntimeGadgetInventory` lo coloca en el primer slot libre.
+- Ningun gadget es stackable: si ya se posee, otro pickup del mismo tipo no se consume ni aumenta cantidad.
+- `Shell Shield` es pasivo: ocupa slot visual, no muestra tecla, y se consume automaticamente al evitar un Game Over.
 
 ## FlujoDeInteraccion
 
@@ -63,6 +90,7 @@ Responsabilidad:
 4. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
 5. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso está activo.
 6. `PlayerCollision` y los sistemas de entorno resuelven impactos o derrotas.
+7. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield` y cancelar la derrota.
 
 ## ReglasDeDiseno
 

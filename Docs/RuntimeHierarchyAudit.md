@@ -17,6 +17,9 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Carga por proximidad: `GrazeDetector`.
 - Estado runtime del jugador: `PlayerStateController`.
 - Ink-Pulse: `InkPulseController`.
+- Inventario runtime de gadgets: `PlayerGadgetInventory` y `RuntimeGadgetInventory`.
+- Adquisicion de gadgets en mundo: `GadgetPickup`.
+- Persistencia runtime de camarones: `ShrimpRuntimeWallet`.
 - Evento SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
 - UI de game over: `GameOverMenuManager`.
@@ -31,7 +34,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 | `LevelSpawner` | `LevelSpawner` | Spawn de monedas y enemigos perfilados. |
 | `Main Camera` | `CameraController` | Seguimiento y eventos de camara. |
 | `Boundaries` | `HorizontalTracker` | Mantener boundaries alineados con el avance horizontal. |
-| `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController` | Control completo del jugador. |
+| `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController` | Control completo del jugador. |
 | `GrazeZone` | `GrazeDetector` | Carga de Ink-Pulse por proximidad a amenazas. |
 | `GarbageCollector` | `DestroyOffscreen` | Destruir enemigos y camarones que salen del area util. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
@@ -40,6 +43,8 @@ Un nodo debe tener un solo propietario por responsabilidad.
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual del boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido de burbujas. |
 | `InkPulseBar` | `ChargeBar` | Representacion visual de carga Ink-Pulse. |
+| `ShrimpCounter` | `ShrimpCounterDisplay` | Mostrar total persistente de camarones runtime. |
+| `GadgetSlots` | `GadgetInventoryHud` | Mostrar slots de inventario y teclas solo para gadgets activos. |
 
 ## Prefabs runtime
 
@@ -50,6 +55,8 @@ Un nodo debe tener un solo propietario por responsabilidad.
 | `CanaPescar` | ninguno por ahora | `EnemyCanaPescar` |
 | `ShrimpCoin` | `ShrimpValue` | `Shrimp` |
 | `ShrimpCoinX10` | `ShrimpValue` | `Shrimp` |
+| `ShellShield` | `GadgetPickup` | `Collectible` |
+| `InkBottle` | `GadgetPickup` | `Collectible` |
 | `SSCarnage` | `SSCarnageController` | `SSCarnage` |
 | `BossNetWall` | `SSCarnageNetWall` | `SSCarnage` |
 
@@ -92,6 +99,10 @@ Los tags de enemigos tienen una sola fuente de verdad:
 - No agregar un fallback generico de enemigo al spawner si ya existen perfiles.
 - No bloquear el spawn regular durante `BossActive`; el evento debe duplicar frecuencia, no detener obstaculos.
 - No serializar tags de enemigos en `PlayerCollision` o `GrazeDetector`.
+- No declarar Game Over por colision sin consultar antes `PlayerGadgetInventory` para `Shell Shield`.
+- No fijar `W` o `Q` desde el prefab de gadget; el slot visual se asigna por orden de adquisicion.
+- No stackear gadgets: cada `GadgetId` existe como posesion unica.
+- No activar `Ink-Bottle` si el Ink-Pulse ya esta en `Ready` o `Active`; no debe consumirse sin efecto.
 - No usar scripts de pausa en nodos de game over.
 - No poner logica de boss en el prefab de red que ya pertenece a `SSCarnageController`.
 - Si un nuevo enemigo necesita comportamiento, debe tener prefab, tag, perfil de spawn y script propio documentados juntos.
