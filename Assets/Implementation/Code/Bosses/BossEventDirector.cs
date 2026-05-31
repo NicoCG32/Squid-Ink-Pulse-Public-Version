@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
 public class BossEventDirector : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameSessionController session;
+    [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera spawnCamera;
     [SerializeField] private CameraController eventCameraController;
     [SerializeField] private Collider2D topBorder;
@@ -14,7 +16,7 @@ public class BossEventDirector : MonoBehaviour
     [Header("Boss Event")]
     [SerializeField] private GameObject bossPrefab;
     [SerializeField] private float triggerAfterSeconds = 45f;
-    [SerializeField] private float spawnDistanceFromCameraRight = 4f;
+    [SerializeField, FormerlySerializedAs("spawnDistanceFromCameraLeft")] private float spawnDistanceFromCameraRight = 1f;
     [SerializeField, Range(0f, 1f)] private float viewportY = 0.5f;
     [SerializeField] private bool triggerOnce;
 
@@ -28,6 +30,7 @@ public class BossEventDirector : MonoBehaviour
 
     private void Awake()
     {
+        ResolveSceneReferences();
         WarnIfMissingReferences();
     }
 
@@ -38,13 +41,25 @@ public class BossEventDirector : MonoBehaviour
             return;
         }
 
+        ResolveSceneReferences();
+        if (progression != null)
+        {
+            if (!progression.TryStartBossEvent())
+            {
+                return;
+            }
+
+            TriggerBossEvent(resetLocalTimer: false);
+            return;
+        }
+
         elapsedGameplaySeconds += Time.deltaTime;
         if (elapsedGameplaySeconds < triggerAfterSeconds)
         {
             return;
         }
 
-        TriggerBossEvent();
+        TriggerBossEvent(resetLocalTimer: true);
     }
 
     public void ResetDirector()
@@ -68,7 +83,7 @@ public class BossEventDirector : MonoBehaviour
         return !triggerOnce || !hasTriggered;
     }
 
-    private void TriggerBossEvent()
+    private void TriggerBossEvent(bool resetLocalTimer)
     {
         hasTriggered = true;
         eventCameraController?.RequestFullVerticalView(
@@ -80,7 +95,7 @@ public class BossEventDirector : MonoBehaviour
         GameObject bossInstance = Instantiate(bossPrefab, spawnPosition, Quaternion.identity, bossParent);
         InjectSpawnContext(bossInstance);
 
-        if (!triggerOnce)
+        if (resetLocalTimer && !triggerOnce)
         {
             elapsedGameplaySeconds = 0f;
         }
@@ -100,7 +115,7 @@ public class BossEventDirector : MonoBehaviour
         {
             if (behaviour is IBossSpawnContextReceiver receiver)
             {
-                receiver.InitializeBossSpawnContext(session, spawnCamera, topBorder, bottomBorder, bossParent);
+                receiver.InitializeBossSpawnContext(session, progression, spawnCamera, topBorder, bottomBorder, bossParent);
             }
         }
     }
@@ -120,12 +135,43 @@ public class BossEventDirector : MonoBehaviour
                 this);
         }
     }
+
+    private void ResolveSceneReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (progression == null && RunProgressionDirector.HasInstance)
+        {
+            progression = RunProgressionDirector.Instance;
+        }
+
+        if (spawnCamera == null)
+        {
+            spawnCamera = Camera.main;
+        }
+
+        if (eventCameraController == null && spawnCamera != null)
+        {
+            eventCameraController = spawnCamera.GetComponent<CameraController>();
+        }
+
+        if ((topBorder == null || bottomBorder == null)
+            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
+        {
+            topBorder = resolvedTop;
+            bottomBorder = resolvedBottom;
+        }
+    }
 }
 
 public interface IBossSpawnContextReceiver
 {
     void InitializeBossSpawnContext(
         GameSessionController sessionReference,
+        RunProgressionDirector progressionReference,
         Camera cameraReference,
         Collider2D topBorderReference,
         Collider2D bottomBorderReference,

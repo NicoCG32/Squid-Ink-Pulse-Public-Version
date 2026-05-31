@@ -2,10 +2,11 @@ using UnityEngine;
 
 public class DestroyOffscreen : MonoBehaviour
 {
+    private const string ShrimpTag = "Shrimp";
+
     private void OnTriggerEnter2D(Collider2D other)
-    //Funcion que destruye objetos que chocan con la pared GarbageCollector
     {
-        if (other.CompareTag("Enemy") || other.CompareTag("Shrimp"))
+        if (EnemyTagCatalog.IsEnemy(other) || other.CompareTag(ShrimpTag))
         {
             Destroy(other.gameObject);
         }

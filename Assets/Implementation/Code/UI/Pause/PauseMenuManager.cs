@@ -94,7 +94,7 @@ public class PauseMenuManager : MonoBehaviour
         }
         else if (session.IsPaused)
         {
-            session.RequestResume();
+            Reanudar();
         }
     }
 
@@ -105,7 +105,8 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        session.RequestResume();
+        isPaused = false;
+        StartCoroutine(AnimateOutThenResume());
     }
 
     public void Opciones()
@@ -218,6 +219,16 @@ public class PauseMenuManager : MonoBehaviour
         SetVisible(false);
         MenuScreenAnimation.ResetElements(animatedElements, originalPositions);
         isAnimating = false;
+    }
+
+    private IEnumerator AnimateOutThenResume()
+    {
+        yield return AnimateOut();
+
+        if (session != null && session.IsPaused)
+        {
+            session.RequestResume();
+        }
     }
 
     private void WireButtons()

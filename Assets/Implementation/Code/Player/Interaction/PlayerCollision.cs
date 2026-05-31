@@ -3,15 +3,13 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class PlayerCollision : MonoBehaviour
 {
+    private const string ShrimpTag = "Shrimp";
+
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private InkPulseController inkPulseController;
     [SerializeField] private ShrimpCollector shrimpCollector;
     [SerializeField] private Collider2D damageCollider;
-
-    [Header("Tags")]
-    [SerializeField] private string shrimpTag = "Shrimp";
-    [SerializeField] private string enemyTag = "Enemy";
 
     [Header("Rules")]
     [SerializeField] private bool destroyHazardDuringPulse;
@@ -33,13 +31,13 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        if (other.CompareTag(shrimpTag))
+        if (other.CompareTag(ShrimpTag))
         {
             shrimpCollector?.Collect(other.gameObject);
             return;
         }
 
-        if (other.CompareTag(enemyTag))
+        if (EnemyTagCatalog.IsEnemy(other))
         {
             HandleHazardCollision(other);
         }

@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 6201000000000000002}
   - component: {fileID: 6201000000000000003}
   - component: {fileID: 6201000000000000004}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: SSCarnage
-  m_TagString: Untagged
+  m_TagString: SSCarnage
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -80,7 +80,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 20
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.82, g: 0.08, b: 0.08, a: 1}
@@ -108,13 +108,16 @@ MonoBehaviour:
   gameplayCamera: {fileID: 0}
   topBorder: {fileID: 0}
   bottomBorder: {fileID: 0}
+  playerTopBorder: {fileID: 0}
   ownedObjectsParent: {fileID: 0}
   warningDuration: 10
-  warningViewportX: 0.65
-  verticalOffsetAboveTopBoundary: 2
+  warningViewportX: 0.85
+  verticalOffsetAbovePlayerTopBoundary: 0.75
   followSmoothTime: 0.2
   destroyAfterNetDeploy: 1
   destroyDelayAfterNetDeploy: 0.5
+  exitDistanceFromCameraRight: 4
+  exitSpeed: 8
   bossNetWallPrefab: {fileID: 7101000000000000001, guid: 5fb156f4df234a1e8d87f629c4fb9a71, type: 3}
   netSpawnDistanceFromCameraRight: 2
   netViewportY: 0.5

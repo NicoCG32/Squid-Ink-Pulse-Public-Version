@@ -1,37 +1,96 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
+[DisallowMultipleComponent]
 public class MainMenu : MonoBehaviour
 {
-    public float timeDelay = 0.6f;
+    [Header("Scene Flow")]
+    [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelágica.unity";
+    [SerializeField] private string optionsSceneName;
+    [SerializeField] private float timeDelay = 0.6f;
+
+    private bool isLoading;
 
     public void Jugar()
     {
-        // 0 Main Menu
-        // 1 Sample Scene
-        // 2 Zona Epipelágica
-        StartCoroutine(CargarEscenaConDelay(2));
+        LoadConfiguredScene(playSceneName, "juego");
     }
 
     public void Opciones()
     {
-        // 0 Main Menu
-        // 2 Options Scene (Aún no existe, se va a crear después)
-        // TO DO: Crear la escena de opciones y luego cambiar el número del build index
-        StartCoroutine(CargarEscenaConDelay(2));
+        if (string.IsNullOrWhiteSpace(optionsSceneName))
+        {
+            Debug.LogWarning("[MainMenu] La escena de opciones aun no esta configurada.", this);
+            return;
+        }
+
+        LoadConfiguredScene(optionsSceneName, "opciones");
     }
 
-    IEnumerator CargarEscenaConDelay(int sceneOffset)
+    private void LoadConfiguredScene(string sceneName, string sceneLabel)
     {
-        // Para retrasar la carga de escena y permitir que se reproduzcan las animaciones de los botones
-        yield return new WaitForSeconds(timeDelay);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + sceneOffset);
+        if (isLoading)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(sceneName))
+        {
+            Debug.LogError($"[MainMenu] No hay escena configurada para {sceneLabel}.", this);
+            return;
+        }
+
+        string resolvedSceneName = ResolveLoadableSceneName(sceneName);
+        if (string.IsNullOrEmpty(resolvedSceneName))
+        {
+            Debug.LogError($"[MainMenu] La escena de {sceneLabel} ('{sceneName}') no esta disponible en Build Settings.", this);
+            return;
+        }
+
+        StartCoroutine(LoadSceneAfterDelay(resolvedSceneName));
+    }
+
+    private string ResolveLoadableSceneName(string sceneName)
+    {
+        if (Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            return sceneName;
+        }
+
+        string sceneWithoutExtension = sceneName.EndsWith(".unity")
+            ? sceneName.Substring(0, sceneName.Length - ".unity".Length)
+            : sceneName;
+
+        if (Application.CanStreamedLevelBeLoaded(sceneWithoutExtension))
+        {
+            return sceneWithoutExtension;
+        }
+
+        int lastSlashIndex = sceneWithoutExtension.LastIndexOf('/');
+        if (lastSlashIndex < 0 || lastSlashIndex >= sceneWithoutExtension.Length - 1)
+        {
+            return null;
+        }
+
+        string shortSceneName = sceneWithoutExtension.Substring(lastSlashIndex + 1);
+        return Application.CanStreamedLevelBeLoaded(shortSceneName) ? shortSceneName : null;
+    }
+
+    private IEnumerator LoadSceneAfterDelay(string sceneName)
+    {
+        isLoading = true;
+        yield return new WaitForSecondsRealtime(timeDelay);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(sceneName);
     }
 
     public void Salir()
     {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
-
 }

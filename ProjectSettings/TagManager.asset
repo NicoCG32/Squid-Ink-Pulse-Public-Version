@@ -9,6 +9,13 @@ TagManager:
   - Shrimp
   - BottomBorder
   - TopBorder
+  - CameraBoundary
+  - PlayerBoundary
+  - DestroyZone
+  - EnemyMina
+  - EnemyPezGlobo
+  - EnemyCanaPescar
+  - SSCarnage
   layers:
   - Default
   - TransparentFX
@@ -16,13 +23,13 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Enemy
+  - Collectible
+  - Boundary
+  - Environment
+  - Boss
+  - Cleanup
   - 
   - 
   - 

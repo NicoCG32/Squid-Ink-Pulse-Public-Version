@@ -1,15 +1,33 @@
-# Documentación de Squid Ink-Pulse
+# Índice de documentación
 
-Esta carpeta centraliza la documentación técnica y de organización del proyecto.
+Este directorio organiza la documentación por tema. La idea es que cada persona encuentre rápido lo que necesita sin leer un solo archivo gigante.
 
-## Documentos
+## Base del proyecto
 
-- `ESTRUCTURA.md`: Estructura oficial de carpetas y criterios de organización.
-- `FLUJO_DE_ASSETS.md`: Flujo operativo de audio, arte y animaciones runtime.
-- `ANIMACIONES_UNITY.md`: Estándar de animaciones para Unity.
+- [ProjectOverview.md](ProjectOverview.md) - visión general, pilares y orden de lectura.
+- [ProjectStructure.md](ProjectStructure.md) - organización de carpetas y criterios.
+- [RuntimeHierarchyAudit.md](RuntimeHierarchyAudit.md) - asignación esperada de scripts por nodo, prefab y responsabilidad.
+- [AssetFlow.md](AssetFlow.md) - entrada y uso de audio, arte y animaciones.
+- [WorldScale.md](WorldScale.md) - escala canónica entre píxeles, unidades de mundo y boundaries.
+- [AnimationStandards.md](AnimationStandards.md) - reglas y checklist de animaciones runtime.
 
-## Organización
+## Sistemas de juego
 
-- `Docs/` contiene la documentación oficial.
-- `Assets/` contiene implementación y contenido runtime.
-- El repositorio almacena únicamente contenido operativo para Unity.
+- [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones y camarones.
+- [CoreSystems.md](CoreSystems.md) - sesión, progresión de run y flujo de escenas.
+- [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos base y SS Carnage.
+- [WorldAndCamera.md](WorldAndCamera.md) - cámara, fronteras, parallax y destrucción fuera de pantalla.
+- [UiAndMenu.md](UiAndMenu.md) - menús, pausa, game over y HUD.
+
+## Diseño y futuro
+
+- [StateMachines.md](StateMachines.md) - estados implementados y planificados.
+- [ROADMAP.md](ROADMAP.md) - ideas y sistemas todavía no implementados.
+- [ProjectReport.md](ProjectReport.md) - resumen del informe completo del proyecto.
+- [Reports/InformeSquidInkPulse.md](Reports/InformeSquidInkPulse.md) - informe largo en CamelCase.
+
+## Regla general
+
+- Si algo cambia el comportamiento del juego, debería vivir en un documento propio.
+- Si algo describe un flujo de producción o contenido, debe quedar separado de la lógica de código.
+- Si una sección empieza a crecer demasiado, se divide en otro `.md`.

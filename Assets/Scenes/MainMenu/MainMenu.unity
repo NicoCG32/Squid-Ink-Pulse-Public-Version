@@ -264,8 +264,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: -740561105930895469, guid: 7769208f02b48454b9c18fbe2a91c762, type: 3}
+    m_HighlightedSprite: {fileID: -740561105930895469, guid: 7769208f02b48454b9c18fbe2a91c762, type: 3}
+    m_PressedSprite: {fileID: -5086458757861956760, guid: a94188dcd2b7e2d46bcf7dd5343b5c5d, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 0}
   m_AnimationTriggers:
@@ -1439,6 +1439,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7253c7084e5ea41b75855c7c1425b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  playSceneName: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
+  optionsSceneName: 
   timeDelay: 0.6
 --- !u!1 &1290895326
 GameObject:
@@ -1510,8 +1512,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 8196887140493459461, guid: a4a045aa0f6ce894f94347b0f4cb3c95, type: 3}
+    m_HighlightedSprite: {fileID: 8196887140493459461, guid: a4a045aa0f6ce894f94347b0f4cb3c95, type: 3}
+    m_PressedSprite: {fileID: 1450960814791432203, guid: 31a4cd6d989030d439864b0313201a1d, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 0}
   m_AnimationTriggers:
@@ -1621,8 +1623,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 225.95, y: -58.1}
-  m_SizeDelta: {x: 451.8979, y: 223.38}
+  m_AnchoredPosition: {x: 449, y: -164}
+  m_SizeDelta: {x: 1148.7932, y: 823.0894}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1311762601
 MonoBehaviour:
@@ -1637,14 +1639,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -4196000398034862863, guid: 4ca8ed4085046a44fb774f73564895d0, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2046,8 +2048,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 751, y: -132}
-  m_SizeDelta: {x: 978.4692, y: 1038.0063}
+  m_AnchoredPosition: {x: 885.03766, y: -200.81367}
+  m_SizeDelta: {x: 923.9503, y: 1094.8955}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1581611840
 MonoBehaviour:
@@ -2308,8 +2310,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 8752029188637547047, guid: ca9c09781d863204f9f780128387f1bf, type: 3}
+    m_HighlightedSprite: {fileID: 8752029188637547047, guid: ca9c09781d863204f9f780128387f1bf, type: 3}
+    m_PressedSprite: {fileID: -7131206350088108799, guid: 2ae3b637662dcb94fae84337230aaaa7, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 0}
   m_AnimationTriggers:

@@ -6,9 +6,6 @@ public class GrazeDetector : MonoBehaviour
     [SerializeField] private GameSessionController session;
     [SerializeField] private InkPulseController inkPulseController;
 
-    [Header("Tags")]
-    [SerializeField] private string enemyTag = "Enemy";
-
     private void Awake()
     {
         if (session == null || inkPulseController == null)
@@ -24,7 +21,7 @@ public class GrazeDetector : MonoBehaviour
             return;
         }
 
-        if (!other.CompareTag(enemyTag))
+        if (!EnemyTagCatalog.IsEnemy(other))
         {
             return;
         }

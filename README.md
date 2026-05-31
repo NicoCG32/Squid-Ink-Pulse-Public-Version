@@ -15,10 +15,20 @@ La mecánica central gira en torno a la adrenalina: acercarte a amenazas como ti
 
 ## Documentación
 
-- `Docs/README.md`
-- `Docs/ESTRUCTURA.md`
-- `Docs/FLUJO_DE_ASSETS.md`
-- `Docs/ANIMACIONES_UNITY.md`
+- [Docs/README.md](Docs/README.md)
+- [Docs/ProjectOverview.md](Docs/ProjectOverview.md)
+- [Docs/ProjectStructure.md](Docs/ProjectStructure.md)
+- [Docs/AssetFlow.md](Docs/AssetFlow.md)
+- [Docs/AnimationStandards.md](Docs/AnimationStandards.md)
+- [Docs/StateMachines.md](Docs/StateMachines.md)
+- [Docs/GameplaySystems.md](Docs/GameplaySystems.md)
+- [Docs/CoreSystems.md](Docs/CoreSystems.md)
+- [Docs/EnemiesAndBosses.md](Docs/EnemiesAndBosses.md)
+- [Docs/WorldAndCamera.md](Docs/WorldAndCamera.md)
+- [Docs/UiAndMenu.md](Docs/UiAndMenu.md)
+- [Docs/Roadmap.md](Docs/Roadmap.md)
+- [Docs/ProjectReport.md](Docs/ProjectReport.md)
+- [Docs/Reports/InformeSquidInkPulse.md](Docs/Reports/InformeSquidInkPulse.md)
 
 ## Notas de organización
 
@@ -33,10 +43,10 @@ El desarrollo del proyecto está a cargo de Yeco Works, equipo de desarrollo de 
 - Pablo Guzmán (ICCI): SCRUM Master
 - Rodrigo Cortés (ICCI): Product Owner
 - Mauricio Muñoz (ICCI): Gameplay Programmer
-- Matías Palacios (ITI): Visual and Sound Designer
-- Inti Santibañez (ICCI): QA / Tester
+- Matías Palacios (ITI): Diseñador Visual y Sonoro
+- Inti Santibáñez (ICCI): QA / Tester
 
 ### Siglas
 
-- ICCI: Ingeniero Cívil en Computación e Informática
-- ITI: Ingeniero en Tecnologías de la Información
+- ICCI: Ingeniería Civil en Computación e Informática
+- ITI: Ingeniería en Tecnologías de la Información

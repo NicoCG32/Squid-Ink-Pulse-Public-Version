@@ -1,0 +1,332 @@
+using System;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Serialization;
+
+public enum RunEventState
+{
+    Normal,
+    BossActive,
+    PostBossWindow,
+    Transitioning
+}
+
+public readonly struct RunDifficultySnapshot
+{
+    public RunDifficultySnapshot(
+        float elapsedSeconds,
+        float cycleElapsedSeconds,
+        float distance,
+        float intensity,
+        float targetScrollSpeed,
+        float spawnInterval,
+        float bossInterval,
+        int progressionCycle,
+        RunEventState eventState)
+    {
+        ElapsedSeconds = elapsedSeconds;
+        CycleElapsedSeconds = cycleElapsedSeconds;
+        Distance = distance;
+        Intensity = intensity;
+        TargetScrollSpeed = targetScrollSpeed;
+        SpawnInterval = spawnInterval;
+        BossInterval = bossInterval;
+        ProgressionCycle = progressionCycle;
+        EventState = eventState;
+    }
+
+    public float ElapsedSeconds { get; }
+    public float CycleElapsedSeconds { get; }
+    public float Distance { get; }
+    public float Intensity { get; }
+    public float TargetScrollSpeed { get; }
+    public float SpawnInterval { get; }
+    public float BossInterval { get; }
+    public int ProgressionCycle { get; }
+    public RunEventState EventState { get; }
+}
+
+[DisallowMultipleComponent]
+public class RunProgressionDirector : MonoBehaviour
+{
+    private static RunProgressionDirector instance;
+
+    [Header("References")]
+    [SerializeField] private GameSessionController session;
+    [SerializeField] private Transform distanceReference;
+
+    [Header("Progression")]
+    [SerializeField] private float secondsToMaxIntensity = 120f;
+    [SerializeField, Range(0f, 1f)] private float postBossIntensityFloor = 0.25f;
+
+    [Header("Movement")]
+    [SerializeField] private float minScrollSpeed = 5f;
+    [SerializeField] private float maxScrollSpeed = 9f;
+
+    [Header("Spawning")]
+    [SerializeField] private float maxSpawnInterval = 1.5f;
+    [SerializeField] private float minSpawnInterval = 0.65f;
+    [SerializeField, Min(0.01f)] private float bossActiveSpawnIntervalMultiplier = 0.5f;
+    [SerializeField, Min(0.01f)] private float postBossSpawnIntervalMultiplier = 1.75f;
+
+    [Header("Boss Pacing")]
+    [SerializeField] private float maxBossInterval = 45f;
+    [SerializeField] private float minBossInterval = 30f;
+    [SerializeField, FormerlySerializedAs("bossEventLockSeconds")] private float postBossWindowSeconds = 6f;
+
+    [Header("Events")]
+    public UnityEvent<RunEventState> onEventStateChanged = new UnityEvent<RunEventState>();
+
+    private float elapsedSeconds;
+    private float cycleElapsedSeconds;
+    private float integratedDistance;
+    private float eventStateRemainingSeconds;
+    private float startX;
+
+    public static RunProgressionDirector Instance => instance;
+    public static bool HasInstance => instance != null;
+
+    public RunDifficultySnapshot Current { get; private set; }
+    public int ProgressionCycle { get; private set; }
+    public RunEventState EventState { get; private set; } = RunEventState.Normal;
+    public float EventStateRemainingSeconds => eventStateRemainingSeconds;
+    public bool IsEventBlockingRegularSpawns => EventState == RunEventState.Transitioning;
+    public bool CanTriggerBossEvent => session != null
+        && session.IsPlaying
+        && EventState == RunEventState.Normal
+        && cycleElapsedSeconds >= Current.BossInterval;
+
+    public event Action<RunEventState, RunEventState> EventStateChanged;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        ResolveSessionReference();
+
+        if (distanceReference != null)
+        {
+            startX = distanceReference.position.x;
+        }
+
+        RefreshSnapshot();
+        WarnIfMissingReferences();
+    }
+
+    private void Update()
+    {
+        ResolveSessionReference();
+
+        if (session == null || !session.IsPlaying)
+        {
+            return;
+        }
+
+        float deltaTime = Time.deltaTime;
+        elapsedSeconds += deltaTime;
+        integratedDistance += Mathf.Max(Current.TargetScrollSpeed, minScrollSpeed) * deltaTime;
+
+        if (EventState == RunEventState.Normal)
+        {
+            cycleElapsedSeconds += deltaTime;
+        }
+
+        UpdateEventStateTimer(deltaTime);
+        RefreshSnapshot();
+    }
+
+    public bool TryStartBossEvent()
+    {
+        if (!CanTriggerBossEvent)
+        {
+            return false;
+        }
+
+        ApplyEventState(RunEventState.BossActive);
+        RefreshSnapshot();
+        return true;
+    }
+
+    public void NotifyBossResolved()
+    {
+        if (EventState != RunEventState.BossActive)
+        {
+            return;
+        }
+
+        ProgressionCycle++;
+        cycleElapsedSeconds = 0f;
+        ApplyEventState(RunEventState.PostBossWindow);
+        RefreshSnapshot();
+    }
+
+    public void NotifyBossFailed()
+    {
+        if (EventState == RunEventState.BossActive)
+        {
+            ApplyEventState(RunEventState.Normal);
+            RefreshSnapshot();
+        }
+    }
+
+    public bool TryBeginTransition()
+    {
+        if (EventState != RunEventState.PostBossWindow && EventState != RunEventState.Normal)
+        {
+            return false;
+        }
+
+        ApplyEventState(RunEventState.Transitioning);
+        RefreshSnapshot();
+        return true;
+    }
+
+    public void CompleteTransition()
+    {
+        if (EventState != RunEventState.Transitioning)
+        {
+            return;
+        }
+
+        ApplyEventState(RunEventState.Normal);
+        RefreshSnapshot();
+    }
+
+    public void ResetProgression()
+    {
+        elapsedSeconds = 0f;
+        cycleElapsedSeconds = 0f;
+        integratedDistance = 0f;
+        eventStateRemainingSeconds = 0f;
+        ProgressionCycle = 0;
+        ApplyEventState(RunEventState.Normal, force: true);
+
+        if (distanceReference != null)
+        {
+            startX = distanceReference.position.x;
+        }
+
+        RefreshSnapshot();
+    }
+
+    private void RefreshSnapshot()
+    {
+        float rawIntensity = Mathf.Clamp01(cycleElapsedSeconds / Mathf.Max(0.01f, secondsToMaxIntensity));
+        float smoothedIntensity = Mathf.SmoothStep(0f, 1f, rawIntensity);
+        float floor = ProgressionCycle > 0 ? postBossIntensityFloor : 0f;
+        float intensity = Mathf.Clamp01(Mathf.Max(smoothedIntensity, floor));
+
+        float targetScrollSpeed = Mathf.Lerp(minScrollSpeed, Mathf.Max(minScrollSpeed, maxScrollSpeed), intensity);
+        float baseSpawnInterval = Mathf.Lerp(
+            Mathf.Max(minSpawnInterval, maxSpawnInterval),
+            Mathf.Max(0.01f, minSpawnInterval),
+            intensity);
+        float spawnInterval = Mathf.Max(0.01f, baseSpawnInterval * GetEventSpawnIntervalMultiplier());
+        float bossInterval = Mathf.Lerp(
+            Mathf.Max(minBossInterval, maxBossInterval),
+            Mathf.Max(0.01f, minBossInterval),
+            intensity);
+
+        Current = new RunDifficultySnapshot(
+            elapsedSeconds,
+            cycleElapsedSeconds,
+            CalculateDistance(),
+            intensity,
+            targetScrollSpeed,
+            spawnInterval,
+            bossInterval,
+            ProgressionCycle,
+            EventState);
+    }
+
+    private float GetEventSpawnIntervalMultiplier()
+    {
+        return EventState switch
+        {
+            RunEventState.BossActive => bossActiveSpawnIntervalMultiplier,
+            RunEventState.PostBossWindow => postBossSpawnIntervalMultiplier,
+            _ => 1f
+        };
+    }
+
+    private void UpdateEventStateTimer(float deltaTime)
+    {
+        if (EventState != RunEventState.PostBossWindow)
+        {
+            return;
+        }
+
+        eventStateRemainingSeconds = Mathf.Max(0f, eventStateRemainingSeconds - deltaTime);
+        if (eventStateRemainingSeconds <= 0f)
+        {
+            ApplyEventState(RunEventState.Normal);
+        }
+    }
+
+    private void ApplyEventState(RunEventState nextState, bool force = false)
+    {
+        RunEventState previousState = EventState;
+        if (!force && previousState == nextState)
+        {
+            return;
+        }
+
+        EventState = nextState;
+        eventStateRemainingSeconds = nextState == RunEventState.PostBossWindow
+            ? Mathf.Max(0f, postBossWindowSeconds)
+            : 0f;
+
+        EventStateChanged?.Invoke(previousState, nextState);
+        onEventStateChanged?.Invoke(nextState);
+    }
+
+    private float CalculateDistance()
+    {
+        if (distanceReference == null)
+        {
+            return integratedDistance;
+        }
+
+        return Mathf.Max(0f, distanceReference.position.x - startX);
+    }
+
+    private void ResolveSessionReference()
+    {
+        if (session != null)
+        {
+            return;
+        }
+
+        if (TryGetComponent(out GameSessionController localSession))
+        {
+            session = localSession;
+            return;
+        }
+
+        if (GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+    }
+
+    private void WarnIfMissingReferences()
+    {
+        if (session == null)
+        {
+            Debug.LogWarning("[RunProgressionDirector] Falta asignar GameSessionController.", this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
+    }
+}

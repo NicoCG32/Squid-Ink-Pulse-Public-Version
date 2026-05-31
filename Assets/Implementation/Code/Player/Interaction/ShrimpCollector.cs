@@ -22,7 +22,13 @@ public class ShrimpCollector : MonoBehaviour
             return;
         }
 
-        shrimpCount++;
+        int collectedAmount = 1;
+        if (shrimpObject != null && shrimpObject.TryGetComponent(out ShrimpValue value))
+        {
+            collectedAmount = value.Amount;
+        }
+
+        shrimpCount += collectedAmount;
         ShrimpsChanged?.Invoke(shrimpCount);
 
         if (shrimpObject != null)

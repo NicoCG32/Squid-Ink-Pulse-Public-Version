@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameSessionController session;
+    [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera gameplayCamera;
     [SerializeField] private Collider2D playerCollider;
     [SerializeField] private Collider2D topBorder;
@@ -40,12 +41,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        ResolveSceneReferences();
         ResetRuntimeState();
         WarnIfMissingReferences();
     }
 
     private void Start()
     {
+        ResolveSceneReferences();
         UpdateVerticalLimitsFromBorders();
         ClampPlayerInsideLimits();
         previousY = transform.position.y;
@@ -61,6 +64,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        ResolveSceneReferences();
         UpdateVerticalLimitsFromBorders();
         HandleMovement();
         UpdateSpeedTransition();
@@ -111,7 +115,11 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        currentHorizontalSpeed = Mathf.Lerp(currentHorizontalSpeed, normalHorizontalSpeed, smoothSpeedTransition * Time.deltaTime);
+        float targetHorizontalSpeed = progression != null
+            ? progression.Current.TargetScrollSpeed
+            : normalHorizontalSpeed;
+
+        currentHorizontalSpeed = Mathf.Lerp(currentHorizontalSpeed, targetHorizontalSpeed, smoothSpeedTransition * Time.deltaTime);
         currentVerticalSpeed = Mathf.Lerp(currentVerticalSpeed, normalVerticalSpeed, smoothSpeedTransition * Time.deltaTime);
     }
 
@@ -160,6 +168,36 @@ public class PlayerMovement : MonoBehaviour
     private bool IsGameplayActive()
     {
         return session != null && session.IsPlaying;
+    }
+
+    private void ResolveSceneReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (progression == null && RunProgressionDirector.HasInstance)
+        {
+            progression = RunProgressionDirector.Instance;
+        }
+
+        if (gameplayCamera == null)
+        {
+            gameplayCamera = Camera.main;
+        }
+
+        if (playerCollider == null)
+        {
+            playerCollider = GetComponent<Collider2D>();
+        }
+
+        if ((topBorder == null || bottomBorder == null)
+            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out Collider2D resolvedBottom))
+        {
+            topBorder = resolvedTop;
+            bottomBorder = resolvedBottom;
+        }
     }
 
     private void WarnIfMissingReferences()
