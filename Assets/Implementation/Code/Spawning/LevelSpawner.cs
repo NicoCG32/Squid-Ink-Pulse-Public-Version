@@ -442,7 +442,7 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        GameObject playerObject = GameObject.FindGameObjectWithTag(GameplayTagCatalog.Player);
         if (playerObject != null)
         {
             player = playerObject.transform;

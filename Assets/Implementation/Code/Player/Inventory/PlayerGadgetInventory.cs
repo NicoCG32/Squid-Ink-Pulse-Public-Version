@@ -10,8 +10,8 @@ public class PlayerGadgetInventory : MonoBehaviour
 
     [Header("Runtime Starting Inventory")]
     [SerializeField] private bool grantStartingInventory;
-    [SerializeField, Min(0)] private int startingShellShieldCount;
-    [SerializeField, Min(0)] private int startingInkBottleCount;
+    [SerializeField] private bool startWithShellShield;
+    [SerializeField] private bool startWithInkBottle;
     [SerializeField] private Sprite startingShellShieldIcon;
     [SerializeField] private Sprite startingInkBottleIcon;
 
@@ -52,15 +52,15 @@ public class PlayerGadgetInventory : MonoBehaviour
         return RuntimeGadgetInventory.TryConsumeShellShield();
     }
 
-    public bool Acquire(GadgetId gadget, int amount, Sprite icon, Color iconTint)
+    public bool Acquire(GadgetId gadget, Sprite icon, Color iconTint)
     {
-        return RuntimeGadgetInventory.Acquire(gadget, amount, icon, iconTint);
+        return RuntimeGadgetInventory.Acquire(gadget, icon, iconTint);
     }
 
     private bool TryUseActiveSlot(int slotIndex)
     {
         GadgetId gadget = RuntimeGadgetInventory.GetSlot(slotIndex);
-        if (!GadgetCatalog.IsActive(gadget) || RuntimeGadgetInventory.GetCount(gadget) <= 0)
+        if (!GadgetCatalog.IsActive(gadget) || !RuntimeGadgetInventory.HasGadget(gadget))
         {
             return false;
         }
@@ -87,8 +87,15 @@ public class PlayerGadgetInventory : MonoBehaviour
             return;
         }
 
-        RuntimeGadgetInventory.Acquire(GadgetId.ShellShield, startingShellShieldCount, startingShellShieldIcon, Color.white);
-        RuntimeGadgetInventory.Acquire(GadgetId.InkBottle, startingInkBottleCount, startingInkBottleIcon, Color.white);
+        if (startWithShellShield)
+        {
+            RuntimeGadgetInventory.Acquire(GadgetId.ShellShield, startingShellShieldIcon, Color.white);
+        }
+
+        if (startWithInkBottle)
+        {
+            RuntimeGadgetInventory.Acquire(GadgetId.InkBottle, startingInkBottleIcon, Color.white);
+        }
     }
 
     private bool TryUseInkBottle()

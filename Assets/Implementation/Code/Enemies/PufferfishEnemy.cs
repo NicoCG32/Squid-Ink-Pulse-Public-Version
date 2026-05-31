@@ -121,7 +121,7 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 
         if (player == null)
         {
-            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+            GameObject playerObject = GameObject.FindGameObjectWithTag(GameplayTagCatalog.Player);
             if (playerObject != null)
             {
                 player = playerObject.transform;

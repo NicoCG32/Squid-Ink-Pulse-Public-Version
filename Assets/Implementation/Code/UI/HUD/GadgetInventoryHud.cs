@@ -43,7 +43,7 @@ public class GadgetInventoryHud : MonoBehaviour
     private void RefreshSlot(Image targetIcon, TMP_Text targetText, int slotIndex, string keyLabel)
     {
         GadgetId gadget = RuntimeGadgetInventory.GetSlot(slotIndex);
-        bool hasGadget = gadget != GadgetId.None && RuntimeGadgetInventory.GetCount(gadget) > 0;
+        bool hasGadget = gadget != GadgetId.None && RuntimeGadgetInventory.HasGadget(gadget);
 
         ApplyIcon(targetIcon, gadget, hasGadget);
         ApplyKeyLabel(targetText, gadget, hasGadget, keyLabel);

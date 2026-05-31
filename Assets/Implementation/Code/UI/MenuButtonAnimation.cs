@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 /// <summary>
 /// Animacion de hover/click para botones de menus runtime.
@@ -20,6 +21,7 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
 
     private Vector3 originalScale;
     private Quaternion originalRotation;
+    private Transform animatedTransform;
     private float targetScale = 1f;
     private float shakeTimer;
     private bool isHovered;
@@ -27,27 +29,33 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
 
     private void Awake()
     {
-        originalScale = transform.localScale;
-        originalRotation = transform.localRotation;
+        animatedTransform = ResolveAnimatedTransform();
+        originalScale = animatedTransform.localScale;
+        originalRotation = animatedTransform.localRotation;
     }
 
     private void Update()
     {
-        float currentScale = transform.localScale.x / originalScale.x;
+        if (animatedTransform == null)
+        {
+            return;
+        }
+
+        float currentScale = animatedTransform.localScale.x / originalScale.x;
         float newScale = Mathf.Lerp(currentScale, targetScale, Time.unscaledDeltaTime * scaleSpeed);
-        transform.localScale = originalScale * newScale;
+        animatedTransform.localScale = originalScale * newScale;
 
         if (isHovered && !isPressed)
         {
             shakeTimer += Time.unscaledDeltaTime * shakeSpeed;
             float angle = Mathf.Sin(shakeTimer) * hoverRotation;
-            transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, angle);
+            animatedTransform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, angle);
             return;
         }
 
         shakeTimer = 0f;
-        transform.localRotation = Quaternion.Lerp(
-            transform.localRotation,
+        animatedTransform.localRotation = Quaternion.Lerp(
+            animatedTransform.localRotation,
             originalRotation,
             Time.unscaledDeltaTime * scaleSpeed);
     }
@@ -80,5 +88,11 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
     {
         isPressed = false;
         targetScale = isHovered ? hoverScale : 1f;
+    }
+
+    private Transform ResolveAnimatedTransform()
+    {
+        Button parentButton = GetComponentInParent<Button>();
+        return parentButton != null ? parentButton.transform : transform;
     }
 }

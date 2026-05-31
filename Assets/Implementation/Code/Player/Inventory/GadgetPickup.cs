@@ -44,7 +44,7 @@ public class GadgetPickup : MonoBehaviour
             return;
         }
 
-        if (!inventory.Acquire(gadgetId, 1, hudIcon, hudIconTint))
+        if (!inventory.Acquire(gadgetId, hudIcon, hudIconTint))
         {
             return;
         }

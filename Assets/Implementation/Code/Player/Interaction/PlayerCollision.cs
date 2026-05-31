@@ -3,8 +3,6 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class PlayerCollision : MonoBehaviour
 {
-    private const string ShrimpTag = "Shrimp";
-
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private InkPulseController inkPulseController;
@@ -33,7 +31,7 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        if (other.CompareTag(ShrimpTag))
+        if (other.CompareTag(GameplayTagCatalog.Shrimp))
         {
             shrimpCollector?.Collect(other.gameObject);
             return;

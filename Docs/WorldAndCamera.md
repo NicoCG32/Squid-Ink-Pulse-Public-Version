@@ -27,9 +27,9 @@ Responsabilidad:
 
 ## Escala de mundo
 
-La escala canónica está documentada en `docs/WorldScale.md`: `100 px` de arte equivalen a `1 unidad Unity`.
+La escala canónica está documentada en [WorldScale.md](WorldScale.md): `100 px` de arte equivalen a `1 unidad Unity`.
 
-En `ZonaEpipelagica`, la altura física útil entre el borde superior del `BottomBoundary` del jugador y el borde inferior del `TopBoundary` del jugador queda normalizada en `14.69` unidades. Esta medida corresponde a `1469 px` a `100 PPU`, y es la referencia directa para la altura de la red del SS Carnage.
+En `ZonaEpipelágica`, la altura física útil entre el borde superior del `BottomBoundary` del jugador y el borde inferior del `TopBoundary` del jugador queda normalizada en `14.69` unidades. Esta medida corresponde a `1469 px` a `100 PPU`, y es la referencia directa para la altura de la red del SS Carnage.
 
 ## DestroyOffscreen
 

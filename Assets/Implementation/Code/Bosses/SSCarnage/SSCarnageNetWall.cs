@@ -6,8 +6,6 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class SSCarnageNetWall : MonoBehaviour
 {
-    private const string PlayerTag = "Player";
-
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private RunProgressionDirector progression;
@@ -93,7 +91,7 @@ public class SSCarnageNetWall : MonoBehaviour
             return;
         }
 
-        if (!other.CompareTag(PlayerTag))
+        if (!other.CompareTag(GameplayTagCatalog.Player))
         {
             return;
         }

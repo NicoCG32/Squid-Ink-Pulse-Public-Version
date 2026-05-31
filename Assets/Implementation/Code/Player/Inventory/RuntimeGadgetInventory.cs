@@ -6,8 +6,8 @@ public static class RuntimeGadgetInventory
     public const int SlotCount = 2;
 
     private static bool initialized;
-    private static int shellShieldCount;
-    private static int inkBottleCount;
+    private static bool hasShellShield;
+    private static bool hasInkBottle;
     private static readonly GadgetId[] inventorySlots = { GadgetId.None, GadgetId.None };
     private static Sprite shellShieldIcon;
     private static Sprite inkBottleIcon;
@@ -28,13 +28,13 @@ public static class RuntimeGadgetInventory
         Changed?.Invoke();
     }
 
-    public static int GetCount(GadgetId gadget)
+    public static bool HasGadget(GadgetId gadget)
     {
         return gadget switch
         {
-            GadgetId.ShellShield => shellShieldCount,
-            GadgetId.InkBottle => inkBottleCount,
-            _ => 0
+            GadgetId.ShellShield => hasShellShield,
+            GadgetId.InkBottle => hasInkBottle,
+            _ => false
         };
     }
 
@@ -68,20 +68,15 @@ public static class RuntimeGadgetInventory
         };
     }
 
-    public static void Add(GadgetId gadget, int amount)
+    public static bool Acquire(GadgetId gadget, Sprite icon, Color iconTint)
     {
-        Acquire(gadget, amount, null, Color.white);
-    }
-
-    public static bool Acquire(GadgetId gadget, int amount, Sprite icon, Color iconTint)
-    {
-        if (amount <= 0 || gadget == GadgetId.None)
+        if (gadget == GadgetId.None)
         {
             return false;
         }
 
         InitializeIfNeeded();
-        if (GetCount(gadget) > 0)
+        if (HasGadget(gadget))
         {
             return false;
         }
@@ -102,10 +97,10 @@ public static class RuntimeGadgetInventory
         switch (gadget)
         {
             case GadgetId.ShellShield:
-                shellShieldCount = isOwned ? 1 : 0;
+                hasShellShield = isOwned;
                 break;
             case GadgetId.InkBottle:
-                inkBottleCount = isOwned ? 1 : 0;
+                hasInkBottle = isOwned;
                 break;
         }
     }
@@ -154,7 +149,7 @@ public static class RuntimeGadgetInventory
 
     public static bool TryConsume(GadgetId gadget)
     {
-        if (GetCount(gadget) <= 0)
+        if (!HasGadget(gadget))
         {
             return false;
         }
@@ -162,10 +157,10 @@ public static class RuntimeGadgetInventory
         switch (gadget)
         {
             case GadgetId.ShellShield:
-                shellShieldCount = 0;
+                hasShellShield = false;
                 break;
             case GadgetId.InkBottle:
-                inkBottleCount = 0;
+                hasInkBottle = false;
                 break;
             default:
                 return false;
@@ -195,8 +190,8 @@ public static class RuntimeGadgetInventory
     public static void ResetForRuntime()
     {
         initialized = false;
-        shellShieldCount = 0;
-        inkBottleCount = 0;
+        hasShellShield = false;
+        hasInkBottle = false;
         inventorySlots[0] = GadgetId.None;
         inventorySlots[1] = GadgetId.None;
         shellShieldIcon = null;

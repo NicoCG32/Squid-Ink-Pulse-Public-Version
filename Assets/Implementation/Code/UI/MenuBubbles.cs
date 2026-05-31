@@ -92,7 +92,7 @@ public class MenuBubbles : MonoBehaviour
     private void RebuildBubbles()
     {
         bubbles.Clear();
-        ClearLegacyBubbles();
+        ClearDetachedBubbles();
         ClearBubbleLayer();
 
         int count = Mathf.Max(0, cantidadBurbujas);
@@ -201,7 +201,7 @@ public class MenuBubbles : MonoBehaviour
         }
     }
 
-    private void ClearLegacyBubbles()
+    private void ClearDetachedBubbles()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {

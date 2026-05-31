@@ -7,6 +7,7 @@ Este directorio organiza la documentación por tema. La idea es que cada persona
 - [ProjectOverview.md](ProjectOverview.md) - visión general, pilares y orden de lectura.
 - [ProjectStructure.md](ProjectStructure.md) - organización de carpetas y criterios.
 - [RuntimeHierarchyAudit.md](RuntimeHierarchyAudit.md) - asignación esperada de scripts por nodo, prefab y responsabilidad.
+- [ZonaEpipelagica.md](ZonaEpipelagica.md) - estructura de la escena principal, managers y jerarquía runtime.
 - [AssetFlow.md](AssetFlow.md) - entrada y uso de audio, arte y animaciones.
 - [WorldScale.md](WorldScale.md) - escala canónica entre píxeles, unidades de mundo y boundaries.
 - [AnimationStandards.md](AnimationStandards.md) - reglas y checklist de animaciones runtime.
