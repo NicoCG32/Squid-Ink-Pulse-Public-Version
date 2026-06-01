@@ -36,12 +36,12 @@ public class PlayerGadgetInventory : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current.wKey.wasPressedThisFrame)
+        if (Keyboard.current.qKey.wasPressedThisFrame)
         {
             TryUseActiveSlot(0);
         }
 
-        if (Keyboard.current.qKey.wasPressedThisFrame)
+        if (Keyboard.current.wKey.wasPressedThisFrame)
         {
             TryUseActiveSlot(1);
         }

@@ -14,12 +14,22 @@ public class GadgetInventoryHud : MonoBehaviour
     [SerializeField] private TMP_Text secondSlotText;
 
     [Header("Labels")]
-    [SerializeField] private string firstSlotKey = "W";
-    [SerializeField] private string secondSlotKey = "Q";
+    [SerializeField] private string firstSlotKey = "Q";
+    [SerializeField] private string secondSlotKey = "W";
+
+    [Header("Attention Animation")]
+    [SerializeField, Min(0f)] private float textPulseAmplitude = 0.12f;
+    [SerializeField, Min(0.01f)] private float textPulseFrequency = 2.5f;
+
+    private TMP_Text cachedFirstSlotText;
+    private TMP_Text cachedSecondSlotText;
+    private Vector3 firstSlotTextBaseScale = Vector3.one;
+    private Vector3 secondSlotTextBaseScale = Vector3.one;
 
     private void Awake()
     {
         ResolveVisualReferences();
+        CacheAnimatedTextScalesIfNeeded();
     }
 
     private void OnEnable()
@@ -31,11 +41,18 @@ public class GadgetInventoryHud : MonoBehaviour
     private void OnDisable()
     {
         RuntimeGadgetInventory.Changed -= Refresh;
+        ResetAnimatedTextScales();
+    }
+
+    private void Update()
+    {
+        AnimateVisibleKeyLabels();
     }
 
     private void Refresh()
     {
         ResolveVisualReferences();
+        CacheAnimatedTextScalesIfNeeded();
         RefreshSlot(firstSlotIcon, firstSlotText, 0, firstSlotKey);
         RefreshSlot(secondSlotIcon, secondSlotText, 1, secondSlotKey);
     }
@@ -82,6 +99,12 @@ public class GadgetInventoryHud : MonoBehaviour
         bool shouldShowKey = hasGadget && GadgetCatalog.IsActive(gadget);
         targetText.gameObject.SetActive(shouldShowKey);
         targetText.text = shouldShowKey ? keyLabel : string.Empty;
+        targetText.raycastTarget = false;
+
+        if (!shouldShowKey)
+        {
+            ResetTextScale(targetText);
+        }
     }
 
     private void ResolveVisualReferences()
@@ -103,30 +126,23 @@ public class GadgetInventoryHud : MonoBehaviour
             }
         }
 
-        firstSlotIcon ??= FindOrCreateSlotIcon(firstSlotRoot);
-        secondSlotIcon ??= FindOrCreateSlotIcon(secondSlotRoot);
-        firstSlotText ??= FindOrCreateSlotText(firstSlotRoot, "FirstSlotKey");
-        secondSlotText ??= FindOrCreateSlotText(secondSlotRoot, "SecondSlotKey");
+        firstSlotIcon ??= FindSlotIcon(firstSlotRoot);
+        secondSlotIcon ??= FindSlotIcon(secondSlotRoot);
+        firstSlotText ??= FindSlotText(firstSlotRoot);
+        secondSlotText ??= FindSlotText(secondSlotRoot);
     }
 
-    private Image FindOrCreateSlotIcon(RectTransform slotRoot)
+    private Image FindSlotIcon(RectTransform slotRoot)
     {
         if (slotRoot == null)
         {
             return null;
         }
 
-        if (!slotRoot.TryGetComponent(out Image image))
-        {
-            image = slotRoot.gameObject.AddComponent<Image>();
-        }
-
-        image.raycastTarget = false;
-        image.preserveAspect = true;
-        return image;
+        return slotRoot.TryGetComponent(out Image image) ? image : null;
     }
 
-    private TMP_Text FindOrCreateSlotText(RectTransform slotRoot, string textName)
+    private TMP_Text FindSlotText(RectTransform slotRoot)
     {
         if (slotRoot == null)
         {
@@ -136,42 +152,60 @@ public class GadgetInventoryHud : MonoBehaviour
         TMP_Text existingText = slotRoot.GetComponentInChildren<TMP_Text>(includeInactive: true);
         if (existingText != null)
         {
-            existingText.gameObject.SetActive(true);
-            ConfigureSlotText(existingText);
+            existingText.raycastTarget = false;
             return existingText;
         }
 
-        TextMeshProUGUI createdText = CreateText(textName, slotRoot);
-        ConfigureSlotText(createdText);
-        return createdText;
+        return null;
     }
 
-    private void ConfigureSlotText(TMP_Text text)
+    private void CacheAnimatedTextScalesIfNeeded()
     {
-        RectTransform rectTransform = text.rectTransform;
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = new Vector2(8f, -6f);
-        rectTransform.sizeDelta = new Vector2(44f, 44f);
-        rectTransform.SetAsLastSibling();
+        if (firstSlotText != null && cachedFirstSlotText != firstSlotText)
+        {
+            cachedFirstSlotText = firstSlotText;
+            firstSlotTextBaseScale = firstSlotText.rectTransform.localScale;
+        }
 
-        text.raycastTarget = false;
-        text.fontSize = 36f;
-        text.alignment = TextAlignmentOptions.Center;
-        text.color = Color.white;
-        text.margin = Vector4.zero;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
+        if (secondSlotText != null && cachedSecondSlotText != secondSlotText)
+        {
+            cachedSecondSlotText = secondSlotText;
+            secondSlotTextBaseScale = secondSlotText.rectTransform.localScale;
+        }
     }
 
-    private TextMeshProUGUI CreateText(string textName, Transform parent)
+    private void AnimateVisibleKeyLabels()
     {
-        GameObject textObject = new GameObject(textName, typeof(RectTransform));
-        textObject.layer = parent.gameObject.layer;
-        textObject.transform.SetParent(parent, worldPositionStays: false);
+        float pulse = 1f + Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f * textPulseFrequency) * textPulseAmplitude;
+        ApplyTextPulse(firstSlotText, firstSlotTextBaseScale, pulse);
+        ApplyTextPulse(secondSlotText, secondSlotTextBaseScale, pulse);
+    }
 
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = string.Empty;
-        return text;
+    private void ApplyTextPulse(TMP_Text text, Vector3 baseScale, float pulse)
+    {
+        if (text != null && text.gameObject.activeInHierarchy)
+        {
+            text.rectTransform.localScale = baseScale * pulse;
+        }
+    }
+
+    private void ResetAnimatedTextScales()
+    {
+        ResetTextScale(firstSlotText);
+        ResetTextScale(secondSlotText);
+    }
+
+    private void ResetTextScale(TMP_Text text)
+    {
+        if (text == firstSlotText && text != null)
+        {
+            text.rectTransform.localScale = firstSlotTextBaseScale;
+            return;
+        }
+
+        if (text == secondSlotText && text != null)
+        {
+            text.rectTransform.localScale = secondSlotTextBaseScale;
+        }
     }
 }

@@ -15,6 +15,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Transform target;
     [SerializeField] private Collider2D topBorder;
     [SerializeField] private Collider2D bottomBorder;
+    [SerializeField] private InkPulseController inkPulse;
 
     [Header("Target Settings")]
     [SerializeField] private Vector3 offset = new Vector3(3f, 0f, -10f);
@@ -26,11 +27,23 @@ public class CameraController : MonoBehaviour
     [Header("Dynamics")]
     [SerializeField] private float smoothTime = 0.25f;
 
+    [Header("Ink-Pulse Feedback")]
+    [SerializeField] private bool enableInkPulseScreenPulse = true;
+    [SerializeField, Min(0f)] private float inkPulseFeedbackDuration = 0.18f;
+    [SerializeField, Min(0f)] private float inkPulseShakeAmplitude = 0.08f;
+    [SerializeField, Min(0f)] private float inkPulseZoomAmplitude = 0.18f;
+    [SerializeField, Min(1f)] private float inkPulseShakeFrequency = 24f;
+
     private Vector3 velocity = Vector3.zero;
     private float orthographicVelocity;
     private float normalOrthographicSize;
     private float wideViewRemainingSeconds;
     private float wideViewTransitionSmoothTime = 1f;
+    private InkPulseController subscribedInkPulse;
+    private float inkPulseFeedbackRemainingSeconds;
+    private float inkPulseFeedbackElapsedSeconds;
+    private Vector3 activeFeedbackOffset;
+    private float activeFeedbackOrthographicOffset;
 
     public CameraEventMode CurrentMode { get; private set; } = CameraEventMode.Follow;
     public event Action<CameraEventMode, CameraEventMode> ModeChanged;
@@ -47,6 +60,18 @@ public class CameraController : MonoBehaviour
         WarnIfMissingReferences();
     }
 
+    private void OnEnable()
+    {
+        ResolveSceneReferences();
+        UpdateInkPulseSubscription();
+    }
+
+    private void OnDisable()
+    {
+        ClearInkPulseSubscription();
+        RemoveActiveFeedback();
+    }
+
     private void Update()
     {
         if (wideViewRemainingSeconds > 0f)
@@ -57,6 +82,7 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
+        RemoveActiveFeedback();
         ResolveSceneReferences();
 
         if (target == null)
@@ -79,6 +105,7 @@ public class CameraController : MonoBehaviour
             GetActiveSmoothTime(CurrentMode));
 
         UpdateOrthographicSize(CurrentMode);
+        ApplyInkPulseScreenFeedback();
     }
 
     public void RequestFullVerticalView(float holdSeconds, float transitionSmoothTime, float extraTopSpace)
@@ -132,6 +159,61 @@ public class CameraController : MonoBehaviour
             targetSize,
             ref orthographicVelocity,
             GetActiveSmoothTime(mode));
+    }
+
+    private void HandleInkPulseStarted()
+    {
+        if (!enableInkPulseScreenPulse || inkPulseFeedbackDuration <= 0f)
+        {
+            return;
+        }
+
+        inkPulseFeedbackRemainingSeconds = inkPulseFeedbackDuration;
+        inkPulseFeedbackElapsedSeconds = 0f;
+    }
+
+    private void ApplyInkPulseScreenFeedback()
+    {
+        if (!enableInkPulseScreenPulse || inkPulseFeedbackRemainingSeconds <= 0f)
+        {
+            return;
+        }
+
+        float deltaTime = Time.unscaledDeltaTime;
+        inkPulseFeedbackElapsedSeconds += deltaTime;
+        inkPulseFeedbackRemainingSeconds = Mathf.Max(0f, inkPulseFeedbackRemainingSeconds - deltaTime);
+
+        float progress = Mathf.Clamp01(inkPulseFeedbackElapsedSeconds / Mathf.Max(0.01f, inkPulseFeedbackDuration));
+        float decay = 1f - progress;
+        float angularTime = inkPulseFeedbackElapsedSeconds * inkPulseShakeFrequency * Mathf.PI * 2f;
+
+        activeFeedbackOffset = new Vector3(
+            Mathf.Sin(angularTime) * inkPulseShakeAmplitude * decay,
+            Mathf.Cos(angularTime * 0.73f) * inkPulseShakeAmplitude * 0.6f * decay,
+            0f);
+
+        transform.position += activeFeedbackOffset;
+
+        if (currentCamera != null && currentCamera.orthographic)
+        {
+            activeFeedbackOrthographicOffset = Mathf.Sin(progress * Mathf.PI) * inkPulseZoomAmplitude * decay;
+            currentCamera.orthographicSize += activeFeedbackOrthographicOffset;
+        }
+    }
+
+    private void RemoveActiveFeedback()
+    {
+        if (activeFeedbackOffset != Vector3.zero)
+        {
+            transform.position -= activeFeedbackOffset;
+            activeFeedbackOffset = Vector3.zero;
+        }
+
+        if (activeFeedbackOrthographicOffset != 0f && currentCamera != null && currentCamera.orthographic)
+        {
+            currentCamera.orthographicSize -= activeFeedbackOrthographicOffset;
+            activeFeedbackOrthographicOffset = 0f;
+        }
     }
 
     private float CalculateWideViewCenterY()
@@ -240,5 +322,39 @@ public class CameraController : MonoBehaviour
         {
             normalOrthographicSize = currentCamera.orthographicSize;
         }
+
+        if (inkPulse == null && target != null)
+        {
+            inkPulse = target.GetComponent<InkPulseController>();
+        }
+
+        UpdateInkPulseSubscription();
+    }
+
+    private void UpdateInkPulseSubscription()
+    {
+        if (subscribedInkPulse == inkPulse)
+        {
+            return;
+        }
+
+        ClearInkPulseSubscription();
+
+        if (inkPulse != null)
+        {
+            subscribedInkPulse = inkPulse;
+            subscribedInkPulse.PulseStarted += HandleInkPulseStarted;
+        }
+    }
+
+    private void ClearInkPulseSubscription()
+    {
+        if (subscribedInkPulse == null)
+        {
+            return;
+        }
+
+        subscribedInkPulse.PulseStarted -= HandleInkPulseStarted;
+        subscribedInkPulse = null;
     }
 }

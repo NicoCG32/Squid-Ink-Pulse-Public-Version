@@ -68,22 +68,49 @@ Archivos:
 - `Assets/Implementation/Code/Player/Inventory/GadgetDefinitions.cs`
 - `Assets/Implementation/Code/Player/Inventory/RuntimeGadgetInventory.cs`
 - `Assets/Implementation/Code/Player/Inventory/PlayerGadgetInventory.cs`
-- `Assets/Implementation/Code/Player/Inventory/GadgetPickup.cs`
+- `Assets/Implementation/Code/Player/Inventory/GadgetShopItem.cs`
+- `Assets/Implementation/Code/UI/Shop/InGameShopManager.cs`
+- `Assets/Implementation/Code/World/Shop/DealerFish.cs`
 
 Responsabilidad:
 - Inicializar el inventario runtime de gadgets.
-- Recibir adquisiciones desde prefabs con `GadgetPickup`.
+- Registrar los prefabs de gadget como mercancía comprable mediante `GadgetShopItem`.
 - Almacenar gadgets en slots de inventario según el orden de adquisición.
 - Modelar posesión única con `HasGadget`, no con contadores ni stacks.
 - Mostrar tecla solo cuando el gadget del slot es activo.
 - Consumir `Shell Shield` automáticamente cuando una colisión produciría Game Over.
-- Activar gadgets de slot con teclado: `W` para slot 1 y `Q` para slot 2.
+- Activar gadgets de slot con teclado: `Q` para slot 1 (`Gadget1`) y `W` para slot 2 (`Gadget2`).
 - Consumir `Ink-Bottle` sólo si pudo llevar el Ink-Pulse a `Ready`.
+- Comprar gadgets desde la tienda temporal usando `ShrimpRuntimeWallet`.
+
+### Tienda temporal de suministros
+
+Archivos:
+- `Assets/Implementation/Code/UI/Shop/InGameShopManager.cs`
+- `Assets/Implementation/Code/World/Shop/DealerFish.cs`
+- `Assets/Implementation/Code/Spawning/LevelSpawner.cs`
+
+Responsabilidad:
+- Instanciar `DealerFish` por intervalo desde `LevelSpawner`.
+- Ubicar `DealerFish` siempre en el cuarto inferior del rango entre `PlayerBoundaries`.
+- Abrir un overlay temporal al colisionar con `DealerFish`.
+- Seleccionar un gadget aleatorio desde los prefabs configurados como oferta, aunque ya exista en el inventario.
+- Calcular precio como `precioBaseDelGadget * multiplicadorDeAvance`.
+- Consumir camarones sólo si la compra se concreta.
+- Registrar el gadget comprado en `RuntimeGadgetInventory`.
+
+Regla temporal:
+- La tienda tiene duración ajustable por `offerDurationSeconds`.
+- Por defecto congela el gameplay mientras el contador avanza en tiempo real.
+- La compra se intenta con la tecla `B`.
+- Si el gadget ofertado ya está en inventario, no se puede comprar de nuevo.
+- `SinSaldo` sólo aparece después de intentar comprar con `B` sin tener camarones suficientes.
+- Si el contador llega a cero, la oferta se cierra sin comprar.
 
 Regla de slots:
 - El prefab no define si un gadget va en `W` o `Q`.
 - Al adquirir un gadget, `RuntimeGadgetInventory` lo coloca en el primer slot libre.
-- Ningún gadget es stackable: si ya se posee, otro pickup del mismo tipo no se consume ni aumenta cantidad.
+- Ningún gadget es stackable: si ya se posee, otra compra del mismo tipo no se consume ni aumenta cantidad.
 - `Shell Shield` es pasivo: ocupa slot visual, no muestra tecla, y se consume automáticamente al evitar un Game Over.
 
 ## Flujo de interacción

@@ -12,11 +12,17 @@ Responsabilidad:
 - Seguir al jugador con una cámara suave.
 - Entrar en vista amplia para eventos.
 - Volver de forma interpolada al seguimiento normal.
+- Aplicar un feedback breve de tambaleo y pulso de zoom cuando `InkPulseController` emite `PulseStarted`.
 
 Estados de cámara:
 - `Follow`
 - `WideEvent`
 - `ReturningToFollow`
+
+Feedback de Ink-Pulse:
+- Vive en `CameraController`, no en `InkPulseController`, porque es una consecuencia visual de camara.
+- La referencia `inkPulse` puede asignarse en Inspector o resolverse desde el `target`.
+- Los parametros `inkPulseFeedbackDuration`, `inkPulseShakeAmplitude`, `inkPulseZoomAmplitude` e `inkPulseShakeFrequency` son ajustables para QA.
 
 ## BoundaryReferenceResolver
 

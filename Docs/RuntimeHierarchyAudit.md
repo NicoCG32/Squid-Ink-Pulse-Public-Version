@@ -21,7 +21,8 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Estado runtime del jugador: `PlayerStateController`.
 - Ink-Pulse: `InkPulseController`.
 - Inventario runtime de gadgets: `PlayerGadgetInventory` y `RuntimeGadgetInventory`.
-- Adquisición de gadgets en mundo: `GadgetPickup`.
+- Mercancía comprable de gadgets: `GadgetShopItem`.
+- Tienda temporal de gadgets: `DealerFish` e `InGameShopManager`.
 - Persistencia runtime de camarones: `ShrimpRuntimeWallet`.
 - Evento SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
@@ -52,10 +53,11 @@ flowchart TD
 | `Boundaries` | `HorizontalTracker` | Mantener boundaries alineados con el avance horizontal. |
 | `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController` | Control completo del jugador. |
 | `GrazeZone` | `GrazeDetector` | Carga de Ink-Pulse por proximidad a amenazas. |
-| `CleanUp` | `DestroyOffscreen` | Destruir enemigos y camarones que salen del área útil. |
+| `CleanUp` | `DestroyOffscreen` | Destruir enemigos, camarones y collectibles que salen del área útil. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
 | `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear el menú de pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Abrir, cerrar y cablear el panel de derrota. |
+| `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal, calcular oferta/precio y resolver compra. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animación interactiva visual del botón. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido de burbujas. |
 | `InkPulseBar` | `ChargeBar` | Representación visual de carga Ink-Pulse. |
@@ -85,6 +87,7 @@ flowchart TD
 
 - `HUD` muestra el estado persistente de la run.
 - `PauseMenuManager` y `GameOverMenuManager` gobiernan sus pantallas sin mezclar navegación global.
+- `InGameShopManager` gobierna la tienda temporal como overlay propio.
 
 ### CameraRig y Audio
 
@@ -104,8 +107,9 @@ flowchart TD
 | `CanaPescar` | ninguno por ahora | `EnemyCanaPescar` |
 | `ShrimpCoin` | `ShrimpValue` | `Shrimp` |
 | `ShrimpCoinX10` | `ShrimpValue` | `Shrimp` |
-| `ShellShield` | `GadgetPickup` | `Collectible` |
-| `InkBottle` | `GadgetPickup` | `Collectible` |
+| `ShellShield` | `GadgetShopItem` | `Untagged` |
+| `InkBottle` | `GadgetShopItem` | `Untagged` |
+| `DealerFish` | `DealerFish` | `Collectible` |
 | `SSCarnage` | `SSCarnageController` | `SSCarnage` |
 | `BossNetWall` | `SSCarnageNetWall` | `SSCarnage` |
 
@@ -122,6 +126,16 @@ La mina y la cana no tienen script propio todavía porque su lógica actual vive
 - `spawnIntervalMultiplier`: modificador local del intervalo tras ese spawn.
 
 Despues de instanciar, `LevelSpawner` aplica el tag con `EnemyTagCatalog.ApplyEnemyTag()` y asigna la capa `Enemy` de forma recursiva.
+
+## Spawn de tienda
+
+`LevelSpawner` instancia `DealerFish` por intervalo independiente del spawn regular. Este ente de tienda:
+
+- aparece por la derecha de la cámara;
+- usa la capa `Collectible`;
+- usa el tag `Collectible`;
+- se ubica en el cuarto inferior del rango definido por `PlayerBoundaries`;
+- abre `InGameShopManager` al colisionar con el jugador.
 
 ## Tags
 
@@ -157,7 +171,14 @@ Los tags compartidos no enemigos también tienen una fuente central:
 - No declarar tags compartidos (`Player`, `Shrimp`, `Collectible`) como strings locales en scripts de gameplay.
 - No declarar Game Over por colisión sin consultar antes `PlayerGadgetInventory` para `Shell Shield`.
 - No fijar `W` o `Q` desde el prefab de gadget; el slot visual se asigna por orden de adquisición.
+- Mantener la correspondencia `Gadget1` = `Q` y `Gadget2` = `W` tanto en HUD como en input.
+- No autogenerar nodos visuales de `GadgetSlots` desde `GadgetInventoryHud`; los textos e imagenes pertenecen al canvas de escena.
 - No stackear gadgets: cada `GadgetId` existe como posesion unica.
+- No comprar desde tienda sin pasar por `ShrimpRuntimeWallet.TrySpend`.
+- No autogenerar canvas de tienda desde `InGameShopManager`; la UI pertenece a la escena.
+- No agregar botón de salida a la tienda temporal; cierra por tiempo y compra con `B`.
+- No entregar gadgets por colisión directa: los gadgets se compran desde `InGameShopManager`.
+- No mezclar `GadgetShopItem` con `DealerFish`: el primero describe mercancía, el segundo abre una decisión temporal.
 - No activar `Ink-Bottle` si el Ink-Pulse ya esta en `Ready` o `Active`; no debe consumirse sin efecto.
 - No usar scripts de pausa en nodos de game over.
 - No poner lógica de boss en el prefab de red que ya pertenece a `SSCarnageController`.

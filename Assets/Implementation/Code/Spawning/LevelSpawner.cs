@@ -39,6 +39,7 @@ public class LevelSpawner : MonoBehaviour
     [Header("What to Spawn")]
     [SerializeField] private GameObject coinPrefab;
     [SerializeField] private GameObject rareCoinPrefab;
+    [SerializeField] private GameObject dealerFishPrefab;
     [SerializeField] private EnemySpawnProfile[] enemyProfiles =
     {
         new EnemySpawnProfile(EnemyTagCatalog.Pufferfish, 1f, 0f, 1f),
@@ -57,13 +58,20 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField, Range(0.01f, 1f)] private float upperZoneSpawnCoverage = 0.75f;
     [SerializeField, Range(0.01f, 1f)] private float lowerZoneSpawnCoverage = 0.75f;
 
+    [Header("Dealer Fish Spawning")]
+    [SerializeField] private bool enableDealerFishSpawns = true;
+    [SerializeField, Min(0f)] private float firstDealerFishSpawnDelay = 18f;
+    [SerializeField, Min(1f)] private float dealerFishSpawnInterval = 30f;
+
     [Header("Boundaries")]
     [SerializeField] private float fallbackMinY = -9.5f;
     [SerializeField] private float fallbackMaxY = 9.5f;
 
     private float timer = 0f;
+    private float dealerFishTimer;
     private float activeIntervalMultiplier = 1f;
     private int spawnedEnemyCount;
+    private bool hasSpawnedDealerFish;
 
     private void Awake()
     {
@@ -85,6 +93,8 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
+        UpdateDealerFishSpawnTimer();
+
         timer += Time.deltaTime;
 
         if (timer >= GetCurrentSpawnInterval())
@@ -92,6 +102,26 @@ public class LevelSpawner : MonoBehaviour
             SpawnObject();
             timer = 0f;
         }
+    }
+
+    private void UpdateDealerFishSpawnTimer()
+    {
+        if (!enableDealerFishSpawns || dealerFishPrefab == null || spawnCamera == null)
+        {
+            return;
+        }
+
+        dealerFishTimer += Time.deltaTime;
+
+        float targetInterval = hasSpawnedDealerFish ? dealerFishSpawnInterval : firstDealerFishSpawnDelay;
+        if (dealerFishTimer < targetInterval)
+        {
+            return;
+        }
+
+        SpawnDealerFish();
+        dealerFishTimer = 0f;
+        hasSpawnedDealerFish = true;
     }
 
     private void SpawnObject()
@@ -177,6 +207,28 @@ public class LevelSpawner : MonoBehaviour
         float randomY = UnityEngine.Random.Range(spawnRange.x, spawnRange.y);
         float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
         return new Vector3(spawnX, randomY, 0f);
+    }
+
+    private Vector3 CalculateDealerFishSpawnPosition()
+    {
+        Vector2 playerRange = CalculatePlayerSpawnRange();
+        float lowerQuarterTopY = Mathf.Lerp(playerRange.x, playerRange.y, 0.25f);
+        float randomY = UnityEngine.Random.Range(playerRange.x, lowerQuarterTopY);
+        float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
+        return new Vector3(spawnX, randomY, 0f);
+    }
+
+    private void SpawnDealerFish()
+    {
+        Vector3 spawnPosition = CalculateDealerFishSpawnPosition();
+        GameObject dealerFish = Instantiate(dealerFishPrefab, spawnPosition, Quaternion.identity, spawnedParent);
+        dealerFish.tag = GameplayTagCatalog.Collectible;
+
+        int collectibleLayer = LayerMask.NameToLayer("Collectible");
+        if (collectibleLayer >= 0)
+        {
+            ApplyLayerRecursively(dealerFish, collectibleLayer);
+        }
     }
 
     private Vector3 CalculateEnemySpawnPosition(string enemyTag)
@@ -454,6 +506,11 @@ public class LevelSpawner : MonoBehaviour
         if (session == null || spawnCamera == null || !HasAnyProfilePrefab() || coinPrefab == null)
         {
             Debug.LogWarning("[LevelSpawner] Faltan referencias. Asigna Session, SpawnCamera, EnemyProfiles con prefabs y CoinPrefab en el Inspector.", this);
+        }
+
+        if (enableDealerFishSpawns && dealerFishPrefab == null)
+        {
+            Debug.LogWarning("[LevelSpawner] DealerFish spawns esta activo, pero falta asignar DealerFishPrefab.", this);
         }
     }
 }

@@ -16,6 +16,7 @@ Las máquinas no compiten entre sí; cada una gobierna una escala distinta.
 | Macro run | `RunEventState` | ¿La run está en flujo normal, boss, post-boss o transición? |
 | Entidad jugador | `PlayerRuntimeState` | ¿El jugador se mueve, está en Ink-Pulse o murió? |
 | Recurso del jugador | `InkPulseState` | ¿El Ink-Pulse está vacío, cargando, listo o activo? |
+| Evento de suministro | `ShopEventState` | ¿La tienda temporal está cerrada u ofreciendo un gadget? |
 | Boss específico | `SSCarnageAttackState` | ¿En qué fase interna está el ataque del SS Carnage? |
 | Cámara | `CameraEventMode` | ¿Seguir, vista amplia para evento o volver a seguir? |
 
@@ -25,6 +26,7 @@ Las máquinas no compiten entre sí; cada una gobierna una escala distinta.
 - `PlayerRuntimeState`
 - `RunEventState`
 - `InkPulseState`
+- `ShopEventState`
 - `SSCarnageAttackState`
 - `CameraEventMode`
 
@@ -39,15 +41,23 @@ Las máquinas no compiten entre sí; cada una gobierna una escala distinta.
 | `PostBossWindow` | Frecuencia rebajada por defecto mediante intervalo `1.75x`. | No puede disparar otro boss. |
 | `Transitioning` | Bloquea spawn regular. | No puede disparar otro boss. |
 
+### ShopEventState
+
+`ShopEventState` gobierna el overlay temporal de suministros. No sustituye a `GameSessionState`: la partida sigue conceptualmente en `Playing`, pero el manager puede congelar `Time.timeScale` mientras el contador de tienda avanza con tiempo real.
+
+| Estado | Efecto |
+|---|---|
+| `Closed` | No hay oferta visible ni bloqueo de interacción UI. |
+| `Offering` | La tienda muestra un gadget aleatorio, su precio y un contador de expiración. La compra se intenta con `B`. |
+
 ## Estados planificados
 
-- `SupplyEventState`
 - `PortalTransitionState`
 - `GadgetRuntimeState`
 
 Nota sobre gadgets:
-- El inventario de gadgets ya existe como modelo runtime por conteo y slots.
-- La asignacion de slots es temporal y deriva del orden de adquisicion: `Gadget1` usa `W` si contiene un activo; `Gadget2` usa `Q` si contiene un activo.
+- El inventario de gadgets ya existe como modelo runtime por posesión única y slots.
+- La asignacion de slots es temporal y deriva del orden de adquisicion: `Gadget1` usa `Q` si contiene un activo; `Gadget2` usa `W` si contiene un activo.
 - `Shell Shield` ocupa slot visual, pero no muestra tecla porque su efecto es pasivo y se consume como salvavidas antes del Game Over.
 - `Ink-Bottle` es activo: al usarse, intenta llevar `InkPulseState` directamente a `Ready`.
 - `GadgetRuntimeState` sigue planificado para cuando existan efectos con fases propias, cooldowns, duraciones o animaciones de activación.

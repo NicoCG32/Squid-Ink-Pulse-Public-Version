@@ -36,6 +36,7 @@ flowchart TD
     UI --> HUD[HUD]
     UI --> PauseMenu[PauseMenuManager]
     UI --> GameOverMenu[GameOverMenuManager]
+    UI --> ShopMenu[InGameShopManager]
     UI --> EventSystem[EventSystem]
 
     Enviroment --> Background[Background]
@@ -60,7 +61,7 @@ flowchart TD
 | `Gameplay` | Ninguno propio | Agrupación de lógica del nivel y de sus spawns. |
 | `LevelSpawner` | `LevelSpawner` | Spawn de monedas y enemigos a partir de perfiles. |
 | `Boundaries` | `HorizontalTracker` | Mantener las fronteras alineadas con el avance del mundo. |
-| `CleanUp` | `DestroyOffscreen` | Destruir objetos que ya salieron del área útil. |
+| `CleanUp` | `DestroyOffscreen` | Destruir enemigos, camarones y collectibles que ya salieron del área útil. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar el evento del SS Carnage y su fase amplia de cámara. |
 | `Portals` | Sin script propio confirmado | Puntos de transición o portalización de la escena. |
 | `Player` | Ninguno propio | Nodo contenedor del jugador. |
@@ -73,6 +74,7 @@ flowchart TD
 | `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Estado visible del Ink-Pulse, camarones y gadgets. |
 | `PauseMenuManager` | `PauseMenuManager` | Apertura, cierre y navegación de pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Pantalla de derrota y acciones asociadas. |
+| `InGameShopManager` | `InGameShopManager` | Tienda temporal de suministros, oferta aleatoria y compra con camarones. |
 | `EventSystem` | Sistema de UI de Unity | Entrada y navegación de interfaz. |
 | `Enviroment` | `ParallaxLayer` en los elementos de fondo que se desplazan | Capa de fondo y profundidad visual. |
 | `Audio` | `AudioSource` | Reproducción de soundtrack y efectos. |
@@ -85,7 +87,10 @@ La escena sigue una regla simple: cada responsabilidad importante tiene un solo 
 - `RunProgressionDirector` define la progresión de intensidad, velocidad y ritmo de spawn.
 - `SceneFlowController` resuelve el retorno al menú y el cambio de escena.
 - `LevelSpawner` genera enemigos y monedas sin mezclar esa lógica con la progresión global.
+- `LevelSpawner` también instancia el collectible de tienda por intervalo en el cuarto inferior del rango del jugador.
 - `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de cámara correspondiente.
+- `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarla con pausa ni game over.
+- `GadgetInventoryHud` muestra `Q` en `Gadget1` y `W` en `Gadget2` cuando el gadget del slot es activo.
 - `CameraController` decide el seguimiento normal y la vista amplia de evento.
 - `HorizontalTracker` mantiene las fronteras útiles sincronizadas con el mundo.
 - `DestroyOffscreen` limpia objetos fuera de pantalla para evitar acumulación innecesaria.
@@ -100,6 +105,8 @@ flowchart LR
     BossEventDirector --> CameraController
     HorizontalTracker --> Boundaries
     LevelSpawner --> Enemies[Enemigos y monedas]
+    LevelSpawner --> DealerFish[DealerFish]
+    DealerFish --> InGameShopManager
     CameraController --> HUD[HUD y lectura visual]
     SceneFlowController --> MainMenu[MainMenu]
     PauseMenuManager --> GameSessionController

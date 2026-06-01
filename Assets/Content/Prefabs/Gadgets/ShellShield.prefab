@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7100000000000000005}
   m_Layer: 8
   m_Name: ShellShield
-  m_TagString: Collectible
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -109,11 +109,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f8fdb0e70f704a22a49c4b275c5cc196, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GadgetPickup
+  m_EditorClassIdentifier: Assembly-CSharp::GadgetShopItem
   gadgetId: 1
   hudIcon: {fileID: -1868893282227510861, guid: efa69f6ba88ca2947b7eb2cf4b521f5e, type: 3}
   hudIconTint: {r: 1, g: 1, b: 1, a: 1}
-  destroyOnPickup: 1
 --- !u!1 &7100000000000000010
 GameObject:
   m_ObjectHideFlags: 0

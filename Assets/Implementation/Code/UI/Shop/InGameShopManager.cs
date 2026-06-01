@@ -1,0 +1,513 @@
+using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
+public enum ShopEventState
+{
+    Closed,
+    Offering
+}
+
+[Serializable]
+public class ShopGadgetOffer
+{
+    [SerializeField] private GameObject gadgetPrefab;
+    [SerializeField, Min(0)] private int basePriceOverride;
+
+    public GameObject GadgetPrefab => gadgetPrefab;
+
+    public GadgetShopItem ShopItem => gadgetPrefab != null
+        ? gadgetPrefab.GetComponent<GadgetShopItem>()
+        : null;
+
+    public GadgetId GadgetId => ShopItem != null ? ShopItem.GadgetId : GadgetId.None;
+    public Sprite Icon => ShopItem != null ? ShopItem.HudIcon : null;
+    public Color IconTint => ShopItem != null ? ShopItem.HudIconTint : Color.white;
+
+    public bool IsConfigured => gadgetPrefab != null && GadgetId != GadgetId.None;
+
+    public int GetBasePrice()
+    {
+        return basePriceOverride > 0
+            ? basePriceOverride
+            : GadgetCatalog.GetBaseShopPrice(GadgetId);
+    }
+}
+
+[DisallowMultipleComponent]
+public class InGameShopManager : MonoBehaviour
+{
+    private static InGameShopManager instance;
+
+    [Header("References")]
+    [SerializeField] private GameSessionController session;
+    [SerializeField] private RunProgressionDirector progression;
+
+    [Header("Scene UI References")]
+    [SerializeField] private GameObject menuRoot;
+    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private Image gadgetImage;
+    [SerializeField] private TMP_Text priceText;
+    [SerializeField] private TMP_Text buyKeyText;
+    [SerializeField] private TMP_Text insufficientFundsText;
+    [SerializeField] private TMP_Text timerText;
+
+    [Header("Shop Timing")]
+    [SerializeField, Min(0.5f)] private float offerDurationSeconds = 5f;
+    [SerializeField] private bool pauseGameplayWhileOpen = true;
+
+    [Header("Pricing")]
+    [SerializeField, Min(0.01f)] private float globalPriceMultiplier = 1f;
+    [SerializeField, Min(0f)] private float intensityPriceMultiplier = 0.5f;
+    [SerializeField, Min(0f)] private float cyclePriceMultiplier = 0.25f;
+
+    [Header("Offers")]
+    [SerializeField] private ShopGadgetOffer[] offers;
+
+    [Header("Attention Animation")]
+    [SerializeField, Min(0f)] private float textPulseAmplitude = 0.12f;
+    [SerializeField, Min(0.01f)] private float textPulseFrequency = 2.5f;
+
+    [Header("Events")]
+    public UnityEvent onShopOpened = new UnityEvent();
+    public UnityEvent onShopClosed = new UnityEvent();
+    public UnityEvent<GadgetId> onGadgetPurchased = new UnityEvent<GadgetId>();
+    public UnityEvent<ShopEventState> onStateChanged = new UnityEvent<ShopEventState>();
+
+    private ShopGadgetOffer currentOffer;
+    private float remainingSeconds;
+    private int currentPrice;
+    private bool isOpen;
+    private bool isHoldingTimeScale;
+    private float previousTimeScale = 1f;
+    private Vector3 priceTextBaseScale = Vector3.one;
+    private Vector3 buyKeyTextBaseScale = Vector3.one;
+
+    public static InGameShopManager Instance => instance;
+    public static bool HasInstance => instance != null;
+    public ShopEventState CurrentState { get; private set; } = ShopEventState.Closed;
+    public event Action<ShopEventState, ShopEventState> StateChanged;
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        ResolveReferences();
+        ResolveUiReferences();
+        CacheAnimatedTextScales();
+        HideImmediate();
+        WarnIfMissingReferences();
+    }
+
+    private void Update()
+    {
+        ResolveReferences();
+
+        if (!isOpen)
+        {
+            return;
+        }
+
+        if (session != null && session.IsGameOver)
+        {
+            CloseShop();
+            return;
+        }
+
+        bool externalPause = session != null && !session.IsPlaying && !isHoldingTimeScale;
+        if (externalPause)
+        {
+            return;
+        }
+
+        if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
+        {
+            BuyCurrentOffer();
+        }
+
+        AnimateAttentionTexts();
+
+        float deltaTime = isHoldingTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
+        remainingSeconds = Mathf.Max(0f, remainingSeconds - deltaTime);
+        RefreshTimer();
+
+        if (remainingSeconds <= 0f)
+        {
+            CloseShop();
+        }
+    }
+
+    public static bool TryOpenShopFromWorld()
+    {
+        return instance != null && instance.TryOpenTimedShop();
+    }
+
+    public bool TryOpenTimedShop()
+    {
+        ResolveReferences();
+        ResolveUiReferences();
+
+        if (isOpen || session == null || !session.IsPlaying)
+        {
+            return false;
+        }
+
+        currentOffer = SelectOffer();
+        if (currentOffer == null)
+        {
+            return false;
+        }
+
+        currentPrice = CalculatePrice(currentOffer);
+        remainingSeconds = Mathf.Max(0.5f, offerDurationSeconds);
+
+        if (pauseGameplayWhileOpen)
+        {
+            previousTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+            isHoldingTimeScale = true;
+        }
+
+        isOpen = true;
+        ApplyState(ShopEventState.Offering);
+        SetVisible(true);
+        RefreshOfferUi();
+        onShopOpened.Invoke();
+        return true;
+    }
+
+    public void BuyCurrentOffer()
+    {
+        if (!isOpen || currentOffer == null)
+        {
+            return;
+        }
+
+        GadgetId gadget = currentOffer.GadgetId;
+        if (RuntimeGadgetInventory.HasGadget(gadget))
+        {
+            SetInsufficientFundsVisible(false);
+            return;
+        }
+
+        if (!ShrimpRuntimeWallet.TrySpend(currentPrice))
+        {
+            SetInsufficientFundsVisible(true);
+            return;
+        }
+
+        if (!RuntimeGadgetInventory.Acquire(gadget, currentOffer.Icon, currentOffer.IconTint))
+        {
+            ShrimpRuntimeWallet.Add(currentPrice);
+            SetInsufficientFundsVisible(false);
+            return;
+        }
+
+        onGadgetPurchased.Invoke(gadget);
+        CloseShop();
+    }
+
+    public void CloseShop()
+    {
+        if (!isOpen)
+        {
+            return;
+        }
+
+        isOpen = false;
+        currentOffer = null;
+        RestoreTimeScaleIfNeeded();
+        HideImmediate();
+        ApplyState(ShopEventState.Closed);
+        onShopClosed.Invoke();
+    }
+
+    private void ApplyState(ShopEventState nextState)
+    {
+        ShopEventState previousState = CurrentState;
+        if (previousState == nextState)
+        {
+            return;
+        }
+
+        CurrentState = nextState;
+        StateChanged?.Invoke(previousState, nextState);
+        onStateChanged.Invoke(nextState);
+    }
+
+    private ShopGadgetOffer SelectOffer()
+    {
+        if (offers == null || offers.Length == 0)
+        {
+            return null;
+        }
+
+        int configuredCount = 0;
+        for (int i = 0; i < offers.Length; i++)
+        {
+            if (CanShowOffer(offers[i]))
+            {
+                configuredCount++;
+            }
+        }
+
+        if (configuredCount == 0)
+        {
+            return null;
+        }
+
+        int selectedIndex = UnityEngine.Random.Range(0, configuredCount);
+        for (int i = 0; i < offers.Length; i++)
+        {
+            if (!CanShowOffer(offers[i]))
+            {
+                continue;
+            }
+
+            if (selectedIndex == 0)
+            {
+                return offers[i];
+            }
+
+            selectedIndex--;
+        }
+
+        return null;
+    }
+
+    private bool CanShowOffer(ShopGadgetOffer offer)
+    {
+        return offer != null && offer.IsConfigured && offer.GetBasePrice() > 0;
+    }
+
+    private int CalculatePrice(ShopGadgetOffer offer)
+    {
+        float progressionMultiplier = 1f;
+        if (progression != null)
+        {
+            progressionMultiplier += progression.Current.Intensity * intensityPriceMultiplier;
+            progressionMultiplier += progression.Current.ProgressionCycle * cyclePriceMultiplier;
+        }
+
+        float rawPrice = offer.GetBasePrice() * globalPriceMultiplier * Mathf.Max(0.01f, progressionMultiplier);
+        return Mathf.Max(1, Mathf.CeilToInt(rawPrice));
+    }
+
+    private void RefreshOfferUi()
+    {
+        if (currentOffer == null)
+        {
+            ApplyIcon(null, Color.clear);
+            SetText(priceText, "-");
+            SetText(timerText, Mathf.CeilToInt(remainingSeconds).ToString());
+            SetInsufficientFundsVisible(false);
+            return;
+        }
+
+        ApplyIcon(currentOffer.Icon, currentOffer.IconTint);
+        SetText(priceText, currentPrice.ToString());
+        RefreshTimer();
+        SetInsufficientFundsVisible(false);
+    }
+
+    private void RefreshTimer()
+    {
+        SetText(timerText, Mathf.CeilToInt(remainingSeconds).ToString());
+    }
+
+    private void ApplyIcon(Sprite icon, Color tint)
+    {
+        if (gadgetImage == null)
+        {
+            return;
+        }
+
+        gadgetImage.enabled = icon != null;
+        gadgetImage.sprite = icon;
+        gadgetImage.color = icon != null ? tint : Color.clear;
+        gadgetImage.preserveAspect = true;
+    }
+
+    private void AnimateAttentionTexts()
+    {
+        float pulse = 1f + Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f * textPulseFrequency) * textPulseAmplitude;
+        if (priceText != null)
+        {
+            priceText.rectTransform.localScale = priceTextBaseScale * pulse;
+        }
+
+        if (buyKeyText != null)
+        {
+            buyKeyText.rectTransform.localScale = buyKeyTextBaseScale * pulse;
+        }
+    }
+
+    private void CacheAnimatedTextScales()
+    {
+        if (priceText != null)
+        {
+            priceTextBaseScale = priceText.rectTransform.localScale;
+        }
+
+        if (buyKeyText != null)
+        {
+            buyKeyTextBaseScale = buyKeyText.rectTransform.localScale;
+        }
+    }
+
+    private void ResetAnimatedTextScales()
+    {
+        if (priceText != null)
+        {
+            priceText.rectTransform.localScale = priceTextBaseScale;
+        }
+
+        if (buyKeyText != null)
+        {
+            buyKeyText.rectTransform.localScale = buyKeyTextBaseScale;
+        }
+    }
+
+    private void SetVisible(bool visible)
+    {
+        if (menuRoot != null)
+        {
+            menuRoot.SetActive(visible);
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = visible ? 1f : 0f;
+            canvasGroup.interactable = visible;
+            canvasGroup.blocksRaycasts = visible;
+        }
+    }
+
+    private void HideImmediate()
+    {
+        SetVisible(false);
+        ApplyIcon(null, Color.clear);
+        SetInsufficientFundsVisible(false);
+        ResetAnimatedTextScales();
+    }
+
+    private void SetInsufficientFundsVisible(bool visible)
+    {
+        if (insufficientFundsText != null)
+        {
+            insufficientFundsText.gameObject.SetActive(visible);
+        }
+    }
+
+    private void RestoreTimeScaleIfNeeded()
+    {
+        if (!isHoldingTimeScale)
+        {
+            return;
+        }
+
+        isHoldingTimeScale = false;
+        if (session != null && !session.IsPlaying)
+        {
+            return;
+        }
+
+        if (session == null || session.IsPlaying)
+        {
+            Time.timeScale = previousTimeScale;
+        }
+    }
+
+    private void ResolveReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (progression == null && RunProgressionDirector.HasInstance)
+        {
+            progression = RunProgressionDirector.Instance;
+        }
+    }
+
+    private void ResolveUiReferences()
+    {
+        Transform uiRoot = menuRoot != null ? menuRoot.transform : transform.Find("InGameCanvas");
+        if (menuRoot == null && uiRoot != null)
+        {
+            menuRoot = uiRoot.gameObject;
+        }
+
+        if (canvasGroup == null && menuRoot != null)
+        {
+            canvasGroup = menuRoot.GetComponent<CanvasGroup>();
+        }
+
+        gadgetImage ??= FindChildComponent<Image>(uiRoot, "Gadget");
+        priceText ??= FindChildComponent<TMP_Text>(uiRoot, "Precio");
+        buyKeyText ??= FindChildComponent<TMP_Text>(uiRoot, "B");
+        insufficientFundsText ??= FindChildComponent<TMP_Text>(uiRoot, "SinSaldo");
+        timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Tiempo");
+        timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Timer");
+    }
+
+    private T FindChildComponent<T>(Transform root, string childName) where T : Component
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == childName && children[i].TryGetComponent(out T component))
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    private void SetText(TMP_Text text, string value)
+    {
+        if (text != null)
+        {
+            text.text = value;
+        }
+    }
+
+    private void WarnIfMissingReferences()
+    {
+        if (session == null || menuRoot == null || gadgetImage == null || priceText == null || buyKeyText == null || insufficientFundsText == null)
+        {
+            Debug.LogWarning(
+                "[InGameShopManager] Faltan referencias. Asigna Session, MenuRoot/InGameCanvas, Gadget, Precio, B y SinSaldo en el canvas de tienda.",
+                this);
+        }
+
+        if (offers == null || offers.Length == 0)
+        {
+            Debug.LogWarning("[InGameShopManager] No hay ofertas configuradas. Asigna prefabs con GadgetShopItem en Offers.", this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            RestoreTimeScaleIfNeeded();
+            instance = null;
+        }
+    }
+}
