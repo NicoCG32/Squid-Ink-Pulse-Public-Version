@@ -157,20 +157,20 @@ Parametros ajustables:
 
 | Campo | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
-| `darkAlpha` | Opacidad base del overlay oscuro. | `ZonaExe` se ve mas oscura. |
-| `litAlpha` | Opacidad minima durante light graze. | Si sube, el revelado conserva mas oscuridad. |
-| `litHoldSeconds` | Tiempo que permanece revelado tras pasar cerca de una fuente. | La zona queda clara por mas tiempo. |
-| `fadeToLitSpeed` | Velocidad para aclarar el fondo. | El feedback de luz se siente mas inmediato. |
-| `fadeToDarkSpeed` | Velocidad para volver a oscuridad. | La oscuridad vuelve mas rapido. |
+| `blackAlpha` | Opacidad fija de `LayerBlack`. | `ZonaExe` se ve mas oscura. |
 | `overlayPadding` | Margen extra de cobertura respecto a la camara. | Evita bordes sin overlay en aspect ratios amplios. |
-| `lightGrazeRadius` | Distancia de activacion entre BabySquid y fuentes. | La luz se activa desde mas lejos. |
+| `maskSortingOrderPadding` | Rango de sorting en que las mascaras afectan a `LayerBlack`. | Aumentarlo da mas tolerancia si se cambia el sorting order. |
+| `lightHoleRadius` | Radio de mundo de cada perforacion circular. | Cada entidad revela un area mayor. |
+| `lightEdgeSoftness` | Porcion del radio que se usa como borde gradual. | El borde del circulo se vuelve mas suave; si sube demasiado, reduce el centro completamente claro. |
+| `maskAlphaCutoff` | Umbral alfa de la mascara circular. | Cambia el borde efectivo de la perforacion. |
 
 Reglas vigentes:
 
 - `LightGraze` es visual: no carga Ink-Pulse y no reemplaza `GrazeDetector`.
-- Las entidades relevantes tienen `LightGrazeSource`; no se balancean desde cada prefab.
-- El BabySquid usa `LightGrazeProbe` para detectar fuentes cercanas.
-- En `ZonaEpipelagica` y `ZonaTutorial`, la sonda no hace nada mientras no exista `ZoneLightingController`.
+- `LayerBlack` debe usar `VisibleOutsideMask`.
+- BabySquid tiene `LightGrazeSource` en `ZonaExe`.
+- `LevelSpawner` agrega `LightGrazeSource` a entidades runtime solo si existe `ZoneLightingController`.
+- `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaExe`.
 
 ## Gadgets e inventario
 
@@ -222,6 +222,30 @@ Reglas vigentes:
 - Si el Ink-Pulse esta en `Active` al cruzar, persiste con su tiempo restante.
 - La carga vuelve a cero al entrar en Game Over.
 - No puede activarse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
+
+## Musica dinamica del Ink-Pulse
+
+Script: `InkPulseMusicCrossfader`
+
+Nodo esperado: `Soundtrack` en `ZonaEpipelagica`
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `normalTargetVolume` | Volumen maximo de la pista normal. | La base musical se oye mas fuerte fuera del pulso. |
+| `inkTargetVolume` | Volumen maximo de la pista `INK`. | La version intensa se oye mas fuerte durante el pulso. |
+| `fadeSeconds` | Duracion del cruce entre ambas pistas. | La transicion se vuelve mas gradual. |
+| `useEqualPowerCrossfade` | Tipo de curva de mezcla. | Puede mantener mas energia en el centro del cruce, pero no es el valor recomendado para dos mezclas completas. |
+| `syncStartDelay` | Margen antes de iniciar ambas pistas con `PlayScheduled`. | Da mas holgura al motor de audio para iniciar las pistas alineadas. |
+
+Reglas vigentes:
+
+- Las dos pistas deben sonar sincronizadas desde el mismo tiempo DSP.
+- En reposo, la pista normal queda al volumen objetivo y la pista `INK` queda en cero.
+- Durante `InkPulseState.Active`, la pista normal cruza hacia cero y la pista `INK` cruza hacia su volumen objetivo.
+- Para dos mezclas completas del mismo tema, mantener `useEqualPowerCrossfade` desactivado.
+- Si se percibe desfase, revisar la exportacion de los audios antes de tocar parametros: mismo inicio, tempo, duracion y loop.
 
 ## Movimiento del jugador
 
@@ -325,6 +349,7 @@ Parametros ajustables:
 | --- | --- | --- |
 | `offset` | `CameraController` | Desfase de camara respecto al jugador. |
 | `smoothTime` | `CameraController` | Suavizado del seguimiento. |
+| `returnToFollowHorizontalSmoothTime` | `CameraController` | Suavizado horizontal al volver desde vista de evento a seguimiento normal. |
 | `enableInkPulseScreenPulse` | `CameraController` | Activa o desactiva el feedback visual al iniciar Ink-Pulse. |
 | `inkPulseFeedbackDuration` | `CameraController` | Duracion del tambaleo/pulso de pantalla. |
 | `inkPulseShakeAmplitude` | `CameraController` | Magnitud del desplazamiento breve de camara. |

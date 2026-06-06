@@ -1,31 +1,40 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
 public class ZoneLightingController : MonoBehaviour
 {
     private static ZoneLightingController instance;
+    private static Sprite sharedCircleMaskSprite;
+    private static Texture2D sharedCircleMaskTexture;
+    private static Sprite sharedFeatherSprite;
+    private static Texture2D sharedFeatherTexture;
+    private static float sharedFeatherSoftness = -1f;
 
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private Camera targetCamera;
-    [SerializeField] private SpriteRenderer darknessOverlay;
+    [FormerlySerializedAs("darknessOverlay")]
+    [SerializeField] private SpriteRenderer layerBlack;
 
-    [Header("Darkness")]
-    [SerializeField, Range(0f, 1f)] private float darkAlpha = 0.68f;
-    [SerializeField, Range(0f, 1f)] private float litAlpha = 0f;
-    [SerializeField, Min(0f)] private float litHoldSeconds = 0.55f;
-    [SerializeField, Min(0.01f)] private float fadeToLitSpeed = 7f;
-    [SerializeField, Min(0.01f)] private float fadeToDarkSpeed = 1.75f;
+    [Header("Layer Black")]
+    [FormerlySerializedAs("darkAlpha")]
+    [SerializeField, Range(0f, 1f)] private float blackAlpha = 0.68f;
     [SerializeField, Min(0f)] private float overlayPadding = 2f;
+    [SerializeField, Min(0)] private int maskSortingOrderPadding = 1;
 
-    [Header("Light Graze")]
-    [SerializeField, Min(0.01f)] private float lightGrazeRadius = 2.5f;
-
-    private float litTimer;
+    [Header("Light Holes")]
+    [FormerlySerializedAs("lightGrazeRadius")]
+    [SerializeField, Min(0.01f)] private float lightHoleRadius = 1.15f;
+    [SerializeField, Range(0f, 0.95f)] private float lightEdgeSoftness = 0.35f;
+    [SerializeField, Range(0.01f, 1f)] private float maskAlphaCutoff = 0.5f;
 
     public static ZoneLightingController Instance => instance;
     public static bool HasInstance => instance != null;
-    public float LightGrazeRadius => Mathf.Max(0.01f, lightGrazeRadius);
+    public float LightHoleRadius => Mathf.Max(0.01f, lightHoleRadius);
+    public bool UsesLightFeather => lightEdgeSoftness > 0f && layerBlack != null;
+    public Sprite CircleMaskSprite => GetOrCreateCircleMaskSprite();
+    public Sprite LightFeatherSprite => GetOrCreateFeatherSprite(lightEdgeSoftness);
 
     private void Awake()
     {
@@ -37,28 +46,16 @@ public class ZoneLightingController : MonoBehaviour
 
         instance = this;
         ResolveReferences();
-        ApplyOverlayAlpha(darkAlpha);
+        ConfigureLayerBlack();
         FitOverlayToCamera();
+        LightGrazeSource.RefreshAllActiveSources();
         WarnIfMissingReferences();
     }
 
     private void Update()
     {
         ResolveReferences();
-
-        if (litTimer > 0f)
-        {
-            litTimer = Mathf.Max(0f, litTimer - Time.deltaTime);
-        }
-
-        float targetAlpha = litTimer > 0f ? litAlpha : darkAlpha;
-        float speed = targetAlpha < GetCurrentOverlayAlpha() ? fadeToLitSpeed : fadeToDarkSpeed;
-        float nextAlpha = Mathf.MoveTowards(
-            GetCurrentOverlayAlpha(),
-            targetAlpha,
-            speed * Time.deltaTime);
-
-        ApplyOverlayAlpha(nextAlpha);
+        ConfigureLayerBlack();
     }
 
     private void LateUpdate()
@@ -66,9 +63,37 @@ public class ZoneLightingController : MonoBehaviour
         FitOverlayToCamera();
     }
 
-    public void NotifyLightGraze()
+    public void ConfigureLightMask(SpriteMask lightMask)
     {
-        litTimer = Mathf.Max(litTimer, litHoldSeconds);
+        if (lightMask == null || layerBlack == null)
+        {
+            return;
+        }
+
+        lightMask.sprite = CircleMaskSprite;
+        lightMask.alphaCutoff = maskAlphaCutoff;
+        lightMask.isCustomRangeActive = true;
+        lightMask.frontSortingLayerID = layerBlack.sortingLayerID;
+        lightMask.backSortingLayerID = layerBlack.sortingLayerID;
+        lightMask.frontSortingOrder = layerBlack.sortingOrder + maskSortingOrderPadding;
+        lightMask.backSortingOrder = layerBlack.sortingOrder - maskSortingOrderPadding;
+    }
+
+    public void ConfigureLightFeather(SpriteRenderer lightFeather)
+    {
+        if (lightFeather == null || layerBlack == null)
+        {
+            return;
+        }
+
+        lightFeather.sprite = LightFeatherSprite;
+        lightFeather.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        lightFeather.sortingLayerID = layerBlack.sortingLayerID;
+        lightFeather.sortingOrder = layerBlack.sortingOrder;
+
+        Color color = Color.black;
+        color.a = Mathf.Clamp01(blackAlpha);
+        lightFeather.color = color;
     }
 
     private void ResolveReferences()
@@ -86,19 +111,19 @@ public class ZoneLightingController : MonoBehaviour
 
     private void FitOverlayToCamera()
     {
-        if (darknessOverlay == null || targetCamera == null || !targetCamera.orthographic)
+        if (layerBlack == null || targetCamera == null || !targetCamera.orthographic)
         {
             return;
         }
 
-        Transform overlayTransform = darknessOverlay.transform;
+        Transform overlayTransform = layerBlack.transform;
         Vector3 cameraPosition = targetCamera.transform.position;
         overlayTransform.position = new Vector3(cameraPosition.x, cameraPosition.y, overlayTransform.position.z);
 
         float worldHeight = targetCamera.orthographicSize * 2f + overlayPadding;
         float worldWidth = worldHeight * targetCamera.aspect + overlayPadding;
-        Vector2 spriteSize = darknessOverlay.sprite != null
-            ? darknessOverlay.sprite.bounds.size
+        Vector2 spriteSize = layerBlack.sprite != null
+            ? layerBlack.sprite.bounds.size
             : Vector2.one;
 
         overlayTransform.localScale = new Vector3(
@@ -107,29 +132,138 @@ public class ZoneLightingController : MonoBehaviour
             1f);
     }
 
-    private float GetCurrentOverlayAlpha()
+    private void ConfigureLayerBlack()
     {
-        return darknessOverlay != null ? darknessOverlay.color.a : 0f;
-    }
-
-    private void ApplyOverlayAlpha(float alpha)
-    {
-        if (darknessOverlay == null)
+        if (layerBlack == null)
         {
             return;
         }
 
-        Color color = darknessOverlay.color;
-        color.a = Mathf.Clamp01(alpha);
-        darknessOverlay.color = color;
+        layerBlack.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+        Color color = Color.black;
+        color.a = Mathf.Clamp01(blackAlpha);
+        layerBlack.color = color;
     }
 
     private void WarnIfMissingReferences()
     {
-        if (targetCamera == null || darknessOverlay == null)
+        if (targetCamera == null || layerBlack == null)
         {
-            Debug.LogWarning("[ZoneLightingController] Faltan referencias. Asigna TargetCamera y DarknessOverlay.", this);
+            Debug.LogWarning("[ZoneLightingController] Faltan referencias. Asigna TargetCamera y LayerBlack.", this);
         }
+    }
+
+    private static Sprite GetOrCreateCircleMaskSprite()
+    {
+        if (sharedCircleMaskSprite != null)
+        {
+            return sharedCircleMaskSprite;
+        }
+
+        const int textureSize = 64;
+        const float radius = (textureSize - 2) * 0.5f;
+        Vector2 center = new((textureSize - 1) * 0.5f, (textureSize - 1) * 0.5f);
+
+        sharedCircleMaskTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false)
+        {
+            name = "GeneratedLightGrazeCircleMask",
+            hideFlags = HideFlags.HideAndDontSave,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color32[] pixels = new Color32[textureSize * textureSize];
+        for (int y = 0; y < textureSize; y++)
+        {
+            for (int x = 0; x < textureSize; x++)
+            {
+                float distance = Vector2.Distance(new Vector2(x, y), center);
+                byte alpha = distance <= radius ? byte.MaxValue : (byte)0;
+                pixels[y * textureSize + x] = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
+            }
+        }
+
+        sharedCircleMaskTexture.SetPixels32(pixels);
+        sharedCircleMaskTexture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+
+        sharedCircleMaskSprite = Sprite.Create(
+            sharedCircleMaskTexture,
+            new Rect(0f, 0f, textureSize, textureSize),
+            new Vector2(0.5f, 0.5f),
+            textureSize);
+        sharedCircleMaskSprite.name = "GeneratedLightGrazeCircleMask";
+        sharedCircleMaskSprite.hideFlags = HideFlags.HideAndDontSave;
+        return sharedCircleMaskSprite;
+    }
+
+    private static Sprite GetOrCreateFeatherSprite(float softness)
+    {
+        float normalizedSoftness = Mathf.Clamp(softness, 0f, 0.95f);
+        if (sharedFeatherSprite != null && Mathf.Approximately(sharedFeatherSoftness, normalizedSoftness))
+        {
+            return sharedFeatherSprite;
+        }
+
+        if (sharedFeatherSprite != null)
+        {
+            Destroy(sharedFeatherSprite);
+            sharedFeatherSprite = null;
+        }
+
+        if (sharedFeatherTexture != null)
+        {
+            Destroy(sharedFeatherTexture);
+            sharedFeatherTexture = null;
+        }
+
+        const int textureSize = 128;
+        const float radius = (textureSize - 2) * 0.5f;
+        Vector2 center = new((textureSize - 1) * 0.5f, (textureSize - 1) * 0.5f);
+        float innerRadius = radius * (1f - normalizedSoftness);
+        float featherWidth = Mathf.Max(0.0001f, radius - innerRadius);
+
+        sharedFeatherTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false)
+        {
+            name = "GeneratedLightGrazeFeather",
+            hideFlags = HideFlags.HideAndDontSave,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color32[] pixels = new Color32[textureSize * textureSize];
+        for (int y = 0; y < textureSize; y++)
+        {
+            for (int x = 0; x < textureSize; x++)
+            {
+                float distance = Vector2.Distance(new Vector2(x, y), center);
+                float alpha = 0f;
+
+                if (distance <= radius && normalizedSoftness > 0f)
+                {
+                    float edgeProgress = Mathf.Clamp01((distance - innerRadius) / featherWidth);
+                    alpha = Mathf.SmoothStep(0f, 1f, edgeProgress);
+                }
+
+                pixels[y * textureSize + x] = new Color32(
+                    byte.MaxValue,
+                    byte.MaxValue,
+                    byte.MaxValue,
+                    (byte)Mathf.RoundToInt(alpha * byte.MaxValue));
+            }
+        }
+
+        sharedFeatherTexture.SetPixels32(pixels);
+        sharedFeatherTexture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+
+        sharedFeatherSprite = Sprite.Create(
+            sharedFeatherTexture,
+            new Rect(0f, 0f, textureSize, textureSize),
+            new Vector2(0.5f, 0.5f),
+            textureSize);
+        sharedFeatherSprite.name = "GeneratedLightGrazeFeather";
+        sharedFeatherSprite.hideFlags = HideFlags.HideAndDontSave;
+        sharedFeatherSoftness = normalizedSoftness;
+        return sharedFeatherSprite;
     }
 
     private void OnDestroy()
@@ -137,6 +271,7 @@ public class ZoneLightingController : MonoBehaviour
         if (instance == this)
         {
             instance = null;
+            LightGrazeSource.RefreshAllActiveSources();
         }
     }
 }

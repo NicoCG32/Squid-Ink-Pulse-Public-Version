@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2408800359506191292}
   - component: {fileID: 3035727691093939352}
   - component: {fileID: 3271709982444147680}
-  - component: {fileID: 9301000000000000001}
   m_Layer: 8
   m_Name: ShrimpCoin
   m_TagString: Shrimp
@@ -108,18 +107,6 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ShrimpValue
   amount: 1
---- !u!114 &9301000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3035727691093939351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
 --- !u!60 &3271709982444147680
 PolygonCollider2D:
   m_ObjectHideFlags: 0

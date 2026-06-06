@@ -20,6 +20,7 @@ public class CameraController : MonoBehaviour
 
     [Header("Dynamics")]
     [SerializeField] private float smoothTime = 0.25f;
+    [SerializeField, Min(0.01f)] private float returnToFollowHorizontalSmoothTime = 0.12f;
 
     [Header("Ink-Pulse Feedback")]
     [SerializeField] private bool enableInkPulseScreenPulse = true;
@@ -94,11 +95,7 @@ public class CameraController : MonoBehaviour
             ? CalculateWideViewPosition()
             : CalculateNormalViewPosition();
 
-        transform.position = Vector3.SmoothDamp(
-            transform.position,
-            targetPosition,
-            ref velocity,
-            GetActiveSmoothTime(CurrentMode));
+        transform.position = SmoothCameraPosition(targetPosition, CurrentMode);
 
         UpdateOrthographicSize(CurrentMode);
         ApplyInkPulseScreenFeedback();
@@ -136,11 +133,42 @@ public class CameraController : MonoBehaviour
         return targetPosition;
     }
 
-    private float GetActiveSmoothTime(CameraEventMode mode)
+    private Vector3 SmoothCameraPosition(Vector3 targetPosition, CameraEventMode mode)
+    {
+        float horizontalVelocity = velocity.x;
+        float verticalVelocity = velocity.y;
+
+        float nextX = Mathf.SmoothDamp(
+            transform.position.x,
+            targetPosition.x,
+            ref horizontalVelocity,
+            GetActiveHorizontalSmoothTime(mode));
+
+        float nextY = Mathf.SmoothDamp(
+            transform.position.y,
+            targetPosition.y,
+            ref verticalVelocity,
+            GetActiveVerticalSmoothTime(mode));
+
+        velocity = new Vector3(horizontalVelocity, verticalVelocity, 0f);
+        return new Vector3(nextX, nextY, targetPosition.z);
+    }
+
+    private float GetActiveHorizontalSmoothTime(CameraEventMode mode)
+    {
+        if (mode == CameraEventMode.ReturningToFollow)
+        {
+            return Mathf.Max(0.01f, returnToFollowHorizontalSmoothTime);
+        }
+
+        return GetActiveVerticalSmoothTime(mode);
+    }
+
+    private float GetActiveVerticalSmoothTime(CameraEventMode mode)
     {
         return mode == CameraEventMode.WideEvent || mode == CameraEventMode.ReturningToFollow
             ? wideViewTransitionSmoothTime
-            : smoothTime;
+            : Mathf.Max(0.01f, smoothTime);
     }
 
     private void UpdateOrthographicSize(CameraEventMode mode)
@@ -156,7 +184,7 @@ public class CameraController : MonoBehaviour
             currentCamera.orthographicSize,
             targetSize,
             ref orthographicVelocity,
-            GetActiveSmoothTime(mode));
+            GetActiveVerticalSmoothTime(mode));
     }
 
     private void HandleInkPulseStarted()
@@ -291,6 +319,11 @@ public class CameraController : MonoBehaviour
         }
 
         CurrentMode = nextMode;
+        if (previousMode == CameraEventMode.WideEvent && nextMode != CameraEventMode.WideEvent)
+        {
+            velocity = Vector3.zero;
+        }
+
         ModeChanged?.Invoke(previousMode, nextMode);
     }
 

@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8302000000000000004}
   - component: {fileID: 8302000000000000005}
   - component: {fileID: 8302000000000000006}
-  - component: {fileID: 9301000000000000006}
   m_Layer: 8
   m_Name: DealerFish
   m_TagString: Collectible
@@ -164,15 +163,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &9301000000000000006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8302000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource

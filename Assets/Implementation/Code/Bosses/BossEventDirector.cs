@@ -91,7 +91,6 @@ public class BossEventDirector : MonoBehaviour
 
         Vector3 spawnPosition = CalculateSpawnPosition();
         GameObject bossInstance = Instantiate(bossPrefab, spawnPosition, Quaternion.identity, bossParent);
-        LightGrazeSource.EnsureOn(bossInstance);
         InjectSpawnContext(bossInstance);
 
         if (resetLocalTimer && !triggerOnce)

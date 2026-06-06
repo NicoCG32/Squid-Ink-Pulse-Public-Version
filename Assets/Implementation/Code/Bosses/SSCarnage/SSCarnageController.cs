@@ -119,7 +119,6 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         Vector3 spawnPosition = CalculateNetSpawnPosition();
         Transform parent = ownedObjectsParent != null ? ownedObjectsParent : transform.parent;
         GameObject wallInstance = Instantiate(bossNetWallPrefab, spawnPosition, Quaternion.identity, parent);
-        LightGrazeSource.EnsureOn(wallInstance);
 
         if (wallInstance.TryGetComponent(out SSCarnageNetWall netWall))
         {

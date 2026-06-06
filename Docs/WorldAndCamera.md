@@ -104,8 +104,8 @@ Responsabilidad:
 Archivo: `Assets/Implementation/Code/World/Lighting/ZoneLightingController.cs`
 
 Responsabilidad:
-- Mantener `DarknessOverlay` centrado y escalado contra la camara ortografica activa.
+- Mantener `LayerBlack` centrado y escalado contra la camara ortografica activa.
 - Oscurecer `ZonaExe` sin modificar los fondos ni duplicar sprites claros/oscuros.
-- Recibir notificaciones de `LightGrazeProbe` para reducir temporalmente la opacidad.
+- Configurar `LayerBlack` para renderizar fuera de mascaras circulares creadas por `LightGrazeSource`.
 
 La mecanica completa esta documentada en [ZoneLighting.md](ZoneLighting.md).

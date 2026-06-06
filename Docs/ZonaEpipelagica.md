@@ -140,8 +140,8 @@ flowchart LR
 - debe tener la misma jerarquia obligatoria de boundaries;
 - usa portales con `PortalSpawnPolicy.AlwaysInterval`;
 - conserva gadgets e Ink-Pulse al entrar o salir;
-- tiene `Enviroment/ZoneLightingController` y `DarknessOverlay` para oscuridad ambiental;
-- revela temporalmente el fondo mediante `LightGrazeSource` en entidades y `LightGrazeProbe` en BabySquid;
+- tiene `Enviroment/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
+- perfora localmente `LayerBlack` mediante `LightGrazeSource` en BabySquid y entidades spawneadas;
 - puede diferenciar arte, enemigos y parametros de spawner sin romper el contrato comun.
 
 ## Notas de mantenimiento

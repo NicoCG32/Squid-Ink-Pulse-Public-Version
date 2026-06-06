@@ -380,7 +380,6 @@ GameObject:
   - component: {fileID: 7101000000000000004}
   - component: {fileID: 3347838001540856331}
   - component: {fileID: 7101000000000000006}
-  - component: {fileID: 9301000000000000009}
   m_Layer: 11
   m_Name: BossNetWall
   m_TagString: SSCarnage
@@ -581,18 +580,6 @@ MonoBehaviour:
   - {fileID: 7101000000000000008}
   - {fileID: 7101000000000000011}
   brokenVisualLayer: {fileID: 6842937243072509610}
---- !u!114 &9301000000000000009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7101000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
 --- !u!1 &7101000000000000007
 GameObject:
   m_ObjectHideFlags: 0

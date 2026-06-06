@@ -657,6 +657,8 @@ GameObject:
   m_Component:
   - component: {fileID: 244314333}
   - component: {fileID: 244314332}
+  - component: {fileID: 244314334}
+  - component: {fileID: 4202000000000000001}
   m_Layer: 0
   m_Name: Soundtrack
   m_TagString: Untagged
@@ -676,7 +678,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 6d41de6be48ec1e439f7e6f1f50eea9b, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 0.6
   m_Pitch: 1.1
   Loop: 1
@@ -776,6 +778,103 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1616153059}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &244314334
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 244314331}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 6d9f0b9e54e9ad245a54e8e4991dbc09, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 0
+  m_Pitch: 1.1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &288031555
 GameObject:
   m_ObjectHideFlags: 0
@@ -2099,6 +2198,7 @@ MonoBehaviour:
   inkPulse: {fileID: 1323949932}
   offset: {x: 8, y: 0, z: -10}
   smoothTime: 0.25
+  returnToFollowHorizontalSmoothTime: 0.12
   enableInkPulseScreenPulse: 1
   inkPulseFeedbackDuration: 0.18
   inkPulseShakeAmplitude: 0.08
@@ -4619,8 +4719,6 @@ GameObject:
   - component: {fileID: 1323949933}
   - component: {fileID: 1323949937}
   - component: {fileID: 1323949936}
-  - component: {fileID: 3202000000000000001}
-  - component: {fileID: 3202000000000000002}
   m_Layer: 6
   m_Name: Squid
   m_TagString: Player
@@ -4679,8 +4777,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.100000024}
-  m_Radius: 0.4
+  m_Offset: {x: -0.03481982, y: 0.1102462}
+  m_Radius: 0.3754264
 --- !u!50 &1323949931
 Rigidbody2D:
   serializedVersion: 5
@@ -4818,31 +4916,6 @@ MonoBehaviour:
   startWithInkBottle: 0
   startingShellShieldIcon: {fileID: 0}
   startingInkBottleIcon: {fileID: 0}
---- !u!114 &3202000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1323949926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
---- !u!114 &3202000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1323949926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c8f4782ecb94c1dbd64d8945e1c2ce6, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeProbe
-  session: {fileID: 364328816}
 --- !u!1 &1347554547
 GameObject:
   m_ObjectHideFlags: 0
@@ -6758,8 +6831,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -601.06, y: -85}
-  m_SizeDelta: {x: 717.884, y: 711.4411}
+  m_AnchoredPosition: {x: 539.4031, y: -269.97}
+  m_SizeDelta: {x: 841.1738, y: 539.94}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1903752729
 MonoBehaviour:
@@ -6781,7 +6854,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e2eb11a9be607b448b0782b1aa2d7d3e, type: 3}
+  m_Sprite: {fileID: -3169899485063868875, guid: 67969abe66e23a94c8db214430449fca, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7984,6 +8057,26 @@ MonoBehaviour:
   onStateChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4202000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 244314331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e628f16d49b847edaf5e0edb54d070d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InkPulseMusicCrossfader
+  inkPulse: {fileID: 1323949932}
+  normalTrack: {fileID: 244314332}
+  inkTrack: {fileID: 244314334}
+  normalTargetVolume: 0.6
+  inkTargetVolume: 0.45
+  fadeSeconds: 0.85
+  useEqualPowerCrossfade: 0
+  syncStartDelay: 0.1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

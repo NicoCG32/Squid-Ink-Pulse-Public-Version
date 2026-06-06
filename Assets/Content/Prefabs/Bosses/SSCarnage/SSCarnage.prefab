@@ -26,8 +26,8 @@ Transform:
   m_GameObject: {fileID: 683881552522743862}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.0508, y: -0.1554, z: 0}
-  m_LocalScale: {x: 0.266275, y: 1.1087, z: 1}
+  m_LocalPosition: {x: 0.0374, y: 1.2306, z: 0}
+  m_LocalScale: {x: 0.10883323, y: 0.36631733, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6201000000000000002}
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 6801580211084615110, guid: 9230062917cdbe844b2272e353f68f59, type: 3}
+  m_Sprite: {fileID: -5931850536029100635, guid: f637e553adce5e24ebbef27c7388e78f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -102,7 +102,6 @@ GameObject:
   - component: {fileID: 6201000000000000002}
   - component: {fileID: 6201000000000000003}
   - component: {fileID: 6201000000000000004}
-  - component: {fileID: 9301000000000000008}
   m_Layer: 11
   m_Name: SSCarnage
   m_TagString: SSCarnage
@@ -213,15 +212,3 @@ MonoBehaviour:
   netSpawnDistanceFromCameraRight: 1
   netViewportY: 1
   deployNetOnStart: 1
---- !u!114 &9301000000000000008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6201000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource

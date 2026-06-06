@@ -30,6 +30,7 @@ Responsabilidad:
 - Gestionar navegacion del menu principal.
 - Conectar acciones de inicio, salida o navegacion a escenas.
 - Cargar la escena de juego mediante ruta estable del asset.
+- Cargar `Assets/Scenes/OptionsMenu/OptionsMenu.unity` desde el boton de opciones.
 
 ## Pausa
 

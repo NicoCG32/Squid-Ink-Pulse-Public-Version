@@ -1440,7 +1440,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   playSceneName: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
-  optionsSceneName: 
+  optionsSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
   timeDelay: 0.6
 --- !u!1 &1290895326
 GameObject:

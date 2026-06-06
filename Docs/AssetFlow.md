@@ -52,3 +52,18 @@
 4. Vincular logica desde scripts del dominio correspondiente.
 5. Validar operacion en escena runtime.
 6. Confirmar que no quedaron referencias de escena serializadas dentro del prefab.
+
+## Soundtrack dinamico
+
+Las versiones normal e intensa de una misma musica deben exportarse con:
+
+- mismo punto inicial;
+- mismo tempo;
+- misma duracion o loop perfectamente equivalente;
+- misma afinacion.
+
+En `ZonaEpipelagica`, el nodo `Soundtrack` mantiene dos `AudioSource`: normal e `INK`. `InkPulseMusicCrossfader` las inicia sincronizadas y cruza volumen segun `InkPulseState.Active`.
+
+Regla de mezcla:
+- Si la pista `INK` es una mezcla completa alternativa, usar crossfade lineal complementario.
+- Si en el futuro se usan stems complementarios que no duplican el mismo contenido, puede probarse `useEqualPowerCrossfade`.

@@ -105,7 +105,6 @@ GameObject:
   - component: {fileID: 7302000000000000004}
   - component: {fileID: 7302000000000000005}
   - component: {fileID: 7890496712738804094}
-  - component: {fileID: 9301000000000000004}
   m_Layer: 7
   m_Name: Mina
   m_TagString: EnemyMina
@@ -384,15 +383,3 @@ PolygonCollider2D:
       - {x: 0.5610777, y: 0.3768418}
       - {x: 0.49243647, y: 0.43444845}
   m_UseDelaunayMesh: 1
---- !u!114 &9301000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7302000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource

@@ -26,6 +26,8 @@ Archivo: `Assets/Implementation/Code/Player/Abilities/InkPulseController.cs`
 
 Estado runtime: `Assets/Implementation/Code/Player/Abilities/RuntimeInkPulseState.cs`
 
+Feedback musical: `Assets/Implementation/Code/Audio/InkPulseMusicCrossfader.cs`
+
 Responsabilidad:
 - Administrar la carga del recurso Ink-Pulse.
 - Exponer `InkPulseState`.
@@ -35,12 +37,20 @@ Responsabilidad:
 - Persistir carga, estado activo y tiempo restante entre portales.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
 - Bloquear activacion manual mientras `InGameShopManager` esta mostrando una oferta temporal.
+- Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
 
 Estados:
 - `Idle`
 - `Charging`
 - `Ready`
 - `Active`
+
+Regla de audio:
+- `InkPulseMusicCrossfader` vive en el nodo `Soundtrack` de la escena.
+- Las dos pistas se reproducen sincronizadas desde el mismo tiempo DSP.
+- Al entrar en `Active`, la mezcla cruza hacia la pista `INK`.
+- Al salir de `Active`, la mezcla vuelve a la pista normal.
+- Para dos mezclas completas del mismo tema, el crossfade lineal complementario es el valor por defecto porque evita sumar ambas mezclas a volumen completo.
 
 ## GrazeDetector
 
@@ -56,19 +66,19 @@ Responsabilidad:
 Archivos:
 - `Assets/Implementation/Code/World/Lighting/ZoneLightingController.cs`
 - `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs`
-- `Assets/Implementation/Code/World/Lighting/LightGrazeProbe.cs`
 
 Responsabilidad:
 - Oscurecer `ZonaExe` mediante un overlay de escena.
-- Revelar temporalmente el fondo cuando el BabySquid pasa cerca de entidades con `LightGrazeSource`.
+- Perforar localmente `LayerBlack` con mascaras circulares alrededor de entidades con `LightGrazeSource`.
+- Suavizar el borde de cada perforacion mediante una pluma radial visual.
 - Mantenerse independiente del `GrazeDetector` y del `GrazeZone`.
 - No cargar Ink-Pulse ni modificar economia, dano o colisiones.
 
 Reglas:
 - Los parametros visuales viven en `ZoneLightingController`.
-- Las entidades solo declaran `LightGrazeSource`.
-- El BabySquid declara `LightGrazeProbe`.
-- La sonda mide contra colliders habilitados o bounds visuales, no solo contra el pivote del objeto.
+- `LayerBlack` usa `SpriteRenderer.maskInteraction = VisibleOutsideMask`.
+- BabySquid en `ZonaExe` declara `LightGrazeSource`.
+- `LevelSpawner` agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
 
 ## PlayerCollision
 
@@ -160,10 +170,10 @@ Reglas:
 
 1. El jugador avanza de forma continua.
 2. Se aproxima a una amenaza y `GrazeDetector` carga Ink-Pulse.
-3. En `ZonaExe`, `LightGrazeProbe` puede revelar el fondo si esa entidad tiene `LightGrazeSource`.
+3. En `ZonaExe`, las entidades con `LightGrazeSource` perforan localmente `LayerBlack`.
 4. `InkPulseController` pasa de `Idle` a `Charging` o `Ready`.
 5. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
-6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo.
+6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
 7. `PlayerCollision` y sistemas de entorno resuelven impactos.
 8. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield`.
 9. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.

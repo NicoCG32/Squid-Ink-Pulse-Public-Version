@@ -29,7 +29,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Mercancia comprable: `GadgetShopItem`.
 - Tienda temporal: `DealerFish` e `InGameShopManager`.
 - Portales: `ScenePortal` detecta contacto; `SceneFlowController` decide destino.
-- Iluminacion de zona: `ZoneLightingController` gobierna overlay; `LightGrazeProbe` detecta fuentes; `LightGrazeSource` marca entidades.
+- Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` crea mascaras circulares locales.
 - Economia runtime: `ShrimpRuntimeWallet`.
 - Boss SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
@@ -116,26 +116,26 @@ flowchart TD
 
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
-| `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y revelar luz por proximidad. |
-| `Enviroment/ZoneLightingController/DarknessOverlay` | `SpriteRenderer` | Overlay visual oscuro que cubre camara. |
+| `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y configurar perforaciones locales de luz. |
+| `Enviroment/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y se perfora con mascaras. |
 
-`DarknessOverlay` debe quedar sobre fondos y bajo entidades de gameplay. La escena actual usa sorting order `-1`.
+`LayerBlack` debe quedar sobre fondos y bajo entidades de gameplay. La escena actual usa sorting order `-1` y `SpriteRenderer.maskInteraction = VisibleOutsideMask`.
 
 ## Prefabs runtime
 
 | Prefab | Script esperado | Tag esperado | Layer esperada |
 | --- | --- | --- | --- |
-| `PezGlobo` | `PufferfishEnemy`, `LightGrazeSource` | `EnemyPezGlobo` | `Enemy` |
-| `Mina` | `LightGrazeSource` | `EnemyMina` | `Enemy` |
-| `CanaPescar` | `LightGrazeSource` | `EnemyCanaPescar` | `Enemy` |
-| `ShrimpCoin` | `ShrimpValue`, `LightGrazeSource` | `Shrimp` | `Collectible` |
-| `ShrimpCoinX10` | `ShrimpValue`, `LightGrazeSource` | `Shrimp` | `Collectible` |
+| `PezGlobo` | `PufferfishEnemy` | `EnemyPezGlobo` | `Enemy` |
+| `Mina` | ninguno por ahora | `EnemyMina` | `Enemy` |
+| `CanaPescar` | ninguno por ahora | `EnemyCanaPescar` | `Enemy` |
+| `ShrimpCoin` | `ShrimpValue` | `Shrimp` | `Collectible` |
+| `ShrimpCoinX10` | `ShrimpValue` | `Shrimp` | `Collectible` |
 | `ShellShield` | `GadgetShopItem` | `Untagged` | segun UI/prefab |
 | `InkBottle` | `GadgetShopItem` | `Untagged` | segun UI/prefab |
-| `DealerFish` | `DealerFish`, `LightGrazeSource` | `Collectible` | `Collectible` |
-| `ScenePortal` | `ScenePortal`, `LightGrazeSource` | `Portal` | `Collectible` |
-| `SSCarnage` | `SSCarnageController`, `LightGrazeSource` | `SSCarnage` | `Enemy` |
-| `BossNetWall` | `SSCarnageNetWall`, `LightGrazeSource` | `SSCarnage` | `Enemy` |
+| `DealerFish` | `DealerFish` | `Collectible` | `Collectible` |
+| `ScenePortal` | `ScenePortal` | `Portal` | `Collectible` |
+| `SSCarnage` | `SSCarnageController` | `SSCarnage` | `Enemy` |
+| `BossNetWall` | `SSCarnageNetWall` | `SSCarnage` | `Enemy` |
 
 La mina y la cana no tienen script propio todavia porque su logica actual vive en el algoritmo de spawn. Cuando reciban comportamiento autonomo, deben incorporarse scripts dedicados en `Assets/Implementation/Code/Enemies/`.
 
@@ -151,7 +151,7 @@ La mina y la cana no tienen script propio todavia porque su logica actual vive e
 
 Despues de instanciar, `LevelSpawner` aplica el tag con `EnemyTagCatalog.ApplyEnemyTag()` y asigna capa `Enemy` de forma recursiva.
 Los comportamientos de enemigos reciben `EnemySpawnContext`; sus parametros de balance viven en `LevelSpawner`, no en el prefab.
-`LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados.
+En `ZonaExe`, `LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados, porque `LightGrazeSource.EnsureOn()` solo actua si existe `ZoneLightingController`.
 
 ## Spawn de tienda
 
@@ -177,14 +177,14 @@ Configuracion actual:
 
 ## Light graze visual
 
-`LightGrazeSource` no es un manager y no tiene parametros de balance. Es una declaracion de capacidad de entidad.
+`LightGrazeSource` no es un manager y no tiene parametros de balance. Es una declaracion runtime de capacidad visual.
 
 Reglas:
 - El balance visual vive solo en `ZoneLightingController`.
-- El BabySquid debe tener `LightGrazeProbe`.
-- El `LightGrazeProbe` ignora fuentes en la misma raiz del jugador.
-- La deteccion usa el punto mas cercano de colliders habilitados o bounds visuales, no el pivote de la entidad.
-- `GrazeDetector` y `LightGrazeProbe` no deben compartir estado ni cargar el mismo recurso.
+- BabySquid debe tener `LightGrazeSource` solo en `ZonaExe`.
+- Las entidades spawneadas reciben `LightGrazeSource` por `LevelSpawner` solo en zonas con `ZoneLightingController`.
+- `LightGrazeSource` crea `LightGrazeMask` como hijo runtime.
+- `GrazeDetector` y `LightGrazeSource` no deben compartir estado ni cargar el mismo recurso.
 
 ## Scripts retirados o reemplazados
 

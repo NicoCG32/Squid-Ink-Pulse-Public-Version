@@ -4,16 +4,21 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class LightGrazeSource : MonoBehaviour
 {
+    private const string MaskObjectName = "LightGrazeMask";
+    private const string FeatherObjectName = "LightGrazeFeather";
+
     private static readonly List<LightGrazeSource> activeSources = new();
 
-    private Collider2D[] colliders;
-    private Renderer[] renderers;
+    private SpriteMask lightMask;
+    private Transform lightMaskTransform;
+    private SpriteRenderer lightFeather;
+    private Transform lightFeatherTransform;
 
     public static int ActiveSourceCount => activeSources.Count;
 
     public static LightGrazeSource EnsureOn(GameObject target)
     {
-        if (target == null)
+        if (target == null || !ZoneLightingController.HasInstance)
         {
             return null;
         }
@@ -22,95 +27,158 @@ public class LightGrazeSource : MonoBehaviour
         return source != null ? source : target.AddComponent<LightGrazeSource>();
     }
 
-    public static LightGrazeSource GetActiveSource(int index)
+    public static void RefreshAllActiveSources()
     {
-        return index >= 0 && index < activeSources.Count
-            ? activeSources[index]
-            : null;
-    }
-
-    public Vector3 GetClosestPoint(Vector3 worldPosition)
-    {
-        RefreshGeometryIfNeeded();
-
-        bool hasPoint = false;
-        Vector3 closestPoint = transform.position;
-        float closestSqrDistance = float.PositiveInfinity;
-
-        if (colliders != null)
+        for (int i = activeSources.Count - 1; i >= 0; i--)
         {
-            foreach (Collider2D sourceCollider in colliders)
+            LightGrazeSource source = activeSources[i];
+            if (source == null)
             {
-                if (sourceCollider == null || !sourceCollider.enabled)
-                {
-                    continue;
-                }
-
-                Vector3 candidate = sourceCollider.ClosestPoint(worldPosition);
-                float sqrDistance = (candidate - worldPosition).sqrMagnitude;
-                if (sqrDistance < closestSqrDistance)
-                {
-                    hasPoint = true;
-                    closestPoint = candidate;
-                    closestSqrDistance = sqrDistance;
-                }
+                activeSources.RemoveAt(i);
+                continue;
             }
+
+            source.RefreshMask();
         }
-
-        if (!hasPoint && renderers != null)
-        {
-            foreach (Renderer sourceRenderer in renderers)
-            {
-                if (sourceRenderer == null || !sourceRenderer.enabled)
-                {
-                    continue;
-                }
-
-                Vector3 candidate = sourceRenderer.bounds.ClosestPoint(worldPosition);
-                float sqrDistance = (candidate - worldPosition).sqrMagnitude;
-                if (sqrDistance < closestSqrDistance)
-                {
-                    hasPoint = true;
-                    closestPoint = candidate;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-        }
-
-        return hasPoint ? closestPoint : transform.position;
-    }
-
-    private void Awake()
-    {
-        RefreshGeometry();
     }
 
     private void OnEnable()
     {
-        RefreshGeometry();
-
         if (!activeSources.Contains(this))
         {
             activeSources.Add(this);
         }
+
+        RefreshMask();
     }
 
     private void OnDisable()
     {
         activeSources.Remove(this);
+        SetMaskEnabled(false);
+        SetFeatherEnabled(false);
     }
 
-    private void RefreshGeometryIfNeeded()
+    private void LateUpdate()
     {
-        if (colliders == null || renderers == null)
+        RefreshMask();
+    }
+
+    private void RefreshMask()
+    {
+        if (!ZoneLightingController.HasInstance || !isActiveAndEnabled)
         {
-            RefreshGeometry();
+            SetMaskEnabled(false);
+            SetFeatherEnabled(false);
+            return;
+        }
+
+        ZoneLightingController controller = ZoneLightingController.Instance;
+        EnsureMaskObject();
+        controller.ConfigureLightMask(lightMask);
+        SetMaskEnabled(true);
+        FitMaskRadius(controller.LightHoleRadius);
+
+        if (!controller.UsesLightFeather)
+        {
+            SetFeatherEnabled(false);
+            return;
+        }
+
+        EnsureFeatherObject();
+        controller.ConfigureLightFeather(lightFeather);
+        SetFeatherEnabled(true);
+        FitFeatherRadius(controller.LightHoleRadius);
+    }
+
+    private void EnsureMaskObject()
+    {
+        if (lightMask != null)
+        {
+            return;
+        }
+
+        Transform existingMask = transform.Find(MaskObjectName);
+        if (existingMask != null && existingMask.TryGetComponent(out lightMask))
+        {
+            lightMaskTransform = existingMask;
+            return;
+        }
+
+        GameObject maskObject = new(MaskObjectName);
+        lightMaskTransform = maskObject.transform;
+        lightMaskTransform.SetParent(transform, worldPositionStays: false);
+        lightMaskTransform.localPosition = Vector3.zero;
+        lightMaskTransform.localRotation = Quaternion.identity;
+        lightMask = maskObject.AddComponent<SpriteMask>();
+    }
+
+    private void FitMaskRadius(float radius)
+    {
+        FitRadius(lightMaskTransform, lightMask != null ? lightMask.sprite : null, radius);
+    }
+
+    private void EnsureFeatherObject()
+    {
+        if (lightFeather != null)
+        {
+            return;
+        }
+
+        Transform existingFeather = transform.Find(FeatherObjectName);
+        if (existingFeather != null && existingFeather.TryGetComponent(out lightFeather))
+        {
+            lightFeatherTransform = existingFeather;
+            return;
+        }
+
+        GameObject featherObject = new(FeatherObjectName);
+        lightFeatherTransform = featherObject.transform;
+        lightFeatherTransform.SetParent(transform, worldPositionStays: false);
+        lightFeatherTransform.localPosition = Vector3.zero;
+        lightFeatherTransform.localRotation = Quaternion.identity;
+        lightFeather = featherObject.AddComponent<SpriteRenderer>();
+    }
+
+    private void FitFeatherRadius(float radius)
+    {
+        FitRadius(lightFeatherTransform, lightFeather != null ? lightFeather.sprite : null, radius);
+    }
+
+    private void FitRadius(Transform targetTransform, Sprite sprite, float radius)
+    {
+        if (targetTransform == null || sprite == null)
+        {
+            return;
+        }
+
+        Vector2 spriteSize = sprite.bounds.size;
+        float diameter = radius * 2f;
+        Vector3 lossyScale = transform.lossyScale;
+        float parentScaleX = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.x));
+        float parentScaleY = Mathf.Max(0.0001f, Mathf.Abs(lossyScale.y));
+
+        targetTransform.localPosition = Vector3.zero;
+        targetTransform.localRotation = Quaternion.identity;
+        targetTransform.localScale = new Vector3(
+            diameter / Mathf.Max(0.0001f, spriteSize.x) / parentScaleX,
+            diameter / Mathf.Max(0.0001f, spriteSize.y) / parentScaleY,
+            1f);
+    }
+
+    private void SetMaskEnabled(bool enabled)
+    {
+        if (lightMask != null)
+        {
+            lightMask.enabled = enabled;
         }
     }
 
-    private void RefreshGeometry()
+    private void SetFeatherEnabled(bool enabled)
     {
-        colliders = GetComponentsInChildren<Collider2D>();
-        renderers = GetComponentsInChildren<Renderer>();
+        if (lightFeather != null)
+        {
+            lightFeather.enabled = enabled;
+        }
     }
 }

@@ -55,9 +55,11 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | `Idle` | Sin carga util. |
 | `Charging` | La carga aumenta por graze o fuentes externas. |
 | `Ready` | Puede activarse. |
-| `Active` | Otorga impulso y puede resolver obstaculos como la red. |
+| `Active` | Otorga impulso, puede resolver obstaculos como la red y activa feedback musical intenso. |
 
 `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante entre portales. `GameOver` lo reinicia.
+
+El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCrossfader` observa `InkPulseState.Active` y ajusta mezcla; no gobierna input, dificultad, spawn ni dano.
 
 ### ShopEventState
 
@@ -87,7 +89,7 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | --- | --- |
 | `Follow` | Seguimiento normal del jugador. |
 | `WideEvent` | Vista amplia temporal para eventos. |
-| `ReturningToFollow` | Interpolacion de vuelta al seguimiento. |
+| `ReturningToFollow` | Interpolacion de vuelta al seguimiento; recupera el eje X mas rapido que el zoom para que el jugador no quede adelantado. |
 
 ### Ciclo visual de ZoneLightingController
 
@@ -95,9 +97,9 @@ No existe como enum formal porque todavia no bloquea input, no altera spawn y no
 
 | Fase conceptual | Efecto |
 | --- | --- |
-| Oscuro | `DarknessOverlay` usa `darkAlpha`. |
-| Revelado | `LightGrazeProbe` notifico una fuente cercana y el overlay avanza hacia `litAlpha`. |
-| Retorno | Al expirar `litHoldSeconds`, el overlay vuelve hacia `darkAlpha`. |
+| Oscuro | `LayerBlack` usa `blackAlpha` y cubre el fondo. |
+| Perforado | Cada `LightGrazeSource` crea una mascara circular que rompe `LayerBlack`. |
+| Actualizacion | Las mascaras siguen a sus entidades y se destruyen/desactivan con ellas. |
 
 Debe formalizarse como estado propio solo si en el futuro modifica reglas de spawn, IA, tutorial, audio adaptativo o interacciones de zona.
 

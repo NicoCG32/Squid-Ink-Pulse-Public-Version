@@ -20,6 +20,7 @@
 ## Codigo por dominio
 
 - `Assets/Implementation/Code/Core/`: sesion, escenas, camara y utilidades de mundo.
+- `Assets/Implementation/Code/Audio/`: musica dinamica y transiciones de soundtrack.
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Spawning/`: spawner y catalogo de enemigos.
 - `Assets/Implementation/Code/Enemies/`: comportamientos propios de enemigos.

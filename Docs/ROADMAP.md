@@ -51,13 +51,14 @@ Pendiente:
 
 Implementado:
 - `ZonaExe` tiene oscuridad ambiental mediante `ZoneLightingController`.
-- El fondo no se duplica: `DarknessOverlay` oscurece la escena real.
-- `LightGrazeSource` marca entidades que pueden revelar luz.
-- `LightGrazeProbe` en BabySquid detecta fuentes cercanas sin depender de `GrazeZone`.
-- Enemigos, camarones, `DealerFish`, portales, SS Carnage y red tienen `LightGrazeSource` en prefab y garantia runtime desde sus managers/controladores.
+- El fondo no se duplica: `LayerBlack` oscurece la escena real.
+- `LayerBlack` se perfora localmente mediante `SpriteMask`.
+- `LightGrazeSource` crea mascaras circulares alrededor de entidades.
+- BabySquid tiene `LightGrazeSource` en `ZonaExe`.
+- `LevelSpawner` agrega `LightGrazeSource` a enemigos, camarones, `DealerFish` y portales solo si existe `ZoneLightingController`.
 
 Pendiente:
-- Balancear `darkAlpha`, `litHoldSeconds`, velocidades de fade y radio de light graze.
+- Balancear `blackAlpha`, `lightHoleRadius`, `maskAlphaCutoff` y cobertura visual.
 - Agregar feedback sonoro/particulas si el revelado necesita mayor legibilidad.
 - Definir enemigos o patrones propios de zona que aprovechen la oscuridad.
 
