@@ -13,16 +13,10 @@ public class CameraController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Camera currentCamera;
     [SerializeField] private Transform target;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
     [SerializeField] private InkPulseController inkPulse;
 
     [Header("Target Settings")]
     [SerializeField] private Vector3 offset = new Vector3(3f, 0f, -10f);
-
-    [Header("Map Limits")]
-    [Tooltip("Solo valores negativos restringen antes de llegar al TopBorder. La camara no excede los boundaries.")]
-    [SerializeField] private float topBorderOffset = 0f;
 
     [Header("Dynamics")]
     [SerializeField] private float smoothTime = 0.25f;
@@ -44,6 +38,8 @@ public class CameraController : MonoBehaviour
     private float inkPulseFeedbackElapsedSeconds;
     private Vector3 activeFeedbackOffset;
     private float activeFeedbackOrthographicOffset;
+    private Collider2D topBorder;
+    private Collider2D bottomBorder;
 
     public CameraEventMode CurrentMode { get; private set; } = CameraEventMode.Follow;
     public event Action<CameraEventMode, CameraEventMode> ModeChanged;
@@ -115,7 +111,9 @@ public class CameraController : MonoBehaviour
 
         if (currentCamera == null || topBorder == null || bottomBorder == null)
         {
-            Debug.LogWarning("[CameraController] No se puede activar vista amplia sin CurrentCamera, TopBorder y BottomBorder.", this);
+            Debug.LogWarning(
+                $"[CameraController] No se puede activar vista amplia sin CurrentCamera y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)}.",
+                this);
             return;
         }
 
@@ -249,7 +247,7 @@ public class CameraController : MonoBehaviour
         }
 
         float mapMinY = bottomBorder.bounds.max.y;
-        float mapMaxY = topBorder.bounds.min.y + Mathf.Min(0f, topBorderOffset);
+        float mapMaxY = topBorder.bounds.min.y;
         float halfViewportHeight = currentCamera.orthographicSize;
 
         float minCameraY = mapMinY + halfViewportHeight;
@@ -298,9 +296,13 @@ public class CameraController : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (currentCamera == null || target == null || topBorder == null || bottomBorder == null)
+        if (currentCamera == null
+            || target == null
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out _, out _))
         {
-            Debug.LogWarning("[CameraController] Faltan referencias. Asigna CurrentCamera, Target, TopBorder y BottomBorder en el Inspector.", this);
+            Debug.LogWarning(
+                $"[CameraController] Faltan referencias. Configura CurrentCamera, Target y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)}.",
+                this);
         }
     }
 
@@ -311,8 +313,7 @@ public class CameraController : MonoBehaviour
             currentCamera = GetComponent<Camera>();
         }
 
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
+        if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
         {
             topBorder = resolvedTop;
             bottomBorder = resolvedBottom;

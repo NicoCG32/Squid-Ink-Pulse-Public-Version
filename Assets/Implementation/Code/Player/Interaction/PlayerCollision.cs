@@ -10,9 +10,6 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private PlayerGadgetInventory gadgetInventory;
     [SerializeField] private Collider2D damageCollider;
 
-    [Header("Rules")]
-    [SerializeField] private bool destroyHazardDuringPulse;
-
     private void Awake()
     {
         ResolveReferences();
@@ -47,11 +44,6 @@ public class PlayerCollision : MonoBehaviour
     {
         if (inkPulseController != null && inkPulseController.IsPulseActive)
         {
-            if (destroyHazardDuringPulse && hazard != null)
-            {
-                Destroy(hazard.gameObject);
-            }
-
             return;
         }
 

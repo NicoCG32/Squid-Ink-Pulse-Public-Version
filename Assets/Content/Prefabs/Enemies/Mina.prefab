@@ -104,6 +104,8 @@ GameObject:
   - component: {fileID: 7302000000000000006}
   - component: {fileID: 7302000000000000004}
   - component: {fileID: 7302000000000000005}
+  - component: {fileID: 7890496712738804094}
+  - component: {fileID: 9301000000000000004}
   m_Layer: 7
   m_Name: Mina
   m_TagString: EnemyMina
@@ -242,7 +244,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7302000000000000001}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -281,3 +283,116 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!60 &7890496712738804094
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7302000000000000001}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.42780495, y: 0.40185443}
+      - {x: 0.33299866, y: 0.38051045}
+      - {x: 0.22600695, y: 0.44919926}
+      - {x: 0.083273456, y: 0.50282073}
+      - {x: 0.057533205, y: 0.63690174}
+      - {x: 0.054118257, y: 0.73995256}
+      - {x: -0.09066796, y: 0.7351477}
+      - {x: -0.109416924, y: 0.5967362}
+      - {x: -0.1438399, y: 0.49252802}
+      - {x: -0.2660816, y: 0.45065656}
+      - {x: -0.36312264, y: 0.38977113}
+      - {x: -0.44826156, y: 0.43669993}
+      - {x: -0.510085, y: 0.46722418}
+      - {x: -0.58181906, y: 0.35674813}
+      - {x: -0.4973442, y: 0.27298144}
+      - {x: -0.4835678, y: 0.22021252}
+      - {x: -0.5302546, y: 0.036418796}
+      - {x: -0.68776655, y: -0.014427956}
+      - {x: -0.6756579, y: -0.13213569}
+      - {x: -0.6178006, y: -0.12759438}
+      - {x: -0.52910995, y: -0.15026484}
+      - {x: -0.5013664, y: -0.25418818}
+      - {x: -0.44739664, y: -0.32455233}
+      - {x: -0.5189841, y: -0.4249075}
+      - {x: -0.5378182, y: -0.47478783}
+      - {x: -0.46762556, y: -0.5777553}
+      - {x: -0.37047362, y: -0.49905366}
+      - {x: -0.2532335, y: -0.48620397}
+      - {x: -0.14263028, y: -0.5334233}
+      - {x: -0.08976593, y: -0.660947}
+      - {x: -0.058718078, y: -0.7346926}
+      - {x: 0.053965196, y: -0.71932083}
+      - {x: 0.071144454, y: -0.6319521}
+      - {x: 0.13507143, y: -0.52266926}
+      - {x: 0.22298321, y: -0.49111786}
+      - {x: 0.2990085, y: -0.45582348}
+      - {x: 0.38964993, y: -0.48730612}
+      - {x: 0.45428675, y: -0.5357727}
+      - {x: 0.53025454, y: -0.44705454}
+      - {x: 0.5063752, y: -0.40533426}
+      - {x: 0.44884554, y: -0.3080076}
+      - {x: 0.45929122, y: -0.25106764}
+      - {x: 0.49944025, y: -0.13805257}
+      - {x: 0.62457395, y: -0.08824974}
+      - {x: 0.6742861, y: -0.095512874}
+      - {x: 0.6915647, y: -0.03693087}
+      - {x: 0.66965765, y: 0.036396563}
+      - {x: 0.5830979, y: 0.044261947}
+      - {x: 0.50851846, y: 0.06667781}
+      - {x: 0.4742028, y: 0.17255792}
+      - {x: 0.49659246, y: 0.24884677}
+      - {x: 0.55711746, y: 0.32161087}
+      - {x: 0.5610777, y: 0.3768418}
+      - {x: 0.49243647, y: 0.43444845}
+  m_UseDelaunayMesh: 1
+--- !u!114 &9301000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7302000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource

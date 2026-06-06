@@ -1,32 +1,21 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(CircleCollider2D))]
 public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 {
-    [Header("References")]
-    [SerializeField] private Transform player;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
-    [SerializeField] private Collider2D bodyCollider;
-
-    [Header("Movement")]
-    [SerializeField] private float fallSpeed = 0.2f;
-    [SerializeField] private float expandedRiseSpeedMultiplier = 2f;
-
-    [Header("Expansion")]
-    [SerializeField] private float proximityRadius = 2.5f;
-    [SerializeField] private float expandedScaleMultiplier = 2f;
-    [SerializeField] private float expansionSmoothSpeed = 8f;
-
+    private PufferfishEnemyTuning tuning = new();
     private Vector3 baseScale;
     private bool isExpanded;
+    private Transform player;
+    private CircleCollider2D bodyCollider;
+    private Collider2D topBorder;
 
     private void Awake()
     {
         if (bodyCollider == null)
         {
-            bodyCollider = GetComponent<Collider2D>();
+            bodyCollider = GetComponent<CircleCollider2D>();
         }
 
         baseScale = transform.localScale;
@@ -52,33 +41,29 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         ClampBelowTopBorder();
     }
 
-    public void InitializeEnemySpawnContext(
-        Camera cameraReference,
-        Collider2D playerTopBorderReference,
-        Collider2D playerBottomBorderReference,
-        Transform playerReference)
+    public void InitializeEnemySpawnContext(EnemySpawnContext context)
     {
-        topBorder = playerTopBorderReference;
-        bottomBorder = playerBottomBorderReference;
-        player = playerReference;
+        player = context.PlayerReference;
+        tuning = context.PufferfishTuning ?? new PufferfishEnemyTuning();
+        ResolveSceneReferences();
         ClampBelowTopBorder();
     }
 
     private void MoveVertically()
     {
         float direction = isExpanded ? 1f : -1f;
-        float speedMultiplier = isExpanded ? expandedRiseSpeedMultiplier : 1f;
-        transform.position += Vector3.up * (direction * fallSpeed * speedMultiplier * Time.deltaTime);
+        float speedMultiplier = isExpanded ? tuning.ExpandedRiseSpeedMultiplier : 1f;
+        transform.position += Vector3.up * (direction * tuning.FallSpeed * speedMultiplier * Time.deltaTime);
     }
 
     private void UpdateExpansion()
     {
-        float targetMultiplier = isExpanded ? expandedScaleMultiplier : 1f;
+        float targetMultiplier = isExpanded ? tuning.ExpandedScaleMultiplier : 1f;
         Vector3 targetScale = baseScale * targetMultiplier;
         transform.localScale = Vector3.Lerp(
             transform.localScale,
             targetScale,
-            expansionSmoothSpeed * Time.deltaTime);
+            tuning.ExpansionSmoothSpeed * Time.deltaTime);
     }
 
     private void UpdateExpansionState()
@@ -93,7 +78,7 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
             return false;
         }
 
-        return Vector2.Distance(transform.position, player.position) <= proximityRadius;
+        return Vector2.Distance(transform.position, player.position) <= tuning.ProximityRadius;
     }
 
     private void ClampBelowTopBorder()
@@ -112,11 +97,9 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 
     private void ResolveSceneReferences()
     {
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out Collider2D resolvedBottom))
+        if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out _))
         {
             topBorder = resolvedTop;
-            bottomBorder = resolvedBottom;
         }
 
         if (player == null)

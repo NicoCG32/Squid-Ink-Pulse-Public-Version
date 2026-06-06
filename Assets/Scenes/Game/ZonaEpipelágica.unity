@@ -266,84 +266,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!1 &86926329
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 86926330}
-  - component: {fileID: 86926331}
-  m_Layer: 0
-  m_Name: Portal
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &86926330
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 86926329}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 948499086}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &86926331
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 86926329}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!1 &150080347
 GameObject:
   m_ObjectHideFlags: 0
@@ -600,7 +522,7 @@ GameObject:
   - component: {fileID: 241071197}
   m_Layer: 9
   m_Name: BottomBoundary
-  m_TagString: BottomBorder
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1504,7 +1426,7 @@ GameObject:
   - component: {fileID: 407974835}
   m_Layer: 9
   m_Name: TopBoundary
-  m_TagString: TopBorder
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1713,8 +1635,6 @@ MonoBehaviour:
   progression: {fileID: 0}
   spawnCamera: {fileID: 519420031}
   eventCameraController: {fileID: 519420033}
-  topBorder: {fileID: 1809965422}
-  bottomBorder: {fileID: 650357544}
   bossParent: {fileID: 22419927}
   bossPrefab: {fileID: 6201000000000000001, guid: 12ab3b3ffec64d5c8f99295d7a597fe7, type: 3}
   triggerAfterSeconds: 10
@@ -1979,15 +1899,12 @@ MonoBehaviour:
   session: {fileID: 364328816}
   progression: {fileID: 0}
   spawnCamera: {fileID: 519420031}
-  topBorder: {fileID: 1809965422}
-  bottomBorder: {fileID: 650357544}
   player: {fileID: 1323949929}
-  playerTopBorder: {fileID: 407974835}
-  playerBottomBorder: {fileID: 241071197}
   spawnedParent: {fileID: 790912625}
   coinPrefab: {fileID: 3035727691093939351, guid: 187ed2f1610ba5a4dac5875bb15fe45a, type: 3}
   rareCoinPrefab: {fileID: 7402000000000000001, guid: e6aa67b7e44740b2af84358ae30f59ac, type: 3}
   dealerFishPrefab: {fileID: 8302000000000000001, guid: ae5b0c496d6d4d72b1f303ca6f9e892f, type: 3}
+  portalPrefab: {fileID: 9101000000000000001, guid: d118cb2bfc0d40afba46931f1c275280, type: 3}
   enemyProfiles:
   - prefab: {fileID: 7102000000000000001, guid: 5c379b433a4f4a2f9d0bd93be236a1a1, type: 3}
     enemyTag: EnemyPezGlobo
@@ -2010,14 +1927,23 @@ MonoBehaviour:
   coinSpawnChance: 0.3
   rareCoinSpawnChanceWithinCoins: 0.1
   fishingRodEnemyInterval: 5
-  fishingRodBoundaryPressure: 0.85
   upperZoneSpawnCoverage: 0.75
   lowerZoneSpawnCoverage: 0.75
+  pufferfishTuning:
+    fallSpeed: 0.2
+    expandedRiseSpeedMultiplier: 2
+    proximityRadius: 2.5
+    expandedScaleMultiplier: 2
+    expansionSmoothSpeed: 8
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30
-  fallbackMinY: -9.5
-  fallbackMaxY: 9.5
+  portalSpawnPolicy: 1
+  portalSpawnedParent: {fileID: 948499086}
+  firstPortalSpawnDelay: 3
+  postBossPortalSpawnChance: 1
+  portalSpawnInterval: 20
+  requireNoActivePortal: 1
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -2170,11 +2096,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   currentCamera: {fileID: 519420031}
   target: {fileID: 1323949929}
-  topBorder: {fileID: 1809965422}
-  bottomBorder: {fileID: 650357544}
   inkPulse: {fileID: 1323949932}
   offset: {x: 8, y: 0, z: -10}
-  topBorderOffset: 0
   smoothTime: 0.25
   enableInkPulseScreenPulse: 1
   inkPulseFeedbackDuration: 0.18
@@ -2433,7 +2356,7 @@ GameObject:
   - component: {fileID: 650357544}
   m_Layer: 9
   m_Name: BottomBoundary
-  m_TagString: BottomBorder
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3199,8 +3122,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 86926330}
+  m_Children: []
   m_Father: {fileID: 790912625}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &964508565
@@ -3504,16 +3426,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1073079193}
-  m_LocalRotation: {x: 0, y: 0, z: 0.3420201, w: 0.9396927}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 699431264}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 40}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -176.46613, y: -146.36703}
+  m_AnchoredPosition: {x: -145, y: 43}
   m_SizeDelta: {x: 445.4505, y: 175.5235}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1073079195
@@ -3931,11 +3853,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77cd058d51ac879479809669aff06b1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuButtonAnimation
-  hoverScale: 1.08
-  pressScale: 0.95
-  scaleSpeed: 10
-  hoverRotation: 2
-  shakeSpeed: 15
 --- !u!114 &1209870033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4406,7 +4323,7 @@ Transform:
   m_GameObject: {fileID: 1292600932}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -238.98212, y: -310.84662, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4423,7 +4340,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 278178ef1d7b8d641ba3191e393c31d9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
+  m_EditorClassIdentifier: Assembly-CSharp::DestroyOffscreen
+  targetCamera: {fileID: 519420031}
 --- !u!61 &1292600935
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -4485,7 +4403,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -4701,6 +4619,8 @@ GameObject:
   - component: {fileID: 1323949933}
   - component: {fileID: 1323949937}
   - component: {fileID: 1323949936}
+  - component: {fileID: 3202000000000000001}
+  - component: {fileID: 3202000000000000002}
   m_Layer: 6
   m_Name: Squid
   m_TagString: Player
@@ -4823,7 +4743,6 @@ MonoBehaviour:
   shrimpCollector: {fileID: 1323949934}
   gadgetInventory: {fileID: 1323949937}
   damageCollider: {fileID: 1323949930}
-  destroyHazardDuringPulse: 0
 --- !u!114 &1323949934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4837,7 +4756,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShrimpCollector
   session: {fileID: 364328816}
-  shrimpCount: 0
 --- !u!114 &1323949935
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4854,15 +4772,12 @@ MonoBehaviour:
   progression: {fileID: 0}
   gameplayCamera: {fileID: 519420031}
   playerCollider: {fileID: 1323949930}
-  topBorder: {fileID: 407974835}
-  bottomBorder: {fileID: 241071197}
+  randomizeInitialYWithinPlayerBoundaries: 1
   normalHorizontalSpeed: 5
   inkPulseHorizontalSpeed: 15
   normalVerticalSpeed: 5
   inkPulseVerticalSpeed: 20
   smoothSpeedTransition: 2
-  minY: -9
-  maxY: 9.8
   baseRotationZ: -90
   maxTiltAngle: 12
   tiltSmoothSpeed: 8
@@ -4903,6 +4818,31 @@ MonoBehaviour:
   startWithInkBottle: 0
   startingShellShieldIcon: {fileID: 0}
   startingInkBottleIcon: {fileID: 0}
+--- !u!114 &3202000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323949926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
+--- !u!114 &3202000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323949926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c8f4782ecb94c1dbd64d8945e1c2ce6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeProbe
+  session: {fileID: 364328816}
 --- !u!1 &1347554547
 GameObject:
   m_ObjectHideFlags: 0
@@ -5290,6 +5230,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SceneFlowController
   mainMenuSceneName: MainMenu
   mainMenuBuildIndex: 0
+  tutorialSceneName: Assets/Scenes/Game/ZonaTutorial.unity
+  shopMenuSceneName: Assets/Scenes/ShopMenu/ShopMenu.unity
+  optionsMenuSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
+  primaryGameplaySceneName: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
+  secondaryGameplaySceneName: Assets/Scenes/Game/ZonaExe.unity
 --- !u!1 &1424639855
 GameObject:
   m_ObjectHideFlags: 0
@@ -5554,7 +5499,7 @@ GameObject:
   - component: {fileID: 1483841571}
   m_Layer: 9
   m_Name: CameraBoundaries
-  m_TagString: CameraBoundary
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6024,7 +5969,7 @@ GameObject:
   - component: {fileID: 1594375199}
   m_Layer: 9
   m_Name: PlayerBoundaries
-  m_TagString: PlayerBoundary
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6362,11 +6307,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77cd058d51ac879479809669aff06b1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuButtonAnimation
-  hoverScale: 1.08
-  pressScale: 0.95
-  scaleSpeed: 10
-  hoverRotation: 2
-  shakeSpeed: 15
 --- !u!114 &1803774172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6480,7 +6420,7 @@ GameObject:
   - component: {fileID: 1809965422}
   m_Layer: 9
   m_Name: TopBoundary
-  m_TagString: TopBorder
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -7005,11 +6945,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77cd058d51ac879479809669aff06b1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuButtonAnimation
-  hoverScale: 1.08
-  pressScale: 0.95
-  scaleSpeed: 10
-  hoverRotation: 2
-  shakeSpeed: 15
 --- !u!114 &1951596036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7297,11 +7232,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77cd058d51ac879479809669aff06b1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuButtonAnimation
-  hoverScale: 1.08
-  pressScale: 0.95
-  scaleSpeed: 10
-  hoverRotation: 2
-  shakeSpeed: 15
 --- !u!114 &1970390180
 MonoBehaviour:
   m_ObjectHideFlags: 0

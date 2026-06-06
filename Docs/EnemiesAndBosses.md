@@ -2,49 +2,100 @@
 
 ## Alcance
 
-Este documento reúne el sistema de spawn, el catálogo de enemigos, el boss principal y su ciclo de resolución.
+Este documento reune el sistema de spawn, el catalogo de enemigos, los enemigos actuales y el boss SS Carnage.
 
 ## LevelSpawner
 
 Archivo: `Assets/Implementation/Code/Spawning/LevelSpawner.cs`
 
 Responsabilidad:
-- Generar enemigos y monedas según la progresión de la run.
-- Ajustar intervalos y distribución vertical según intensidad y fronteras.
+- Generar enemigos, camarones, tienda y portales segun la progresion de la run.
+- Ajustar intervalos y distribucion vertical segun intensidad y boundaries.
 - Respetar la frecuencia de spawn que entrega `RunProgressionDirector`.
-- Suspender el spawn normal sólo cuando `RunEventState` está en `Transitioning`.
-- Instanciar enemigos únicamente desde `enemyProfiles`; no existe un prefab genérico de fallback.
+- Suspender spawn regular solo cuando `RunEventState` esta en `Transitioning`.
+- Instanciar enemigos unicamente desde `enemyProfiles`.
 
-Cada perfil de enemigo define prefab, tag lógico, peso de aparición, intensidad mínima y multiplicador de intervalo. El spawner aplica el tag con `EnemyTagCatalog` y fuerza la capa `Enemy` de forma recursiva al objeto instanciado.
+Cada perfil define prefab, tag logico, peso de aparicion, intensidad minima y multiplicador de intervalo. El spawner aplica el tag con `EnemyTagCatalog` y fuerza la capa `Enemy` de forma recursiva al objeto instanciado.
 
-Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresión, por lo que los obstáculos aparecen con mayor frecuencia. Durante `PostBossWindow`, el intervalo aumenta para crear una ventana breve de reposo.
+Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresion, por lo que los obstaculos aparecen con mayor frecuencia. Durante `PostBossWindow`, el intervalo aumenta para crear reposo.
+
+La excepcion deliberada es `EnemyCanaPescar`: la caña regular pertenece al modo normal de spawner. Durante `BossActive` no se fuerza desde `LevelSpawner`, porque el anzuelo de Carnage debe modelarse como ataque propio del boss, con prefab y controlador especificos.
+
+## Distribucion vertical
+
+El spawn vertical depende del contrato de boundaries:
+- Camarones usan el rango visible de `CameraBoundaries`, intersectado con la camara y con `PlayerBoundaries`, por lo que no aparecen sobre el `TopBoundary` del jugador.
+- Enemigos, `DealerFish` y portales usan `PlayerBoundaries`.
+- Pez Globo aparece en los tres cuartos superiores de la mitad superior.
+- Mina aparece en los tres cuartos inferiores de la mitad inferior.
+- Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal, y se alinea exactamente con la altura actual del jugador.
+
+No hay rangos manuales de respaldo para spawn.
 
 ## EnemyTagCatalog
 
 Archivo: `Assets/Implementation/Code/Spawning/EnemyTagCatalog.cs`
 
 Responsabilidad:
-- Centralizar tags lógicos de enemigos para evitar strings sueltos.
+- Centralizar tags logicos de enemigos.
+- Evitar strings duplicados en colision, graze, limpieza o spawn.
 
-Regla:
-- `PlayerCollision`, `GrazeDetector` y `DestroyOffscreen` consultan este catálogo para amenazas.
-- Los tags no deben duplicarse como campos editables en esos componentes.
+Tags actuales:
+- `Enemy`
+- `EnemyMina`
+- `EnemyPezGlobo`
+- `EnemyCanaPescar`
 
-## Enemigos base
+## EnemySpawnContextReceiver
+
+Archivo: `Assets/Implementation/Code/Enemies/EnemySpawnContextReceiver.cs`
+
+Responsabilidad:
+- Recibir contexto minimo de spawn cuando un enemigo necesita camara o jugador.
+
+Contrato actual:
+- Recibe `Camera` y `Transform player`.
+- Recibe tuning de comportamiento especifico desde `LevelSpawner` cuando aplica.
+- No recibe boundaries.
+- Si el enemigo necesita limites, debe resolverlos con `BoundaryReferenceResolver`.
+
+## Enemigos actuales
 
 ### PufferfishEnemy
 
 Archivo: `Assets/Implementation/Code/Enemies/PufferfishEnemy.cs`
 
 Responsabilidad:
-- Comportamiento específico del pez globo como amenaza básica o de presión espacial.
+- Caer lentamente mientras no esta expandido.
+- Expandirse cuando el jugador entra en `proximityRadius`.
+- Subir durante expansion a `fallSpeed * expandedRiseSpeedMultiplier`.
+- No sobrepasar el `TopBoundary` de `PlayerBoundaries`.
+- Usar `CircleCollider2D` como collider corporal unico; al escalar el enemigo, el collider acompana la expansion.
 
-### EnemySpawnContextReceiver
+Parametros de balance:
+- `fallSpeed`
+- `expandedRiseSpeedMultiplier`
+- `proximityRadius`
+- `expandedScaleMultiplier`
+- `expansionSmoothSpeed`
 
-Archivo: `Assets/Implementation/Code/Enemies/EnemySpawnContextReceiver.cs`
+Estos parametros pertenecen a `LevelSpawner.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
 
-Responsabilidad:
-- Recibir referencias del contexto del spawn cuando un enemigo necesita cámara, fronteras o jugador.
+### Mina
+
+Estado actual:
+- Prefab y tag implementados.
+- Sin script propio todavia.
+- Su comportamiento actual es estatico y su aparicion depende de `LevelSpawner`.
+
+### Cana de pescar
+
+Estado actual:
+- Prefab y tag implementados.
+- Sin script propio todavia.
+- En juego normal se fuerza cada `fishingRodEnemyInterval` enemigos.
+- Aparece desde la derecha a la misma altura Y del jugador.
+- Durante `BossActive`, el spawner regular no fuerza cañas; los anzuelos del SS Carnage deben implementarse como ataque de boss separado.
 
 ## BossEventDirector
 
@@ -52,7 +103,11 @@ Archivo: `Assets/Implementation/Code/Bosses/BossEventDirector.cs`
 
 Responsabilidad:
 - Coordinar el arranque de eventos de boss.
-- Entregar contexto de sesión, cámara, fronteras y progresión al boss activo.
+- Solicitar vista amplia al `CameraController`.
+- Instanciar el prefab de boss por la derecha de la camara.
+- Entregar contexto de sesion, progresion, camara y parent al boss activo.
+
+No entrega boundaries al boss. La escena debe proveer `CameraBoundaries` y `PlayerBoundaries`, y cada consumidor los resuelve por dominio.
 
 ## SSCarnage
 
@@ -62,9 +117,10 @@ Archivos:
 
 Responsabilidad:
 - Controlar el ciclo interno del boss SS Carnage.
-- Posicionar al boss en su fase de aviso.
-- Desplegar la red o pared que fuerza la reacción del jugador.
-- Informar si el evento se resolvió o falló.
+- Posicionar al boss en fase de aviso sobre el `TopBoundary` del jugador.
+- Desplegar la red que fuerza reaccion del jugador.
+- Informar si el evento se resolvio o fallo.
+- Retirarse hacia la derecha cuando termina su fase.
 
 Estados principales:
 - `Inactive`
@@ -76,11 +132,27 @@ Estados principales:
 - `Exiting`
 - `Finished`
 
+## SSCarnageNetWall
+
+La red usa `PlayerBoundaries` como fuente de altura:
+- su borde inferior se coloca en el borde superior de `BottomBoundary`;
+- su altura llega al borde inferior de `TopBoundary`;
+- el volumen de colision se ajusta automaticamente;
+- las capas visuales intactas se reemplazan por `BrokenNet` si el jugador resuelve el obstaculo con Ink-Pulse o `Shell Shield`.
+
+La anchura fisica y las proporciones visuales proceden del prefab de autor; no se balancean con campos manuales de runtime. Al romperse, la red conserva su feedback visual y cambia a `BrokenNet`; no existe un flag local para destruirla.
+
+El prefab puede incluir `AuthoringPlayerBoundaries` como referencia inactiva. Esta referencia define el tramo local authored que debe coincidir con los `PlayerBoundaries` reales de escena. No debe renombrarse a `PlayerBoundaries`, porque ese nombre queda reservado para la jerarquia runtime bajo `Boundaries`.
+
+La escala de la red se calcula en espacio de mundo. Esto significa que el ajuste usa la altura fisica entre boundaries reales y compensa la escala heredada de padres, evitando diferencias entre la vista del prefab y Play.
+
 ## Flujo del boss
 
-1. `BossEventDirector` inicia el evento.
-2. `SSCarnageController` entra en aviso.
-3. La red se despliega y pasa a estado activo.
-4. `SSCarnageNetWall` detecta si el jugador resolvió o falló el evento.
-5. `RunProgressionDirector` recibe `NotifyBossResolved()` o `NotifyBossFailed()`.
-6. El boss sale o se destruye según el flujo configurado.
+1. `RunProgressionDirector` permite iniciar boss.
+2. `BossEventDirector` instancia `SSCarnage`.
+3. `CameraController` entra en vista amplia.
+4. `SSCarnageController` entra en `Warning`.
+5. `SSCarnageController` despliega `BossNetWall`.
+6. `SSCarnageNetWall` detecta si el jugador resolvio o fallo.
+7. `RunProgressionDirector` recibe `NotifyBossResolved()` o `NotifyBossFailed()`.
+8. El boss sale o se destruye segun su configuracion.

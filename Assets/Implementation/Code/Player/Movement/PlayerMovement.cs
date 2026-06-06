@@ -10,8 +10,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera gameplayCamera;
     [SerializeField] private Collider2D playerCollider;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
+
+    [Header("Spawn")]
+    [SerializeField] private bool randomizeInitialYWithinPlayerBoundaries = true;
 
     [Header("Horizontal Movement")]
     [SerializeField, FormerlySerializedAs("baseAutoScrollSpeed")] private float normalHorizontalSpeed = 5f;
@@ -22,10 +23,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, FormerlySerializedAs("boostedSpeed")] private float inkPulseVerticalSpeed = 20f;
     [SerializeField] private float smoothSpeedTransition = 2f;
 
-    [Header("Boundaries")]
-    [SerializeField] private float minY = -9.5f;
-    [SerializeField] private float maxY = 9.5f;
-
     [Header("Tilt")]
     [SerializeField] private float baseRotationZ = -90f;
     [SerializeField] private float maxTiltAngle = 12f;
@@ -35,6 +32,11 @@ public class PlayerMovement : MonoBehaviour
     private float currentVerticalSpeed;
     private bool inkPulseActive;
     private float previousY;
+    private Collider2D topBorder;
+    private Collider2D bottomBorder;
+    private float minY;
+    private float maxY;
+    private bool hasVerticalLimits;
 
     public float CurrentHorizontalSpeed => currentHorizontalSpeed;
     public float CurrentVerticalSpeed => currentVerticalSpeed;
@@ -49,8 +51,12 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         ResolveSceneReferences();
-        UpdateVerticalLimitsFromBorders();
-        ClampPlayerInsideLimits();
+        if (UpdateVerticalLimitsFromBorders())
+        {
+            RandomizeInitialYInsideLimits();
+            ClampPlayerInsideLimits();
+        }
+
         previousY = transform.position.y;
 
         Vector3 startEuler = transform.eulerAngles;
@@ -65,7 +71,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         ResolveSceneReferences();
-        UpdateVerticalLimitsFromBorders();
+        if (!UpdateVerticalLimitsFromBorders())
+        {
+            return;
+        }
+
         HandleMovement();
         UpdateSpeedTransition();
         ClampPlayerInsideLimits();
@@ -91,7 +101,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (gameplayCamera == null || Mouse.current == null)
+        if (gameplayCamera == null || Mouse.current == null || !hasVerticalLimits)
         {
             return;
         }
@@ -141,28 +151,39 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, tiltSmoothSpeed * Time.deltaTime);
     }
 
-    private void UpdateVerticalLimitsFromBorders()
+    private bool UpdateVerticalLimitsFromBorders()
     {
-        if (topBorder == null || bottomBorder == null)
-        {
-            return;
-        }
-
         float halfHeight = playerCollider != null ? playerCollider.bounds.extents.y : 0f;
-        float candidateMinY = bottomBorder.bounds.max.y + halfHeight;
-        float candidateMaxY = topBorder.bounds.min.y - halfHeight;
-
-        if (candidateMinY <= candidateMaxY)
+        if (!BoundaryReferenceResolver.TryResolveInnerVerticalRange(
+                BoundaryReferenceDomain.Player,
+                halfHeight,
+                out Vector2 verticalRange))
         {
-            minY = candidateMinY;
-            maxY = candidateMaxY;
+            hasVerticalLimits = false;
+            return false;
         }
+
+        minY = verticalRange.x;
+        maxY = verticalRange.y;
+        hasVerticalLimits = true;
+        return true;
     }
 
     private void ClampPlayerInsideLimits()
     {
         float clampedY = Mathf.Clamp(transform.position.y, minY, maxY);
         transform.position = new Vector3(transform.position.x, clampedY, 0f);
+    }
+
+    private void RandomizeInitialYInsideLimits()
+    {
+        if (!randomizeInitialYWithinPlayerBoundaries || !hasVerticalLimits)
+        {
+            return;
+        }
+
+        float randomY = UnityEngine.Random.Range(minY, maxY);
+        transform.position = new Vector3(transform.position.x, randomY, 0f);
     }
 
     private bool IsGameplayActive()
@@ -192,8 +213,7 @@ public class PlayerMovement : MonoBehaviour
             playerCollider = GetComponent<Collider2D>();
         }
 
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out Collider2D resolvedBottom))
+        if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out Collider2D resolvedBottom))
         {
             topBorder = resolvedTop;
             bottomBorder = resolvedBottom;
@@ -202,10 +222,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || gameplayCamera == null || playerCollider == null || topBorder == null || bottomBorder == null)
+        if (session == null
+            || gameplayCamera == null
+            || playerCollider == null
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out _, out _))
         {
             Debug.LogWarning(
-                "[PlayerMovement] Faltan referencias. Asigna Session, GameplayCamera, PlayerCollider, TopBorder y BottomBorder en el Inspector.",
+                $"[PlayerMovement] Faltan referencias. Configura Session, GameplayCamera, PlayerCollider y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Player)}.",
                 this);
         }
     }

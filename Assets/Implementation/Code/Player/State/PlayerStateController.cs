@@ -44,6 +44,11 @@ public class PlayerStateController : MonoBehaviour
         ApplyState(ResolveCurrentState(), force: true);
     }
 
+    private void Start()
+    {
+        ApplyState(ResolveCurrentState(), force: true);
+    }
+
     private void OnDisable()
     {
         if (inkPulse != null)

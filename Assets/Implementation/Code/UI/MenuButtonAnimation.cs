@@ -10,14 +10,11 @@ using UnityEngine.UI;
 /// </summary>
 public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
-    [Header("Escala")]
-    public float hoverScale = 1.08f;
-    public float pressScale = 0.95f;
-    public float scaleSpeed = 10f;
-
-    [Header("Rotacion")]
-    public float hoverRotation = 2f;
-    public float shakeSpeed = 15f;
+    private const float HoverScale = 1.08f;
+    private const float PressScale = 0.95f;
+    private const float ScaleSpeed = 10f;
+    private const float HoverRotation = 2f;
+    private const float ShakeSpeed = 15f;
 
     private Vector3 originalScale;
     private Quaternion originalRotation;
@@ -42,13 +39,13 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
         }
 
         float currentScale = animatedTransform.localScale.x / originalScale.x;
-        float newScale = Mathf.Lerp(currentScale, targetScale, Time.unscaledDeltaTime * scaleSpeed);
+        float newScale = Mathf.Lerp(currentScale, targetScale, Time.unscaledDeltaTime * ScaleSpeed);
         animatedTransform.localScale = originalScale * newScale;
 
         if (isHovered && !isPressed)
         {
-            shakeTimer += Time.unscaledDeltaTime * shakeSpeed;
-            float angle = Mathf.Sin(shakeTimer) * hoverRotation;
+            shakeTimer += Time.unscaledDeltaTime * ShakeSpeed;
+            float angle = Mathf.Sin(shakeTimer) * HoverRotation;
             animatedTransform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, angle);
             return;
         }
@@ -57,7 +54,7 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
         animatedTransform.localRotation = Quaternion.Lerp(
             animatedTransform.localRotation,
             originalRotation,
-            Time.unscaledDeltaTime * scaleSpeed);
+            Time.unscaledDeltaTime * ScaleSpeed);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -65,7 +62,7 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
         isHovered = true;
         if (!isPressed)
         {
-            targetScale = hoverScale;
+            targetScale = HoverScale;
         }
     }
 
@@ -81,13 +78,13 @@ public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointer
     public void OnPointerDown(PointerEventData eventData)
     {
         isPressed = true;
-        targetScale = pressScale;
+        targetScale = PressScale;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         isPressed = false;
-        targetScale = isHovered ? hoverScale : 1f;
+        targetScale = isHovered ? HoverScale : 1f;
     }
 
     private Transform ResolveAnimatedTransform()

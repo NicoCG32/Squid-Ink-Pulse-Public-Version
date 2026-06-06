@@ -7,15 +7,12 @@ TagManager:
   - Enemy
   - Collectible
   - Shrimp
-  - BottomBorder
-  - TopBorder
-  - CameraBoundary
-  - PlayerBoundary
   - DestroyZone
   - EnemyMina
   - EnemyPezGlobo
   - EnemyCanaPescar
   - SSCarnage
+  - Portal
   layers:
   - Default
   - TransparentFX

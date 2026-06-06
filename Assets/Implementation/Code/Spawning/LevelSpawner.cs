@@ -23,23 +23,43 @@ public class EnemySpawnProfile
     }
 }
 
+[Serializable]
+public class PufferfishEnemyTuning
+{
+    [SerializeField, Min(0f)] private float fallSpeed = 0.2f;
+    [SerializeField, Min(0f)] private float expandedRiseSpeedMultiplier = 2f;
+    [SerializeField, Min(0f)] private float proximityRadius = 2.5f;
+    [SerializeField, Min(1f)] private float expandedScaleMultiplier = 2f;
+    [SerializeField, Min(0f)] private float expansionSmoothSpeed = 8f;
+
+    public float FallSpeed => Mathf.Max(0f, fallSpeed);
+    public float ExpandedRiseSpeedMultiplier => Mathf.Max(0f, expandedRiseSpeedMultiplier);
+    public float ProximityRadius => Mathf.Max(0f, proximityRadius);
+    public float ExpandedScaleMultiplier => Mathf.Max(1f, expandedScaleMultiplier);
+    public float ExpansionSmoothSpeed => Mathf.Max(0f, expansionSmoothSpeed);
+}
+
+public enum PortalSpawnPolicy
+{
+    Disabled,
+    PostBossWindow,
+    AlwaysInterval
+}
+
 public class LevelSpawner : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera spawnCamera;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
     [SerializeField] private Transform player;
-    [SerializeField] private Collider2D playerTopBorder;
-    [SerializeField] private Collider2D playerBottomBorder;
     [SerializeField] private Transform spawnedParent;
 
     [Header("What to Spawn")]
     [SerializeField] private GameObject coinPrefab;
     [SerializeField] private GameObject rareCoinPrefab;
     [SerializeField] private GameObject dealerFishPrefab;
+    [SerializeField] private GameObject portalPrefab;
     [SerializeField] private EnemySpawnProfile[] enemyProfiles =
     {
         new EnemySpawnProfile(EnemyTagCatalog.Pufferfish, 1f, 0f, 1f),
@@ -54,24 +74,34 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float coinSpawnChance = 0.3f;
     [SerializeField, Range(0f, 1f)] private float rareCoinSpawnChanceWithinCoins = 0.1f;
     [SerializeField, Min(1)] private int fishingRodEnemyInterval = 5;
-    [SerializeField, Range(0f, 1f)] private float fishingRodBoundaryPressure = 0.85f;
     [SerializeField, Range(0.01f, 1f)] private float upperZoneSpawnCoverage = 0.75f;
     [SerializeField, Range(0.01f, 1f)] private float lowerZoneSpawnCoverage = 0.75f;
+
+    [Header("Enemy Behaviour Tuning")]
+    [SerializeField] private PufferfishEnemyTuning pufferfishTuning = new();
 
     [Header("Dealer Fish Spawning")]
     [SerializeField] private bool enableDealerFishSpawns = true;
     [SerializeField, Min(0f)] private float firstDealerFishSpawnDelay = 18f;
     [SerializeField, Min(1f)] private float dealerFishSpawnInterval = 30f;
 
-    [Header("Boundaries")]
-    [SerializeField] private float fallbackMinY = -9.5f;
-    [SerializeField] private float fallbackMaxY = 9.5f;
+    [Header("Portal Spawning")]
+    [SerializeField] private PortalSpawnPolicy portalSpawnPolicy = PortalSpawnPolicy.PostBossWindow;
+    [SerializeField] private Transform portalSpawnedParent;
+    [SerializeField, Min(0f)] private float firstPortalSpawnDelay = 0f;
+    [SerializeField, Range(0f, 1f)] private float postBossPortalSpawnChance = 1f;
+    [SerializeField, Min(1f)] private float portalSpawnInterval = 20f;
+    [SerializeField] private bool requireNoActivePortal = true;
 
     private float timer = 0f;
     private float dealerFishTimer;
+    private float portalTimer;
     private float activeIntervalMultiplier = 1f;
     private int spawnedEnemyCount;
     private bool hasSpawnedDealerFish;
+    private bool hasSpawnedPortalInCurrentWindow;
+    private bool hasRolledPostBossPortalInCurrentWindow;
+    private GameObject activePortal;
 
     private void Awake()
     {
@@ -87,13 +117,14 @@ public class LevelSpawner : MonoBehaviour
         }
 
         ResolveSceneReferences();
+        UpdateDealerFishSpawnTimer();
+        UpdatePortalSpawnTimer();
+
         if (progression != null && progression.IsEventBlockingRegularSpawns)
         {
             timer = 0f;
             return;
         }
-
-        UpdateDealerFishSpawnTimer();
 
         timer += Time.deltaTime;
 
@@ -119,9 +150,73 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
-        SpawnDealerFish();
-        dealerFishTimer = 0f;
-        hasSpawnedDealerFish = true;
+        if (SpawnDealerFish())
+        {
+            dealerFishTimer = 0f;
+            hasSpawnedDealerFish = true;
+        }
+    }
+
+    private void UpdatePortalSpawnTimer()
+    {
+        if (portalPrefab == null || spawnCamera == null || portalSpawnPolicy == PortalSpawnPolicy.Disabled)
+        {
+            return;
+        }
+
+        if (!CanSpawnPortalForCurrentState())
+        {
+            ResetPortalSpawnWindow();
+            return;
+        }
+
+        if (portalSpawnPolicy == PortalSpawnPolicy.PostBossWindow)
+        {
+            UpdatePostBossPortalSpawnTimer();
+            return;
+        }
+
+        UpdateIntervalPortalSpawnTimer();
+    }
+
+    private void UpdatePostBossPortalSpawnTimer()
+    {
+        if (hasRolledPostBossPortalInCurrentWindow || hasSpawnedPortalInCurrentWindow)
+        {
+            return;
+        }
+
+        portalTimer += Time.deltaTime;
+        if (portalTimer < firstPortalSpawnDelay)
+        {
+            return;
+        }
+
+        hasRolledPostBossPortalInCurrentWindow = true;
+        if (UnityEngine.Random.value <= postBossPortalSpawnChance && TrySpawnPortal())
+        {
+            hasSpawnedPortalInCurrentWindow = true;
+        }
+    }
+
+    private void UpdateIntervalPortalSpawnTimer()
+    {
+        float targetInterval = hasSpawnedPortalInCurrentWindow
+            ? portalSpawnInterval
+            : firstPortalSpawnDelay;
+
+        portalTimer += Time.deltaTime;
+        if (portalTimer < targetInterval)
+        {
+            return;
+        }
+
+        if (TrySpawnPortal())
+        {
+            hasSpawnedPortalInCurrentWindow = true;
+        }
+
+        portalTimer = 0f;
     }
 
     private void SpawnObject()
@@ -138,9 +233,13 @@ public class LevelSpawner : MonoBehaviour
 
         if (coinPrefab != null && UnityEngine.Random.value < coinSpawnChance)
         {
-            Vector3 coinSpawnPosition = CalculateCoinSpawnPosition();
-            Instantiate(SelectCoinPrefab(), coinSpawnPosition, Quaternion.identity, spawnedParent);
-            activeIntervalMultiplier = 1f;
+            if (TryCalculateCoinSpawnPosition(out Vector3 coinSpawnPosition))
+            {
+                GameObject spawnedCoin = Instantiate(SelectCoinPrefab(), coinSpawnPosition, Quaternion.identity, spawnedParent);
+                LightGrazeSource.EnsureOn(spawnedCoin);
+                activeIntervalMultiplier = 1f;
+            }
+
             return;
         }
 
@@ -152,8 +251,13 @@ public class LevelSpawner : MonoBehaviour
 
         GameObject objectToSpawn = selectedProfile.prefab;
         string enemyTag = selectedProfile.enemyTag;
-        Vector3 spawnPosition = CalculateEnemySpawnPosition(enemyTag);
+        if (!TryCalculateEnemySpawnPosition(enemyTag, out Vector3 spawnPosition))
+        {
+            return;
+        }
+
         GameObject spawnedEnemy = Instantiate(objectToSpawn, spawnPosition, Quaternion.identity, spawnedParent);
+        LightGrazeSource.EnsureOn(spawnedEnemy);
         EnemyTagCatalog.ApplyEnemyTag(spawnedEnemy, enemyTag);
         InjectSpawnContext(spawnedEnemy);
 
@@ -167,6 +271,49 @@ public class LevelSpawner : MonoBehaviour
         spawnedEnemyCount++;
     }
 
+    private bool CanSpawnPortalForCurrentState()
+    {
+        return portalSpawnPolicy switch
+        {
+            PortalSpawnPolicy.PostBossWindow => progression != null && progression.EventState == RunEventState.PostBossWindow,
+            PortalSpawnPolicy.AlwaysInterval => progression == null || !progression.IsEventBlockingRegularSpawns,
+            _ => false
+        };
+    }
+
+    private void ResetPortalSpawnWindow()
+    {
+        portalTimer = 0f;
+        hasSpawnedPortalInCurrentWindow = false;
+        hasRolledPostBossPortalInCurrentWindow = false;
+    }
+
+    private bool TrySpawnPortal()
+    {
+        if (requireNoActivePortal && activePortal != null)
+        {
+            return false;
+        }
+
+        if (!TryCalculatePortalSpawnPosition(out Vector3 spawnPosition))
+        {
+            return false;
+        }
+
+        Transform parent = portalSpawnedParent != null ? portalSpawnedParent : spawnedParent;
+        activePortal = Instantiate(portalPrefab, spawnPosition, Quaternion.identity, parent);
+        LightGrazeSource.EnsureOn(activePortal);
+        activePortal.tag = GameplayTagCatalog.Portal;
+
+        int collectibleLayer = LayerMask.NameToLayer("Collectible");
+        if (collectibleLayer >= 0)
+        {
+            ApplyLayerRecursively(activePortal, collectibleLayer);
+        }
+
+        return true;
+    }
+
     private float GetCameraRightEdgeX()
     {
         float cameraDepthToWorldZero = Mathf.Abs(spawnCamera.transform.position.z);
@@ -174,54 +321,90 @@ public class LevelSpawner : MonoBehaviour
         return rightEdge.x;
     }
 
-    private Vector2 CalculateVisibleSpawnRange()
+    private bool TryCalculateVisibleSpawnRange(out Vector2 spawnRange)
     {
+        spawnRange = default;
+        if (!BoundaryReferenceResolver.TryResolveInnerVerticalRange(BoundaryReferenceDomain.Camera, verticalPadding, out Vector2 boundaryRange))
+        {
+            return false;
+        }
+
         float cameraDepthToWorldZero = Mathf.Abs(spawnCamera.transform.position.z);
         float cameraMinY = spawnCamera.ViewportToWorldPoint(new Vector3(0.5f, 0f, cameraDepthToWorldZero)).y + verticalPadding;
         float cameraMaxY = spawnCamera.ViewportToWorldPoint(new Vector3(0.5f, 1f, cameraDepthToWorldZero)).y - verticalPadding;
 
-        float minY = cameraMinY;
-        float maxY = cameraMaxY;
-
-        if (bottomBorder != null)
-        {
-            minY = Mathf.Max(minY, bottomBorder.bounds.max.y + verticalPadding);
-        }
-
-        if (topBorder != null)
-        {
-            maxY = Mathf.Min(maxY, topBorder.bounds.min.y - verticalPadding);
-        }
+        float minY = Mathf.Max(cameraMinY, boundaryRange.x);
+        float maxY = Mathf.Min(cameraMaxY, boundaryRange.y);
 
         if (minY <= maxY)
         {
-            return new Vector2(minY, maxY);
+            spawnRange = new Vector2(minY, maxY);
+            return true;
         }
 
-        return new Vector2(fallbackMinY, fallbackMaxY);
+        return false;
     }
 
-    private Vector3 CalculateCoinSpawnPosition()
+    private bool TryCalculateCoinSpawnPosition(out Vector3 spawnPosition)
     {
-        Vector2 spawnRange = CalculateVisibleSpawnRange();
-        float randomY = UnityEngine.Random.Range(spawnRange.x, spawnRange.y);
+        spawnPosition = default;
+        if (!TryCalculateVisibleSpawnRange(out Vector2 visibleRange)
+            || !TryCalculatePlayerSpawnRange(out Vector2 playerRange))
+        {
+            return false;
+        }
+
+        float minY = Mathf.Max(visibleRange.x, playerRange.x);
+        float maxY = Mathf.Min(visibleRange.y, playerRange.y);
+        if (minY > maxY)
+        {
+            return false;
+        }
+
+        float randomY = UnityEngine.Random.Range(minY, maxY);
         float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
-        return new Vector3(spawnX, randomY, 0f);
+        spawnPosition = new Vector3(spawnX, randomY, 0f);
+        return true;
     }
 
-    private Vector3 CalculateDealerFishSpawnPosition()
+    private bool TryCalculatePortalSpawnPosition(out Vector3 spawnPosition)
     {
-        Vector2 playerRange = CalculatePlayerSpawnRange();
+        spawnPosition = default;
+        if (!TryCalculatePlayerSpawnRange(out Vector2 playerRange))
+        {
+            return false;
+        }
+
+        float randomY = UnityEngine.Random.Range(playerRange.x, playerRange.y);
+        float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
+        spawnPosition = new Vector3(spawnX, randomY, 0f);
+        return true;
+    }
+
+    private bool TryCalculateDealerFishSpawnPosition(out Vector3 spawnPosition)
+    {
+        spawnPosition = default;
+        if (!TryCalculatePlayerSpawnRange(out Vector2 playerRange))
+        {
+            return false;
+        }
+
         float lowerQuarterTopY = Mathf.Lerp(playerRange.x, playerRange.y, 0.25f);
         float randomY = UnityEngine.Random.Range(playerRange.x, lowerQuarterTopY);
         float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
-        return new Vector3(spawnX, randomY, 0f);
+        spawnPosition = new Vector3(spawnX, randomY, 0f);
+        return true;
     }
 
-    private void SpawnDealerFish()
+    private bool SpawnDealerFish()
     {
-        Vector3 spawnPosition = CalculateDealerFishSpawnPosition();
+        if (!TryCalculateDealerFishSpawnPosition(out Vector3 spawnPosition))
+        {
+            return false;
+        }
+
         GameObject dealerFish = Instantiate(dealerFishPrefab, spawnPosition, Quaternion.identity, spawnedParent);
+        LightGrazeSource.EnsureOn(dealerFish);
         dealerFish.tag = GameplayTagCatalog.Collectible;
 
         int collectibleLayer = LayerMask.NameToLayer("Collectible");
@@ -229,28 +412,38 @@ public class LevelSpawner : MonoBehaviour
         {
             ApplyLayerRecursively(dealerFish, collectibleLayer);
         }
+
+        return true;
     }
 
-    private Vector3 CalculateEnemySpawnPosition(string enemyTag)
+    private bool TryCalculateEnemySpawnPosition(string enemyTag, out Vector3 spawnPosition)
     {
-        Vector2 playerRange = CalculatePlayerSpawnRange();
+        spawnPosition = default;
+        if (!TryCalculatePlayerSpawnRange(out Vector2 playerRange))
+        {
+            return false;
+        }
+
         float centerY = (playerRange.x + playerRange.y) * 0.5f;
         float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
 
         if (enemyTag == EnemyTagCatalog.Pufferfish)
         {
             float upperY = RandomInUpperCoverage(playerRange, centerY);
-            return new Vector3(spawnX, upperY, 0f);
+            spawnPosition = new Vector3(spawnX, upperY, 0f);
+            return true;
         }
 
         if (enemyTag == EnemyTagCatalog.FishingRod)
         {
-            float laneY = CalculateFishingRodPressureY(playerRange, centerY);
-            return new Vector3(spawnX, laneY, 0f);
+            float laneY = CalculateFishingRodPlayerY(playerRange, centerY);
+            spawnPosition = new Vector3(spawnX, laneY, 0f);
+            return true;
         }
 
         float lowerY = RandomInLowerCoverage(playerRange, centerY);
-        return new Vector3(spawnX, lowerY, 0f);
+        spawnPosition = new Vector3(spawnX, lowerY, 0f);
+        return true;
     }
 
     private GameObject SelectCoinPrefab()
@@ -277,28 +470,21 @@ public class LevelSpawner : MonoBehaviour
         return UnityEngine.Random.Range(playerRange.x, maxY);
     }
 
-    private float CalculateFishingRodPressureY(Vector2 playerRange, float centerY)
+    private float CalculateFishingRodPlayerY(Vector2 playerRange, float centerY)
     {
-        float playerY = player != null ? Mathf.Clamp(player.position.y, playerRange.x, playerRange.y) : centerY;
-        float targetBoundaryY = playerY >= centerY ? playerRange.y : playerRange.x;
-        return Mathf.Lerp(centerY, targetBoundaryY, fishingRodBoundaryPressure);
+        return player != null
+            ? Mathf.Clamp(player.position.y, playerRange.x, playerRange.y)
+            : centerY;
     }
 
-    private Vector2 CalculatePlayerSpawnRange()
+    private bool TryCalculatePlayerSpawnRange(out Vector2 playerRange)
     {
-        ResolvePlayerBoundaryReferences();
+        playerRange = default;
 
-        if (playerTopBorder != null && playerBottomBorder != null)
-        {
-            float minY = playerBottomBorder.bounds.max.y + verticalPadding;
-            float maxY = playerTopBorder.bounds.min.y - verticalPadding;
-            if (minY <= maxY)
-            {
-                return new Vector2(minY, maxY);
-            }
-        }
-
-        return CalculateVisibleSpawnRange();
+        return BoundaryReferenceResolver.TryResolveInnerVerticalRange(
+            BoundaryReferenceDomain.Player,
+            verticalPadding,
+            out playerRange);
     }
 
     private float GetCurrentSpawnInterval()
@@ -327,7 +513,13 @@ public class LevelSpawner : MonoBehaviour
     private bool ShouldForceFishingRodSpawn()
     {
         return fishingRodEnemyInterval > 0
+            && !IsBossActive()
             && (spawnedEnemyCount + 1) % fishingRodEnemyInterval == 0;
+    }
+
+    private bool IsBossActive()
+    {
+        return progression != null && progression.EventState == RunEventState.BossActive;
     }
 
     private EnemySpawnProfile SelectEnemyProfile(bool includeFishingRod)
@@ -444,7 +636,10 @@ public class LevelSpawner : MonoBehaviour
         {
             if (behaviour is IEnemySpawnContextReceiver receiver)
             {
-                receiver.InitializeEnemySpawnContext(spawnCamera, playerTopBorder, playerBottomBorder, player);
+                receiver.InitializeEnemySpawnContext(new EnemySpawnContext(
+                    spawnCamera,
+                    player,
+                    pufferfishTuning));
             }
         }
     }
@@ -466,25 +661,7 @@ public class LevelSpawner : MonoBehaviour
             spawnCamera = Camera.main;
         }
 
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
-        {
-            topBorder = resolvedTop;
-            bottomBorder = resolvedBottom;
-        }
-
-        ResolvePlayerBoundaryReferences();
         ResolvePlayerReference();
-    }
-
-    private void ResolvePlayerBoundaryReferences()
-    {
-        if ((playerTopBorder == null || playerBottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out Collider2D resolvedBottom))
-        {
-            playerTopBorder = resolvedTop;
-            playerBottomBorder = resolvedBottom;
-        }
     }
 
     private void ResolvePlayerReference()
@@ -503,14 +680,26 @@ public class LevelSpawner : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || spawnCamera == null || !HasAnyProfilePrefab() || coinPrefab == null)
+        if (session == null
+            || spawnCamera == null
+            || !HasAnyProfilePrefab()
+            || coinPrefab == null
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out _, out _)
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out _, out _))
         {
-            Debug.LogWarning("[LevelSpawner] Faltan referencias. Asigna Session, SpawnCamera, EnemyProfiles con prefabs y CoinPrefab en el Inspector.", this);
+            Debug.LogWarning(
+                $"[LevelSpawner] Faltan referencias o boundaries. Configura Session, SpawnCamera, EnemyProfiles, CoinPrefab y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)} / {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Player)}.",
+                this);
         }
 
         if (enableDealerFishSpawns && dealerFishPrefab == null)
         {
             Debug.LogWarning("[LevelSpawner] DealerFish spawns esta activo, pero falta asignar DealerFishPrefab.", this);
+        }
+
+        if (portalSpawnPolicy != PortalSpawnPolicy.Disabled && portalPrefab == null)
+        {
+            Debug.LogWarning("[LevelSpawner] Portal spawns esta activo, pero falta asignar PortalPrefab.", this);
         }
     }
 }

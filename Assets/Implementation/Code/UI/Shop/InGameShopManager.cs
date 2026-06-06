@@ -88,6 +88,7 @@ public class InGameShopManager : MonoBehaviour
 
     public static InGameShopManager Instance => instance;
     public static bool HasInstance => instance != null;
+    public static bool IsShopOpen => instance != null && instance.CurrentState == ShopEventState.Offering;
     public ShopEventState CurrentState { get; private set; } = ShopEventState.Closed;
     public event Action<ShopEventState, ShopEventState> StateChanged;
 

@@ -4,8 +4,6 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class DealerFish : MonoBehaviour
 {
-    [SerializeField] private bool destroyOnOpen = true;
-
     private void Reset()
     {
         Collider2D triggerCollider = GetComponent<Collider2D>();
@@ -38,12 +36,6 @@ public class DealerFish : MonoBehaviour
             return;
         }
 
-        if (destroyOnOpen)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 }

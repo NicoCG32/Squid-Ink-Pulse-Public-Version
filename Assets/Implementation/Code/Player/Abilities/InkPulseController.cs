@@ -26,6 +26,7 @@ public class InkPulseController : MonoBehaviour
     [SerializeField] private float pulseDuration = 3f;
 
     private float pulseTimer;
+    private bool runtimeStateRestored;
 
     public float ChargeRate => chargeRate;
     public float CurrentCharge => currentCharge;
@@ -41,11 +42,28 @@ public class InkPulseController : MonoBehaviour
     public event Action<InkPulseState, InkPulseState> StateChanged;
     public event Action<InkPulseState, InkPulseState> ChargeStateChanged;
 
+    private void Awake()
+    {
+        RestoreRuntimeStateFromStore();
+    }
+
+    private void OnEnable()
+    {
+        RuntimeInkPulseState.Changed += HandleRuntimeInkPulseChanged;
+    }
+
+    private void OnDisable()
+    {
+        RuntimeInkPulseState.Changed -= HandleRuntimeInkPulseChanged;
+    }
+
     private void Start()
     {
+        RestoreRuntimeStateFromStore();
         WarnIfMissingReferences();
         UpdateChargeBar();
         ApplyState(ResolveState(), force: true);
+        PersistRuntimeState();
     }
 
     private void Update()
@@ -69,11 +87,12 @@ public class InkPulseController : MonoBehaviour
         currentCharge = Mathf.Clamp(currentCharge + amount, 0f, maxCharge);
         UpdateChargeBar();
         ApplyState(ResolveState());
+        PersistRuntimeState();
     }
 
     public bool TryActivatePulse()
     {
-        if (IsPulseActive || !IsCharged)
+        if (!CanActivatePulse())
         {
             return false;
         }
@@ -92,6 +111,7 @@ public class InkPulseController : MonoBehaviour
         currentCharge = maxCharge;
         UpdateChargeBar();
         ApplyState(ResolveState());
+        PersistRuntimeState();
         return CurrentState == InkPulseState.Ready;
     }
 
@@ -101,6 +121,14 @@ public class InkPulseController : MonoBehaviour
         {
             TryActivatePulse();
         }
+    }
+
+    private bool CanActivatePulse()
+    {
+        return IsGameplayActive()
+            && !InGameShopManager.IsShopOpen
+            && !IsPulseActive
+            && IsCharged;
     }
 
     private void UpdatePulseTimer()
@@ -114,7 +142,10 @@ public class InkPulseController : MonoBehaviour
         if (pulseTimer <= 0f)
         {
             EndPulse();
+            return;
         }
+
+        PersistRuntimeState();
     }
 
     private void StartPulse()
@@ -124,6 +155,7 @@ public class InkPulseController : MonoBehaviour
         currentCharge = 0f;
         UpdateChargeBar();
         ApplyState(ResolveState());
+        PersistRuntimeState();
         PulseStarted?.Invoke();
     }
 
@@ -133,7 +165,39 @@ public class InkPulseController : MonoBehaviour
         currentCharge = 0f;
         UpdateChargeBar();
         ApplyState(ResolveState());
+        PersistRuntimeState();
         PulseEnded?.Invoke();
+    }
+
+    private void RestoreRuntimeState()
+    {
+        currentCharge = Mathf.Clamp(RuntimeInkPulseState.CurrentCharge, 0f, maxCharge);
+        IsPulseActive = RuntimeInkPulseState.IsPulseActive && RuntimeInkPulseState.PulseRemainingSeconds > 0f;
+        pulseTimer = IsPulseActive ? RuntimeInkPulseState.PulseRemainingSeconds : 0f;
+    }
+
+    private void RestoreRuntimeStateFromStore()
+    {
+        if (runtimeStateRestored)
+        {
+            return;
+        }
+
+        RuntimeInkPulseState.InitializeIfNeeded(currentCharge, IsPulseActive, pulseTimer);
+        RestoreRuntimeState();
+        runtimeStateRestored = true;
+    }
+
+    private void PersistRuntimeState()
+    {
+        RuntimeInkPulseState.Save(currentCharge, IsPulseActive, pulseTimer);
+    }
+
+    private void HandleRuntimeInkPulseChanged()
+    {
+        RestoreRuntimeState();
+        UpdateChargeBar();
+        ApplyState(ResolveState());
     }
 
     private void UpdateChargeBar()

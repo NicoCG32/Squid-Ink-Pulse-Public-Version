@@ -5,10 +5,11 @@ using UnityEngine;
 public class ShrimpCollector : MonoBehaviour
 {
     [SerializeField] private GameSessionController session;
-    [SerializeField] private int shrimpCount;
 
     public int ShrimpCount => shrimpCount;
     public event Action<int> ShrimpsChanged;
+
+    private int shrimpCount;
 
     private void Awake()
     {

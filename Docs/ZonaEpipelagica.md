@@ -1,8 +1,8 @@
-# Zona Epipelágica
+# Zona Epipelagica
 
-## Propósito
+## Proposito
 
-Esta escena es el escenario principal de juego. Reúne la progresión de run, el spawner de enemigos, la cámara, la UI, el jugador y los controladores de sesión que coordinan el flujo completo de la partida.
+Esta escena es el escenario principal de juego. Reune progresion de run, spawner de enemigos, camara, UI, jugador y controladores de sesion.
 
 ## Estructura general
 
@@ -23,7 +23,15 @@ flowchart TD
 
     Gameplay --> LevelSpawner[LevelSpawner]
     Gameplay --> Boundaries[Boundaries]
+    Boundaries --> PlayerBoundaries[PlayerBoundaries]
+    Boundaries --> CameraBoundaries[CameraBoundaries]
+    PlayerBoundaries --> PlayerTop[TopBoundary]
+    PlayerBoundaries --> PlayerBottom[BottomBoundary]
+    CameraBoundaries --> CameraTop[TopBoundary]
+    CameraBoundaries --> CameraBottom[BottomBoundary]
     Gameplay --> CleanUp[CleanUp]
+    CleanUp --> DestroyZone[DestroyZone]
+    DestroyZone --> GarbageCollector[GarbageCollector]
     Gameplay --> SSCarnageManager[SSCarnageManager]
     Gameplay --> Portals[Portals]
 
@@ -38,63 +46,72 @@ flowchart TD
     UI --> GameOverMenu[GameOverMenuManager]
     UI --> ShopMenu[InGameShopManager]
     UI --> EventSystem[EventSystem]
-
-    Enviroment --> Background[Background]
-    Enviroment --> Layer1[Layer1]
-    Enviroment --> Layer2[Layer2]
-    Enviroment --> Layer3[Layer3]
-    Enviroment --> Layer4[Layer4]
-    Enviroment --> Layer5[Layer5]
-
-    Audio --> Soundtrack[Soundtrack]
-    Audio --> SFX[SFX]
 ```
 
 ## Nodos y scripts
 
-| Nodo | Scripts o componentes principales | Función |
+| Nodo | Scripts o componentes principales | Funcion |
 | --- | --- | --- |
-| `GameRoot` | Ninguno propio | Nodo raíz que agrupa toda la escena. |
-| `Systems` | Ninguno propio | Contenedor de sistemas globales de sesión y flujo. |
-| `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida, pausa global e intensidad de la run. |
-| `SceneFlow` | `SceneFlowController` | Retorno al menú y cambios de escena. |
-| `Gameplay` | Ninguno propio | Agrupación de lógica del nivel y de sus spawns. |
-| `LevelSpawner` | `LevelSpawner` | Spawn de monedas y enemigos a partir de perfiles. |
-| `Boundaries` | `HorizontalTracker` | Mantener las fronteras alineadas con el avance del mundo. |
-| `CleanUp` | `DestroyOffscreen` | Destruir enemigos, camarones y collectibles que ya salieron del área útil. |
-| `SSCarnageManager` | `BossEventDirector` | Disparar el evento del SS Carnage y su fase amplia de cámara. |
-| `Portals` | Sin script propio confirmado | Puntos de transición o portalización de la escena. |
-| `Player` | Ninguno propio | Nodo contenedor del jugador. |
-| `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `Rigidbody2D`, `CircleCollider2D` | Control total del jugador y su física. |
-| `GrazeZone` | `GrazeDetector` | Carga del Ink-Pulse por proximidad a amenazas. |
-| `SquidVisual` | Componentes visuales del prefab | Representación gráfica del jugador. |
-| `CameraRig` | Ninguno propio | Contenedor de la cámara principal. |
-| `Main Camera` | `CameraController`, `Camera`, `AudioListener`, datos de URP | Seguimiento, encuadre amplio en eventos y renderizado. |
-| `UI` | Ninguno propio | Raíz de interfaz, HUD y menús. |
-| `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Estado visible del Ink-Pulse, camarones y gadgets. |
-| `PauseMenuManager` | `PauseMenuManager` | Apertura, cierre y navegación de pausa. |
-| `GameOverMenuManager` | `GameOverMenuManager` | Pantalla de derrota y acciones asociadas. |
-| `InGameShopManager` | `InGameShopManager` | Tienda temporal de suministros, oferta aleatoria y compra con camarones. |
-| `EventSystem` | Sistema de UI de Unity | Entrada y navegación de interfaz. |
-| `Enviroment` | `ParallaxLayer` en los elementos de fondo que se desplazan | Capa de fondo y profundidad visual. |
-| `Audio` | `AudioSource` | Reproducción de soundtrack y efectos. |
+| `GameRoot` | ninguno | Nodo raiz de escena. |
+| `Systems` | ninguno | Contenedor de sesion y flujo. |
+| `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida e intensidad de run. |
+| `SceneFlow` | `SceneFlowController` | Retorno a menu y cambios de escena. |
+| `Gameplay` | ninguno | Agrupacion de logica del nivel. |
+| `LevelSpawner` | `LevelSpawner` | Spawn de monedas, enemigos, tienda y portales. |
+| `Boundaries` | `HorizontalTracker` | Mantener fronteras alineadas con el avance del mundo. |
+| `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
+| `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
+| `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Limpiar objetos que quedan detras del borde izquierdo de camara. |
+| `SSCarnageManager` | `BossEventDirector` | Disparar evento del SS Carnage y cue de camara. |
+| `Portals` | ninguno | Contenedor para instancias runtime de `ScenePortal`. |
+| `Player` | ninguno | Contenedor del jugador. |
+| `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador. |
+| `GrazeZone` | `GrazeDetector` | Carga del Ink-Pulse por proximidad. |
+| `Main Camera` | `CameraController`, `Camera`, `AudioListener`, URP | Seguimiento, eventos de camara y render. |
+| `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Ink-Pulse, camarones y gadgets. |
+| `PauseMenuManager` | `PauseMenuManager` | Pausa. |
+| `GameOverMenuManager` | `GameOverMenuManager` | Derrota. |
+| `InGameShopManager` | `InGameShopManager` | Tienda temporal. |
+| `EventSystem` | sistema UI Unity | Entrada de interfaz. |
+| `Enviroment` | `ParallaxLayer` en capas de fondo | Profundidad visual. |
+| `Audio` | `AudioSource` | Soundtrack y efectos. |
+
+## Contrato de boundaries
+
+La escena debe mantener nombres exactos:
+
+```text
+Boundaries
+├── PlayerBoundaries
+│   ├── TopBoundary
+│   └── BottomBoundary
+└── CameraBoundaries
+    ├── TopBoundary
+    └── BottomBoundary
+```
+
+Reglas:
+- Cada `TopBoundary` y `BottomBoundary` debe tener `Collider2D`.
+- El jugador usa `PlayerBoundaries`.
+- La camara usa `CameraBoundaries`.
+- `LevelSpawner` usa ambos dominios segun lo que este posicionando.
+- No se ajustan limites desde scripts individuales.
+- Al cambiar dimensiones del escenario, se actualizan estos colliders y no campos sueltos.
 
 ## Managers y responsabilidades
 
-La escena sigue una regla simple: cada responsabilidad importante tiene un solo dueño.
-
-- `GameSessionController` gobierna el estado global de la partida.
-- `RunProgressionDirector` define la progresión de intensidad, velocidad y ritmo de spawn.
-- `SceneFlowController` resuelve el retorno al menú y el cambio de escena.
-- `LevelSpawner` genera enemigos y monedas sin mezclar esa lógica con la progresión global.
-- `LevelSpawner` también instancia el collectible de tienda por intervalo en el cuarto inferior del rango del jugador.
-- `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de cámara correspondiente.
-- `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarla con pausa ni game over.
+- `GameSessionController` gobierna el estado global.
+- `RunProgressionDirector` define intensidad, velocidad y ritmo de spawn.
+- `SceneFlowController` resuelve retorno al menu y cambios de escena.
+- `LevelSpawner` genera enemigos, camarones, tienda y portales sin mezclar progresion global.
+- `ScenePortal` gobierna el cambio entre `ZonaEpipelagica` y `ZonaExe`, pero nace desde `LevelSpawner`.
+- `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de camara.
+- `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarse con pausa ni game over.
 - `GadgetInventoryHud` muestra `Q` en `Gadget1` y `W` en `Gadget2` cuando el gadget del slot es activo.
-- `CameraController` decide el seguimiento normal y la vista amplia de evento.
-- `HorizontalTracker` mantiene las fronteras útiles sincronizadas con el mundo.
-- `DestroyOffscreen` limpia objetos fuera de pantalla para evitar acumulación innecesaria.
-- `PauseMenuManager` y `GameOverMenuManager` sólo gobiernan su capa de interfaz.
+- `CameraController` decide seguimiento normal, vista amplia de evento y feedback de Ink-Pulse.
+- `HorizontalTracker` mantiene fronteras utiles sincronizadas con el mundo.
+- `DestroyOffscreen` sigue la camara y limpia enemigos, camarones, collectibles y portales que quedan fuera de pantalla.
+- `PauseMenuManager` y `GameOverMenuManager` gobiernan solo su capa de interfaz.
 
 ## Flujo de escena
 
@@ -103,18 +120,34 @@ flowchart LR
     RunProgressionDirector --> LevelSpawner
     RunProgressionDirector --> BossEventDirector
     BossEventDirector --> CameraController
+    BoundaryReferenceResolver --> PlayerMovement
+    BoundaryReferenceResolver --> LevelSpawner
+    BoundaryReferenceResolver --> CameraController
+    BoundaryReferenceResolver --> SSCarnageNetWall
     HorizontalTracker --> Boundaries
     LevelSpawner --> Enemies[Enemigos y monedas]
     LevelSpawner --> DealerFish[DealerFish]
+    LevelSpawner --> ScenePortal[ScenePortal]
     DealerFish --> InGameShopManager
-    CameraController --> HUD[HUD y lectura visual]
-    SceneFlowController --> MainMenu[MainMenu]
+    ScenePortal --> SceneFlowController
     PauseMenuManager --> GameSessionController
     GameOverMenuManager --> SceneFlowController
 ```
 
+## ZonaExe
+
+`ZonaExe` comparte la base estructural mientras sea una zona referencial:
+- debe tener la misma jerarquia obligatoria de boundaries;
+- usa portales con `PortalSpawnPolicy.AlwaysInterval`;
+- conserva gadgets e Ink-Pulse al entrar o salir;
+- tiene `Enviroment/ZoneLightingController` y `DarknessOverlay` para oscuridad ambiental;
+- revela temporalmente el fondo mediante `LightGrazeSource` en entidades y `LightGrazeProbe` en BabySquid;
+- puede diferenciar arte, enemigos y parametros de spawner sin romper el contrato comun.
+
 ## Notas de mantenimiento
 
-- Si se agrega un nuevo nodo con lógica runtime, debe documentarse junto con su script y su responsabilidad.
-- Si un nodo sólo agrupa hijos, no necesita script propio.
-- Si una responsabilidad empieza a duplicarse, se traslada al manager correcto antes de añadir una excepción nueva.
+- Si se agrega un nuevo nodo con logica runtime, debe documentarse junto con su script y responsabilidad.
+- Si un nodo solo agrupa hijos, no necesita script propio.
+- Si una responsabilidad empieza a duplicarse, se traslada al manager correcto antes de agregar una excepcion.
+- Los managers pueden exponer parametros de balance; los prefabs no deben exponer dependencias de escena que puedan resolverse por contrato.
+- `GarbageCollector` debe quedar en posicion neutra de editor; su posicion efectiva se calcula en runtime desde la camara.

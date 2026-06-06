@@ -9,8 +9,6 @@ public class BossEventDirector : MonoBehaviour
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera spawnCamera;
     [SerializeField] private CameraController eventCameraController;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
     [SerializeField] private Transform bossParent;
 
     [Header("Boss Event")]
@@ -93,6 +91,7 @@ public class BossEventDirector : MonoBehaviour
 
         Vector3 spawnPosition = CalculateSpawnPosition();
         GameObject bossInstance = Instantiate(bossPrefab, spawnPosition, Quaternion.identity, bossParent);
+        LightGrazeSource.EnsureOn(bossInstance);
         InjectSpawnContext(bossInstance);
 
         if (resetLocalTimer && !triggerOnce)
@@ -115,7 +114,7 @@ public class BossEventDirector : MonoBehaviour
         {
             if (behaviour is IBossSpawnContextReceiver receiver)
             {
-                receiver.InitializeBossSpawnContext(session, progression, spawnCamera, topBorder, bottomBorder, bossParent);
+                receiver.InitializeBossSpawnContext(session, progression, spawnCamera, bossParent);
             }
         }
     }
@@ -125,13 +124,12 @@ public class BossEventDirector : MonoBehaviour
         if (session == null
             || spawnCamera == null
             || eventCameraController == null
-            || topBorder == null
-            || bottomBorder == null
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out _, out _)
             || bossParent == null
             || bossPrefab == null)
         {
             Debug.LogWarning(
-                "[BossEventDirector] Faltan referencias. Asigna Session, SpawnCamera, EventCameraController, TopBorder, BottomBorder, BossParent y BossPrefab en el Inspector.",
+                $"[BossEventDirector] Faltan referencias. Configura Session, SpawnCamera, EventCameraController, BossParent, BossPrefab y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)}.",
                 this);
         }
     }
@@ -158,12 +156,6 @@ public class BossEventDirector : MonoBehaviour
             eventCameraController = spawnCamera.GetComponent<CameraController>();
         }
 
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
-        {
-            topBorder = resolvedTop;
-            bottomBorder = resolvedBottom;
-        }
     }
 }
 
@@ -173,7 +165,5 @@ public interface IBossSpawnContextReceiver
         GameSessionController sessionReference,
         RunProgressionDirector progressionReference,
         Camera cameraReference,
-        Collider2D topBorderReference,
-        Collider2D bottomBorderReference,
         Transform parentReference);
 }

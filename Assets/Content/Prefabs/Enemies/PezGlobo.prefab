@@ -103,8 +103,9 @@ GameObject:
   - component: {fileID: 7102000000000000003}
   - component: {fileID: 7102000000000000007}
   - component: {fileID: 7102000000000000004}
-  - component: {fileID: 7102000000000000005}
   - component: {fileID: 7102000000000000006}
+  - component: {fileID: 2031658711408497811}
+  - component: {fileID: 9301000000000000003}
   m_Layer: 7
   m_Name: PezGlobo
   m_TagString: EnemyPezGlobo
@@ -236,8 +237,32 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &7102000000000000005
-BoxCollider2D:
+--- !u!114 &7102000000000000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7102000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2e9bbbdb68b4de8a2f2a4046e3c8429, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PufferfishEnemy
+--- !u!114 &9301000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7102000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
+--- !u!58 &2031658711408497811
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -270,36 +295,5 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
---- !u!114 &7102000000000000006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7102000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2e9bbbdb68b4de8a2f2a4046e3c8429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PufferfishEnemy
-  player: {fileID: 0}
-  topBorder: {fileID: 0}
-  bottomBorder: {fileID: 0}
-  bodyCollider: {fileID: 7102000000000000005}
-  fallSpeed: 0.2
-  expandedRiseSpeedMultiplier: 2
-  proximityRadius: 2.5
-  expandedScaleMultiplier: 2
-  expansionSmoothSpeed: 8
+  m_Offset: {x: -0.035916448, y: -0.019283116}
+  m_Radius: 0.65724814

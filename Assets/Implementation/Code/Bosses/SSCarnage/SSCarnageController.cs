@@ -21,9 +21,6 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     [SerializeField] private GameSessionController session;
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera gameplayCamera;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
-    [SerializeField] private Collider2D playerTopBorder;
     [SerializeField] private Transform ownedObjectsParent;
 
     [Header("Warning")]
@@ -49,6 +46,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     private bool netDeployed;
     private bool exitStarted;
     private SSCarnageNetWall activeNetWall;
+    private Collider2D playerTopBorder;
 
     public SSCarnageAttackState CurrentAttackState { get; private set; } = SSCarnageAttackState.Inactive;
     public event Action<SSCarnageAttackState, SSCarnageAttackState> AttackStateChanged;
@@ -97,15 +95,11 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         GameSessionController sessionReference,
         RunProgressionDirector progressionReference,
         Camera cameraReference,
-        Collider2D topBorderReference,
-        Collider2D bottomBorderReference,
         Transform parentReference)
     {
         session = sessionReference;
         progression = progressionReference;
         gameplayCamera = cameraReference;
-        topBorder = topBorderReference;
-        bottomBorder = bottomBorderReference;
         ownedObjectsParent = parentReference;
         ResolveBoundaryReferences();
         transform.position = CalculateWarningPosition();
@@ -125,13 +119,14 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         Vector3 spawnPosition = CalculateNetSpawnPosition();
         Transform parent = ownedObjectsParent != null ? ownedObjectsParent : transform.parent;
         GameObject wallInstance = Instantiate(bossNetWallPrefab, spawnPosition, Quaternion.identity, parent);
+        LightGrazeSource.EnsureOn(wallInstance);
 
         if (wallInstance.TryGetComponent(out SSCarnageNetWall netWall))
         {
             activeNetWall = netWall;
             activeNetWall.Resolved += HandleNetResolved;
             activeNetWall.Failed += HandleNetFailed;
-            netWall.Initialize(session, progression, gameplayCamera, topBorder, bottomBorder);
+            netWall.Initialize(session, progression, gameplayCamera);
             ApplyAttackState(SSCarnageAttackState.NetActive);
             return;
         }
@@ -162,10 +157,9 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
 
         float depthToWorldZero = Mathf.Abs(gameplayCamera.transform.position.z);
         Vector3 viewportPosition = gameplayCamera.ViewportToWorldPoint(new Vector3(warningViewportX, 0.5f, depthToWorldZero));
-        float fallbackTopY = gameplayCamera.ViewportToWorldPoint(new Vector3(warningViewportX, 1f, depthToWorldZero)).y;
         float y = playerTopBorder != null
             ? playerTopBorder.bounds.max.y + verticalOffsetAbovePlayerTopBoundary
-            : fallbackTopY - verticalOffsetAbovePlayerTopBoundary;
+            : transform.position.y;
 
         return new Vector3(viewportPosition.x, y, 0f);
     }
@@ -223,10 +217,14 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || gameplayCamera == null || topBorder == null || bottomBorder == null || bossNetWallPrefab == null)
+        if (session == null
+            || gameplayCamera == null
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out _, out _)
+            || !BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out _, out _)
+            || bossNetWallPrefab == null)
         {
             Debug.LogWarning(
-                "[SSCarnageController] Faltan referencias. El director debe entregar Session, Camera, TopBorder y BottomBorder; el prefab debe tener BossNetWallPrefab asignado.",
+                $"[SSCarnageController] Faltan referencias. El director debe entregar Session y Camera; la escena debe tener {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)} y {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Player)}; el prefab debe tener BossNetWallPrefab asignado.",
                 this);
         }
     }
@@ -246,15 +244,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
             gameplayCamera = Camera.main;
         }
 
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
-        {
-            topBorder = resolvedTop;
-            bottomBorder = resolvedBottom;
-        }
-
-        if (playerTopBorder == null
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedPlayerTop, out _))
+        if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedPlayerTop, out _))
         {
             playerTopBorder = resolvedPlayerTop;
         }

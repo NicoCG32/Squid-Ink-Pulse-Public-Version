@@ -6,27 +6,17 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class SSCarnageNetWall : MonoBehaviour
 {
+    private const string AuthoringBoundaryRootName = "AuthoringPlayerBoundaries";
+
     [Header("References")]
     [SerializeField] private GameSessionController session;
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera gameplayCamera;
-    [SerializeField] private Collider2D topBorder;
-    [SerializeField] private Collider2D bottomBorder;
     [SerializeField] private Collider2D wallCollider;
 
     [Header("Visual Layers")]
     [SerializeField] private Transform[] intactVisualLayers;
     [SerializeField] private Transform brokenVisualLayer;
-    [SerializeField] private bool fitVisualsToBoundaryHeight = true;
-    [Tooltip("Altura base en unidades de mundo. Usa 0 para calcularla desde las capas visuales del prefab. Con PPU 100, 1 unidad = 100 px.")]
-    [SerializeField, Min(0f)] private float authoredBoundaryHeight;
-
-    [Header("Collision Rules")]
-    [SerializeField] private bool destroyWhenBroken;
-
-    [Header("Camera Fit")]
-    [SerializeField] private bool fitHeightToBoundaries = true;
-    [SerializeField] private float wallWidth = 0.75f;
 
     private bool isBroken;
     private bool hasFailed;
@@ -34,6 +24,10 @@ public class SSCarnageNetWall : MonoBehaviour
     private Vector3 authoredRootLocalScale = Vector3.one;
     private Vector2 authoredColliderOffset;
     private Vector2 authoredColliderSize = Vector2.one;
+    private Collider2D topBorder;
+    private Collider2D bottomBorder;
+    private float authoredReferenceBottomY;
+    private float authoredReferenceHeight = 1f;
 
     public event Action Resolved;
     public event Action Failed;
@@ -68,15 +62,11 @@ public class SSCarnageNetWall : MonoBehaviour
     public void Initialize(
         GameSessionController sessionReference,
         RunProgressionDirector progressionReference,
-        Camera cameraReference,
-        Collider2D topBorderReference,
-        Collider2D bottomBorderReference)
+        Camera cameraReference)
     {
         session = sessionReference;
         progression = progressionReference;
         gameplayCamera = cameraReference;
-        topBorder = topBorderReference;
-        bottomBorder = bottomBorderReference;
         ResolveBoundaryReferences();
         ResolveVisualReferences();
         CaptureAuthoringMetrics();
@@ -128,46 +118,41 @@ public class SSCarnageNetWall : MonoBehaviour
         ApplyVisualState();
         progression?.NotifyBossResolved();
         Resolved?.Invoke();
-
-        if (destroyWhenBroken)
-        {
-            Destroy(gameObject);
-        }
     }
 
     private void FitToVerticalBoundaries()
     {
-        if (!fitHeightToBoundaries)
+        if (!TryCalculateVerticalBounds(out Vector2 verticalBounds))
         {
             return;
         }
 
-        Vector2 verticalBounds = CalculateVerticalBounds();
         float bottomY = verticalBounds.x;
         float topY = verticalBounds.y;
         float height = Mathf.Max(1f, topY - bottomY);
 
-        transform.position = new Vector3(transform.position.x, bottomY, transform.position.z);
-        FitVisualRootToHeight(height);
+        Vector3 targetScale = CalculateTargetScale(height);
+        transform.localScale = targetScale;
+
+        float authoredBottomOffset = transform.TransformVector(Vector3.up * authoredReferenceBottomY).y;
+        transform.position = new Vector3(transform.position.x, bottomY - authoredBottomOffset, transform.position.z);
+
         FitCollisionVolume(height);
     }
 
-    private Vector2 CalculateVerticalBounds()
+    private bool TryCalculateVerticalBounds(out Vector2 verticalBounds)
     {
+        verticalBounds = default;
         if (topBorder != null && bottomBorder != null)
         {
-            return new Vector2(bottomBorder.bounds.max.y, topBorder.bounds.min.y);
+            verticalBounds = new Vector2(bottomBorder.bounds.max.y, topBorder.bounds.min.y);
+            return verticalBounds.x <= verticalBounds.y;
         }
 
-        if (gameplayCamera == null)
-        {
-            return new Vector2(transform.position.y - 0.5f, transform.position.y + 0.5f);
-        }
-
-        float depthToWall = Mathf.Abs(gameplayCamera.transform.position.z - transform.position.z);
-        float bottomY = gameplayCamera.ViewportToWorldPoint(new Vector3(0.5f, 0f, depthToWall)).y;
-        float topY = gameplayCamera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depthToWall)).y;
-        return new Vector2(bottomY, topY);
+        return BoundaryReferenceResolver.TryResolveInnerVerticalRange(
+            BoundaryReferenceDomain.Player,
+            0f,
+            out verticalBounds);
     }
 
     private void CaptureAuthoringMetrics()
@@ -185,32 +170,30 @@ public class SSCarnageNetWall : MonoBehaviour
             authoredColliderSize = boxCollider.size;
         }
 
-        if (authoredBoundaryHeight <= 0f && TryCalculateAuthoredVisualHeight(out float visualHeight))
+        if (!TryCalculateAuthoredBoundaryRange(out Vector2 authoredRange)
+            && !TryCalculateAuthoredVisualRange(out authoredRange))
         {
-            authoredBoundaryHeight = visualHeight;
+            float fallbackHeight = Mathf.Abs(authoredRootLocalScale.y) * Mathf.Max(0.01f, authoredColliderSize.y);
+            authoredRange = new Vector2(0f, fallbackHeight);
         }
 
-        if (authoredBoundaryHeight <= 0f)
-        {
-            authoredBoundaryHeight = Mathf.Abs(authoredRootLocalScale.y) * Mathf.Max(0.01f, authoredColliderSize.y);
-        }
-
-        authoredBoundaryHeight = Mathf.Max(0.01f, authoredBoundaryHeight);
+        authoredReferenceBottomY = authoredRange.x;
+        authoredReferenceHeight = Mathf.Max(0.01f, authoredRange.y - authoredRange.x);
         hasCapturedAuthoringMetrics = true;
     }
 
-    private void FitVisualRootToHeight(float targetHeight)
+    private Vector3 CalculateTargetScale(float targetHeight)
     {
-        if (!fitVisualsToBoundaryHeight)
-        {
-            return;
-        }
-
         CaptureAuthoringMetrics();
-        float scaleFactor = targetHeight / authoredBoundaryHeight;
-        transform.localScale = new Vector3(
-            authoredRootLocalScale.x * scaleFactor,
-            authoredRootLocalScale.y * scaleFactor,
+        float authoredWorldHeight = authoredReferenceHeight * Mathf.Max(0.01f, Mathf.Abs(authoredRootLocalScale.y));
+        float scaleFactor = targetHeight / authoredWorldHeight;
+        Vector3 parentScale = transform.parent != null ? transform.parent.lossyScale : Vector3.one;
+        float parentScaleX = Mathf.Max(0.01f, Mathf.Abs(parentScale.x));
+        float parentScaleY = Mathf.Max(0.01f, Mathf.Abs(parentScale.y));
+
+        return new Vector3(
+            authoredRootLocalScale.x * scaleFactor / parentScaleX,
+            authoredRootLocalScale.y * scaleFactor / parentScaleY,
             authoredRootLocalScale.z);
     }
 
@@ -218,21 +201,103 @@ public class SSCarnageNetWall : MonoBehaviour
     {
         if (wallCollider is not BoxCollider2D boxCollider)
         {
-            if (!fitVisualsToBoundaryHeight)
-            {
-                transform.localScale = new Vector3(wallWidth, height, 1f);
-            }
-
             return;
         }
 
-        float scaleX = Mathf.Max(0.01f, Mathf.Abs(transform.localScale.x));
-        float scaleY = Mathf.Max(0.01f, Mathf.Abs(transform.localScale.y));
-        boxCollider.offset = new Vector2(authoredColliderOffset.x, height * 0.5f / scaleY);
-        boxCollider.size = new Vector2(Mathf.Max(0.01f, wallWidth) / scaleX, height / scaleY);
+        float scaleX = Mathf.Max(0.01f, Mathf.Abs(transform.lossyScale.x));
+        float scaleY = Mathf.Max(0.01f, Mathf.Abs(transform.lossyScale.y));
+        float authoredWorldWidth = Mathf.Max(0.01f, Mathf.Abs(authoredColliderSize.x * authoredRootLocalScale.x));
+        boxCollider.offset = new Vector2(authoredColliderOffset.x, authoredReferenceBottomY + (height * 0.5f / scaleY));
+        boxCollider.size = new Vector2(authoredWorldWidth / scaleX, height / scaleY);
     }
 
-    private bool TryCalculateAuthoredVisualHeight(out float visualHeight)
+    private bool TryCalculateAuthoredBoundaryRange(out Vector2 authoredRange)
+    {
+        authoredRange = default;
+        Transform referenceRoot = transform.Find(AuthoringBoundaryRootName);
+        if (referenceRoot == null)
+        {
+            return false;
+        }
+
+        Transform top = referenceRoot.Find(BoundaryReferenceResolver.TopBoundaryName);
+        Transform bottom = referenceRoot.Find(BoundaryReferenceResolver.BottomBoundaryName);
+        if (top == null || bottom == null)
+        {
+            return false;
+        }
+
+        Collider2D topCollider = top.GetComponent<Collider2D>();
+        Collider2D bottomCollider = bottom.GetComponent<Collider2D>();
+
+        float bottomY = TryCalculateColliderLocalEdge(bottomCollider, upperEdge: true, out float calculatedBottomY)
+            ? calculatedBottomY
+            : transform.InverseTransformPoint(bottom.position).y;
+        float topY = TryCalculateColliderLocalEdge(topCollider, upperEdge: false, out float calculatedTopY)
+            ? calculatedTopY
+            : transform.InverseTransformPoint(top.position).y;
+
+        if (bottomY > topY)
+        {
+            return false;
+        }
+
+        authoredRange = new Vector2(bottomY, topY);
+        return true;
+    }
+
+    private bool TryCalculateColliderLocalEdge(Collider2D collider, bool upperEdge, out float localY)
+    {
+        localY = default;
+        if (collider == null)
+        {
+            return false;
+        }
+
+        if (collider is BoxCollider2D boxCollider)
+        {
+            Vector2 localPoint = boxCollider.offset
+                + Vector2.up * ((upperEdge ? 1f : -1f) * boxCollider.size.y * 0.5f);
+            localY = transform.InverseTransformPoint(boxCollider.transform.TransformPoint(localPoint)).y;
+            return true;
+        }
+
+        if (collider is CircleCollider2D circleCollider)
+        {
+            Vector2 localPoint = circleCollider.offset
+                + Vector2.up * ((upperEdge ? 1f : -1f) * circleCollider.radius);
+            localY = transform.InverseTransformPoint(circleCollider.transform.TransformPoint(localPoint)).y;
+            return true;
+        }
+
+        if (collider is PolygonCollider2D polygonCollider)
+        {
+            bool hasPoint = false;
+            float edgeY = 0f;
+            for (int pathIndex = 0; pathIndex < polygonCollider.pathCount; pathIndex++)
+            {
+                Vector2[] points = polygonCollider.GetPath(pathIndex);
+                foreach (Vector2 point in points)
+                {
+                    float candidateY = transform.InverseTransformPoint(polygonCollider.transform.TransformPoint(point)).y;
+                    edgeY = !hasPoint
+                        ? candidateY
+                        : upperEdge ? Mathf.Max(edgeY, candidateY) : Mathf.Min(edgeY, candidateY);
+                    hasPoint = true;
+                }
+            }
+
+            if (hasPoint)
+            {
+                localY = edgeY;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryCalculateAuthoredVisualRange(out Vector2 visualRange)
     {
         bool hasBounds = false;
         float minY = 0f;
@@ -247,8 +312,8 @@ public class SSCarnageNetWall : MonoBehaviour
         }
 
         IncludeVisualLayerHeight(brokenVisualLayer, ref hasBounds, ref minY, ref maxY);
-        visualHeight = hasBounds ? maxY - minY : 0f;
-        return visualHeight > Mathf.Epsilon;
+        visualRange = hasBounds ? new Vector2(minY, maxY) : default;
+        return hasBounds && visualRange.y - visualRange.x > Mathf.Epsilon;
     }
 
     private void IncludeVisualLayerHeight(Transform visualLayer, ref bool hasBounds, ref float minY, ref float maxY)
@@ -347,14 +412,6 @@ public class SSCarnageNetWall : MonoBehaviour
         {
             topBorder = resolvedPlayerTop;
             bottomBorder = resolvedPlayerBottom;
-            return;
-        }
-
-        if ((topBorder == null || bottomBorder == null)
-            && BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))
-        {
-            topBorder = resolvedTop;
-            bottomBorder = resolvedBottom;
         }
     }
 
@@ -363,7 +420,7 @@ public class SSCarnageNetWall : MonoBehaviour
         if (session == null || gameplayCamera == null || topBorder == null || bottomBorder == null || wallCollider == null)
         {
             Debug.LogWarning(
-                "[SSCarnageNetWall] Faltan referencias. El SS Carnage debe entregar Session, Camera, TopBorder y BottomBorder, y el prefab debe tener Collider2D.",
+                $"[SSCarnageNetWall] Faltan referencias. El SS Carnage debe entregar Session y Camera; la escena debe tener {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Player)}; el prefab debe tener Collider2D.",
                 this);
         }
     }

@@ -17,6 +17,25 @@ Los cambios deben probarse de uno en uno cuando sea posible. Si se modifican var
 4. Registrar valor anterior, valor nuevo y resultado.
 5. Repetir hasta encontrar un rango aceptable.
 
+## Contrato no balanceable: boundaries
+
+Los limites verticales no son parametros de QA. Son infraestructura de escena.
+
+Toda zona jugable debe contener exactamente estos nodos:
+
+| Dominio | Contenedor | Hijos obligatorios |
+| --- | --- | --- |
+| Jugador | `PlayerBoundaries` | `TopBoundary`, `BottomBoundary` |
+| Camara | `CameraBoundaries` | `TopBoundary`, `BottomBoundary` |
+
+Los sistemas leen los bordes fisicos internos de esos colliders mediante `BoundaryReferenceResolver`. Por lo tanto:
+
+- No existe `fallbackMinY` / `fallbackMaxY` en `LevelSpawner`.
+- No existe `minY` / `maxY` en `PlayerMovement`.
+- No existe `topBorderOffset` en `CameraController`.
+- No se asignan `topBorder` ni `bottomBorder` por Inspector.
+- Si falta una jerarquia obligatoria, se corrige la escena antes de balancear.
+
 ## Progresion de dificultad
 
 Script: `RunProgressionDirector`
@@ -54,11 +73,9 @@ Parametros ajustables:
 | `verticalPadding` | Margen vertical contra camara y boundaries. | Los spawns se alejan mas de los limites. |
 | `coinSpawnChance` | Probabilidad de que el spawn sea camaron. | Hay mas recompensa y menos peligro. |
 | `rareCoinSpawnChanceWithinCoins` | Probabilidad de camaron x10 cuando ya salio camaron. | Aumenta la economia de la run. |
-| `fishingRodEnemyInterval` | Cada cuantos enemigos se fuerza una cana. | La cana aparece menos seguido si se sube. |
-| `fishingRodBoundaryPressure` | Cercania de la cana al boundary presionado. | La cana castiga mas quedarse arriba/abajo. |
+| `fishingRodEnemyInterval` | Cada cuantos enemigos de juego normal se fuerza una cana. | La cana aparece menos seguido si se sube. |
 | `upperZoneSpawnCoverage` | Porcion superior disponible para Pez Globo. | El Pez Globo tiene mas dispersion vertical. |
 | `lowerZoneSpawnCoverage` | Porcion inferior disponible para Mina. | La Mina tiene mas dispersion vertical. |
-| `fallbackMinY` / `fallbackMaxY` | Rango vertical de respaldo si fallan boundaries. | Solo afecta casos de referencia rota. |
 
 `enemyProfiles` define el peso por enemigo:
 
@@ -83,7 +100,6 @@ Parametros ajustables:
 | `enableDealerFishSpawns` | `LevelSpawner` | Activa o desactiva aparicion de tienda. |
 | `firstDealerFishSpawnDelay` | `LevelSpawner` | Tiempo hasta el primer DealerFish. |
 | `dealerFishSpawnInterval` | `LevelSpawner` | Intervalo entre DealerFish posteriores. |
-| `destroyOnOpen` | `DealerFish` | Si el pez desaparece al abrir tienda. |
 | `offerDurationSeconds` | `InGameShopManager` | Tiempo disponible para comprar. |
 | `pauseGameplayWhileOpen` | `InGameShopManager` | Si la tienda congela gameplay mientras corre en tiempo real. |
 | `globalPriceMultiplier` | `InGameShopManager` | Multiplicador general de precios. |
@@ -98,6 +114,63 @@ Reglas vigentes:
 - Comprar usa tecla `B`.
 - `SinSaldo` aparece solo despues de intentar comprar con `B` sin camarones suficientes.
 - La tienda puede ofrecer un gadget repetido, pero no permite comprarlo si ya existe en inventario.
+
+## Portales
+
+Script de contacto: `ScenePortal`
+
+Prefab: `Assets/Content/Prefabs/Portals/ScenePortal.prefab`
+
+Script de aparicion: `LevelSpawner`
+
+Script de rutas: `SceneFlowController`
+
+Parametros ajustables:
+
+| Campo | Que controla | Nota de test |
+| --- | --- | --- |
+| `portalPrefab` | Prefab de portal que se instancia en runtime. | Debe apuntar a `ScenePortal.prefab`. |
+| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaExe` usa `AlwaysInterval`. |
+| `portalSpawnedParent` | Contenedor donde se agrupan los portales instanciados. | Debe apuntar al nodo `Portals`. |
+| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | `ZonaEpipelagica` usa `3s`; `ZonaExe` usa `20s`. |
+| `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Solo aplica a `PostBossWindow`; `1` significa garantizado. |
+| `portalSpawnInterval` | Intervalo entre portales posteriores. | `ZonaExe` usa `20s`. |
+| `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Debe estar activo por defecto. |
+| `primaryGameplaySceneName` | Zona base o retorno. | Vive en `SceneFlowController`; por defecto `ZonaEpipelagica`. |
+| `secondaryGameplaySceneName` | Zona alterna. | Vive en `SceneFlowController`; por defecto `ZonaExe`. |
+
+Reglas vigentes:
+
+- El portal usa tag `Portal`, no `Shrimp` ni `Collectible`.
+- El portal usa capa `Collectible` para participar en colisiones de mundo.
+- `ZonaExe` debe estar habilitada en Build Settings.
+- Cruzar un portal conserva gadgets e Ink-Pulse.
+- Entrar en Game Over reinicia gadgets e Ink-Pulse.
+
+## Iluminacion de ZonaExe
+
+Script: `ZoneLightingController`
+
+Nodo esperado: `Enviroment/ZoneLightingController` en `ZonaExe`
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `darkAlpha` | Opacidad base del overlay oscuro. | `ZonaExe` se ve mas oscura. |
+| `litAlpha` | Opacidad minima durante light graze. | Si sube, el revelado conserva mas oscuridad. |
+| `litHoldSeconds` | Tiempo que permanece revelado tras pasar cerca de una fuente. | La zona queda clara por mas tiempo. |
+| `fadeToLitSpeed` | Velocidad para aclarar el fondo. | El feedback de luz se siente mas inmediato. |
+| `fadeToDarkSpeed` | Velocidad para volver a oscuridad. | La oscuridad vuelve mas rapido. |
+| `overlayPadding` | Margen extra de cobertura respecto a la camara. | Evita bordes sin overlay en aspect ratios amplios. |
+| `lightGrazeRadius` | Distancia de activacion entre BabySquid y fuentes. | La luz se activa desde mas lejos. |
+
+Reglas vigentes:
+
+- `LightGraze` es visual: no carga Ink-Pulse y no reemplaza `GrazeDetector`.
+- Las entidades relevantes tienen `LightGrazeSource`; no se balancean desde cada prefab.
+- El BabySquid usa `LightGrazeProbe` para detectar fuentes cercanas.
+- En `ZonaEpipelagica` y `ZonaTutorial`, la sonda no hace nada mientras no exista `ZoneLightingController`.
 
 ## Gadgets e inventario
 
@@ -125,6 +198,8 @@ Regla vigente de input:
 - `Gadget2` se activa con `W` si contiene un gadget activo.
 - `Shell Shield` es pasivo y no muestra tecla.
 - `Ink-Bottle` es activo y fuerza `InkPulseState.Ready` si el Ink-Pulse puede recibir ese cambio.
+- Los gadgets y slots persisten al cruzar portales.
+- Los gadgets y slots se reinician al entrar en Game Over.
 
 ## Ink-Pulse
 
@@ -141,6 +216,13 @@ Parametros ajustables:
 | `currentCharge` | Carga inicial/debug serializada. | Sirve para pruebas puntuales, no para balance final. |
 | `pulseDuration` | Duracion del estado `Active`. | El pulso dura mas. |
 
+Reglas vigentes:
+
+- La carga del Ink-Pulse persiste al cruzar portales.
+- Si el Ink-Pulse esta en `Active` al cruzar, persiste con su tiempo restante.
+- La carga vuelve a cero al entrar en Game Over.
+- No puede activarse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
+
 ## Movimiento del jugador
 
 Script: `PlayerMovement`
@@ -155,8 +237,8 @@ Parametros ajustables:
 | `inkPulseHorizontalSpeed` | Velocidad horizontal durante Ink-Pulse. | El pulso empuja mas fuerte hacia adelante. |
 | `normalVerticalSpeed` | Respuesta vertical normal al mouse. | El jugador corrige altura mas rapido. |
 | `inkPulseVerticalSpeed` | Respuesta vertical durante Ink-Pulse. | El jugador maniobra mas durante el pulso. |
+| `randomizeInitialYWithinPlayerBoundaries` | Si el squid inicia con Y aleatoria dentro de `PlayerBoundaries`. | Desactivarlo sirve para pruebas deterministicas de escena. |
 | `smoothSpeedTransition` | Suavizado entre velocidades. | Transiciones mas rapidas si se sube. |
-| `minY` / `maxY` | Limites verticales de respaldo. | Solo deberian importar si faltan boundaries. |
 | `baseRotationZ` | Rotacion base visual. | Cambia la orientacion del squid. |
 | `maxTiltAngle` | Inclinacion maxima por movimiento vertical. | La animacion de giro se nota mas. |
 | `tiltSmoothSpeed` | Suavizado del tilt. | El giro responde mas rapido. |
@@ -165,7 +247,9 @@ Parametros ajustables:
 
 ### Pez Globo
 
-Script: `PufferfishEnemy`
+Script de comportamiento: `PufferfishEnemy`
+
+Owner de parametros: `LevelSpawner.pufferfishTuning`
 
 Parametros ajustables:
 
@@ -176,6 +260,10 @@ Parametros ajustables:
 | `proximityRadius` | Distancia para expandirse. | Se activa desde mas lejos. |
 | `expandedScaleMultiplier` | Escala objetivo al expandirse. | Ocupa mas espacio. |
 | `expansionSmoothSpeed` | Velocidad de interpolacion de escala. | La expansion se ve mas inmediata. |
+
+Estos campos no se ajustan en el prefab `PezGlobo`.
+
+El prefab `PezGlobo` debe tener un unico `CircleCollider2D` en la raiz. La expansion escala el `Transform`, por lo que el collider circular acompana el crecimiento visual y fisico.
 
 ### Mina
 
@@ -191,8 +279,12 @@ La cana no tiene script propio todavia. Su balance actual depende de:
 
 - Perfil `EnemyCanaPescar` en `LevelSpawner.enemyProfiles`.
 - `fishingRodEnemyInterval`.
-- `fishingRodBoundaryPressure`.
 - Collider y escala del prefab.
+
+Reglas vigentes:
+- La caña regular aparece a la misma altura Y del jugador.
+- La caña regular se fuerza solo fuera de `BossActive`.
+- Un futuro anzuelo del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
 
 ## SS Carnage
 
@@ -220,11 +312,8 @@ Parametros ajustables:
 | `netSpawnDistanceFromCameraRight` | `SSCarnageController` | Distancia de aparicion de la red desde camara. |
 | `netViewportY` | `SSCarnageController` | Altura relativa de spawn de red. |
 | `deployNetOnStart` | `SSCarnageController` | Si el ataque inicia automaticamente. |
-| `fitVisualsToBoundaryHeight` | `SSCarnageNetWall` | Si las capas visuales se ajustan a la altura de boundaries. |
-| `authoredBoundaryHeight` | `SSCarnageNetWall` | Altura base usada para reescalar visuales. |
-| `destroyWhenBroken` | `SSCarnageNetWall` | Si la red desaparece al romperse. |
-| `fitHeightToBoundaries` | `SSCarnageNetWall` | Si collider/altura se ajustan a boundaries. |
-| `wallWidth` | `SSCarnageNetWall` | Ancho fisico de la pared. |
+
+`SSCarnageNetWall` ajusta altura visual y volumen de colision automaticamente desde `PlayerBoundaries`. Esa altura no se balancea desde Inspector, y la red rota queda como feedback visual fijo.
 
 ## Camara y mundo
 
@@ -235,7 +324,6 @@ Parametros ajustables:
 | Campo | Script | Que controla |
 | --- | --- | --- |
 | `offset` | `CameraController` | Desfase de camara respecto al jugador. |
-| `topBorderOffset` | `CameraController` | Ajuste fino contra el top boundary. |
 | `smoothTime` | `CameraController` | Suavizado del seguimiento. |
 | `enableInkPulseScreenPulse` | `CameraController` | Activa o desactiva el feedback visual al iniciar Ink-Pulse. |
 | `inkPulseFeedbackDuration` | `CameraController` | Duracion del tambaleo/pulso de pantalla. |
@@ -246,7 +334,7 @@ Parametros ajustables:
 | `followVertical` | `ParallaxLayer` | Si la capa acompana movimiento vertical. |
 | `extraTilesPerSide` | `ParallaxLayer` | Cantidad de tiles laterales para continuidad visual. |
 
-`HorizontalTracker` no tiene parametros de balance: solo sigue la camara asignada. `DestroyOffscreen` no tiene parametros de balance: destruye enemigos, camarones y collectibles que entran en su trigger.
+`HorizontalTracker` no tiene parametros de balance: solo sigue la camara asignada. `DestroyOffscreen` no tiene parametros de balance: sigue el borde izquierdo de la camara y destruye enemigos, camarones, collectibles y portales que ya salieron de pantalla. La referencia `targetCamera` es cableado tecnico, no un valor de balance.
 
 ## UI y menus
 
@@ -265,6 +353,8 @@ Parametros ajustables:
 | `tamanoMin` / `tamanoMax` | `MenuBubbles` | Rango de tamano de burbujas. |
 | `colorBurbuja` | `MenuBubbles` | Color y alpha base de burbujas. |
 
+`MenuButtonAnimation` no tiene parametros ajustables por boton. Si el pulso/hover de botones requiere balance, debe centralizarse antes en un manager/controlador de UI.
+
 ## Economia de camarones
 
 Scripts: `ShrimpValue`, `ShrimpRuntimeWallet`, `ShrimpCounterDisplay`
@@ -281,6 +371,7 @@ Parametros ajustables:
 ## Valores que no conviene tocar como balance
 
 - Campos `References`: conectan dependencias; no cambian dificultad.
+- Boundaries: se definen por jerarquia fisica, no por valores manuales ni referencias serializadas.
 - Tags manuales fuera de catalogos: deben venir de `EnemyTagCatalog` o `GameplayTagCatalog`.
 - Layers de prefabs: deben seguir la auditoria de jerarquia para que colisiones y limpieza funcionen.
 - `firstSlotKey` y `secondSlotKey` salvo verificacion de bug: la convencion activa es `Q` primero y `W` segundo.

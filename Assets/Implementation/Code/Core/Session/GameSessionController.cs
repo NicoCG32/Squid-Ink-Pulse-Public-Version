@@ -87,9 +87,21 @@ public class GameSessionController : MonoBehaviour
 
         CurrentState = nextState;
         ApplyTimeScale(nextState);
+        ResetRuntimeStateForGameOver(nextState);
 
         StateChanged?.Invoke(previousState, nextState);
         onStateChanged?.Invoke(nextState);
+    }
+
+    private void ResetRuntimeStateForGameOver(GameSessionState state)
+    {
+        if (state != GameSessionState.GameOver)
+        {
+            return;
+        }
+
+        RuntimeGadgetInventory.ResetForRuntime();
+        RuntimeInkPulseState.ResetForRuntime();
     }
 
     private void ApplyTimeScale(GameSessionState state)
