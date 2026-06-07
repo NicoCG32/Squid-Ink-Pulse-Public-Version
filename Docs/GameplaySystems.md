@@ -8,6 +8,8 @@ Este documento agrupa los sistemas que definen la experiencia directa del jugado
 
 Archivo: `Assets/Implementation/Code/Player/Movement/PlayerMovement.cs`
 
+Prefab canonico: `Assets/Content/Prefabs/Player/BabySquid.prefab`
+
 Responsabilidad:
 - Mover al jugador en horizontal con avance continuo.
 - Ajustar la posicion vertical segun input del mouse.
@@ -20,6 +22,13 @@ Contrato de limites:
 - No recibe `topBorder` ni `bottomBorder` por Inspector.
 - Si `PlayerBoundaries/TopBoundary` o `PlayerBoundaries/BottomBoundary` faltan, el problema es de escena.
 
+Contrato de prefab:
+- Las escenas jugables usan una instancia llamada `Squid`, pero la fuente editable es `BabySquid.prefab`.
+- El prefab base no guarda referencias externas a sesion, camara, HUD, progression director ni boundaries.
+- Las instancias de escena tienen esas referencias externas asignadas en Inspector.
+- Los componentes del jugador resuelven esas referencias en runtime solo como respaldo.
+- Los cambios de collider, visuales base, `GrazeZone`, inventario o Ink-Pulse deben aplicarse al prefab.
+
 ## InkPulseController
 
 Archivo: `Assets/Implementation/Code/Player/Abilities/InkPulseController.cs`
@@ -28,7 +37,7 @@ Estado runtime: `Assets/Implementation/Code/Player/Abilities/RuntimeInkPulseStat
 
 Feedback musical: `Assets/Implementation/Code/Audio/InkPulseMusicCrossfader.cs`
 
-Feedback visual: `Assets/Implementation/Code/Player/Visual/PlayerInkPulseVisualController.cs`
+Feedback visual: `Assets/Implementation/Code/Player/Visual/PlayerVisualStateController.cs`
 
 Responsabilidad:
 - Administrar la carga del recurso Ink-Pulse.
@@ -39,6 +48,7 @@ Responsabilidad:
 - Persistir carga, estado activo y tiempo restante entre portales.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
 - Bloquear activacion manual mientras `InGameShopManager` esta mostrando una oferta temporal.
+- Bloquear activacion nueva mientras `PlayerStateController` esta en `PlayerRuntimeState.PortalTransition`.
 - Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
 - Exponer duracion y tiempo restante para que animaciones puedan ajustarse al estado `Active`.
 
@@ -80,7 +90,7 @@ Responsabilidad:
 Reglas:
 - Los parametros visuales viven en `ZoneLightingController`.
 - `LayerBlack` usa `SpriteRenderer.maskInteraction = VisibleOutsideMask`.
-- BabySquid en `ZonaExe` declara `LightGrazeSource`.
+- La instancia `Squid` de `BabySquid.prefab` en `ZonaExe` declara `LightGrazeSource` como override de escena.
 - `LevelSpawner` agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
 
 ## PlayerCollision
@@ -176,10 +186,11 @@ Reglas:
 3. En `ZonaExe`, las entidades con `LightGrazeSource` perforan localmente `LayerBlack`.
 4. `InkPulseController` pasa de `Idle` a `Charging` o `Ready`.
 5. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
-6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerInkPulseVisualController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
+6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerVisualStateController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
 7. `PlayerCollision` y sistemas de entorno resuelven impactos.
 8. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield`.
-9. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
+9. Cruzar un portal fuerza `PlayerRuntimeState.PortalTransition`, muestra solo `PortalVisual`, espera `PortalEffect` y luego carga la zona destino.
+10. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
 
 ## Reglas de diseno
 
@@ -192,3 +203,4 @@ Reglas:
 - Los parametros ajustables de gameplay deben vivir en managers/controladores, no en entidades de colision o prefabs de evento.
 - El light graze visual no debe mezclarse con la carga mecanica de Ink-Pulse.
 - La animacion visual de Ink-Pulse debe vivir en `InkPulseVisual`, separada de `SquidVisual`, para poder dimensionar el sprite largo sin deformar el cuerpo del jugador ni dibujar dos cuerpos a la vez.
+- La animacion visual de portal debe vivir en `PortalVisual`; su prioridad visual es mayor que Ink-Pulse porque representa una transicion de escena.

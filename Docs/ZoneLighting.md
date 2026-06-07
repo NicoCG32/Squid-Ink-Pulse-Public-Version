@@ -26,10 +26,10 @@
 
 Las entidades de mundo relevantes en `ZonaExe` reciben `LightGrazeSource`:
 
-- BabySquid lo tiene en escena.
+- La instancia `Squid` de `BabySquid.prefab` lo tiene como override de escena en `ZonaExe`.
 - `LevelSpawner` lo agrega a camarones, enemigos, `DealerFish` y portales si existe `ZoneLightingController` activo.
 
-Los prefabs compartidos no deben depender de esta mecanica. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaExe`.
+Los prefabs compartidos no deben depender de esta mecanica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaExe`.
 
 `LightGrazeSource` crea en runtime un hijo `LightGrazeMask` con `SpriteMask` y, si `lightEdgeSoftness` es mayor que cero, un hijo `LightGrazeFeather` con `SpriteRenderer`. La pluma usa `VisibleInsideMask`, por lo que solo se dibuja dentro del agujero de luz y no agrega un contorno negro sobre `LayerBlack`. El radio y la suavidad se definen en `ZoneLightingController`, no en la entidad.
 

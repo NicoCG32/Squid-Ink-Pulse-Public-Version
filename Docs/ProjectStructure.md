@@ -11,6 +11,7 @@
 
 - `Assets/Implementation/Code/`: codigo C# organizado por dominio.
 - `Assets/Implementation/Config/`: configuracion tecnica.
+- `Assets/Implementation/Editor/`: herramientas de editor para migraciones o validaciones, fuera de runtime.
 - `Assets/Content/Prefabs/`: prefabs runtime.
 - `Assets/Content/Audio/`: soundtrack y SFX.
 - `Assets/Content/Art/`: arte runtime.
@@ -35,6 +36,7 @@
 ## Prefabs por dominio
 
 - `Assets/Content/Prefabs/Enemies/`: enemigos actuales y futuros.
+- `Assets/Content/Prefabs/Player/`: `BabySquid.prefab`, fuente canonica del jugador.
 - `Assets/Content/Prefabs/Bosses/`: SS Carnage y red.
 - `Assets/Content/Prefabs/Collectibles/`: camarones y otros recogibles.
 - `Assets/Content/Prefabs/Gadgets/`: gadgets comprables.

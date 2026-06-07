@@ -21,7 +21,15 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 - Detecta contacto con el jugador usando `GameplayTagCatalog.Player`.
 - Usa tag `Portal` y capa `Collectible`.
 - Deshabilita sus colliders al activarse para evitar doble carga.
-- Solicita a `SceneFlowController` cargar el destino correspondiente.
+- Solicita a `PlayerStateController` entrar en `PlayerRuntimeState.PortalTransition`.
+- Espera la duracion de `PlayerVisualStateController.PortalTransitionDuration`.
+- Solicita a `SceneFlowController` cargar el destino correspondiente al terminar `PortalEffect`.
+
+`PlayerVisualStateController`:
+- Vive en el root de `BabySquid`.
+- Muestra `PortalVisual` durante `PlayerRuntimeState.PortalTransition`.
+- Oculta `SquidVisual` e `InkPulseVisual` mientras `PortalVisual` esta activo.
+- Usa la duracion real del clip/controlador como fuente de espera para `ScenePortal`.
 
 `SceneFlowController`:
 - Conserva las rutas de zona configurables.
@@ -75,6 +83,7 @@ Cruzar un portal no equivale a Game Over:
 - `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante.
 - `GameSessionController` reinicia ambos solo al entrar en `GameSessionState.GameOver`.
 - `ShrimpRuntimeWallet` conserva camarones durante runtime.
+- Si el jugador entra al portal durante `InkPulseState.Active`, `PortalVisual` tiene prioridad visual, pero el estado runtime de Ink-Pulse sigue persistiendo hacia la escena siguiente.
 
 ## Contrato de zona
 
@@ -95,5 +104,5 @@ Si faltan boundaries, el portal no debe inventar una altura manual.
 - No usar tag `Collectible` en portales, aunque usen la capa `Collectible`; el tag debe ser `Portal`.
 - No usar `DealerFish` para portales: tienda y portal son interacciones distintas.
 - No poner rutas de escena en el prefab `ScenePortal`; esas rutas pertenecen a `SceneFlowController`.
-- Si un portal necesita animacion o VFX propios, deben agregarse al prefab sin mover la carga de escena fuera de `ScenePortal`.
-- Cuando exista una transicion visual formal, debe incorporarse a `PortalTransitionState` y no como banderas sueltas.
+- La animacion del jugador al cruzar portal pertenece a `PortalVisual` dentro de `BabySquid`; el prefab `ScenePortal` solo detecta contacto.
+- No cargar la escena inmediatamente al tocar portal: primero debe entrar `PlayerRuntimeState.PortalTransition` y reproducirse `PortalEffect`.

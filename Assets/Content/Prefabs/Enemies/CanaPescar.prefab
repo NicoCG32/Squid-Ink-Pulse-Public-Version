@@ -197,6 +197,7 @@ GameObject:
   - component: {fileID: 7202000000000000004}
   - component: {fileID: 7202000000000000005}
   - component: {fileID: 341251138654969836}
+  - component: {fileID: 3608349033304897901}
   m_Layer: 7
   m_Name: CanaPescar
   m_TagString: EnemyCanaPescar
@@ -462,3 +463,15 @@ PolygonCollider2D:
       - {x: 0.2938795, y: 0.45125845}
       - {x: 0.2909196, y: 0.5488576}
   m_UseDelaunayMesh: 1
+--- !u!114 &3608349033304897901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7202000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886eeae24d91c014c9c6f6dd9f7961a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FishingRodEnemy

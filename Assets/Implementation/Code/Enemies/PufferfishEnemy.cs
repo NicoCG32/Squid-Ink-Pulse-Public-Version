@@ -7,9 +7,14 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
     private PufferfishEnemyTuning tuning = new();
     private Vector3 baseScale;
     private bool isExpanded;
+    private bool hasStartedInflateAnimation;
+    private bool hasStoppedInflateAnimation;
     private Transform player;
     private CircleCollider2D bodyCollider;
     private Collider2D topBorder;
+    private Animator inflateAnimator;
+    private int inflateLayerIndex;
+    private int inflateStateHash;
 
     private void Awake()
     {
@@ -18,6 +23,8 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
             bodyCollider = GetComponent<CircleCollider2D>();
         }
 
+        inflateAnimator = GetComponentInChildren<Animator>(includeInactive: true);
+        ConfigureInflateAnimationInitialState();
         baseScale = transform.localScale;
     }
 
@@ -38,6 +45,7 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         UpdateExpansionState();
         MoveVertically();
         UpdateExpansion();
+        StopInflateAnimationAfterOnePass();
         ClampBelowTopBorder();
     }
 
@@ -68,7 +76,13 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 
     private void UpdateExpansionState()
     {
-        isExpanded = ShouldExpand();
+        if (isExpanded || !ShouldExpand())
+        {
+            return;
+        }
+
+        isExpanded = true;
+        PlayInflateAnimationOnce();
     }
 
     private bool ShouldExpand()
@@ -79,6 +93,58 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         }
 
         return Vector2.Distance(transform.position, player.position) <= tuning.ProximityRadius;
+    }
+
+    private void ConfigureInflateAnimationInitialState()
+    {
+        if (inflateAnimator == null)
+        {
+            return;
+        }
+
+        inflateLayerIndex = 0;
+        AnimatorStateInfo stateInfo = inflateAnimator.GetCurrentAnimatorStateInfo(inflateLayerIndex);
+        inflateStateHash = stateInfo.shortNameHash;
+        inflateAnimator.speed = 0f;
+    }
+
+    private void PlayInflateAnimationOnce()
+    {
+        if (inflateAnimator == null || hasStartedInflateAnimation)
+        {
+            return;
+        }
+
+        hasStartedInflateAnimation = true;
+        hasStoppedInflateAnimation = false;
+        inflateAnimator.enabled = true;
+        inflateAnimator.speed = 1f;
+
+        int stateHash = inflateStateHash != 0
+            ? inflateStateHash
+            : inflateAnimator.GetCurrentAnimatorStateInfo(inflateLayerIndex).shortNameHash;
+
+        if (stateHash != 0)
+        {
+            inflateAnimator.Play(stateHash, inflateLayerIndex, 0f);
+        }
+    }
+
+    private void StopInflateAnimationAfterOnePass()
+    {
+        if (inflateAnimator == null || !hasStartedInflateAnimation || hasStoppedInflateAnimation)
+        {
+            return;
+        }
+
+        AnimatorStateInfo stateInfo = inflateAnimator.GetCurrentAnimatorStateInfo(inflateLayerIndex);
+        if (stateInfo.normalizedTime < 1f)
+        {
+            return;
+        }
+
+        inflateAnimator.speed = 0f;
+        hasStoppedInflateAnimation = true;
     }
 
     private void ClampBelowTopBorder()

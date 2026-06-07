@@ -28,7 +28,7 @@ El spawn vertical depende del contrato de boundaries:
 - Enemigos, `DealerFish` y portales usan `PlayerBoundaries`.
 - Pez Globo aparece en los tres cuartos superiores de la mitad superior.
 - Mina aparece en los tres cuartos inferiores de la mitad inferior.
-- Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal, y se alinea exactamente con la altura actual del jugador.
+- Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, nace arriba y baja verticalmente hasta esa Y fija.
 
 No hay rangos manuales de respaldo para spawn.
 
@@ -67,8 +67,10 @@ Archivo: `Assets/Implementation/Code/Enemies/PufferfishEnemy.cs`
 
 Responsabilidad:
 - Caer lentamente mientras no esta expandido.
-- Expandirse cuando el jugador entra en `proximityRadius`.
+- Expandirse una sola vez cuando el jugador entra en `proximityRadius`.
 - Subir durante expansion a `fallSpeed * expandedRiseSpeedMultiplier`.
+- Reproducir la animacion de hinchado una sola vez al comenzar la expansion.
+- Permanecer expandido; no vuelve a deshincharse aunque el jugador se aleje.
 - No sobrepasar el `TopBoundary` de `PlayerBoundaries`.
 - Usar `CircleCollider2D` como collider corporal unico; al escalar el enemigo, el collider acompana la expansion.
 
@@ -92,10 +94,18 @@ Estado actual:
 
 Estado actual:
 - Prefab y tag implementados.
-- Sin script propio todavia.
+- Script propio `FishingRodEnemy` implementado.
 - En juego normal se fuerza cada `fishingRodEnemyInterval` enemigos.
-- Aparece desde la derecha a la misma altura Y del jugador.
+- Aparece desde la derecha, captura la Y del jugador en el momento de spawn y baja desde el top del rango jugable hasta esa altura.
+- No persigue al jugador despues de capturar la Y.
 - Durante `BossActive`, el spawner regular no fuerza cañas; los anzuelos del SS Carnage deben implementarse como ataque de boss separado.
+
+Parametros de balance:
+- `dropSpeed`
+- `startYOffsetBelowTopBoundary`
+- `arriveDistance`
+
+Estos parametros pertenecen a `LevelSpawner.fishingRodTuning`.
 
 ## BossEventDirector
 

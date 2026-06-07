@@ -66,10 +66,11 @@ flowchart TD
 | `SSCarnageManager` | `BossEventDirector` | Disparar evento del SS Carnage y cue de camara. |
 | `Portals` | ninguno | Contenedor para instancias runtime de `ScenePortal`. |
 | `Player` | ninguno | Contenedor del jugador. |
-| `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador. |
+| `Squid` | Instancia de `Assets/Content/Prefabs/Player/BabySquid.prefab`; `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `PlayerVisualStateController`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador sin copia manual por escena. |
 | `GrazeZone` | `GrazeDetector` | Carga del Ink-Pulse por proximidad. |
 | `SquidVisual` | `SpriteRenderer`, `Animator` con `Squid.controller` | Cuerpo visible del jugador y animacion de movimiento. |
-| `InkPulseVisual` | `SpriteRenderer`, `Animator` con `InkPulseVisual.controller`, `PlayerInkPulseVisualController` | Efecto largo de Ink-Pulse, oculto fuera del estado `Active`; al activarse oculta `SquidVisual` y permite dimensionar el impulso sin alterar gameplay. |
+| `InkPulseVisual` | `SpriteRenderer`, `Animator` con `InkPulseVisual.controller` | Efecto largo de Ink-Pulse, visible solo cuando `PlayerVisualStateController` selecciona Ink-Pulse. |
+| `PortalVisual` | `SpriteRenderer`, `Animator` con `PortalEffect.controller` | Transicion visual previa al cambio de escena por portal. |
 | `Main Camera` | `CameraController`, `Camera`, `AudioListener`, URP | Seguimiento, eventos de camara y render. |
 | `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Ink-Pulse, camarones y gadgets. |
 | `PauseMenuManager` | `PauseMenuManager` | Pausa. |
@@ -144,7 +145,7 @@ flowchart LR
 - usa portales con `PortalSpawnPolicy.AlwaysInterval`;
 - conserva gadgets e Ink-Pulse al entrar o salir;
 - tiene `Enviroment/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
-- perfora localmente `LayerBlack` mediante `LightGrazeSource` en BabySquid y entidades spawneadas;
+- perfora localmente `LayerBlack` mediante `LightGrazeSource` en la instancia `Squid` de `BabySquid.prefab` y entidades spawneadas;
 - puede diferenciar arte, enemigos y parametros de spawner sin romper el contrato comun.
 
 ## Notas de mantenimiento
@@ -153,4 +154,5 @@ flowchart LR
 - Si un nodo solo agrupa hijos, no necesita script propio.
 - Si una responsabilidad empieza a duplicarse, se traslada al manager correcto antes de agregar una excepcion.
 - Los managers pueden exponer parametros de balance; los prefabs no deben exponer dependencias de escena que puedan resolverse por contrato.
+- Los cambios estructurales del jugador se aplican en `BabySquid.prefab`; la escena solo conserva posicion, nombre de instancia y overrides realmente especificos de zona.
 - `GarbageCollector` debe quedar en posicion neutra de editor; su posicion efectiva se calcula en runtime desde la camara.

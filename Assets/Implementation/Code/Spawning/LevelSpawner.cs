@@ -39,6 +39,18 @@ public class PufferfishEnemyTuning
     public float ExpansionSmoothSpeed => Mathf.Max(0f, expansionSmoothSpeed);
 }
 
+[Serializable]
+public class FishingRodEnemyTuning
+{
+    [SerializeField, Min(0.01f)] private float dropSpeed = 14f;
+    [SerializeField, Min(0f)] private float startYOffsetBelowTopBoundary = 0.15f;
+    [SerializeField, Min(0.001f)] private float arriveDistance = 0.03f;
+
+    public float DropSpeed => Mathf.Max(0.01f, dropSpeed);
+    public float StartYOffsetBelowTopBoundary => Mathf.Max(0f, startYOffsetBelowTopBoundary);
+    public float ArriveDistance => Mathf.Max(0.001f, arriveDistance);
+}
+
 public enum PortalSpawnPolicy
 {
     Disabled,
@@ -79,6 +91,7 @@ public class LevelSpawner : MonoBehaviour
 
     [Header("Enemy Behaviour Tuning")]
     [SerializeField] private PufferfishEnemyTuning pufferfishTuning = new();
+    [SerializeField] private FishingRodEnemyTuning fishingRodTuning = new();
 
     [Header("Dealer Fish Spawning")]
     [SerializeField] private bool enableDealerFishSpawns = true;
@@ -639,7 +652,8 @@ public class LevelSpawner : MonoBehaviour
                 receiver.InitializeEnemySpawnContext(new EnemySpawnContext(
                     spawnCamera,
                     player,
-                    pufferfishTuning));
+                    pufferfishTuning,
+                    fishingRodTuning));
             }
         }
     }

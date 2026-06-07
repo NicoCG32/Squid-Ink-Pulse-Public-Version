@@ -31,6 +31,8 @@ Reglas:
 - No meter excepciones de tutorial en `LevelSpawner` si el comportamiento solo existe para ensenar.
 - No alterar `RunProgressionDirector` para pasos pedagogicos.
 - Mantener `PlayerBoundaries` y `CameraBoundaries` como contrato obligatorio tambien en tutorial.
+- Usar una instancia de `Assets/Content/Prefabs/Player/BabySquid.prefab`; no duplicar ni simplificar al jugador para tutorial.
+- Si el tutorial requiere una posicion inicial pedagogica, debe resolverla mediante un `PlayerSpawnPoint` o el futuro `TutorialDirector`, no editando el prefab.
 - Si un paso necesita texto, marcador o overlay, debe pertenecer a UI de tutorial, no a los prefabs de enemigos.
 
 ## Menus relacionados

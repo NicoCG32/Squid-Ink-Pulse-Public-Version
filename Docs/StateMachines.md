@@ -12,7 +12,7 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | --- | --- | --- |
 | Global | `GameSessionState` | La simulacion esta jugando, pausada o terminada? |
 | Macro run | `RunEventState` | La run esta en flujo normal, boss, post-boss o transicion? |
-| Entidad jugador | `PlayerRuntimeState` | El jugador se mueve, esta en Ink-Pulse o murio? |
+| Entidad jugador | `PlayerRuntimeState` | El jugador se mueve, esta en Ink-Pulse, esta cruzando portal o murio? |
 | Recurso del jugador | `InkPulseState` | El Ink-Pulse esta vacio, cargando, listo o activo? |
 | Evento de suministro | `ShopEventState` | La tienda temporal esta cerrada u ofreciendo un gadget? |
 | Boss especifico | `SSCarnageAttackState` | En que fase interna esta el ataque del SS Carnage? |
@@ -54,11 +54,20 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | --- | --- |
 | `Moving` | Movimiento normal y animacion base. |
 | `InkPulse` | Movimiento impulsado durante Ink-Pulse y animacion visual de impulso no-loop. |
+| `PortalTransition` | Bloquea movimiento e input nuevo de Ink-Pulse mientras reproduce `PortalEffect` antes de cargar la escena destino. |
 | `Death` | Estado de derrota. |
 
-`PlayerStateController` traduce eventos de `InkPulseController` a estado del jugador y comunica el cambio a `PlayerMovement`. No gobierna animadores.
+`PlayerStateController` traduce eventos de `InkPulseController` y `ScenePortal` a estado del jugador y comunica el cambio a `PlayerMovement`. No gobierna animadores directamente.
 
-La presentacion visual de Ink-Pulse vive en `PlayerInkPulseVisualController`, ubicado en el hijo `InkPulseVisual`. Ese controlador observa `InkPulseController`, muestra el sprite largo durante `InkPulseState.Active` y adapta la reproduccion de `InkPulse.anim` a la duracion del pulso.
+La presentacion visual vive en `PlayerVisualStateController`, ubicado en el root de `BabySquid`. Este controlador observa `PlayerRuntimeState` y aplica prioridad estricta:
+
+| Prioridad | Visual visible |
+| --- | --- |
+| 1 | `PortalVisual` durante `PlayerRuntimeState.PortalTransition`. |
+| 2 | `InkPulseVisual` durante `PlayerRuntimeState.InkPulse`. |
+| 3 | `SquidVisual` durante `PlayerRuntimeState.Moving` o estados sin visual especifico. |
+
+Esta separacion evita que `PortalEffect`, `InkPulse.anim` y `Movement.anim` dibujen cuerpos simultaneos.
 
 ### InkPulseState
 
@@ -117,7 +126,6 @@ Debe formalizarse como estado propio solo si en el futuro modifica reglas de spa
 
 ## Estados planificados
 
-- `PortalTransitionState`
 - `GadgetRuntimeState`
 
 Nota sobre portales:
@@ -125,7 +133,7 @@ Nota sobre portales:
 - `LevelSpawner` gobierna aparicion: `PostBossWindow` en zona principal y `AlwaysInterval` en `ZonaExe`.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - Entrar en `GameSessionState.GameOver` reinicia ambos.
-- `PortalTransitionState` se implementara cuando la transicion necesite entrada, fundido, carga, salida o bloqueo temporal de input.
+- La transicion visual actual se modela dentro de `PlayerRuntimeState.PortalTransition`. Solo debe escalar a una maquina `PortalTransitionState` separada si aparecen fases internas como entrada, fundido, carga asincronica o salida.
 
 Nota sobre gadgets:
 - El inventario ya existe como modelo runtime por posesion unica y slots.

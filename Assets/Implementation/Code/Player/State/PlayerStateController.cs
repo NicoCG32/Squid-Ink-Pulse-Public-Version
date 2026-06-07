@@ -6,6 +6,7 @@ public enum PlayerRuntimeState
 {
     Moving,
     InkPulse,
+    PortalTransition,
     Death
 }
 
@@ -21,15 +22,21 @@ public class PlayerStateController : MonoBehaviour
     public UnityEvent<PlayerRuntimeState> onStateChanged = new UnityEvent<PlayerRuntimeState>();
 
     public PlayerRuntimeState CurrentState { get; private set; } = PlayerRuntimeState.Moving;
+    public bool IsPortalTransitioning => portalTransitionActive || CurrentState == PlayerRuntimeState.PortalTransition;
     public event Action<PlayerRuntimeState, PlayerRuntimeState> StateChanged;
+
+    private bool portalTransitionActive;
 
     private void Awake()
     {
+        ResolveReferences();
         WarnIfMissingReferences();
     }
 
     private void OnEnable()
     {
+        ResolveReferences();
+
         if (inkPulse != null)
         {
             inkPulse.PulseStarted += HandlePulseStarted;
@@ -46,6 +53,7 @@ public class PlayerStateController : MonoBehaviour
 
     private void Start()
     {
+        ResolveReferences();
         ApplyState(ResolveCurrentState(), force: true);
     }
 
@@ -63,6 +71,32 @@ public class PlayerStateController : MonoBehaviour
         }
 
         movement?.SetInkPulseActive(false);
+        movement?.SetMovementSuppressed(false);
+        inkPulse?.SetActivationSuppressed(false);
+        portalTransitionActive = false;
+    }
+
+    public bool BeginPortalTransition()
+    {
+        if (session != null && session.IsGameOver)
+        {
+            return false;
+        }
+
+        portalTransitionActive = true;
+        ApplyState(PlayerRuntimeState.PortalTransition);
+        return true;
+    }
+
+    public void CompletePortalTransition()
+    {
+        if (!portalTransitionActive)
+        {
+            return;
+        }
+
+        portalTransitionActive = false;
+        ApplyState(ResolveCurrentState());
     }
 
     private void HandlePulseStarted()
@@ -95,6 +129,11 @@ public class PlayerStateController : MonoBehaviour
             return PlayerRuntimeState.Death;
         }
 
+        if (portalTransitionActive)
+        {
+            return PlayerRuntimeState.PortalTransition;
+        }
+
         if (session != null && !session.IsPlaying)
         {
             return CurrentState;
@@ -114,7 +153,9 @@ public class PlayerStateController : MonoBehaviour
         }
 
         CurrentState = nextState;
+        movement?.SetMovementSuppressed(nextState == PlayerRuntimeState.PortalTransition);
         movement?.SetInkPulseActive(nextState == PlayerRuntimeState.InkPulse);
+        inkPulse?.SetActivationSuppressed(nextState == PlayerRuntimeState.PortalTransition);
 
         StateChanged?.Invoke(previousState, nextState);
         onStateChanged?.Invoke(nextState);
@@ -125,6 +166,24 @@ public class PlayerStateController : MonoBehaviour
         if (session == null || inkPulse == null || movement == null)
         {
             Debug.LogWarning("[PlayerStateController] Faltan referencias. Asigna Session, InkPulse y Movement en el Inspector.", this);
+        }
+    }
+
+    private void ResolveReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (inkPulse == null)
+        {
+            inkPulse = GetComponent<InkPulseController>();
+        }
+
+        if (movement == null)
+        {
+            movement = GetComponent<PlayerMovement>();
         }
     }
 }

@@ -13,6 +13,7 @@ public class ShrimpCollector : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
         shrimpCount = ShrimpRuntimeWallet.TotalShrimp;
         WarnIfMissingReferences();
     }
@@ -30,6 +31,8 @@ public class ShrimpCollector : MonoBehaviour
 
     public void Collect(GameObject shrimpObject)
     {
+        ResolveReferences();
+
         if (session == null || !session.IsPlaying)
         {
             return;
@@ -60,6 +63,14 @@ public class ShrimpCollector : MonoBehaviour
         if (session == null)
         {
             Debug.LogWarning("[ShrimpCollector] Falta asignar GameSessionController en el Inspector.", this);
+        }
+    }
+
+    private void ResolveReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
         }
     }
 }

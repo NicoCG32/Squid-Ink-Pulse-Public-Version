@@ -57,22 +57,28 @@ public class SceneFlowController : MonoBehaviour
 
     public void LoadSceneByName(string sceneName)
     {
+        TryLoadSceneByName(sceneName);
+    }
+
+    public bool TryLoadSceneByName(string sceneName)
+    {
         Time.timeScale = 1f;
 
         if (string.IsNullOrWhiteSpace(sceneName))
         {
             Debug.LogError("[SceneFlowController] Nombre de escena vacio.", this);
-            return;
+            return false;
         }
 
         string resolvedSceneName = ResolveSceneNameForBuild(sceneName);
         if (string.IsNullOrWhiteSpace(resolvedSceneName))
         {
             Debug.LogError($"[SceneFlowController] La escena '{sceneName}' no esta disponible en Build Settings.", this);
-            return;
+            return false;
         }
 
         SceneManager.LoadScene(resolvedSceneName);
+        return true;
     }
 
     public void LoadSceneByBuildIndex(int buildIndex)
@@ -90,14 +96,19 @@ public class SceneFlowController : MonoBehaviour
 
     public void LoadPortalDestinationFromActiveScene()
     {
+        TryLoadPortalDestinationFromActiveScene();
+    }
+
+    public bool TryLoadPortalDestinationFromActiveScene()
+    {
         string targetScene = ResolvePortalDestinationFromActiveScene();
         if (string.IsNullOrWhiteSpace(targetScene))
         {
             Debug.LogError("[SceneFlowController] No hay escena destino configurada para portal.", this);
-            return;
+            return false;
         }
 
-        LoadSceneByName(targetScene);
+        return TryLoadSceneByName(targetScene);
     }
 
     private string ResolvePortalDestinationFromActiveScene()

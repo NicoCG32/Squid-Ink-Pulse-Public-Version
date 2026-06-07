@@ -36,6 +36,18 @@ Los sistemas leen los bordes fisicos internos de esos colliders mediante `Bounda
 - No se asignan `topBorder` ni `bottomBorder` por Inspector.
 - Si falta una jerarquia obligatoria, se corrige la escena antes de balancear.
 
+## Contrato no balanceable: player prefab
+
+El jugador canonico es `Assets/Content/Prefabs/Player/BabySquid.prefab`.
+
+Reglas de QA:
+- `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial` deben contener una instancia llamada `Squid`, no una copia manual.
+- En escenas, `Squid` debe mostrar referencias asignadas para sesion, progresion, camara y HUD de Ink-Pulse.
+- En el asset `BabySquid.prefab`, esas referencias externas deben permanecer vacias; solo se guardan referencias internas del prefab.
+- Cambios de collider, `GrazeZone`, `SquidVisual`, `InkPulseVisual`, `PortalVisual`, inventario o scripts del jugador se validan contra el prefab.
+- `ZonaExe` puede tener `LightGrazeSource` como override de instancia; eso no debe copiarse al prefab base.
+- Si se ajusta la escala o posicion visual del jugador, probar minimo movimiento, graze, Ink-Pulse, compra de gadget, portal y Game Over en una run corta.
+
 ## Progresion de dificultad
 
 Script: `RunProgressionDirector`
@@ -136,6 +148,7 @@ Parametros ajustables:
 | `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Solo aplica a `PostBossWindow`; `1` significa garantizado. |
 | `portalSpawnInterval` | Intervalo entre portales posteriores. | `ZonaExe` usa `20s`. |
 | `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Debe estar activo por defecto. |
+| `fallbackTransitionDelay` | Espera de respaldo si el jugador no tiene `PlayerVisualStateController`. | Vive en `ScenePortal`; normalmente debe ganar la duracion de `PortalEffect`. |
 | `primaryGameplaySceneName` | Zona base o retorno. | Vive en `SceneFlowController`; por defecto `ZonaEpipelagica`. |
 | `secondaryGameplaySceneName` | Zona alterna. | Vive en `SceneFlowController`; por defecto `ZonaExe`. |
 
@@ -145,6 +158,8 @@ Reglas vigentes:
 - El portal usa capa `Collectible` para participar en colisiones de mundo.
 - `ZonaExe` debe estar habilitada en Build Settings.
 - Cruzar un portal conserva gadgets e Ink-Pulse.
+- Al tocar portal, antes del cambio de escena debe verse solo `PortalVisual`; `SquidVisual` e `InkPulseVisual` quedan ocultos.
+- `PortalEffect.anim` debe reproducirse una vez y no tener loop.
 - Entrar en Game Over reinicia gadgets e Ink-Pulse.
 
 ## Iluminacion de ZonaExe
@@ -168,7 +183,7 @@ Reglas vigentes:
 
 - `LightGraze` es visual: no carga Ink-Pulse y no reemplaza `GrazeDetector`.
 - `LayerBlack` debe usar `VisibleOutsideMask`.
-- BabySquid tiene `LightGrazeSource` en `ZonaExe`.
+- La instancia `Squid` de `BabySquid.prefab` tiene `LightGrazeSource` en `ZonaExe`.
 - `LevelSpawner` agrega `LightGrazeSource` a entidades runtime solo si existe `ZoneLightingController`.
 - `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaExe`.
 
@@ -288,6 +303,7 @@ Parametros ajustables:
 Estos campos no se ajustan en el prefab `PezGlobo`.
 
 El prefab `PezGlobo` debe tener un unico `CircleCollider2D` en la raiz. La expansion escala el `Transform`, por lo que el collider circular acompana el crecimiento visual y fisico.
+La animacion de hinchado se reproduce una sola vez al entrar en expansion. El clip `PezGlobo.anim` debe quedar sin loop, y el enemigo no vuelve a deshincharse.
 
 ### Mina
 
@@ -299,14 +315,27 @@ La mina no tiene script propio todavia. Su balance actual depende de:
 
 ### Cana de pescar
 
-La cana no tiene script propio todavia. Su balance actual depende de:
+Script de comportamiento: `FishingRodEnemy`
 
+Owner de parametros: `LevelSpawner.fishingRodTuning`
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `dropSpeed` | Velocidad vertical de bajada hacia la Y capturada del jugador. | La caña cae mas brusca y rapidamente. |
+| `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La caña nace mas abajo si se sube. |
+| `arriveDistance` | Tolerancia para considerar que llego a la Y objetivo. | Detiene el movimiento con menos precision si se sube. |
+
+Tambien depende de:
 - Perfil `EnemyCanaPescar` en `LevelSpawner.enemyProfiles`.
 - `fishingRodEnemyInterval`.
 - Collider y escala del prefab.
 
 Reglas vigentes:
-- La caña regular aparece a la misma altura Y del jugador.
+- La caña regular captura la altura Y del jugador al spawnear.
+- Luego baja verticalmente desde el top del rango jugable hasta esa Y.
+- No persigue al jugador despues de capturar la Y.
 - La caña regular se fuerza solo fuera de `BossActive`.
 - Un futuro anzuelo del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
 

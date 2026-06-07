@@ -27,6 +27,7 @@ public class InkPulseController : MonoBehaviour
 
     private float pulseTimer;
     private bool runtimeStateRestored;
+    private bool activationSuppressed;
 
     public float ChargeRate => chargeRate;
     public float PulseDuration => pulseDuration;
@@ -46,6 +47,7 @@ public class InkPulseController : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
         RestoreRuntimeStateFromStore();
     }
 
@@ -61,6 +63,7 @@ public class InkPulseController : MonoBehaviour
 
     private void Start()
     {
+        ResolveReferences();
         RestoreRuntimeStateFromStore();
         WarnIfMissingReferences();
         UpdateChargeBar();
@@ -70,6 +73,8 @@ public class InkPulseController : MonoBehaviour
 
     private void Update()
     {
+        ResolveReferences();
+
         if (!IsGameplayActive())
         {
             return;
@@ -105,7 +110,7 @@ public class InkPulseController : MonoBehaviour
 
     public bool TryForceReady()
     {
-        if (!IsGameplayActive() || IsPulseActive || IsCharged)
+        if (!IsGameplayActive() || activationSuppressed || IsPulseActive || IsCharged)
         {
             return false;
         }
@@ -115,6 +120,11 @@ public class InkPulseController : MonoBehaviour
         ApplyState(ResolveState());
         PersistRuntimeState();
         return CurrentState == InkPulseState.Ready;
+    }
+
+    public void SetActivationSuppressed(bool suppressed)
+    {
+        activationSuppressed = suppressed;
     }
 
     private void HandleActivationInput()
@@ -128,6 +138,7 @@ public class InkPulseController : MonoBehaviour
     private bool CanActivatePulse()
     {
         return IsGameplayActive()
+            && !activationSuppressed
             && !InGameShopManager.IsShopOpen
             && !IsPulseActive
             && IsCharged;
@@ -242,6 +253,19 @@ public class InkPulseController : MonoBehaviour
     private bool IsGameplayActive()
     {
         return session != null && session.IsPlaying;
+    }
+
+    private void ResolveReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (chargeBar == null)
+        {
+            chargeBar = FindFirstObjectByType<ChargeBar>();
+        }
     }
 
     private void WarnIfMissingReferences()

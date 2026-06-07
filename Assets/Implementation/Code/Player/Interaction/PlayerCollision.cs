@@ -18,6 +18,8 @@ public class PlayerCollision : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        ResolveReferences();
+
         if (session == null || !session.IsPlaying)
         {
             return;
@@ -73,9 +75,29 @@ public class PlayerCollision : MonoBehaviour
 
     private void ResolveReferences()
     {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (inkPulseController == null)
+        {
+            inkPulseController = GetComponent<InkPulseController>();
+        }
+
+        if (shrimpCollector == null)
+        {
+            shrimpCollector = GetComponent<ShrimpCollector>();
+        }
+
         if (gadgetInventory == null)
         {
             gadgetInventory = GetComponent<PlayerGadgetInventory>();
+        }
+
+        if (damageCollider == null)
+        {
+            damageCollider = GetComponent<Collider2D>();
         }
     }
 

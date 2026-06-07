@@ -37,6 +37,7 @@ public class PlayerMovement : MonoBehaviour
     private float minY;
     private float maxY;
     private bool hasVerticalLimits;
+    private bool movementSuppressed;
 
     public float CurrentHorizontalSpeed => currentHorizontalSpeed;
     public float CurrentVerticalSpeed => currentVerticalSpeed;
@@ -65,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!IsGameplayActive())
+        if (!IsGameplayActive() || movementSuppressed)
         {
             return;
         }
@@ -90,6 +91,16 @@ public class PlayerMovement : MonoBehaviour
         {
             currentHorizontalSpeed = inkPulseHorizontalSpeed;
             currentVerticalSpeed = inkPulseVerticalSpeed;
+        }
+    }
+
+    public void SetMovementSuppressed(bool suppressed)
+    {
+        movementSuppressed = suppressed;
+
+        if (movementSuppressed)
+        {
+            previousY = transform.position.y;
         }
     }
 

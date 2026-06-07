@@ -8,6 +8,8 @@ public class GrazeDetector : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
+
         if (session == null || inkPulseController == null)
         {
             Debug.LogWarning("[GrazeDetector] Faltan referencias. Asigna Session e InkPulseController en el Inspector.", this);
@@ -16,6 +18,8 @@ public class GrazeDetector : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
+        ResolveReferences();
+
         if (session == null || !session.IsPlaying)
         {
             return;
@@ -33,5 +37,18 @@ public class GrazeDetector : MonoBehaviour
 
         float chargeAmount = inkPulseController.ChargeRate * Time.deltaTime;
         inkPulseController.AddGrazeCharge(chargeAmount);
+    }
+
+    private void ResolveReferences()
+    {
+        if (session == null && GameSessionController.HasInstance)
+        {
+            session = GameSessionController.Instance;
+        }
+
+        if (inkPulseController == null)
+        {
+            inkPulseController = GetComponentInParent<InkPulseController>();
+        }
     }
 }

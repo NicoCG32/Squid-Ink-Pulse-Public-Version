@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -6,6 +7,7 @@ public class ScenePortal : MonoBehaviour
 {
     [Header("Scene Flow")]
     [SerializeField] private SceneFlowController sceneFlow;
+    [SerializeField, Min(0f)] private float fallbackTransitionDelay = 0.75f;
 
     private bool isTransitioning;
 
@@ -35,9 +37,36 @@ public class ScenePortal : MonoBehaviour
             return;
         }
 
+        StartCoroutine(RunPortalTransition(other));
+    }
+
+    private IEnumerator RunPortalTransition(Collider2D playerCollider)
+    {
         isTransitioning = true;
         SetCollidersEnabled(false);
-        sceneFlow.LoadPortalDestinationFromActiveScene();
+
+        PlayerStateController playerState = playerCollider.GetComponentInParent<PlayerStateController>();
+        PlayerVisualStateController playerVisual = playerCollider.GetComponentInParent<PlayerVisualStateController>();
+
+        playerState?.BeginPortalTransition();
+
+        float transitionDelay = playerVisual != null
+            ? playerVisual.PortalTransitionDuration
+            : fallbackTransitionDelay;
+
+        if (transitionDelay > 0f)
+        {
+            yield return new WaitForSeconds(transitionDelay);
+        }
+
+        if (sceneFlow.TryLoadPortalDestinationFromActiveScene())
+        {
+            yield break;
+        }
+
+        playerState?.CompletePortalTransition();
+        SetCollidersEnabled(true);
+        isTransitioning = false;
     }
 
     private void ResolveReferences()

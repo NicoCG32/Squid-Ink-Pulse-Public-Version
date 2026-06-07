@@ -22,6 +22,16 @@ Ejemplo: un sprite de `1469 px` de alto mide `14.69 unidades Unity` cuando se im
 
 Importante: si el `SpriteRenderer` esta en `Draw Mode = Simple`, el campo `Size` del renderer no define el tamano visible. La medida visible sale del rect del sprite importado, su `Pixels Per Unit` y la escala efectiva del `Transform` en mundo. Para conservar relacion `1:1`, la escala relevante es `transform.lossyScale`, no solo `transform.localScale`.
 
+## Player prefab
+
+`Assets/Content/Prefabs/Player/BabySquid.prefab` debe respetar la misma escala canonica:
+
+- el root `BabySquid` se conserva en escala local `1`;
+- `SquidVisual` dimensiona el cuerpo visible del calamar;
+- `InkPulseVisual` dimensiona solo el sprite largo del impulso;
+- `GrazeZone` y el collider del root se ajustan como gameplay, no como compensacion visual;
+- las escenas pueden posicionar la instancia `Squid`, pero no deben escalarla para corregir diferencias entre zonas.
+
 ## Boundaries del jugador
 
 La ventana vertical util del jugador se define por la jerarquia obligatoria:

@@ -16,6 +16,7 @@
 
 ## Prefabs actuales
 
+- `Prefabs/Player/`: `BabySquid`.
 - `Prefabs/Enemies/`: `PezGlobo`, `Mina`, `CanaPescar`.
 - `Prefabs/Bosses/SSCarnage/`: `SSCarnage`, `BossNetWall`.
 - `Prefabs/Gadgets/`: `ShellShield`, `InkBottle`.
@@ -30,6 +31,26 @@
 - Si necesita jugador o camara, el manager o el script los resuelve en runtime.
 - Si necesita limites, usa `BoundaryReferenceResolver`.
 - Si es gadget comprable, usa `GadgetShopItem`; no debe actuar como pickup directo.
+
+## Player prefab
+
+`Assets/Content/Prefabs/Player/BabySquid.prefab` es la fuente canonica del jugador.
+
+Incluye:
+- root `BabySquid` con tag `Player` y layer `Player`;
+- collider y rigidbody de gameplay;
+- scripts de movimiento, Ink-Pulse, colision, camarones, gadgets y estado runtime;
+- `GrazeZone`;
+- `SquidVisual` para movimiento base;
+- `InkPulseVisual` para el impulso largo de tinta.
+
+Reglas:
+- `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial` deben usar instancias del prefab, aunque el nodo de escena se llame `Squid`.
+- El prefab base solo guarda referencias internas; sesion, camara, HUD, progression director y boundaries no se serializan dentro del asset.
+- Las instancias `Squid` de cada escena si deben tener esas referencias externas asignadas desde Inspector.
+- La resolucion runtime existe como respaldo, no como sustituto del cableado de escena.
+- Las capacidades especificas de zona, como `LightGrazeSource` en `ZonaExe`, deben ser overrides de instancia o agregarse por managers de zona, no incorporarse al prefab base.
+- Las skins deben cambiar visuales o variants, no duplicar controladores de gameplay.
 
 ## Runtime en UI MainMenu
 
