@@ -28,6 +28,8 @@ Estado runtime: `Assets/Implementation/Code/Player/Abilities/RuntimeInkPulseStat
 
 Feedback musical: `Assets/Implementation/Code/Audio/InkPulseMusicCrossfader.cs`
 
+Feedback visual: `Assets/Implementation/Code/Player/Visual/PlayerInkPulseVisualController.cs`
+
 Responsabilidad:
 - Administrar la carga del recurso Ink-Pulse.
 - Exponer `InkPulseState`.
@@ -38,6 +40,7 @@ Responsabilidad:
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
 - Bloquear activacion manual mientras `InGameShopManager` esta mostrando una oferta temporal.
 - Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
+- Exponer duracion y tiempo restante para que animaciones puedan ajustarse al estado `Active`.
 
 Estados:
 - `Idle`
@@ -173,7 +176,7 @@ Reglas:
 3. En `ZonaExe`, las entidades con `LightGrazeSource` perforan localmente `LayerBlack`.
 4. `InkPulseController` pasa de `Idle` a `Charging` o `Ready`.
 5. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
-6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
+6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerInkPulseVisualController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
 7. `PlayerCollision` y sistemas de entorno resuelven impactos.
 8. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield`.
 9. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
@@ -188,3 +191,4 @@ Reglas:
 - Los limites verticales del jugador deben provenir de `PlayerBoundaries`.
 - Los parametros ajustables de gameplay deben vivir en managers/controladores, no en entidades de colision o prefabs de evento.
 - El light graze visual no debe mezclarse con la carga mecanica de Ink-Pulse.
+- La animacion visual de Ink-Pulse debe vivir en `InkPulseVisual`, separada de `SquidVisual`, para poder dimensionar el sprite largo sin deformar el cuerpo del jugador ni dibujar dos cuerpos a la vez.

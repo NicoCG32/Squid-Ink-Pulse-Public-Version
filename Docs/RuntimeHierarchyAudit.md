@@ -16,6 +16,8 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Movimiento del jugador: `PlayerMovement`.
 - Ink-Pulse: `InkPulseController` y `RuntimeInkPulseState`.
 - Estado runtime del jugador: `PlayerStateController`.
+- Visual del cuerpo del jugador: `SquidVisual` con `Squid.controller`.
+- Visual del Ink-Pulse: `InkPulseVisual` con `PlayerInkPulseVisualController`.
 - Colision del jugador: `PlayerCollision`.
 - Carga por proximidad: `GrazeDetector`.
 - Camara: `CameraController`.
@@ -99,6 +101,8 @@ flowchart TD
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
 | `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController` | Control completo del jugador. |
 | `GrazeZone` | `GrazeDetector` | Carga de Ink-Pulse por proximidad a amenazas. |
+| `SquidVisual` | `SpriteRenderer`, `Animator` | Sprite del calamar y animacion de movimiento. |
+| `InkPulseVisual` | `SpriteRenderer`, `Animator`, `PlayerInkPulseVisualController` | Sprite largo del impulso de tinta; al activarse oculta temporalmente los renderers de `SquidVisual`. |
 | `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Seguir el borde izquierdo de camara y destruir enemigos, camarones, collectibles y portales que ya salieron de pantalla. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
 | `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. |
@@ -220,4 +224,6 @@ Reglas:
 - No cargar zonas desde scripts de enemigo, tienda o HUD; el contacto pertenece a `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.
 - No activar `Ink-Bottle` si el Ink-Pulse ya esta en `Ready` o `Active`; no debe consumirse sin efecto.
 - No poner logica de boss en el prefab de red que ya pertenece a `SSCarnageController`.
+- No mezclar la animacion del cuerpo y el efecto largo de Ink-Pulse en el mismo `Animator`; `SquidVisual` y `InkPulseVisual` deben mantenerse separados.
+- No dejar visible `SquidVisual` durante `InkPulseState.Active` si `InkPulse.anim` ya contiene al cuerpo del calamar.
 - Si un nuevo enemigo necesita comportamiento, debe tener prefab, tag, perfil de spawn y script propio documentados juntos.

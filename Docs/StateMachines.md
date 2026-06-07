@@ -48,6 +48,18 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | `PostBossWindow` | Frecuencia rebajada por defecto mediante intervalo `1.75x`. | No puede disparar otro boss. |
 | `Transitioning` | Bloquea spawn regular. | No puede disparar otro boss. |
 
+### PlayerRuntimeState
+
+| Estado | Efecto |
+| --- | --- |
+| `Moving` | Movimiento normal y animacion base. |
+| `InkPulse` | Movimiento impulsado durante Ink-Pulse y animacion visual de impulso no-loop. |
+| `Death` | Estado de derrota. |
+
+`PlayerStateController` traduce eventos de `InkPulseController` a estado del jugador y comunica el cambio a `PlayerMovement`. No gobierna animadores.
+
+La presentacion visual de Ink-Pulse vive en `PlayerInkPulseVisualController`, ubicado en el hijo `InkPulseVisual`. Ese controlador observa `InkPulseController`, muestra el sprite largo durante `InkPulseState.Active` y adapta la reproduccion de `InkPulse.anim` a la duracion del pulso.
+
 ### InkPulseState
 
 | Estado | Efecto |

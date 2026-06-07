@@ -22,6 +22,7 @@
 - `Assets/Implementation/Code/Core/`: sesion, escenas, camara y utilidades de mundo.
 - `Assets/Implementation/Code/Audio/`: musica dinamica y transiciones de soundtrack.
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
+- `Assets/Implementation/Code/Player/Visual/`: controladores visuales del jugador que observan estado sin decidir gameplay.
 - `Assets/Implementation/Code/Spawning/`: spawner y catalogo de enemigos.
 - `Assets/Implementation/Code/Enemies/`: comportamientos propios de enemigos.
 - `Assets/Implementation/Code/Bosses/`: directores y comportamientos de boss.

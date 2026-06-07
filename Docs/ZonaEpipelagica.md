@@ -38,6 +38,7 @@ flowchart TD
     Player --> Squid[Squid]
     Squid --> GrazeZone[GrazeZone]
     Squid --> SquidVisual[SquidVisual]
+    Squid --> InkPulseVisual[InkPulseVisual]
 
     CameraRig --> MainCamera[Main Camera]
 
@@ -67,6 +68,8 @@ flowchart TD
 | `Player` | ninguno | Contenedor del jugador. |
 | `Squid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador. |
 | `GrazeZone` | `GrazeDetector` | Carga del Ink-Pulse por proximidad. |
+| `SquidVisual` | `SpriteRenderer`, `Animator` con `Squid.controller` | Cuerpo visible del jugador y animacion de movimiento. |
+| `InkPulseVisual` | `SpriteRenderer`, `Animator` con `InkPulseVisual.controller`, `PlayerInkPulseVisualController` | Efecto largo de Ink-Pulse, oculto fuera del estado `Active`; al activarse oculta `SquidVisual` y permite dimensionar el impulso sin alterar gameplay. |
 | `Main Camera` | `CameraController`, `Camera`, `AudioListener`, URP | Seguimiento, eventos de camara y render. |
 | `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Ink-Pulse, camarones y gadgets. |
 | `PauseMenuManager` | `PauseMenuManager` | Pausa. |

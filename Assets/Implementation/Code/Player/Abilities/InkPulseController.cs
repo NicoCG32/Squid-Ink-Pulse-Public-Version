@@ -29,6 +29,8 @@ public class InkPulseController : MonoBehaviour
     private bool runtimeStateRestored;
 
     public float ChargeRate => chargeRate;
+    public float PulseDuration => pulseDuration;
+    public float PulseRemainingSeconds => IsPulseActive ? Mathf.Max(0f, pulseTimer) : 0f;
     public float CurrentCharge => currentCharge;
     public float ChargeRatio => maxCharge > 0f ? currentCharge / maxCharge : 0f;
     public bool IsCharged => currentCharge >= maxCharge;

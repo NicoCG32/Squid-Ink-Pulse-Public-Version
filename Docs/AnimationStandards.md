@@ -29,6 +29,29 @@
 3. Verificar parametros y transiciones requeridas por la logica.
 4. Validar comportamiento en escena runtime.
 
+## BabySquid
+
+Animator Controllers:
+- Cuerpo: `Assets/Content/Animations/Characters/BabySquid/Squid.controller`
+- Efecto Ink-Pulse: `Assets/Content/Animations/Characters/BabySquid/InkPulse/InkPulseVisual.controller`
+
+Clips:
+- `Movement/Movement.anim`: animacion base de movimiento.
+- `InkPulse/InkPulse.anim`: impulso visual de tinta.
+
+Reglas:
+- El root `Squid` gobierna estado y gameplay; no debe usar animaciones para modificar colliders, posicion de gameplay ni input.
+- `SquidVisual` contiene el `SpriteRenderer` y `Animator` del cuerpo. Su controller reproduce `Movement.anim`.
+- `InkPulseVisual` contiene el `SpriteRenderer`, `Animator` y `PlayerInkPulseVisualController` del efecto largo de tinta.
+- `InkPulse.anim` no debe hacer loop.
+- `InkPulseVisual` permanece oculto fuera de `InkPulseState.Active`.
+- Mientras `InkPulseVisual` esta visible, `PlayerInkPulseVisualController` oculta los renderers de `SquidVisual` para evitar doble cuerpo.
+- `InkPulseVisual` debe renderizar por encima de `SquidVisual` cuando el clip contiene al calamar completo y no solo el chorro.
+- `PlayerInkPulseVisualController` observa `InkPulseController`, reproduce `InkPulse.anim` una vez y ajusta la velocidad del clip a `InkPulseController.PulseDuration`.
+- La escala y posicion de `SquidVisual` dimensionan el calamar; la escala y posicion de `InkPulseVisual` dimensionan exclusivamente el sprite largo del impulso.
+- Los clips que animan el `SpriteRenderer` del mismo objeto donde vive su `Animator` deben tener binding path vacio.
+- `Squid.controller` no debe contener transiciones hacia Ink-Pulse; ese efecto pertenece al controller separado `InkPulseVisual.controller`.
+
 ## Reglas de separacion
 
 - Las animaciones deben vivir preferentemente en hijos visuales, no en el root que gobierna logica.
