@@ -1,13 +1,22 @@
 fileFormatVersion: 2
-guid: 4ca8ed4085046a44fb774f73564895d0
+guid: c43006c915bcfe74d91fd503e24c6ec0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4196000398034862863
-    second: Logo HD_0
+      213: 8493949984526045407
+    second: LogoHDCurved_0
   - first:
-      213: -6548750230835399334
-    second: Logo HD_1
+      213: 709425177130057956
+    second: LogoHDCurved_1
+  - first:
+      213: -3203264079855053536
+    second: LogoHDCurved_2
+  - first:
+      213: -5581068359729843980
+    second: LogoHDCurved_3
+  - first:
+      213: -8756560665995458915
+    second: LogoHDCurved_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,7 +58,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -103,13 +112,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Logo HD_0
+      name: LogoHDCurved_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1505
-        height: 1024
+        width: 910
+        height: 902
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,20 +127,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1fcfbbd8edfc4c5c0800000000000000
-      internalID: -4196000398034862863
+      spriteID: fd01c9f028290e570800000000000000
+      internalID: 8493949984526045407
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Logo HD_1
+      name: LogoHDCurved_1
       rect:
         serializedVersion: 2
-        x: 946
-        y: 691
-        width: 160
-        height: 233
+        x: 875
+        y: 579
+        width: 239
+        height: 279
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -140,8 +149,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a557c40ac5a2e15a0800000000000000
-      internalID: -6548750230835399334
+      spriteID: 4e04e8d907268d900800000000000000
+      internalID: 709425177130057956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LogoHDCurved_2
+      rect:
+        serializedVersion: 2
+        x: 1117
+        y: 580
+        width: 123
+        height: 273
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 025987e7a48bb83d0800000000000000
+      internalID: -3203264079855053536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LogoHDCurved_3
+      rect:
+        serializedVersion: 2
+        x: 1231
+        y: 575
+        width: 513
+        height: 327
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f0712785ef0c82b0800000000000000
+      internalID: -5581068359729843980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LogoHDCurved_4
+      rect:
+        serializedVersion: 2
+        x: 866
+        y: 248
+        width: 833
+        height: 330
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d96ce21f7727a7680800000000000000
+      internalID: -8756560665995458915
       vertices: []
       indices: 
       edges: []
@@ -150,7 +225,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -160,8 +235,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Logo HD_0: -4196000398034862863
-      Logo HD_1: -6548750230835399334
+      LogoHDCurved_0: 8493949984526045407
+      LogoHDCurved_1: 709425177130057956
+      LogoHDCurved_2: -3203264079855053536
+      LogoHDCurved_3: -5581068359729843980
+      LogoHDCurved_4: -8756560665995458915
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -12,7 +12,7 @@ public class SceneFlowController : MonoBehaviour
     [SerializeField] private string optionsMenuSceneName = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
 
     [Header("Portal Scenes")]
-    [SerializeField] private string primaryGameplaySceneName = "Assets/Scenes/Game/ZonaEpipel\u00e1gica.unity";
+    [SerializeField] private string primaryGameplaySceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     [SerializeField] private string secondaryGameplaySceneName = "Assets/Scenes/Game/ZonaExe.unity";
 
     public void RestartCurrentScene()

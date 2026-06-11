@@ -11,12 +11,12 @@ using UnityEngine.SceneManagement;
 public static class PlayerPrefabContractUtility
 {
     private const string PrefabPath = "Assets/Content/Prefabs/Player/BabySquid.prefab";
-    private const string SourceScenePath = "Assets/Scenes/Game/ZonaEpipel\u00e1gica.unity";
+    private const string SourceScenePath = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     private const string FishingRodPrefabPath = "Assets/Content/Prefabs/Enemies/CanaPescar.prefab";
 
     private static readonly string[] TargetScenePaths =
     {
-        "Assets/Scenes/Game/ZonaEpipel\u00e1gica.unity",
+        "Assets/Scenes/Game/ZonaEpipelagica.unity",
         "Assets/Scenes/Game/ZonaExe.unity",
         "Assets/Scenes/Game/ZonaTutorial.unity"
     };

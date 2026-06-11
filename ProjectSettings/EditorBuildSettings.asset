@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu/MainMenu.unity
     guid: b32efde7081052f4f98ae22c92ac3b9f
   - enabled: 1
-    path: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
+    path: Assets/Scenes/Game/ZonaEpipelagica.unity
     guid: a05a72ca7cdf5a249b4e26faae03dd3f
   - enabled: 1
     path: Assets/Scenes/Game/ZonaExe.unity

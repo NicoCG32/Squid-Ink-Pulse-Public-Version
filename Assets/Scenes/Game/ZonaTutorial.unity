@@ -4883,7 +4883,7 @@ MonoBehaviour:
   tutorialSceneName: Assets/Scenes/Game/ZonaTutorial.unity
   shopMenuSceneName: Assets/Scenes/ShopMenu/ShopMenu.unity
   optionsMenuSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
-  primaryGameplaySceneName: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
+  primaryGameplaySceneName: Assets/Scenes/Game/ZonaEpipelagica.unity
   secondaryGameplaySceneName: Assets/Scenes/Game/ZonaExe.unity
 --- !u!1 &1424639855
 GameObject:

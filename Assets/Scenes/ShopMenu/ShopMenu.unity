@@ -1439,7 +1439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df7253c7084e5ea41b75855c7c1425b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  playSceneName: "Assets/Scenes/Game/ZonaEpipel\xE1gica.unity"
+  playSceneName: Assets/Scenes/Game/ZonaEpipelagica.unity
   optionsSceneName: 
   timeDelay: 0.6
 --- !u!1 &1290895326

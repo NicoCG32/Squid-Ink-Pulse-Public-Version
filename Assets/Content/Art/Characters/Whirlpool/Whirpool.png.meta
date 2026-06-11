@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 4ca8ed4085046a44fb774f73564895d0
+guid: 61926cb09a475de4daa4efa72dfc0250
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4196000398034862863
-    second: Logo HD_0
-  - first:
-      213: -6548750230835399334
-    second: Logo HD_1
+      213: -6968349664885741681
+    second: Whirpool_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Logo HD_0
+      name: Whirpool_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1505
-        height: 1024
+        x: 32
+        y: 175
+        width: 466
+        height: 523
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1fcfbbd8edfc4c5c0800000000000000
-      internalID: -4196000398034862863
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Logo HD_1
-      rect:
-        serializedVersion: 2
-        x: 946
-        y: 691
-        width: 160
-        height: 233
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a557c40ac5a2e15a0800000000000000
-      internalID: -6548750230835399334
+      spriteID: f87e5c156e27b4f90800000000000000
+      internalID: -6968349664885741681
       vertices: []
       indices: 
       edges: []
@@ -160,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Logo HD_0: -4196000398034862863
-      Logo HD_1: -6548750230835399334
+      Whirpool_0: -6968349664885741681
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
