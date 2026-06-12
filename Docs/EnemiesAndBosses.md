@@ -17,7 +17,7 @@ Responsabilidad:
 
 Cada perfil define prefab, tag logico, peso de aparicion, intensidad minima y multiplicador de intervalo. El spawner aplica el tag con `EnemyTagCatalog` y fuerza la capa `Enemy` de forma recursiva al objeto instanciado.
 
-Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresion, por lo que los obstaculos aparecen con mayor frecuencia. Durante `PostBossWindow`, el intervalo aumenta para crear reposo.
+Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresion, por lo que los obstaculos aparecen con mayor frecuencia. Durante `PostBossWindow`, la run conserva intensidad alta mientras ofrece el portal. Si el jugador no cruza, la partida sigue intensa; si cruza, la zona destino empieza relajada.
 
 La excepcion deliberada es `EnemyCanaPescar`: la caña regular pertenece al modo normal de spawner. Durante `BossActive` no se fuerza desde `LevelSpawner`, porque el anzuelo de Carnage debe modelarse como ataque propio del boss, con prefab y controlador especificos.
 
@@ -28,7 +28,7 @@ El spawn vertical depende del contrato de boundaries:
 - Enemigos, `DealerFish` y portales usan `PlayerBoundaries`.
 - Pez Globo aparece en los tres cuartos superiores de la mitad superior.
 - Mina aparece en los tres cuartos inferiores de la mitad inferior.
-- Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, nace arriba y baja verticalmente hasta esa Y fija.
+- Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, calcula una distancia X proporcional a la velocidad horizontal actual del jugador, nace arriba y baja verticalmente hasta esa Y fija.
 
 No hay rangos manuales de respaldo para spawn.
 
@@ -66,9 +66,9 @@ Contrato actual:
 Archivo: `Assets/Implementation/Code/Enemies/PufferfishEnemy.cs`
 
 Responsabilidad:
-- Caer lentamente mientras no esta expandido.
+- Moverse verticalmente con direccion aleatoria.
 - Expandirse una sola vez cuando el jugador entra en `proximityRadius`.
-- Subir durante expansion a `fallSpeed * expandedRiseSpeedMultiplier`.
+- Aumentar velocidad durante expansion sin forzar subida.
 - Reproducir la animacion de hinchado una sola vez al comenzar la expansion.
 - Permanecer expandido; no vuelve a deshincharse aunque el jugador se aleje.
 - No sobrepasar el `TopBoundary` de `PlayerBoundaries`.
@@ -76,10 +76,13 @@ Responsabilidad:
 
 Parametros de balance:
 - `fallSpeed`
-- `expandedRiseSpeedMultiplier`
+- `expandedSpeedMultiplier`
 - `proximityRadius`
 - `expandedScaleMultiplier`
 - `expansionSmoothSpeed`
+- `erraticDirectionChangeIntervalMin`
+- `erraticDirectionChangeIntervalMax`
+- `erraticDirectionChangeChance`
 
 Estos parametros pertenecen a `LevelSpawner.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
 
@@ -104,6 +107,8 @@ Parametros de balance:
 - `dropSpeed`
 - `startYOffsetBelowTopBoundary`
 - `arriveDistance`
+- `horizontalLeadTimePaddingSeconds`
+- `minimumHorizontalLeadDistance`
 
 Estos parametros pertenecen a `LevelSpawner.fishingRodTuning`.
 

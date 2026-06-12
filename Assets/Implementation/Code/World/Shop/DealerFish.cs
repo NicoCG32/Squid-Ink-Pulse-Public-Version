@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class DealerFish : MonoBehaviour
 {
+    private bool consumed;
+
     private void Reset()
     {
         Collider2D triggerCollider = GetComponent<Collider2D>();
@@ -26,16 +28,19 @@ public class DealerFish : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(GameplayTagCatalog.Player))
+        if (consumed || !other.CompareTag(GameplayTagCatalog.Player))
         {
             return;
         }
 
-        if (!InGameShopManager.TryOpenShopFromWorld())
+        consumed = true;
+        Collider2D triggerCollider = GetComponent<Collider2D>();
+        if (triggerCollider != null)
         {
-            return;
+            triggerCollider.enabled = false;
         }
 
+        InGameShopManager.TryOpenShopFromWorld();
         Destroy(gameObject);
     }
 }

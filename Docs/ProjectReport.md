@@ -19,7 +19,7 @@ La implementacion actual ya incluye:
 - enemigos por perfiles y tags centralizados;
 - tienda temporal mediante `DealerFish`;
 - gadgets `Shell Shield` e `Ink-Bottle`;
-- portales entre `ZonaEpipelagica` y `ZonaExe`;
+- portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`;
 - persistencia runtime de gadgets e Ink-Pulse entre portales.
 
 ## Lectura complementaria

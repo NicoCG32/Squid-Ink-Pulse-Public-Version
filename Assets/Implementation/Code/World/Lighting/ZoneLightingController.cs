@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -29,10 +30,24 @@ public class ZoneLightingController : MonoBehaviour
     [SerializeField, Range(0f, 0.95f)] private float lightEdgeSoftness = 0.35f;
     [SerializeField, Range(0.01f, 1f)] private float maskAlphaCutoff = 0.5f;
 
+    [Header("Composite Overlay")]
+    [SerializeField] private bool useCompositeLightOverlay = true;
+    [SerializeField, Min(32)] private int compositeTextureWidth = 256;
+    [SerializeField, Min(18)] private int compositeTextureHeight = 144;
+
+    private readonly List<Vector3> activeLightPositions = new();
+    private Sprite originalLayerBlackSprite;
+    private Texture2D compositeTexture;
+    private Sprite compositeSprite;
+    private Color32[] compositePixels;
+    private int currentCompositeTextureWidth;
+    private int currentCompositeTextureHeight;
+
     public static ZoneLightingController Instance => instance;
     public static bool HasInstance => instance != null;
     public float LightHoleRadius => Mathf.Max(0.01f, lightHoleRadius);
-    public bool UsesLightFeather => lightEdgeSoftness > 0f && layerBlack != null;
+    public bool UsesCompositeLightOverlay => useCompositeLightOverlay && layerBlack != null && targetCamera != null && targetCamera.orthographic;
+    public bool UsesLightFeather => !UsesCompositeLightOverlay && lightEdgeSoftness > 0f && layerBlack != null;
     public Sprite CircleMaskSprite => GetOrCreateCircleMaskSprite();
     public Sprite LightFeatherSprite => GetOrCreateFeatherSprite(lightEdgeSoftness);
 
@@ -61,6 +76,7 @@ public class ZoneLightingController : MonoBehaviour
     private void LateUpdate()
     {
         FitOverlayToCamera();
+        UpdateCompositeOverlay();
     }
 
     public void ConfigureLightMask(SpriteMask lightMask)
@@ -139,10 +155,162 @@ public class ZoneLightingController : MonoBehaviour
             return;
         }
 
+        if (UsesCompositeLightOverlay)
+        {
+            EnsureCompositeResources();
+            layerBlack.sprite = compositeSprite;
+            layerBlack.maskInteraction = SpriteMaskInteraction.None;
+            layerBlack.color = Color.white;
+            return;
+        }
+
+        if (originalLayerBlackSprite != null && layerBlack.sprite == compositeSprite)
+        {
+            layerBlack.sprite = originalLayerBlackSprite;
+        }
+
         layerBlack.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
         Color color = Color.black;
         color.a = Mathf.Clamp01(blackAlpha);
         layerBlack.color = color;
+    }
+
+    private void UpdateCompositeOverlay()
+    {
+        if (!UsesCompositeLightOverlay)
+        {
+            return;
+        }
+
+        EnsureCompositeResources();
+        LightGrazeSource.CollectActiveWorldPositions(activeLightPositions);
+
+        int width = currentCompositeTextureWidth;
+        int height = currentCompositeTextureHeight;
+        float alphaOutsideLight = Mathf.Clamp01(blackAlpha);
+
+        float worldHeight = targetCamera.orthographicSize * 2f + overlayPadding;
+        float worldWidth = worldHeight * targetCamera.aspect + overlayPadding;
+        Vector3 cameraPosition = targetCamera.transform.position;
+        float worldMinX = cameraPosition.x - worldWidth * 0.5f;
+        float worldMinY = cameraPosition.y - worldHeight * 0.5f;
+        float radius = LightHoleRadius;
+        float innerRadius = radius * (1f - Mathf.Clamp01(lightEdgeSoftness));
+        float featherWidth = Mathf.Max(0.0001f, radius - innerRadius);
+
+        for (int y = 0; y < height; y++)
+        {
+            float normalizedY = (y + 0.5f) / height;
+            float worldY = worldMinY + normalizedY * worldHeight;
+
+            for (int x = 0; x < width; x++)
+            {
+                float normalizedX = (x + 0.5f) / width;
+                float worldX = worldMinX + normalizedX * worldWidth;
+                float targetAlpha = alphaOutsideLight;
+
+                for (int i = 0; i < activeLightPositions.Count; i++)
+                {
+                    Vector3 lightPosition = activeLightPositions[i];
+                    float distance = Vector2.Distance(
+                        new Vector2(worldX, worldY),
+                        new Vector2(lightPosition.x, lightPosition.y));
+
+                    if (distance > radius)
+                    {
+                        continue;
+                    }
+
+                    float lightAlpha = CalculateCompositeLightAlpha(distance, innerRadius, featherWidth, alphaOutsideLight);
+                    targetAlpha = Mathf.Min(targetAlpha, lightAlpha);
+                }
+
+                byte alphaByte = (byte)Mathf.RoundToInt(targetAlpha * byte.MaxValue);
+                compositePixels[y * width + x] = new Color32(0, 0, 0, alphaByte);
+            }
+        }
+
+        compositeTexture.SetPixels32(compositePixels);
+        compositeTexture.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+    }
+
+    private float CalculateCompositeLightAlpha(
+        float distance,
+        float innerRadius,
+        float featherWidth,
+        float alphaOutsideLight)
+    {
+        if (lightEdgeSoftness <= 0f || distance <= innerRadius)
+        {
+            return 0f;
+        }
+
+        float edgeProgress = Mathf.Clamp01((distance - innerRadius) / featherWidth);
+        return alphaOutsideLight * Mathf.SmoothStep(0f, 1f, edgeProgress);
+    }
+
+    private void EnsureCompositeResources()
+    {
+        if (layerBlack == null)
+        {
+            return;
+        }
+
+        if (originalLayerBlackSprite == null && layerBlack.sprite != null && layerBlack.sprite != compositeSprite)
+        {
+            originalLayerBlackSprite = layerBlack.sprite;
+        }
+
+        int width = Mathf.Max(32, compositeTextureWidth);
+        int height = Mathf.Max(18, compositeTextureHeight);
+        if (compositeTexture != null
+            && compositeSprite != null
+            && currentCompositeTextureWidth == width
+            && currentCompositeTextureHeight == height)
+        {
+            return;
+        }
+
+        DestroyCompositeResources();
+
+        currentCompositeTextureWidth = width;
+        currentCompositeTextureHeight = height;
+        compositePixels = new Color32[width * height];
+
+        compositeTexture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            name = "GeneratedCompositeLayerBlack",
+            hideFlags = HideFlags.HideAndDontSave,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        compositeSprite = Sprite.Create(
+            compositeTexture,
+            new Rect(0f, 0f, width, height),
+            new Vector2(0.5f, 0.5f),
+            height);
+        compositeSprite.name = "GeneratedCompositeLayerBlack";
+        compositeSprite.hideFlags = HideFlags.HideAndDontSave;
+    }
+
+    private void DestroyCompositeResources()
+    {
+        if (compositeSprite != null)
+        {
+            Destroy(compositeSprite);
+            compositeSprite = null;
+        }
+
+        if (compositeTexture != null)
+        {
+            Destroy(compositeTexture);
+            compositeTexture = null;
+        }
+
+        compositePixels = null;
+        currentCompositeTextureWidth = 0;
+        currentCompositeTextureHeight = 0;
     }
 
     private void WarnIfMissingReferences()
@@ -273,5 +441,7 @@ public class ZoneLightingController : MonoBehaviour
             instance = null;
             LightGrazeSource.RefreshAllActiveSources();
         }
+
+        DestroyCompositeResources();
     }
 }

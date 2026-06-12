@@ -18,7 +18,7 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 - [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
 - [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos y SS Carnage.
 - [Portals.md](Portals.md) - portales entre zonas y reglas de carga.
-- [ZoneLighting.md](ZoneLighting.md) - oscuridad de `ZonaExe` y light graze visual independiente.
+- [ZoneLighting.md](ZoneLighting.md) - oscuridad de `ZonaAbisopelagica` y light graze visual independiente.
 - [WorldAndCamera.md](WorldAndCamera.md) - camara, boundaries, parallax y limpieza fuera de pantalla.
 - [UiAndMenu.md](UiAndMenu.md) - menus, pausa, game over, tienda y HUD.
 

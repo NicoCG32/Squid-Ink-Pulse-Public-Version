@@ -52,6 +52,10 @@ Responsabilidad:
 - Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
 - Exponer duracion y tiempo restante para que animaciones puedan ajustarse al estado `Active`.
 
+Input:
+- Click izquierdo o tecla `Space` intentan activar el pulso.
+- Ambos inputs pasan por la misma validacion: no activan durante tienda, portal, muerte, Game Over ni antes de `Ready`.
+
 Estados:
 - `Idle`
 - `Charging`
@@ -81,16 +85,17 @@ Archivos:
 - `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs`
 
 Responsabilidad:
-- Oscurecer `ZonaExe` mediante un overlay de escena.
-- Perforar localmente `LayerBlack` con mascaras circulares alrededor de entidades con `LightGrazeSource`.
-- Suavizar el borde de cada perforacion mediante una pluma radial visual.
+- Oscurecer `ZonaAbisopelagica` mediante un overlay de escena.
+- Componer una unica textura de oscuridad que revela el entorno alrededor de entidades con `LightGrazeSource`.
+- Suavizar el borde de cada zona revelada sin acumular opacidad cuando dos luces se cruzan.
 - Mantenerse independiente del `GrazeDetector` y del `GrazeZone`.
 - No cargar Ink-Pulse ni modificar economia, dano o colisiones.
 
 Reglas:
 - Los parametros visuales viven en `ZoneLightingController`.
-- `LayerBlack` usa `SpriteRenderer.maskInteraction = VisibleOutsideMask`.
-- La instancia `Squid` de `BabySquid.prefab` en `ZonaExe` declara `LightGrazeSource` como override de escena.
+- En modo compuesto, `LayerBlack` usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`.
+- `SpriteRenderer.maskInteraction = VisibleOutsideMask` solo corresponde al fallback legacy con `SpriteMask`.
+- La instancia `Squid` de `BabySquid.prefab` en `ZonaAbisopelagica` declara `LightGrazeSource` como override de escena.
 - `LevelSpawner` agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
 
 ## PlayerCollision
@@ -123,6 +128,25 @@ Estado actual:
 - `ShrimpCoinX10` vale `10`.
 - El total persiste durante runtime.
 - La persistencia fuera de runtime sigue pendiente.
+
+## Score de run
+
+Archivos:
+- `Assets/Implementation/Code/Core/Session/RuntimeRunScore.cs`
+- `Assets/Implementation/Code/Core/Session/RunProgressionDirector.cs`
+- `Assets/Implementation/Code/UI/HUD/ScoreCounterDisplay.cs`
+
+Responsabilidad:
+- Registrar avance abstracto de la partida como puntaje.
+- Subir rapidamente mientras la sesion esta en gameplay activo.
+- Persistir entre portales.
+- Reiniciarse al entrar en Game Over.
+- Alimentar sistemas de progresion como precios de tienda.
+
+Reglas:
+- El score no es moneda y no se gasta.
+- `RunProgressionDirector` acumula el valor; `ScoreCounterDisplay` solo lo muestra.
+- El HUD puede tener un nodo `Score` con `TextMeshProUGUI`; la utilidad de escena le asigna `ScoreCounterDisplay`.
 
 ## Gadgets e inventario
 
@@ -166,24 +190,26 @@ Responsabilidad:
 - Ubicar `DealerFish` en el cuarto inferior del rango entre `PlayerBoundaries`.
 - Abrir un overlay temporal al colisionar con `DealerFish`.
 - Seleccionar un gadget aleatorio desde ofertas configuradas.
-- Mostrar icono, precio, tecla `B`, contador y mensaje de saldo.
+- Mostrar icono, precio, tecla `B`, boton `Comprar`, contador y mensaje de saldo.
 - Consumir camarones solo si la compra se concreta.
 - Registrar el gadget comprado en `RuntimeGadgetInventory`.
 
 Reglas:
 - La tienda tiene duracion ajustable por `offerDurationSeconds`.
 - Por defecto congela gameplay mientras el contador avanza en tiempo real.
-- La compra se intenta con `B`.
+- La compra se intenta con `B` o click sobre el boton `Comprar`.
 - `SinSaldo` aparece solo despues de intentar comprar sin camarones suficientes.
+- El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parametros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
+- `DealerFish` se consume al primer contacto con el jugador.
 - La UI de tienda pertenece a la escena; el manager no autogenera canvas.
 
 ## Flujo de interaccion
 
 1. El jugador avanza de forma continua.
 2. Se aproxima a una amenaza y `GrazeDetector` carga Ink-Pulse.
-3. En `ZonaExe`, las entidades con `LightGrazeSource` perforan localmente `LayerBlack`.
+3. En `ZonaAbisopelagica`, las entidades con `LightGrazeSource` revelan localmente `LayerBlack` dentro del overlay compuesto.
 4. `InkPulseController` pasa de `Idle` a `Charging` o `Ready`.
 5. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
 6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerVisualStateController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.

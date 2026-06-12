@@ -67,21 +67,27 @@ public class RunProgressionDirector : MonoBehaviour
     [SerializeField] private float maxSpawnInterval = 1.5f;
     [SerializeField] private float minSpawnInterval = 0.65f;
     [SerializeField, Min(0.01f)] private float bossActiveSpawnIntervalMultiplier = 0.5f;
-    [SerializeField, Min(0.01f)] private float postBossSpawnIntervalMultiplier = 1.75f;
+    [SerializeField, Min(0.01f)] private float postBossSpawnIntervalMultiplier = 1f;
 
     [Header("Boss Pacing")]
     [SerializeField] private float maxBossInterval = 45f;
     [SerializeField] private float minBossInterval = 30f;
     [SerializeField, FormerlySerializedAs("bossEventLockSeconds")] private float postBossWindowSeconds = 6f;
 
+    [Header("Score")]
+    [SerializeField, Min(0f)] private float scorePerSecond = 1250f;
+    [SerializeField, Min(0f)] private float scoreIntensityBonusMultiplier = 1f;
+
     [Header("Events")]
     public UnityEvent<RunEventState> onEventStateChanged = new UnityEvent<RunEventState>();
 
     private float elapsedSeconds;
     private float cycleElapsedSeconds;
+    private float bossCycleElapsedSeconds;
     private float integratedDistance;
     private float eventStateRemainingSeconds;
     private float startX;
+    private float scoreAccumulator;
 
     public static RunProgressionDirector Instance => instance;
     public static bool HasInstance => instance != null;
@@ -94,7 +100,7 @@ public class RunProgressionDirector : MonoBehaviour
     public bool CanTriggerBossEvent => session != null
         && session.IsPlaying
         && EventState == RunEventState.Normal
-        && cycleElapsedSeconds >= Current.BossInterval;
+        && bossCycleElapsedSeconds >= Current.BossInterval;
 
     public event Action<RunEventState, RunEventState> EventStateChanged;
 
@@ -130,14 +136,31 @@ public class RunProgressionDirector : MonoBehaviour
         float deltaTime = Time.deltaTime;
         elapsedSeconds += deltaTime;
         integratedDistance += Mathf.Max(Current.TargetScrollSpeed, minScrollSpeed) * deltaTime;
+        UpdateScore(deltaTime);
 
         if (EventState == RunEventState.Normal)
         {
             cycleElapsedSeconds += deltaTime;
+            bossCycleElapsedSeconds += deltaTime;
         }
 
         UpdateEventStateTimer(deltaTime);
         RefreshSnapshot();
+    }
+
+    private void UpdateScore(float deltaTime)
+    {
+        float intensityMultiplier = 1f + Current.Intensity * scoreIntensityBonusMultiplier;
+        scoreAccumulator += scorePerSecond * intensityMultiplier * deltaTime;
+
+        long wholeScore = (long)Mathf.Floor(scoreAccumulator);
+        if (wholeScore <= 0)
+        {
+            return;
+        }
+
+        RuntimeRunScore.Add(wholeScore);
+        scoreAccumulator -= wholeScore;
     }
 
     public bool TryStartBossEvent()
@@ -160,7 +183,8 @@ public class RunProgressionDirector : MonoBehaviour
         }
 
         ProgressionCycle++;
-        cycleElapsedSeconds = 0f;
+        cycleElapsedSeconds = Mathf.Max(cycleElapsedSeconds, secondsToMaxIntensity);
+        bossCycleElapsedSeconds = 0f;
         ApplyEventState(RunEventState.PostBossWindow);
         RefreshSnapshot();
     }
@@ -193,6 +217,9 @@ public class RunProgressionDirector : MonoBehaviour
             return;
         }
 
+        cycleElapsedSeconds = 0f;
+        bossCycleElapsedSeconds = 0f;
+        ProgressionCycle = 0;
         ApplyEventState(RunEventState.Normal);
         RefreshSnapshot();
     }
@@ -201,8 +228,10 @@ public class RunProgressionDirector : MonoBehaviour
     {
         elapsedSeconds = 0f;
         cycleElapsedSeconds = 0f;
+        bossCycleElapsedSeconds = 0f;
         integratedDistance = 0f;
         eventStateRemainingSeconds = 0f;
+        scoreAccumulator = 0f;
         ProgressionCycle = 0;
         ApplyEventState(RunEventState.Normal, force: true);
 
@@ -219,7 +248,9 @@ public class RunProgressionDirector : MonoBehaviour
         float rawIntensity = Mathf.Clamp01(cycleElapsedSeconds / Mathf.Max(0.01f, secondsToMaxIntensity));
         float smoothedIntensity = Mathf.SmoothStep(0f, 1f, rawIntensity);
         float floor = ProgressionCycle > 0 ? postBossIntensityFloor : 0f;
-        float intensity = Mathf.Clamp01(Mathf.Max(smoothedIntensity, floor));
+        float intensity = EventState == RunEventState.BossActive
+            ? 1f
+            : Mathf.Clamp01(Mathf.Max(smoothedIntensity, floor));
 
         float targetScrollSpeed = Mathf.Lerp(minScrollSpeed, Mathf.Max(minScrollSpeed, maxScrollSpeed), intensity);
         float baseSpawnInterval = Mathf.Lerp(

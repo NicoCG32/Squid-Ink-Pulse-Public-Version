@@ -44,7 +44,6 @@ public class InGameShopManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameSessionController session;
-    [SerializeField] private RunProgressionDirector progression;
 
     [Header("Scene UI References")]
     [SerializeField] private GameObject menuRoot;
@@ -52,6 +51,7 @@ public class InGameShopManager : MonoBehaviour
     [SerializeField] private Image gadgetImage;
     [SerializeField] private TMP_Text priceText;
     [SerializeField] private TMP_Text buyKeyText;
+    [SerializeField] private Button buyButton;
     [SerializeField] private TMP_Text insufficientFundsText;
     [SerializeField] private TMP_Text timerText;
 
@@ -61,8 +61,9 @@ public class InGameShopManager : MonoBehaviour
 
     [Header("Pricing")]
     [SerializeField, Min(0.01f)] private float globalPriceMultiplier = 1f;
-    [SerializeField, Min(0f)] private float intensityPriceMultiplier = 0.5f;
-    [SerializeField, Min(0f)] private float cyclePriceMultiplier = 0.25f;
+    [SerializeField, Min(1f)] private float scorePriceStep = 100000f;
+    [SerializeField, Min(0f)] private float randomPriceMultiplierMin = 1f;
+    [SerializeField, Min(0f)] private float randomPriceMultiplierMax = 2f;
 
     [Header("Offers")]
     [SerializeField] private ShopGadgetOffer[] offers;
@@ -80,6 +81,7 @@ public class InGameShopManager : MonoBehaviour
     private ShopGadgetOffer currentOffer;
     private float remainingSeconds;
     private int currentPrice;
+    private float currentRandomPriceMultiplier = 1f;
     private bool isOpen;
     private bool isHoldingTimeScale;
     private float previousTimeScale = 1f;
@@ -103,6 +105,7 @@ public class InGameShopManager : MonoBehaviour
         instance = this;
         ResolveReferences();
         ResolveUiReferences();
+        WireButtons();
         CacheAnimatedTextScales();
         HideImmediate();
         WarnIfMissingReferences();
@@ -155,6 +158,7 @@ public class InGameShopManager : MonoBehaviour
     {
         ResolveReferences();
         ResolveUiReferences();
+        WireButtons();
 
         if (isOpen || session == null || !session.IsPlaying)
         {
@@ -167,6 +171,7 @@ public class InGameShopManager : MonoBehaviour
             return false;
         }
 
+        currentRandomPriceMultiplier = RollRandomPriceMultiplier();
         currentPrice = CalculatePrice(currentOffer);
         remainingSeconds = Mathf.Max(0.5f, offerDurationSeconds);
 
@@ -291,15 +296,26 @@ public class InGameShopManager : MonoBehaviour
 
     private int CalculatePrice(ShopGadgetOffer offer)
     {
-        float progressionMultiplier = 1f;
-        if (progression != null)
+        float scoreMultiplier = (RuntimeRunScore.TotalScore / Mathf.Max(1f, scorePriceStep)) + 1f;
+        float rawPrice = offer.GetBasePrice()
+            * Mathf.Max(0.01f, globalPriceMultiplier)
+            * Mathf.Max(0f, currentRandomPriceMultiplier)
+            * Mathf.Max(1f, scoreMultiplier);
+
+        return Mathf.Max(1, Mathf.CeilToInt(rawPrice));
+    }
+
+    private float RollRandomPriceMultiplier()
+    {
+        float min = Mathf.Min(randomPriceMultiplierMin, randomPriceMultiplierMax);
+        float max = Mathf.Max(randomPriceMultiplierMin, randomPriceMultiplierMax);
+
+        if (Mathf.Approximately(min, max))
         {
-            progressionMultiplier += progression.Current.Intensity * intensityPriceMultiplier;
-            progressionMultiplier += progression.Current.ProgressionCycle * cyclePriceMultiplier;
+            return Mathf.Max(0f, min);
         }
 
-        float rawPrice = offer.GetBasePrice() * globalPriceMultiplier * Mathf.Max(0.01f, progressionMultiplier);
-        return Mathf.Max(1, Mathf.CeilToInt(rawPrice));
+        return UnityEngine.Random.Range(min, max);
     }
 
     private void RefreshOfferUi()
@@ -310,6 +326,7 @@ public class InGameShopManager : MonoBehaviour
             SetText(priceText, "-");
             SetText(timerText, Mathf.CeilToInt(remainingSeconds).ToString());
             SetInsufficientFundsVisible(false);
+            SetBuyButtonInteractable(false);
             return;
         }
 
@@ -317,6 +334,7 @@ public class InGameShopManager : MonoBehaviour
         SetText(priceText, currentPrice.ToString());
         RefreshTimer();
         SetInsufficientFundsVisible(false);
+        SetBuyButtonInteractable(true);
     }
 
     private void RefreshTimer()
@@ -397,6 +415,7 @@ public class InGameShopManager : MonoBehaviour
         SetVisible(false);
         ApplyIcon(null, Color.clear);
         SetInsufficientFundsVisible(false);
+        SetBuyButtonInteractable(false);
         ResetAnimatedTextScales();
     }
 
@@ -434,10 +453,6 @@ public class InGameShopManager : MonoBehaviour
             session = GameSessionController.Instance;
         }
 
-        if (progression == null && RunProgressionDirector.HasInstance)
-        {
-            progression = RunProgressionDirector.Instance;
-        }
     }
 
     private void ResolveUiReferences()
@@ -456,9 +471,49 @@ public class InGameShopManager : MonoBehaviour
         gadgetImage ??= FindChildComponent<Image>(uiRoot, "Gadget");
         priceText ??= FindChildComponent<TMP_Text>(uiRoot, "Precio");
         buyKeyText ??= FindChildComponent<TMP_Text>(uiRoot, "B");
+        buyButton ??= FindChildComponent<Button>(uiRoot, "Comprar");
         insufficientFundsText ??= FindChildComponent<TMP_Text>(uiRoot, "SinSaldo");
         timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Tiempo");
         timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Timer");
+    }
+
+    private void WireButtons()
+    {
+        if (buyButton == null)
+        {
+            return;
+        }
+
+        if (buyButton.targetGraphic == null)
+        {
+            buyButton.targetGraphic = buyButton.GetComponent<Graphic>();
+        }
+
+        if (buyButton.targetGraphic != null)
+        {
+            buyButton.targetGraphic.raycastTarget = true;
+        }
+
+        DisablePersistentOnClick(buyButton);
+        buyButton.onClick.RemoveListener(BuyCurrentOffer);
+        buyButton.onClick.AddListener(BuyCurrentOffer);
+    }
+
+    private void SetBuyButtonInteractable(bool interactable)
+    {
+        if (buyButton != null)
+        {
+            buyButton.interactable = interactable;
+        }
+    }
+
+    private void DisablePersistentOnClick(Button button)
+    {
+        int persistentEventCount = button.onClick.GetPersistentEventCount();
+        for (int i = 0; i < persistentEventCount; i++)
+        {
+            button.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
+        }
     }
 
     private T FindChildComponent<T>(Transform root, string childName) where T : Component
@@ -490,10 +545,10 @@ public class InGameShopManager : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || menuRoot == null || gadgetImage == null || priceText == null || buyKeyText == null || insufficientFundsText == null)
+        if (session == null || menuRoot == null || gadgetImage == null || priceText == null || buyKeyText == null || buyButton == null || insufficientFundsText == null)
         {
             Debug.LogWarning(
-                "[InGameShopManager] Faltan referencias. Asigna Session, MenuRoot/InGameCanvas, Gadget, Precio, B y SinSaldo en el canvas de tienda.",
+                "[InGameShopManager] Faltan referencias. Asigna Session, MenuRoot/InGameCanvas, Gadget, Precio, B, Comprar y SinSaldo en el canvas de tienda.",
                 this);
         }
 

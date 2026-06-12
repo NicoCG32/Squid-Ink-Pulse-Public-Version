@@ -108,7 +108,7 @@ Reglas:
 - `RunProgressionDirector` define intensidad, velocidad y ritmo de spawn.
 - `SceneFlowController` resuelve retorno al menu y cambios de escena.
 - `LevelSpawner` genera enemigos, camarones, tienda y portales sin mezclar progresion global.
-- `ScenePortal` gobierna el cambio entre `ZonaEpipelagica` y `ZonaExe`, pero nace desde `LevelSpawner`.
+- `ScenePortal` gobierna el cambio entre `ZonaEpipelagica` y `ZonaAbisopelagica`, pero nace desde `LevelSpawner`.
 - `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de camara.
 - `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarse con pausa ni game over.
 - `GadgetInventoryHud` muestra `Q` en `Gadget1` y `W` en `Gadget2` cuando el gadget del slot es activo.
@@ -138,14 +138,14 @@ flowchart LR
     GameOverMenuManager --> SceneFlowController
 ```
 
-## ZonaExe
+## ZonaAbisopelagica
 
-`ZonaExe` comparte la base estructural mientras sea una zona referencial:
+`ZonaAbisopelagica` comparte la base estructural mientras sea una zona referencial:
 - debe tener la misma jerarquia obligatoria de boundaries;
 - usa portales con `PortalSpawnPolicy.AlwaysInterval`;
 - conserva gadgets e Ink-Pulse al entrar o salir;
 - tiene `Enviroment/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
-- perfora localmente `LayerBlack` mediante `LightGrazeSource` en la instancia `Squid` de `BabySquid.prefab` y entidades spawneadas;
+- revela localmente `LayerBlack` mediante el overlay compuesto de `ZoneLightingController` y las posiciones declaradas por `LightGrazeSource`;
 - puede diferenciar arte, enemigos y parametros de spawner sin romper el contrato comun.
 
 ## Notas de mantenimiento

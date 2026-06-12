@@ -15,6 +15,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Flujo de escenas: `SceneFlowController`.
 - Movimiento del jugador: `PlayerMovement`.
 - Ink-Pulse: `InkPulseController` y `RuntimeInkPulseState`.
+- Score runtime: `RunProgressionDirector` acumula; `RuntimeRunScore` conserva; `ScoreCounterDisplay` muestra.
 - Estado runtime del jugador: `PlayerStateController`.
 - Visuales del jugador: `PlayerVisualStateController` en el root decide entre `SquidVisual`, `InkPulseVisual` y `PortalVisual`.
 - Visual del cuerpo del jugador: `SquidVisual` con `Squid.controller`.
@@ -33,7 +34,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Mercancia comprable: `GadgetShopItem`.
 - Tienda temporal: `DealerFish` e `InGameShopManager`.
 - Portales: `ScenePortal` detecta contacto; `SceneFlowController` decide destino.
-- Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` crea mascaras circulares locales.
+- Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` declara posiciones de luz visual.
 - Economia runtime: `ShrimpRuntimeWallet`.
 - Boss SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
@@ -65,7 +66,7 @@ Reglas:
 - El prefab base no serializa referencias a `GameSession`, camara, HUD, progression director ni boundaries.
 - Cada instancia de escena llamada `Squid` debe tener asignadas en Inspector sus referencias externas: `GameSession`, `RunProgressionDirector`, `Main Camera` y `ChargeBar`.
 - Los componentes conservan resolucion runtime como respaldo defensivo, no como fuente primaria de cableado.
-- `ZonaExe` puede agregar `LightGrazeSource` como override de instancia, porque la luz de esa zona es una capacidad ambiental especifica, no una propiedad base de BabySquid.
+- `ZonaAbisopelagica` puede agregar `LightGrazeSource` como override de instancia, porque la luz de esa zona es una capacidad ambiental especifica, no una propiedad base de BabySquid.
 - Los cambios de collider, visual base, `GrazeZone`, `SquidVisual`, `InkPulseVisual`, `PortalVisual` o inventario deben hacerse en el prefab, no en copias de escena.
 - Las skins futuras deben ser variantes visuales o prefab variants; no deben duplicar scripts de gameplay.
 - Si se reconstruye el player, usar `Tools/Squid/Rebuild And Wire Player Prefab Contract`.
@@ -140,23 +141,24 @@ flowchart TD
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
 | `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Abrir, cerrar y cablear derrota. |
-| `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal, calcular oferta/precio y resolver compra. |
+| `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal, calcular oferta/precio con score y resolver compra. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual fija del boton; no expone parametros por boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido. |
 | `InkPulseBar` | `ChargeBar` | Representacion visual de carga Ink-Pulse. |
+| `Score` | `ScoreCounterDisplay` | Puntaje runtime de la run. |
 | `ShrimpCounter` | `ShrimpCounterDisplay` | Total persistente de camarones runtime. |
 | `GadgetSlots` | `GadgetInventoryHud` | Slots de inventario y teclas de gadgets activos. |
 
-## Jerarquia especifica de ZonaExe
+## Jerarquia especifica de ZonaAbisopelagica
 
-`ZonaExe` comparte el contrato de `ZonaEpipelagica`, pero agrega iluminacion ambiental:
+`ZonaAbisopelagica` comparte el contrato de `ZonaEpipelagica`, pero agrega iluminacion ambiental:
 
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
-| `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y configurar perforaciones locales de luz. |
-| `Enviroment/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y se perfora con mascaras. |
+| `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y componer las zonas locales de luz. |
+| `Enviroment/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y recibe la textura compuesta de oscuridad. |
 
-`LayerBlack` debe quedar sobre fondos y bajo entidades de gameplay. La escena actual usa sorting order `-1` y `SpriteRenderer.maskInteraction = VisibleOutsideMask`.
+`LayerBlack` debe quedar sobre fondos y bajo entidades de gameplay. En el modo actual usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`. El modo `VisibleOutsideMask` queda reservado para el fallback legacy con `SpriteMask`.
 
 ## Prefabs runtime
 
@@ -189,7 +191,7 @@ La mina no tiene script propio todavia porque su logica actual vive en el algori
 
 Despues de instanciar, `LevelSpawner` aplica el tag con `EnemyTagCatalog.ApplyEnemyTag()` y asigna capa `Enemy` de forma recursiva.
 Los comportamientos de enemigos reciben `EnemySpawnContext`; sus parametros de balance viven en `LevelSpawner`, no en el prefab.
-En `ZonaExe`, `LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados, porque `LightGrazeSource.EnsureOn()` solo actua si existe `ZoneLightingController`.
+En `ZonaAbisopelagica`, `LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados, porque `LightGrazeSource.EnsureOn()` solo actua si existe `ZoneLightingController`.
 
 ## Spawn de tienda
 
@@ -211,7 +213,7 @@ En `ZonaExe`, `LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, c
 
 Configuracion actual:
 - `ZonaEpipelagica`: `PortalSpawnPolicy.PostBossWindow`, primer portal inmediato durante post-boss.
-- `ZonaExe`: `PortalSpawnPolicy.AlwaysInterval`, primer portal a los `20s` y repeticion cada `20s`.
+- `ZonaAbisopelagica`: `PortalSpawnPolicy.AlwaysInterval`, primer portal a los `20s` y repeticion cada `20s`.
 
 ## Light graze visual
 
@@ -219,9 +221,10 @@ Configuracion actual:
 
 Reglas:
 - El balance visual vive solo en `ZoneLightingController`.
-- La instancia `Squid` de `BabySquid.prefab` debe tener `LightGrazeSource` solo en `ZonaExe`.
+- La instancia `Squid` de `BabySquid.prefab` debe tener `LightGrazeSource` solo en `ZonaAbisopelagica`.
 - Las entidades spawneadas reciben `LightGrazeSource` por `LevelSpawner` solo en zonas con `ZoneLightingController`.
-- `LightGrazeSource` crea `LightGrazeMask` como hijo runtime.
+- En modo compuesto, `LightGrazeSource` no crea renderers visibles: solo registra su posicion para que `ZoneLightingController` regenere una unica textura de oscuridad.
+- El fallback legacy puede crear `LightGrazeMask` y `LightGrazeFeather` como hijos runtime si se desactiva `useCompositeLightOverlay`.
 - `GrazeDetector` y `LightGrazeSource` no deben compartir estado ni cargar el mismo recurso.
 
 ## Scripts retirados o reemplazados

@@ -33,6 +33,7 @@ Responsabilidad:
 - Calcular intensidad, scroll y spawn.
 - Gestionar ventanas de boss y transicion.
 - Modular la frecuencia de spawn segun estado macro.
+- Separar el reloj de intensidad del reloj de reaparicion de boss, para sostener presion alta sin disparar otro SS Carnage de inmediato.
 
 Estados de evento:
 - `Normal`
@@ -43,8 +44,8 @@ Estados de evento:
 Reglas de spawn por evento:
 - `Normal`: usa el intervalo base calculado por intensidad.
 - `BossActive`: reduce el intervalo con `bossActiveSpawnIntervalMultiplier`; por defecto `0.5`, equivalente a doble frecuencia.
-- `PostBossWindow`: aumenta el intervalo con `postBossSpawnIntervalMultiplier`; por defecto `1.75`, equivalente a menor presion.
-- `Transitioning`: bloquea spawn regular.
+- `PostBossWindow`: conserva la intensidad alcanzada tras el boss mientras ofrece la oportunidad de portal.
+- `Transitioning`: bloquea spawn regular; al completar portal, la zona destino empieza relajada.
 
 ## SceneFlowController
 
@@ -59,7 +60,7 @@ Responsabilidad:
 
 Uso por portales:
 - `ScenePortal` usa `SceneFlowController` como fuente obligatoria de destino.
-- `primaryGameplaySceneName` y `secondaryGameplaySceneName` definen el par de zonas jugables: `ZonaEpipelagica` y `ZonaExe`.
+- `primaryGameplaySceneName` y `secondaryGameplaySceneName` definen el par de zonas jugables: `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - Las escenas destino deben estar registradas en Build Settings.
 - La carga por portal no reinicia gadgets ni Ink-Pulse.
 

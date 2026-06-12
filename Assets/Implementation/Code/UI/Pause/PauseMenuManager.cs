@@ -62,7 +62,12 @@ public class PauseMenuManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame && !isAnimating)
+        if (Keyboard.current == null || isAnimating)
+        {
+            return;
+        }
+
+        if (Keyboard.current.pKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             TogglePause();
         }

@@ -20,9 +20,9 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 - SS Carnage integrado con progresion y red ajustada a boundaries.
 - Tienda temporal mediante `DealerFish` e `InGameShopManager`.
 - Gadgets comprables con inventario runtime no stackable.
-- Portales entre `ZonaEpipelagica` y `ZonaExe`.
+- Portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - Gadgets e Ink-Pulse persisten entre portales y se reinician al entrar en Game Over.
-- `ZonaExe` tiene oscuridad ambiental por overlay y `LightGraze` visual independiente del graze de Ink-Pulse.
+- `ZonaAbisopelagica` tiene oscuridad ambiental por overlay y `LightGraze` visual independiente del graze de Ink-Pulse.
 
 ## Estructura general
 

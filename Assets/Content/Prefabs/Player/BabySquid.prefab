@@ -365,7 +365,7 @@ GameObject:
   - component: {fileID: 3154489085247277913}
   - component: {fileID: 309937297829325662}
   - component: {fileID: 1720616012294951555}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: PortalVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}

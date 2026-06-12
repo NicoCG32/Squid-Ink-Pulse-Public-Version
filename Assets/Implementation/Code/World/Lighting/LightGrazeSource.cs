@@ -42,6 +42,30 @@ public class LightGrazeSource : MonoBehaviour
         }
     }
 
+    public static void CollectActiveWorldPositions(List<Vector3> results)
+    {
+        if (results == null)
+        {
+            return;
+        }
+
+        results.Clear();
+        for (int i = activeSources.Count - 1; i >= 0; i--)
+        {
+            LightGrazeSource source = activeSources[i];
+            if (source == null)
+            {
+                activeSources.RemoveAt(i);
+                continue;
+            }
+
+            if (source.isActiveAndEnabled)
+            {
+                results.Add(source.transform.position);
+            }
+        }
+    }
+
     private void OnEnable()
     {
         if (!activeSources.Contains(this))
@@ -74,6 +98,13 @@ public class LightGrazeSource : MonoBehaviour
         }
 
         ZoneLightingController controller = ZoneLightingController.Instance;
+        if (controller.UsesCompositeLightOverlay)
+        {
+            SetMaskEnabled(false);
+            SetFeatherEnabled(false);
+            return;
+        }
+
         EnsureMaskObject();
         controller.ConfigureLightMask(lightMask);
         SetMaskEnabled(true);

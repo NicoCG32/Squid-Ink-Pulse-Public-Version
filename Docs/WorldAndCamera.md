@@ -105,7 +105,7 @@ Archivo: `Assets/Implementation/Code/World/Lighting/ZoneLightingController.cs`
 
 Responsabilidad:
 - Mantener `LayerBlack` centrado y escalado contra la camara ortografica activa.
-- Oscurecer `ZonaExe` sin modificar los fondos ni duplicar sprites claros/oscuros.
-- Configurar `LayerBlack` para renderizar fuera de mascaras circulares creadas por `LightGrazeSource`.
+- Oscurecer `ZonaAbisopelagica` sin modificar los fondos ni duplicar sprites claros/oscuros.
+- Generar una textura compuesta de oscuridad a partir de las posiciones declaradas por `LightGrazeSource`.
 
 La mecanica completa esta documentada en [ZoneLighting.md](ZoneLighting.md).

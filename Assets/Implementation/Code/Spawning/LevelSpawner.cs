@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [Serializable]
 public class EnemySpawnProfile
@@ -26,17 +27,24 @@ public class EnemySpawnProfile
 [Serializable]
 public class PufferfishEnemyTuning
 {
-    [SerializeField, Min(0f)] private float fallSpeed = 0.2f;
-    [SerializeField, Min(0f)] private float expandedRiseSpeedMultiplier = 2f;
+    [SerializeField, Min(0f)] private float fallSpeed = 0.55f;
+    [FormerlySerializedAs("expandedRiseSpeedMultiplier")]
+    [SerializeField, Min(0f)] private float expandedSpeedMultiplier = 2.2f;
     [SerializeField, Min(0f)] private float proximityRadius = 2.5f;
     [SerializeField, Min(1f)] private float expandedScaleMultiplier = 2f;
     [SerializeField, Min(0f)] private float expansionSmoothSpeed = 8f;
+    [SerializeField, Min(0f)] private float erraticDirectionChangeIntervalMin = 1.2f;
+    [SerializeField, Min(0f)] private float erraticDirectionChangeIntervalMax = 2.6f;
+    [SerializeField, Range(0f, 1f)] private float erraticDirectionChangeChance = 0.45f;
 
     public float FallSpeed => Mathf.Max(0f, fallSpeed);
-    public float ExpandedRiseSpeedMultiplier => Mathf.Max(0f, expandedRiseSpeedMultiplier);
+    public float ExpandedSpeedMultiplier => Mathf.Max(0f, expandedSpeedMultiplier);
     public float ProximityRadius => Mathf.Max(0f, proximityRadius);
     public float ExpandedScaleMultiplier => Mathf.Max(1f, expandedScaleMultiplier);
     public float ExpansionSmoothSpeed => Mathf.Max(0f, expansionSmoothSpeed);
+    public float ErraticDirectionChangeIntervalMin => Mathf.Max(0f, erraticDirectionChangeIntervalMin);
+    public float ErraticDirectionChangeIntervalMax => Mathf.Max(ErraticDirectionChangeIntervalMin, erraticDirectionChangeIntervalMax);
+    public float ErraticDirectionChangeChance => Mathf.Clamp01(erraticDirectionChangeChance);
 }
 
 [Serializable]
@@ -45,10 +53,14 @@ public class FishingRodEnemyTuning
     [SerializeField, Min(0.01f)] private float dropSpeed = 14f;
     [SerializeField, Min(0f)] private float startYOffsetBelowTopBoundary = 0.15f;
     [SerializeField, Min(0.001f)] private float arriveDistance = 0.03f;
+    [SerializeField, Min(0f)] private float horizontalLeadTimePaddingSeconds = 0.25f;
+    [SerializeField, Min(0f)] private float minimumHorizontalLeadDistance = 2f;
 
     public float DropSpeed => Mathf.Max(0.01f, dropSpeed);
     public float StartYOffsetBelowTopBoundary => Mathf.Max(0f, startYOffsetBelowTopBoundary);
     public float ArriveDistance => Mathf.Max(0.001f, arriveDistance);
+    public float HorizontalLeadTimePaddingSeconds => Mathf.Max(0f, horizontalLeadTimePaddingSeconds);
+    public float MinimumHorizontalLeadDistance => Mathf.Max(0f, minimumHorizontalLeadDistance);
 }
 
 public enum PortalSpawnPolicy
@@ -83,7 +95,7 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField] private float timeBetweenSpawns = 1.5f;
     [SerializeField] private float spawnDistanceFromCameraRight = 2f;
     [SerializeField] private float verticalPadding = 0.75f;
-    [SerializeField, Range(0f, 1f)] private float coinSpawnChance = 0.3f;
+    [SerializeField, Range(0f, 1f)] private float coinSpawnChance = 0.225f;
     [SerializeField, Range(0f, 1f)] private float rareCoinSpawnChanceWithinCoins = 0.1f;
     [SerializeField, Min(1)] private int fishingRodEnemyInterval = 5;
     [SerializeField, Range(0.01f, 1f)] private float upperZoneSpawnCoverage = 0.75f;
@@ -450,7 +462,7 @@ public class LevelSpawner : MonoBehaviour
         if (enemyTag == EnemyTagCatalog.FishingRod)
         {
             float laneY = CalculateFishingRodPlayerY(playerRange, centerY);
-            spawnPosition = new Vector3(spawnX, laneY, 0f);
+            spawnPosition = new Vector3(CalculateFishingRodSpawnX(laneY), laneY, 0f);
             return true;
         }
 
@@ -488,6 +500,45 @@ public class LevelSpawner : MonoBehaviour
         return player != null
             ? Mathf.Clamp(player.position.y, playerRange.x, playerRange.y)
             : centerY;
+    }
+
+    private float CalculateFishingRodSpawnX(float targetY)
+    {
+        float dropStartY = CalculateFishingRodStartY(targetY);
+        float dropDistance = Mathf.Max(0f, dropStartY - targetY);
+        float dropDuration = dropDistance / fishingRodTuning.DropSpeed;
+        float playerSpeed = GetCurrentPlayerHorizontalSpeed();
+        float dynamicLeadDistance = playerSpeed * (dropDuration + fishingRodTuning.HorizontalLeadTimePaddingSeconds);
+        float minimumDistance = Mathf.Max(spawnDistanceFromCameraRight, fishingRodTuning.MinimumHorizontalLeadDistance);
+        float spawnDistance = Mathf.Max(minimumDistance, dynamicLeadDistance);
+
+        return GetCameraRightEdgeX() + spawnDistance;
+    }
+
+    private float CalculateFishingRodStartY(float targetY)
+    {
+        if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D topBorder, out _))
+        {
+            float startY = topBorder.bounds.min.y - fishingRodTuning.StartYOffsetBelowTopBoundary;
+            return Mathf.Max(startY, targetY);
+        }
+
+        return targetY;
+    }
+
+    private float GetCurrentPlayerHorizontalSpeed()
+    {
+        if (player != null && player.TryGetComponent(out PlayerMovement movement))
+        {
+            return Mathf.Max(0f, movement.CurrentHorizontalSpeed);
+        }
+
+        if (progression != null)
+        {
+            return Mathf.Max(0f, progression.Current.TargetScrollSpeed);
+        }
+
+        return 0f;
     }
 
     private bool TryCalculatePlayerSpawnRange(out Vector2 playerRange)

@@ -129,7 +129,10 @@ public class InkPulseController : MonoBehaviour
 
     private void HandleActivationInput()
     {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        bool mousePressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        bool spacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        if (mousePressed || spacePressed)
         {
             TryActivatePulse();
         }

@@ -47,8 +47,12 @@ public class ScenePortal : MonoBehaviour
 
         PlayerStateController playerState = playerCollider.GetComponentInParent<PlayerStateController>();
         PlayerVisualStateController playerVisual = playerCollider.GetComponentInParent<PlayerVisualStateController>();
+        RunProgressionDirector progression = RunProgressionDirector.HasInstance
+            ? RunProgressionDirector.Instance
+            : null;
 
         playerState?.BeginPortalTransition();
+        progression?.TryBeginTransition();
 
         float transitionDelay = playerVisual != null
             ? playerVisual.PortalTransitionDuration
@@ -65,6 +69,7 @@ public class ScenePortal : MonoBehaviour
         }
 
         playerState?.CompletePortalTransition();
+        progression?.CompleteTransition();
         SetCollidersEnabled(true);
         isTransitioning = false;
     }

@@ -41,11 +41,11 @@ Los sistemas leen los bordes fisicos internos de esos colliders mediante `Bounda
 El jugador canonico es `Assets/Content/Prefabs/Player/BabySquid.prefab`.
 
 Reglas de QA:
-- `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial` deben contener una instancia llamada `Squid`, no una copia manual.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben contener una instancia llamada `Squid`, no una copia manual.
 - En escenas, `Squid` debe mostrar referencias asignadas para sesion, progresion, camara y HUD de Ink-Pulse.
 - En el asset `BabySquid.prefab`, esas referencias externas deben permanecer vacias; solo se guardan referencias internas del prefab.
 - Cambios de collider, `GrazeZone`, `SquidVisual`, `InkPulseVisual`, `PortalVisual`, inventario o scripts del jugador se validan contra el prefab.
-- `ZonaExe` puede tener `LightGrazeSource` como override de instancia; eso no debe copiarse al prefab base.
+- `ZonaAbisopelagica` puede tener `LightGrazeSource` como override de instancia; eso no debe copiarse al prefab base.
 - Si se ajusta la escala o posicion visual del jugador, probar minimo movimiento, graze, Ink-Pulse, compra de gadget, portal y Game Over en una run corta.
 
 ## Progresion de dificultad
@@ -59,16 +59,31 @@ Parametros ajustables:
 | Campo | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
 | `secondsToMaxIntensity` | Tiempo necesario para llegar a intensidad maxima dentro del ciclo. | La dificultad escala mas lento. |
-| `postBossIntensityFloor` | Piso minimo de intensidad tras superar un boss. | La run no baja tanto despues del boss. |
+| `postBossIntensityFloor` | Piso minimo defensivo tras superar un boss. | Normalmente no domina, porque tras Carnage la intensidad se mantiene al maximo si no se cruza portal. |
 | `minScrollSpeed` | Velocidad horizontal minima. | La partida empieza mas rapida. |
 | `maxScrollSpeed` | Velocidad horizontal maxima. | El late game avanza mas rapido. |
 | `maxSpawnInterval` | Intervalo de spawn cuando la intensidad es baja. | Aparecen menos objetos al inicio. |
 | `minSpawnInterval` | Intervalo de spawn cuando la intensidad es alta. | El late game respira mas si se sube; se satura mas si se baja. |
 | `bossActiveSpawnIntervalMultiplier` | Multiplicador del intervalo durante boss activo. | Si sube, aparecen menos obstaculos durante boss; si baja, aparecen mas. |
-| `postBossSpawnIntervalMultiplier` | Multiplicador del intervalo en reposo post-boss. | Si sube, el reposo tiene menos presion. |
+| `postBossSpawnIntervalMultiplier` | Multiplicador del intervalo durante la ventana de portal post-boss. | Si sube, la ventana post-boss respira mas; por defecto debe quedar cerca de `1` para mantener intensidad. |
 | `maxBossInterval` | Tiempo maximo hasta boss en baja intensidad. | El primer boss puede tardar mas. |
 | `minBossInterval` | Tiempo minimo hasta boss en alta intensidad. | Los bosses aparecen menos seguido si se sube. |
-| `postBossWindowSeconds` | Duracion del reposo tras resolver boss. | El jugador recibe una pausa mayor. |
+| `postBossWindowSeconds` | Duracion de la oportunidad de portal tras resolver boss. | Si se sube, el jugador tiene mas tiempo para decidir cruzar. |
+| `scorePerSecond` | Puntaje base ganado por segundo de gameplay activo. | El marcador sube mas rapido. |
+| `scoreIntensityBonusMultiplier` | Bono proporcional a intensidad actual. | El marcador acelera mas en momentos intensos. |
+
+## Score
+
+Scripts: `RunProgressionDirector`, `RuntimeRunScore`, `ScoreCounterDisplay`
+
+Nodos esperados: `GameSession` y objeto UI `Score` si existe en la escena.
+
+Reglas vigentes:
+- El score crece durante `GameSessionState.Playing`.
+- Persiste al cruzar portales.
+- Se reinicia al entrar en `GameSessionState.GameOver`.
+- `ScoreCounterDisplay` solo presenta el numero; no calcula progresion.
+- La tienda temporal usa `RuntimeRunScore.TotalScore` para calcular precios.
 
 ## Spawn general
 
@@ -99,6 +114,8 @@ Parametros ajustables:
 | `minIntensity` | Intensidad minima para poder aparecer. | Sirve para retrasar enemigos complejos. |
 | `spawnIntervalMultiplier` | Modificador del intervalo despues de ese enemigo. | Mas alto deja mas aire tras ese spawn. |
 
+Valor vigente de referencia: `coinSpawnChance = 0.225`, equivalente a tres cuartos del valor anterior `0.3`.
+
 ## Tienda temporal
 
 Scripts: `LevelSpawner`, `DealerFish`, `InGameShopManager`
@@ -115,17 +132,20 @@ Parametros ajustables:
 | `offerDurationSeconds` | `InGameShopManager` | Tiempo disponible para comprar. |
 | `pauseGameplayWhileOpen` | `InGameShopManager` | Si la tienda congela gameplay mientras corre en tiempo real. |
 | `globalPriceMultiplier` | `InGameShopManager` | Multiplicador general de precios. |
-| `intensityPriceMultiplier` | `InGameShopManager` | Cuanto sube el precio por intensidad actual. |
-| `cyclePriceMultiplier` | `InGameShopManager` | Cuanto sube el precio por ciclos/bosses superados. |
+| `scorePriceStep` | `InGameShopManager` | Cada cuantos puntos aumenta el multiplicador lineal de progreso. Por defecto la formula usa `score / 100000 + 1`. |
+| `randomPriceMultiplierMin` | `InGameShopManager` | Minimo del multiplicador aleatorio de oferta. |
+| `randomPriceMultiplierMax` | `InGameShopManager` | Maximo del multiplicador aleatorio de oferta. |
 | `offers[].basePriceOverride` | `InGameShopManager` | Precio base alternativo para una oferta concreta. |
 | `textPulseAmplitude` | `InGameShopManager` | Magnitud de pulso para `B` y `Precio`. |
 | `textPulseFrequency` | `InGameShopManager` | Velocidad del pulso visual de tienda. |
 
 Reglas vigentes:
 
-- Comprar usa tecla `B`.
-- `SinSaldo` aparece solo despues de intentar comprar con `B` sin camarones suficientes.
+- Comprar usa tecla `B` o click sobre el boton `Comprar`.
+- `SinSaldo` aparece solo despues de intentar comprar con `B` o click sin camarones suficientes.
 - La tienda puede ofrecer un gadget repetido, pero no permite comprarlo si ya existe en inventario.
+- Formula de precio vigente: `ceil(((score / scorePriceStep) + 1) * randomPriceMultiplier * precioBaseMinimo * globalPriceMultiplier)`.
+- Al colisionar con `DealerFish`, el objeto se consume aunque la tienda no logre abrirse.
 
 ## Portales
 
@@ -142,50 +162,54 @@ Parametros ajustables:
 | Campo | Que controla | Nota de test |
 | --- | --- | --- |
 | `portalPrefab` | Prefab de portal que se instancia en runtime. | Debe apuntar a `ScenePortal.prefab`. |
-| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaExe` usa `AlwaysInterval`. |
+| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaAbisopelagica` usa `AlwaysInterval`. |
 | `portalSpawnedParent` | Contenedor donde se agrupan los portales instanciados. | Debe apuntar al nodo `Portals`. |
-| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | `ZonaEpipelagica` usa `3s`; `ZonaExe` usa `20s`. |
+| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | `ZonaEpipelagica` usa `3s`; `ZonaAbisopelagica` usa `20s`. |
 | `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Solo aplica a `PostBossWindow`; `1` significa garantizado. |
-| `portalSpawnInterval` | Intervalo entre portales posteriores. | `ZonaExe` usa `20s`. |
+| `portalSpawnInterval` | Intervalo entre portales posteriores. | `ZonaAbisopelagica` usa `20s`. |
 | `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Debe estar activo por defecto. |
 | `fallbackTransitionDelay` | Espera de respaldo si el jugador no tiene `PlayerVisualStateController`. | Vive en `ScenePortal`; normalmente debe ganar la duracion de `PortalEffect`. |
 | `primaryGameplaySceneName` | Zona base o retorno. | Vive en `SceneFlowController`; por defecto `ZonaEpipelagica`. |
-| `secondaryGameplaySceneName` | Zona alterna. | Vive en `SceneFlowController`; por defecto `ZonaExe`. |
+| `secondaryGameplaySceneName` | Zona alterna. | Vive en `SceneFlowController`; por defecto `ZonaAbisopelagica`. |
 
 Reglas vigentes:
 
 - El portal usa tag `Portal`, no `Shrimp` ni `Collectible`.
 - El portal usa capa `Collectible` para participar en colisiones de mundo.
-- `ZonaExe` debe estar habilitada en Build Settings.
+- `ZonaAbisopelagica` debe estar habilitada en Build Settings.
 - Cruzar un portal conserva gadgets e Ink-Pulse.
 - Al tocar portal, antes del cambio de escena debe verse solo `PortalVisual`; `SquidVisual` e `InkPulseVisual` quedan ocultos.
 - `PortalEffect.anim` debe reproducirse una vez y no tener loop.
 - Entrar en Game Over reinicia gadgets e Ink-Pulse.
 
-## Iluminacion de ZonaExe
+## Iluminacion de ZonaAbisopelagica
 
 Script: `ZoneLightingController`
 
-Nodo esperado: `Enviroment/ZoneLightingController` en `ZonaExe`
+Nodo esperado: `Enviroment/ZoneLightingController` en `ZonaAbisopelagica`
 
 Parametros ajustables:
 
 | Campo | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
-| `blackAlpha` | Opacidad fija de `LayerBlack`. | `ZonaExe` se ve mas oscura. |
+| `blackAlpha` | Opacidad fija de `LayerBlack`. | `ZonaAbisopelagica` se ve mas oscura. |
 | `overlayPadding` | Margen extra de cobertura respecto a la camara. | Evita bordes sin overlay en aspect ratios amplios. |
-| `maskSortingOrderPadding` | Rango de sorting en que las mascaras afectan a `LayerBlack`. | Aumentarlo da mas tolerancia si se cambia el sorting order. |
-| `lightHoleRadius` | Radio de mundo de cada perforacion circular. | Cada entidad revela un area mayor. |
+| `maskSortingOrderPadding` | Rango de sorting usado por el fallback con `SpriteMask`. | Solo afecta si `useCompositeLightOverlay` esta desactivado. |
+| `lightHoleRadius` | Radio de mundo de cada zona revelada. | Cada entidad revela un area mayor. |
 | `lightEdgeSoftness` | Porcion del radio que se usa como borde gradual. | El borde del circulo se vuelve mas suave; si sube demasiado, reduce el centro completamente claro. |
-| `maskAlphaCutoff` | Umbral alfa de la mascara circular. | Cambia el borde efectivo de la perforacion. |
+| `maskAlphaCutoff` | Umbral alfa de la mascara circular fallback. | Solo afecta si `useCompositeLightOverlay` esta desactivado. |
+| `useCompositeLightOverlay` | Usa una unica textura runtime para componer todas las luces. | Evita acumulacion visual extrana cuando dos luces se cruzan. |
+| `compositeTextureWidth` | Resolucion horizontal de la textura de oscuridad. | Mayor nitidez horizontal, mayor costo por frame. |
+| `compositeTextureHeight` | Resolucion vertical de la textura de oscuridad. | Mayor nitidez vertical, mayor costo por frame. |
 
 Reglas vigentes:
 
 - `LightGraze` es visual: no carga Ink-Pulse y no reemplaza `GrazeDetector`.
-- `LayerBlack` debe usar `VisibleOutsideMask`.
-- La instancia `Squid` de `BabySquid.prefab` tiene `LightGrazeSource` en `ZonaExe`.
+- En modo compuesto, `LayerBlack` usa una textura generada y `maskInteraction = None`.
+- `VisibleOutsideMask` solo corresponde al modo fallback con `SpriteMask`.
+- La instancia `Squid` de `BabySquid.prefab` tiene `LightGrazeSource` en `ZonaAbisopelagica`.
 - `LevelSpawner` agrega `LightGrazeSource` a entidades runtime solo si existe `ZoneLightingController`.
-- `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaExe`.
+- `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaAbisopelagica`.
 
 ## Gadgets e inventario
 
@@ -233,6 +257,7 @@ Parametros ajustables:
 
 Reglas vigentes:
 
+- Se activa con click izquierdo o tecla `Space`.
 - La carga del Ink-Pulse persiste al cruzar portales.
 - Si el Ink-Pulse esta en `Active` al cruzar, persiste con su tiempo restante.
 - La carga vuelve a cero al entrar en Game Over.
@@ -294,16 +319,19 @@ Parametros ajustables:
 
 | Campo | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
-| `fallSpeed` | Velocidad de caida cuando no esta expandido. | Baja mas rapido. |
-| `expandedRiseSpeedMultiplier` | Multiplicador de subida al expandirse. | Sube mas rapido durante amenaza. |
+| `fallSpeed` | Velocidad vertical base. | Se mueve mas rapido en la direccion actual. |
+| `expandedSpeedMultiplier` | Multiplicador de velocidad al expandirse. | Se mueve mas rapido durante amenaza, hacia arriba o hacia abajo segun su direccion actual. |
 | `proximityRadius` | Distancia para expandirse. | Se activa desde mas lejos. |
 | `expandedScaleMultiplier` | Escala objetivo al expandirse. | Ocupa mas espacio. |
 | `expansionSmoothSpeed` | Velocidad de interpolacion de escala. | La expansion se ve mas inmediata. |
+| `erraticDirectionChangeIntervalMin` | Tiempo minimo antes de poder cambiar direccion vertical. | Cambia de direccion con mas frecuencia si baja. |
+| `erraticDirectionChangeIntervalMax` | Tiempo maximo antes de evaluar cambio de direccion vertical. | Cambia de direccion con menos frecuencia si sube. |
+| `erraticDirectionChangeChance` | Probabilidad de invertir direccion en cada evaluacion. | El movimiento se vuelve mas erratico. |
 
 Estos campos no se ajustan en el prefab `PezGlobo`.
 
 El prefab `PezGlobo` debe tener un unico `CircleCollider2D` en la raiz. La expansion escala el `Transform`, por lo que el collider circular acompana el crecimiento visual y fisico.
-La animacion de hinchado se reproduce una sola vez al entrar en expansion. El clip `PezGlobo.anim` debe quedar sin loop, y el enemigo no vuelve a deshincharse.
+La animacion de hinchado se reproduce una sola vez al entrar en expansion. El clip `PezGlobo.anim` debe quedar sin loop, y el enemigo no vuelve a deshincharse. Al hincharse no fuerza subida: conserva la direccion vertical actual y solo aumenta velocidad.
 
 ### Mina
 
@@ -326,6 +354,8 @@ Parametros ajustables:
 | `dropSpeed` | Velocidad vertical de bajada hacia la Y capturada del jugador. | La caña cae mas brusca y rapidamente. |
 | `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La caña nace mas abajo si se sube. |
 | `arriveDistance` | Tolerancia para considerar que llego a la Y objetivo. | Detiene el movimiento con menos precision si se sube. |
+| `horizontalLeadTimePaddingSeconds` | Margen temporal agregado al calculo de distancia horizontal del anzuelo. | El anzuelo aparece mas lejos cuando el jugador va rapido. |
+| `minimumHorizontalLeadDistance` | Distancia minima propia de la cana desde el borde derecho de camara. | Evita que aparezca demasiado cerca a velocidades bajas. |
 
 Tambien depende de:
 - Perfil `EnemyCanaPescar` en `LevelSpawner.enemyProfiles`.
@@ -335,6 +365,7 @@ Tambien depende de:
 Reglas vigentes:
 - La caña regular captura la altura Y del jugador al spawnear.
 - Luego baja verticalmente desde el top del rango jugable hasta esa Y.
+- La distancia X de aparicion se calcula con la velocidad horizontal actual del jugador y el tiempo estimado de caida.
 - No persigue al jugador despues de capturar la Y.
 - La caña regular se fuerza solo fuera de `BossActive`.
 - Un futuro anzuelo del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
@@ -408,6 +439,9 @@ Parametros ajustables:
 | `colorBurbuja` | `MenuBubbles` | Color y alpha base de burbujas. |
 
 `MenuButtonAnimation` no tiene parametros ajustables por boton. Si el pulso/hover de botones requiere balance, debe centralizarse antes en un manager/controlador de UI.
+
+Reglas vigentes:
+- La pausa se alterna con `P` o `Esc`.
 
 ## Economia de camarones
 

@@ -1273,10 +1273,12 @@ MonoBehaviour:
   maxSpawnInterval: 1.5
   minSpawnInterval: 0.65
   bossActiveSpawnIntervalMultiplier: 0.5
-  postBossSpawnIntervalMultiplier: 1.75
+  postBossSpawnIntervalMultiplier: 1
   maxBossInterval: 45
   minBossInterval: 30
   postBossWindowSeconds: 6
+  scorePerSecond: 1250
+  scoreIntensityBonusMultiplier: 1
   onEventStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -1924,21 +1926,26 @@ MonoBehaviour:
   timeBetweenSpawns: 1.5
   spawnDistanceFromCameraRight: 2
   verticalPadding: 0.75
-  coinSpawnChance: 0.3
+  coinSpawnChance: 0.225
   rareCoinSpawnChanceWithinCoins: 0.1
   fishingRodEnemyInterval: 5
   upperZoneSpawnCoverage: 0.75
   lowerZoneSpawnCoverage: 0.75
   pufferfishTuning:
-    fallSpeed: 0.2
-    expandedRiseSpeedMultiplier: 2
+    fallSpeed: 0.55
+    expandedSpeedMultiplier: 2.2
     proximityRadius: 2.5
     expandedScaleMultiplier: 2
     expansionSmoothSpeed: 8
+    erraticDirectionChangeIntervalMin: 1.2
+    erraticDirectionChangeIntervalMax: 2.6
+    erraticDirectionChangeChance: 0.45
   fishingRodTuning:
     dropSpeed: 14
     startYOffsetBelowTopBoundary: 0.15
     arriveDistance: 0.03
+    horizontalLeadTimePaddingSeconds: 0.25
+    minimumHorizontalLeadDistance: 2
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30
@@ -3969,6 +3976,7 @@ GameObject:
   - component: {fileID: 1272044917}
   - component: {fileID: 1272044920}
   - component: {fileID: 1272044919}
+  - component: {fileID: 1272044921}
   m_Layer: 5
   m_Name: Comprar
   m_TagString: Untagged
@@ -4035,6 +4043,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272044916}
   m_CullTransparentMesh: 1
+--- !u!114 &1272044921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272044916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1272044919}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1281607131
 GameObject:
   m_ObjectHideFlags: 0
@@ -4884,7 +4936,7 @@ MonoBehaviour:
   shopMenuSceneName: Assets/Scenes/ShopMenu/ShopMenu.unity
   optionsMenuSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
   primaryGameplaySceneName: Assets/Scenes/Game/ZonaEpipelagica.unity
-  secondaryGameplaySceneName: Assets/Scenes/Game/ZonaExe.unity
+  secondaryGameplaySceneName: Assets/Scenes/Game/ZonaAbisopelagica.unity
 --- !u!1 &1424639855
 GameObject:
   m_ObjectHideFlags: 0
@@ -7604,19 +7656,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameShopManager
   session: {fileID: 364328816}
-  progression: {fileID: 364328817}
   menuRoot: {fileID: 288031555}
   canvasGroup: {fileID: 288031557}
   gadgetImage: {fileID: 699431265}
   priceText: {fileID: 1073079195}
   buyKeyText: {fileID: 2045496602}
+  buyButton: {fileID: 1272044921}
   insufficientFundsText: {fileID: 1597862202}
   timerText: {fileID: 0}
   offerDurationSeconds: 5
   pauseGameplayWhileOpen: 1
   globalPriceMultiplier: 1
-  intensityPriceMultiplier: 0.5
-  cyclePriceMultiplier: 0.25
+  scorePriceStep: 100000
+  randomPriceMultiplierMin: 1
+  randomPriceMultiplierMax: 2
   offers:
   - gadgetPrefab: {fileID: 7100000000000000001, guid: 774fb867939b426ea31a43fbe40fc34f, type: 3}
     basePriceOverride: 0

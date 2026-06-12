@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Game/ZonaEpipelagica.unity
     guid: a05a72ca7cdf5a249b4e26faae03dd3f
   - enabled: 1
-    path: Assets/Scenes/Game/ZonaExe.unity
+    path: Assets/Scenes/Game/ZonaAbisopelagica.unity
     guid: 1571093e54d17344ca68418f3b1fafca
   - enabled: 1
     path: Assets/Scenes/Game/ZonaTutorial.unity

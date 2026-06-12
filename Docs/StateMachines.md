@@ -44,9 +44,9 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | Estado | Efecto sobre spawn | Efecto sobre bosses |
 | --- | --- | --- |
 | `Normal` | Frecuencia base segun intensidad. | Puede disparar un nuevo boss si el intervalo se cumple. |
-| `BossActive` | Frecuencia duplicada por defecto mediante intervalo `0.5x`. | No puede disparar otro boss. |
-| `PostBossWindow` | Frecuencia rebajada por defecto mediante intervalo `1.75x`. | No puede disparar otro boss. |
-| `Transitioning` | Bloquea spawn regular. | No puede disparar otro boss. |
+| `BossActive` | Fuerza intensidad maxima y frecuencia duplicada por defecto mediante intervalo `0.5x`. | No puede disparar otro boss. |
+| `PostBossWindow` | Mantiene la run intensa mientras aparece la oportunidad de portal. | Reinicia el reloj interno de boss para evitar otro Carnage inmediato. |
+| `Transitioning` | Bloquea spawn regular; al cruzar portal, la zona destino vuelve a empezar relajada. | No puede disparar otro boss. |
 
 ### PlayerRuntimeState
 
@@ -119,8 +119,8 @@ No existe como enum formal porque todavia no bloquea input, no altera spawn y no
 | Fase conceptual | Efecto |
 | --- | --- |
 | Oscuro | `LayerBlack` usa `blackAlpha` y cubre el fondo. |
-| Perforado | Cada `LightGrazeSource` crea una mascara circular que rompe `LayerBlack`. |
-| Actualizacion | Las mascaras siguen a sus entidades y se destruyen/desactivan con ellas. |
+| Relevado | Cada `LightGrazeSource` declara una posicion de luz activa. |
+| Composicion | `ZoneLightingController` genera una unica textura de oscuridad y usa la menor opacidad por pixel cuando dos luces se cruzan. |
 
 Debe formalizarse como estado propio solo si en el futuro modifica reglas de spawn, IA, tutorial, audio adaptativo o interacciones de zona.
 
@@ -129,8 +129,8 @@ Debe formalizarse como estado propio solo si en el futuro modifica reglas de spa
 - `GadgetRuntimeState`
 
 Nota sobre portales:
-- `ScenePortal` ya implementa el cambio directo entre `ZonaEpipelagica` y `ZonaExe`.
-- `LevelSpawner` gobierna aparicion: `PostBossWindow` en zona principal y `AlwaysInterval` en `ZonaExe`.
+- `ScenePortal` ya implementa el cambio directo entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
+- `LevelSpawner` gobierna aparicion: `PostBossWindow` en zona principal y `AlwaysInterval` en `ZonaAbisopelagica`.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - Entrar en `GameSessionState.GameOver` reinicia ambos.
 - La transicion visual actual se modela dentro de `PlayerRuntimeState.PortalTransition`. Solo debe escalar a una maquina `PortalTransitionState` separada si aparecen fases internas como entrada, fundido, carga asincronica o salida.

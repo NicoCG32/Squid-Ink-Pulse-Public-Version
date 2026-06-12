@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Los portales permiten cambiar entre escenarios de gameplay sin pasar por menu ni terminar la run. La implementacion actual cubre la transicion directa entre `ZonaEpipelagica` y `ZonaExe`.
+Los portales permiten cambiar entre escenarios de gameplay sin pasar por menu ni terminar la run. La implementacion actual cubre la transicion directa entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 
 El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpawner`, igual que otros eventos del mundo.
 
@@ -12,7 +12,7 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 - `Assets/Implementation/Code/Spawning/LevelSpawner.cs`
 - `Assets/Content/Prefabs/Portals/ScenePortal.prefab`
 - `Assets/Scenes/Game/ZonaEpipelagica.unity`
-- `Assets/Scenes/Game/ZonaExe.unity`
+- `Assets/Scenes/Game/ZonaAbisopelagica.unity`
 - `ProjectSettings/EditorBuildSettings.asset`
 
 ## Responsabilidades
@@ -59,7 +59,7 @@ Configuracion actual:
 | Escena | Politica | Delay | Probabilidad | Intervalo |
 | --- | --- | --- | --- | --- |
 | `ZonaEpipelagica` | `PostBossWindow` | `3s` tras resolver boss | `1.0` por defecto | no reintenta en la misma ventana |
-| `ZonaExe` | `AlwaysInterval` | `20s` | no aplica | `20s` |
+| `ZonaAbisopelagica` | `AlwaysInterval` | `20s` | no aplica | `20s` |
 
 ## Regla de ida y vuelta
 
@@ -68,7 +68,7 @@ Las rutas no pertenecen al prefab del portal. Se configuran en `SceneFlowControl
 | Campo | Uso |
 | --- | --- |
 | `primaryGameplaySceneName` | Zona base o retorno. Por defecto: `Assets/Scenes/Game/ZonaEpipelagica.unity`. |
-| `secondaryGameplaySceneName` | Zona alterna. Por defecto: `Assets/Scenes/Game/ZonaExe.unity`. |
+| `secondaryGameplaySceneName` | Zona alterna. Por defecto: `Assets/Scenes/Game/ZonaAbisopelagica.unity`. |
 
 Regla actual:
 - Si la escena activa coincide con `secondaryGameplaySceneName`, el portal vuelve a `primaryGameplaySceneName`.

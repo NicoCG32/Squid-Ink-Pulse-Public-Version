@@ -15,6 +15,8 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
     private Animator inflateAnimator;
     private int inflateLayerIndex;
     private int inflateStateHash;
+    private float verticalDirection = -1f;
+    private float directionChangeTimer;
 
     private void Awake()
     {
@@ -26,6 +28,8 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         inflateAnimator = GetComponentInChildren<Animator>(includeInactive: true);
         ConfigureInflateAnimationInitialState();
         baseScale = transform.localScale;
+        RandomizeVerticalDirection();
+        ResetDirectionChangeTimer();
     }
 
     private void Start()
@@ -53,15 +57,18 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
     {
         player = context.PlayerReference;
         tuning = context.PufferfishTuning ?? new PufferfishEnemyTuning();
+        RandomizeVerticalDirection();
+        ResetDirectionChangeTimer();
         ResolveSceneReferences();
         ClampBelowTopBorder();
     }
 
     private void MoveVertically()
     {
-        float direction = isExpanded ? 1f : -1f;
-        float speedMultiplier = isExpanded ? tuning.ExpandedRiseSpeedMultiplier : 1f;
-        transform.position += Vector3.up * (direction * tuning.FallSpeed * speedMultiplier * Time.deltaTime);
+        UpdateErraticDirection();
+
+        float speedMultiplier = isExpanded ? tuning.ExpandedSpeedMultiplier : 1f;
+        transform.position += Vector3.up * (verticalDirection * tuning.FallSpeed * speedMultiplier * Time.deltaTime);
     }
 
     private void UpdateExpansion()
@@ -158,7 +165,39 @@ public class PufferfishEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         if (overshoot > 0f)
         {
             transform.position -= Vector3.up * overshoot;
+            verticalDirection = -1f;
+            ResetDirectionChangeTimer();
         }
+    }
+
+    private void UpdateErraticDirection()
+    {
+        directionChangeTimer -= Time.deltaTime;
+        if (directionChangeTimer > 0f)
+        {
+            return;
+        }
+
+        if (UnityEngine.Random.value <= tuning.ErraticDirectionChangeChance)
+        {
+            verticalDirection *= -1f;
+        }
+
+        ResetDirectionChangeTimer();
+    }
+
+    private void RandomizeVerticalDirection()
+    {
+        verticalDirection = UnityEngine.Random.value < 0.5f ? -1f : 1f;
+    }
+
+    private void ResetDirectionChangeTimer()
+    {
+        float minInterval = tuning != null ? tuning.ErraticDirectionChangeIntervalMin : 0f;
+        float maxInterval = tuning != null ? tuning.ErraticDirectionChangeIntervalMax : minInterval;
+        directionChangeTimer = maxInterval > 0f
+            ? UnityEngine.Random.Range(minInterval, maxInterval)
+            : float.PositiveInfinity;
     }
 
     private void ResolveSceneReferences()

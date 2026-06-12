@@ -2,24 +2,81 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public static class PlayerPrefabContractUtility
 {
     private const string PrefabPath = "Assets/Content/Prefabs/Player/BabySquid.prefab";
     private const string SourceScenePath = "Assets/Scenes/Game/ZonaEpipelagica.unity";
+    private const string SecondaryScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
+    private const string TutorialScenePath = "Assets/Scenes/Game/ZonaTutorial.unity";
+    private const string MainMenuScenePath = "Assets/Scenes/MainMenu/MainMenu.unity";
+    private const string OptionsMenuScenePath = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
+    private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
     private const string FishingRodPrefabPath = "Assets/Content/Prefabs/Enemies/CanaPescar.prefab";
+    private const string PufferfishPrefabPath = "Assets/Content/Prefabs/Enemies/PezGlobo.prefab";
+    private const string MinePrefabPath = "Assets/Content/Prefabs/Enemies/Mina.prefab";
+    private const string ShrimpPrefabPath = "Assets/Content/Prefabs/Collectibles/ShrimpCoin.prefab";
+    private const string RareShrimpPrefabPath = "Assets/Content/Prefabs/Collectibles/ShrimpCoinX10.prefab";
+    private const string DealerFishPrefabPath = "Assets/Content/Prefabs/Shop/DealerFish.prefab";
+    private const string ScenePortalPrefabPath = "Assets/Content/Prefabs/Portals/ScenePortal.prefab";
 
     private static readonly string[] TargetScenePaths =
     {
-        "Assets/Scenes/Game/ZonaEpipelagica.unity",
-        "Assets/Scenes/Game/ZonaExe.unity",
-        "Assets/Scenes/Game/ZonaTutorial.unity"
+        SourceScenePath,
+        SecondaryScenePath,
+        TutorialScenePath
     };
+
+    private static readonly string[] MenuScenePaths =
+    {
+        MainMenuScenePath,
+        OptionsMenuScenePath,
+        ShopMenuScenePath
+    };
+
+    private static readonly string[] BuildScenePaths =
+    {
+        MainMenuScenePath,
+        SourceScenePath,
+        SecondaryScenePath,
+        TutorialScenePath,
+        ShopMenuScenePath,
+        OptionsMenuScenePath
+    };
+
+    [MenuItem("Tools/Squid/Wire All Scene Contracts And Clean Legacy")]
+    public static void WireAllSceneContractsAndCleanLegacy()
+    {
+        EnsureBuildSettingsScenes();
+        EnsureCorePrefabContracts();
+
+        GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        if (prefabAsset == null)
+        {
+            throw new InvalidOperationException($"Missing player prefab at {PrefabPath}.");
+        }
+
+        foreach (string scenePath in TargetScenePaths)
+        {
+            WirePlayableSceneContract(scenePath, prefabAsset);
+        }
+
+        foreach (string scenePath in MenuScenePaths)
+        {
+            WireMenuSceneContract(scenePath);
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log("[PlayerPrefabContractUtility] All scene contracts wired and legacy missing scripts cleaned.");
+    }
 
     [MenuItem("Tools/Squid/Rebuild And Wire Player Prefab Contract")]
     public static void RebuildAndWirePlayerPrefabContract()
@@ -46,14 +103,7 @@ public static class PlayerPrefabContractUtility
 
         foreach (string scenePath in TargetScenePaths)
         {
-            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-            GameObject player = FindSinglePlayerRoot(scene);
-            EnsurePlayerIsPrefabInstance(player, prefabAsset, scenePath);
-            ConfigureScenePlayerReferences(scene, player);
-            ConfigureSceneManagerReferences(scene, player);
-            ConfigureZoneSpecificPlayerOverrides(scene, player);
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            WirePlayableSceneContract(scenePath, prefabAsset);
         }
 
         AssetDatabase.SaveAssets();
@@ -64,10 +114,39 @@ public static class PlayerPrefabContractUtility
     [MenuItem("Tools/Squid/Ensure Enemy Prefab Contracts")]
     public static void EnsureEnemyPrefabContracts()
     {
-        EnsureFishingRodEnemyContract();
+        EnsureEnemyPrefabContractsInternal();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("[PlayerPrefabContractUtility] Enemy prefab contracts ensured.");
+    }
+
+    private static void WirePlayableSceneContract(string scenePath, GameObject prefabAsset)
+    {
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        int removedMissingScripts = RemoveMissingScriptsInScene(scene);
+
+        GameObject player = FindSinglePlayerRoot(scene);
+        EnsurePlayerIsPrefabInstance(player, prefabAsset, scenePath);
+        ConfigureScenePlayerReferences(scene, player);
+        ConfigureSceneManagerReferences(scene, player);
+        ConfigureZoneSpecificPlayerOverrides(scene, player);
+        ValidateSceneContract(scene, player, prefabAsset);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[PlayerPrefabContractUtility] Wired playable scene contract: {scenePath}. Removed missing scripts: {removedMissingScripts}.");
+    }
+
+    private static void WireMenuSceneContract(string scenePath)
+    {
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        int removedMissingScripts = RemoveMissingScriptsInScene(scene);
+
+        ConfigureMainMenuController(scene);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[PlayerPrefabContractUtility] Wired menu scene contract: {scenePath}. Removed missing scripts: {removedMissingScripts}.");
     }
 
     [MenuItem("Tools/Squid/Ensure Player Visual State Contract")]
@@ -105,35 +184,121 @@ public static class PlayerPrefabContractUtility
         Debug.Log("[PlayerPrefabContractUtility] Player visual state contract ensured.");
     }
 
+    private static void EnsureCorePrefabContracts()
+    {
+        EnsurePlayerPrefabContract();
+        EnsureEnemyPrefabContractsInternal();
+        EnsureCollectiblePrefabContracts();
+        EnsureWorldPrefabContracts();
+    }
+
+    private static void EnsurePlayerPrefabContract()
+    {
+        EditPrefab(PrefabPath, prefabRoot =>
+        {
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            ConfigurePrefabIdentity(prefabRoot);
+            RemoveZoneSpecificComponents(prefabRoot);
+            ConfigurePrefabInternalReferences(prefabRoot);
+        });
+    }
+
+    private static void EnsureEnemyPrefabContractsInternal()
+    {
+        EnsurePufferfishEnemyContract();
+        EnsureFishingRodEnemyContract();
+        EnsureMineEnemyContract();
+    }
+
+    private static void EnsurePufferfishEnemyContract()
+    {
+        EditPrefab(PufferfishPrefabPath, prefabRoot =>
+        {
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            EnsureComponent<PufferfishEnemy>(prefabRoot);
+            foreach (BoxCollider2D boxCollider in prefabRoot.GetComponents<BoxCollider2D>())
+            {
+                UnityEngine.Object.DestroyImmediate(boxCollider);
+            }
+
+            CircleCollider2D bodyCollider = EnsureComponent<CircleCollider2D>(prefabRoot);
+            bodyCollider.isTrigger = true;
+            prefabRoot.tag = EnemyTagCatalog.Pufferfish;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Enemy");
+        });
+    }
+
     private static void EnsureFishingRodEnemyContract()
     {
-        GameObject prefabRoot = PrefabUtility.LoadPrefabContents(FishingRodPrefabPath);
-        if (prefabRoot == null)
+        EditPrefab(FishingRodPrefabPath, prefabRoot =>
         {
-            throw new InvalidOperationException($"Missing fishing rod prefab at {FishingRodPrefabPath}.");
-        }
-
-        try
-        {
-            if (prefabRoot.GetComponent<FishingRodEnemy>() == null)
-            {
-                prefabRoot.AddComponent<FishingRodEnemy>();
-            }
-
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            EnsureComponent<FishingRodEnemy>(prefabRoot);
+            EnsureAnyTriggerCollider(prefabRoot);
             prefabRoot.tag = EnemyTagCatalog.FishingRod;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Enemy");
+        });
+    }
 
-            int enemyLayer = LayerMask.NameToLayer("Enemy");
-            if (enemyLayer >= 0)
-            {
-                ApplyLayerRecursively(prefabRoot, enemyLayer);
-            }
-
-            PrefabUtility.SaveAsPrefabAsset(prefabRoot, FishingRodPrefabPath);
-        }
-        finally
+    private static void EnsureMineEnemyContract()
+    {
+        EditPrefab(MinePrefabPath, prefabRoot =>
         {
-            PrefabUtility.UnloadPrefabContents(prefabRoot);
-        }
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            EnsureAnyTriggerCollider(prefabRoot);
+            prefabRoot.tag = EnemyTagCatalog.Mine;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Enemy");
+        });
+    }
+
+    private static void EnsureCollectiblePrefabContracts()
+    {
+        EnsureShrimpContract(ShrimpPrefabPath, 1);
+        EnsureShrimpContract(RareShrimpPrefabPath, 10);
+    }
+
+    private static void EnsureShrimpContract(string prefabPath, int amount)
+    {
+        EditPrefab(prefabPath, prefabRoot =>
+        {
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            EnsureAnyTriggerCollider(prefabRoot);
+            ShrimpValue shrimpValue = EnsureComponent<ShrimpValue>(prefabRoot);
+            SetInt(shrimpValue, "amount", amount);
+            prefabRoot.tag = GameplayTagCatalog.Shrimp;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Collectible");
+        });
+    }
+
+    private static void EnsureWorldPrefabContracts()
+    {
+        EnsureDealerFishContract();
+        EnsureScenePortalContract();
+    }
+
+    private static void EnsureDealerFishContract()
+    {
+        EditPrefab(DealerFishPrefabPath, prefabRoot =>
+        {
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            EnsureComponent<DealerFish>(prefabRoot);
+            EnsureAnyTriggerCollider(prefabRoot);
+            prefabRoot.tag = GameplayTagCatalog.Collectible;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Collectible");
+        });
+    }
+
+    private static void EnsureScenePortalContract()
+    {
+        EditPrefab(ScenePortalPrefabPath, prefabRoot =>
+        {
+            RemoveMissingScriptsInHierarchy(prefabRoot);
+            ScenePortal portal = EnsureComponent<ScenePortal>(prefabRoot);
+            SetObjectReference(portal, "sceneFlow", null);
+            EnsureAnyTriggerCollider(prefabRoot);
+            prefabRoot.tag = GameplayTagCatalog.Portal;
+            ApplyLayerIfDefinedRecursively(prefabRoot, "Collectible");
+        });
     }
 
     private static GameObject RebuildPrefabFromSourceScene()
@@ -316,6 +481,7 @@ public static class PlayerPrefabContractUtility
         GameSessionController session = FindFirstInScene<GameSessionController>(scene);
         RunProgressionDirector progression = FindFirstInScene<RunProgressionDirector>(scene);
         SceneFlowController sceneFlow = FindFirstInScene<SceneFlowController>(scene);
+        ConfigureSceneFlowController(sceneFlow);
         Camera mainCamera = FindMainCamera(scene);
         CameraController cameraController = mainCamera != null ? mainCamera.GetComponent<CameraController>() : null;
         InkPulseController inkPulse = playerRoot.GetComponent<InkPulseController>();
@@ -343,14 +509,17 @@ public static class PlayerPrefabContractUtility
         InGameShopManager shop = FindFirstInScene<InGameShopManager>(scene);
         SetObjectReference(shop, "session", session);
         SetObjectReference(shop, "progression", progression);
+        ConfigureInGameShopUiReferences(scene, shop);
 
         PauseMenuManager pause = FindFirstInScene<PauseMenuManager>(scene);
         SetObjectReference(pause, "session", session);
         SetObjectReference(pause, "sceneFlow", sceneFlow);
+        ConfigurePauseMenuUiReferences(scene, pause);
 
         GameOverMenuManager gameOver = FindFirstInScene<GameOverMenuManager>(scene);
         SetObjectReference(gameOver, "session", session);
         SetObjectReference(gameOver, "sceneFlow", sceneFlow);
+        ConfigureGameOverMenuUiReferences(scene, gameOver);
 
         ZoneLightingController lighting = FindFirstInScene<ZoneLightingController>(scene);
         SetObjectReference(lighting, "session", session);
@@ -365,9 +534,19 @@ public static class PlayerPrefabContractUtility
             SetObjectReference(tracker, "cameraTransform", mainCamera != null ? mainCamera.transform : null);
         }
 
+        foreach (ParallaxLayer parallaxLayer in FindAllInScene<ParallaxLayer>(scene))
+        {
+            SetObjectReference(parallaxLayer, "cameraTransform", mainCamera != null ? mainCamera.transform : null);
+        }
+
         foreach (DestroyOffscreen cleanup in FindAllInScene<DestroyOffscreen>(scene))
         {
             SetObjectReference(cleanup, "targetCamera", mainCamera);
+        }
+
+        foreach (ScenePortal portal in FindAllInScene<ScenePortal>(scene))
+        {
+            SetObjectReference(portal, "sceneFlow", sceneFlow);
         }
 
         foreach (ChargeBar chargeBar in FindAllInScene<ChargeBar>(scene))
@@ -377,14 +556,16 @@ public static class PlayerPrefabContractUtility
                 SetObjectReference(chargeBar, "slider", chargeBar.GetComponentInChildren<UnityEngine.UI.Slider>(includeInactive: true));
             }
         }
+
+        ConfigureHudReferences(scene);
     }
 
     private static void ConfigureZoneSpecificPlayerOverrides(Scene scene, GameObject playerRoot)
     {
-        bool isZonaExe = scene.path.EndsWith("ZonaExe.unity", StringComparison.OrdinalIgnoreCase);
+        bool isZonaAbisopelagica = scene.path.EndsWith("ZonaAbisopelagica.unity", StringComparison.OrdinalIgnoreCase);
         LightGrazeSource lightGraze = playerRoot.GetComponent<LightGrazeSource>();
 
-        if (isZonaExe)
+        if (isZonaAbisopelagica)
         {
             if (lightGraze == null)
             {
@@ -457,6 +638,189 @@ public static class PlayerPrefabContractUtility
 
         SetObjectReference(music, "normalTrack", normal);
         SetObjectReference(music, "inkTrack", ink);
+    }
+
+    private static void ConfigureSceneFlowController(SceneFlowController sceneFlow)
+    {
+        if (sceneFlow == null)
+        {
+            return;
+        }
+
+        SetString(sceneFlow, "mainMenuSceneName", "MainMenu");
+        SetInt(sceneFlow, "mainMenuBuildIndex", 0);
+        SetString(sceneFlow, "tutorialSceneName", TutorialScenePath);
+        SetString(sceneFlow, "shopMenuSceneName", ShopMenuScenePath);
+        SetString(sceneFlow, "optionsMenuSceneName", OptionsMenuScenePath);
+        SetString(sceneFlow, "primaryGameplaySceneName", SourceScenePath);
+        SetString(sceneFlow, "secondaryGameplaySceneName", SecondaryScenePath);
+    }
+
+    private static void ConfigureInGameShopUiReferences(Scene scene, InGameShopManager shop)
+    {
+        if (shop == null)
+        {
+            return;
+        }
+
+        GameObject menuRoot = FindChildGameObject(shop.transform, "InGameCanvas")
+            ?? FindGameObjectByName(scene, "InGameCanvas");
+
+        SetObjectReference(shop, "menuRoot", menuRoot);
+        SetObjectReference(shop, "canvasGroup", menuRoot != null ? menuRoot.GetComponent<CanvasGroup>() : null);
+        SetObjectReference(shop, "gadgetImage", FindComponentInChildrenByName<Image>(menuRoot, "Gadget"));
+        SetObjectReference(shop, "priceText", FindComponentInChildrenByName<TMP_Text>(menuRoot, "Precio"));
+        SetObjectReference(shop, "buyKeyText", FindComponentInChildrenByName<TMP_Text>(menuRoot, "B"));
+        SetObjectReference(shop, "buyButton", EnsureBuyOfferButton(menuRoot));
+        SetObjectReference(shop, "insufficientFundsText", FindComponentInChildrenByName<TMP_Text>(menuRoot, "SinSaldo"));
+        SetObjectReference(shop, "timerText", FindComponentInChildrenByName<TMP_Text>(menuRoot, "Tiempo", "Timer"));
+    }
+
+    private static Button EnsureBuyOfferButton(GameObject menuRoot)
+    {
+        GameObject buyButtonObject = FindChildGameObject(menuRoot != null ? menuRoot.transform : null, "Comprar");
+        if (buyButtonObject == null)
+        {
+            return null;
+        }
+
+        Button button = buyButtonObject.GetComponent<Button>();
+        if (button == null)
+        {
+            button = buyButtonObject.AddComponent<Button>();
+        }
+
+        if (button.targetGraphic == null)
+        {
+            button.targetGraphic = buyButtonObject.GetComponent<Graphic>();
+        }
+
+        if (button.targetGraphic != null)
+        {
+            button.targetGraphic.raycastTarget = true;
+        }
+
+        return button;
+    }
+
+    private static void ConfigurePauseMenuUiReferences(Scene scene, PauseMenuManager pause)
+    {
+        if (pause == null)
+        {
+            return;
+        }
+
+        GameObject menuRoot = FindChildGameObject(pause.transform, "PauseCanvas")
+            ?? FindGameObjectByName(scene, "PauseCanvas");
+
+        SetObjectReference(pause, "menuRoot", menuRoot);
+        SetObjectReference(pause, "canvasGroup", menuRoot != null ? menuRoot.GetComponent<CanvasGroup>() : null);
+        SetObjectReference(pause, "resumeButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonReanudar", "Reanudar"));
+        SetObjectReference(pause, "optionsButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonOpciones", "Opciones"));
+        SetObjectReference(pause, "menuButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonMenu", "Menu"));
+        SetObjectReference(pause, "exitButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonSalir", "Salir"));
+        SetObjectArray(pause, "animatedDecorations", FindRectTransformsByName(menuRoot, "PauseDecoration"));
+        SetObjectArray(
+            pause,
+            "animatedButtons",
+            FindRectTransformsByName(menuRoot, "BotonReanudar", "BotonOpciones", "BotonMenu", "BotonSalir"));
+    }
+
+    private static void ConfigureGameOverMenuUiReferences(Scene scene, GameOverMenuManager gameOver)
+    {
+        if (gameOver == null)
+        {
+            return;
+        }
+
+        GameObject menuRoot = FindChildGameObject(gameOver.transform, "GameOverCanvas")
+            ?? FindGameObjectByName(scene, "GameOverCanvas");
+
+        SetObjectReference(gameOver, "menuRoot", menuRoot);
+        SetObjectReference(gameOver, "canvasGroup", menuRoot != null ? menuRoot.GetComponent<CanvasGroup>() : null);
+        SetObjectReference(gameOver, "retryButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonReintentar"));
+        SetObjectReference(gameOver, "menuButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonMenu", "Menu"));
+        SetObjectArray(gameOver, "animatedDecorations", FindRectTransformsByName(menuRoot, "GameOverDecoration"));
+        SetObjectArray(gameOver, "animatedButtons", FindRectTransformsByName(menuRoot, "BotonReintentar", "BotonMenu"));
+    }
+
+    private static void ConfigureHudReferences(Scene scene)
+    {
+        ConfigureScoreDisplay(scene);
+
+        foreach (ShrimpCounterDisplay display in FindAllInScene<ShrimpCounterDisplay>(scene))
+        {
+            TMP_Text amountText = FindComponentInChildrenByName<TMP_Text>(display.gameObject, "ShrimpAmountText")
+                ?? display.GetComponentInChildren<TMP_Text>(includeInactive: true);
+
+            SetObjectReference(display, "amountText", amountText);
+        }
+
+        foreach (GadgetInventoryHud hud in FindAllInScene<GadgetInventoryHud>(scene))
+        {
+            RectTransform firstSlotRoot = FindComponentInChildrenByName<RectTransform>(hud.gameObject, "Gadget1");
+            RectTransform secondSlotRoot = FindComponentInChildrenByName<RectTransform>(hud.gameObject, "Gadget2");
+
+            SetObjectReference(hud, "firstSlotRoot", firstSlotRoot);
+            SetObjectReference(hud, "secondSlotRoot", secondSlotRoot);
+            SetObjectReference(hud, "firstSlotIcon", firstSlotRoot != null ? firstSlotRoot.GetComponent<Image>() : null);
+            SetObjectReference(hud, "secondSlotIcon", secondSlotRoot != null ? secondSlotRoot.GetComponent<Image>() : null);
+            SetObjectReference(hud, "firstSlotText", firstSlotRoot != null ? firstSlotRoot.GetComponentInChildren<TMP_Text>(includeInactive: true) : null);
+            SetObjectReference(hud, "secondSlotText", secondSlotRoot != null ? secondSlotRoot.GetComponentInChildren<TMP_Text>(includeInactive: true) : null);
+        }
+    }
+
+    private static void ConfigureScoreDisplay(Scene scene)
+    {
+        GameObject scoreRoot = FindGameObjectByName(scene, "Score");
+        if (scoreRoot == null)
+        {
+            return;
+        }
+
+        TMP_Text scoreText = scoreRoot.GetComponent<TMP_Text>()
+            ?? scoreRoot.GetComponentInChildren<TMP_Text>(includeInactive: true);
+        if (scoreText == null)
+        {
+            return;
+        }
+
+        ScoreCounterDisplay display = scoreRoot.GetComponent<ScoreCounterDisplay>();
+        if (display == null)
+        {
+            display = scoreRoot.AddComponent<ScoreCounterDisplay>();
+        }
+
+        scoreText.alignment = TextAlignmentOptions.TopRight;
+        scoreText.textWrappingMode = TextWrappingModes.NoWrap;
+        scoreText.overflowMode = TextOverflowModes.Overflow;
+
+        SetObjectReference(display, "scoreText", scoreText);
+        SetString(display, "prefix", string.Empty);
+        SetString(display, "suffix", string.Empty);
+    }
+
+    private static void ConfigureMainMenuController(Scene scene)
+    {
+        MainMenu controller = FindFirstInScene<MainMenu>(scene);
+        if (controller == null)
+        {
+            GameObject controllerObject = FindGameObjectByName(scene, "Canvas") ?? new GameObject("MainMenuController");
+            if (controllerObject.scene != scene)
+            {
+                SceneManager.MoveGameObjectToScene(controllerObject, scene);
+            }
+
+            controller = controllerObject.AddComponent<MainMenu>();
+        }
+
+        SetString(controller, "playSceneName", SourceScenePath);
+        SetString(controller, "optionsSceneName", OptionsMenuScenePath);
+
+        if (GetFloat(controller, "timeDelay") <= 0f)
+        {
+            SetFloat(controller, "timeDelay", 0.6f);
+        }
     }
 
     private static void ValidateSceneContract(Scene scene, GameObject playerRoot, GameObject prefabAsset)
@@ -748,6 +1112,294 @@ public static class PlayerPrefabContractUtility
 
         property.objectReferenceValue = value;
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void SetObjectArray(Component component, string propertyName, IReadOnlyList<UnityEngine.Object> values)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        SerializedObject serializedObject = new(component);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null || !property.isArray)
+        {
+            return;
+        }
+
+        int count = values?.Count ?? 0;
+        property.arraySize = count;
+        for (int i = 0; i < count; i++)
+        {
+            SerializedProperty element = property.GetArrayElementAtIndex(i);
+            if (element.propertyType == SerializedPropertyType.ObjectReference)
+            {
+                element.objectReferenceValue = values[i];
+            }
+        }
+
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void SetString(Component component, string propertyName, string value)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        SerializedObject serializedObject = new(component);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null || property.propertyType != SerializedPropertyType.String)
+        {
+            return;
+        }
+
+        property.stringValue = value;
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void SetFloat(Component component, string propertyName, float value)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        SerializedObject serializedObject = new(component);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null || property.propertyType != SerializedPropertyType.Float)
+        {
+            return;
+        }
+
+        property.floatValue = value;
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static float GetFloat(Component component, string propertyName)
+    {
+        if (component == null)
+        {
+            return 0f;
+        }
+
+        SerializedObject serializedObject = new(component);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        return property != null && property.propertyType == SerializedPropertyType.Float
+            ? property.floatValue
+            : 0f;
+    }
+
+    private static void SetInt(Component component, string propertyName, int value)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        SerializedObject serializedObject = new(component);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null || property.propertyType != SerializedPropertyType.Integer)
+        {
+            return;
+        }
+
+        property.intValue = value;
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void EditPrefab(string prefabPath, Action<GameObject> configure)
+    {
+        GameObject prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
+        if (prefabRoot == null)
+        {
+            throw new InvalidOperationException($"Missing prefab at {prefabPath}.");
+        }
+
+        try
+        {
+            configure(prefabRoot);
+            PrefabUtility.SaveAsPrefabAsset(prefabRoot, prefabPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(prefabRoot);
+        }
+    }
+
+    private static int RemoveMissingScriptsInScene(Scene scene)
+    {
+        int removedCount = 0;
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            removedCount += RemoveMissingScriptsInHierarchy(root);
+        }
+
+        return removedCount;
+    }
+
+    private static int RemoveMissingScriptsInHierarchy(GameObject root)
+    {
+        if (root == null)
+        {
+            return 0;
+        }
+
+        int removedCount = 0;
+        foreach (Transform transform in root.GetComponentsInChildren<Transform>(includeInactive: true))
+        {
+            GameObject gameObject = transform.gameObject;
+            int missingCount = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject);
+            if (missingCount <= 0)
+            {
+                continue;
+            }
+
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(gameObject);
+            removedCount += missingCount;
+        }
+
+        return removedCount;
+    }
+
+    private static T EnsureComponent<T>(GameObject target) where T : Component
+    {
+        if (target == null)
+        {
+            return null;
+        }
+
+        T component = target.GetComponent<T>();
+        return component != null ? component : target.AddComponent<T>();
+    }
+
+    private static Collider2D EnsureAnyTriggerCollider(GameObject target)
+    {
+        if (target == null)
+        {
+            return null;
+        }
+
+        Collider2D collider = target.GetComponent<Collider2D>();
+        if (collider == null)
+        {
+            collider = target.AddComponent<CircleCollider2D>();
+        }
+
+        collider.isTrigger = true;
+        return collider;
+    }
+
+    private static void ApplyLayerIfDefinedRecursively(GameObject root, string layerName)
+    {
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer >= 0)
+        {
+            ApplyLayerRecursively(root, layer);
+        }
+    }
+
+    private static GameObject FindGameObjectByName(Scene scene, string objectName)
+    {
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(includeInactive: true);
+            foreach (Transform transform in transforms)
+            {
+                if (transform.name == objectName)
+                {
+                    return transform.gameObject;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static GameObject FindChildGameObject(Transform root, string objectName)
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        Transform[] transforms = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        foreach (Transform transform in transforms)
+        {
+            if (transform.name == objectName)
+            {
+                return transform.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static T FindComponentInChildrenByName<T>(GameObject root, params string[] objectNames) where T : Component
+    {
+        if (root == null || objectNames == null || objectNames.Length == 0)
+        {
+            return null;
+        }
+
+        HashSet<string> names = new(objectNames);
+        Transform[] transforms = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        foreach (Transform transform in transforms)
+        {
+            if (names.Contains(transform.name) && transform.TryGetComponent(out T component))
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    private static RectTransform[] FindRectTransformsByName(GameObject root, params string[] objectNames)
+    {
+        if (root == null || objectNames == null || objectNames.Length == 0)
+        {
+            return Array.Empty<RectTransform>();
+        }
+
+        HashSet<string> names = new(objectNames);
+        List<RectTransform> matches = new();
+        RectTransform[] rectTransforms = root.GetComponentsInChildren<RectTransform>(includeInactive: true);
+        foreach (RectTransform rectTransform in rectTransforms)
+        {
+            if (names.Contains(rectTransform.name))
+            {
+                matches.Add(rectTransform);
+            }
+        }
+
+        return matches.ToArray();
+    }
+
+    private static void EnsureBuildSettingsScenes()
+    {
+        Dictionary<string, EditorBuildSettingsScene> existingScenes = EditorBuildSettings.scenes
+            .Where(scene => !string.IsNullOrWhiteSpace(scene.path))
+            .ToDictionary(scene => scene.path, scene => scene);
+
+        List<EditorBuildSettingsScene> orderedScenes = new();
+        foreach (string scenePath in BuildScenePaths)
+        {
+            bool enabled = !existingScenes.TryGetValue(scenePath, out EditorBuildSettingsScene existing) || existing.enabled;
+            orderedScenes.Add(new EditorBuildSettingsScene(scenePath, enabled));
+        }
+
+        foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+        {
+            if (!orderedScenes.Any(existing => existing.path == scene.path))
+            {
+                orderedScenes.Add(scene);
+            }
+        }
+
+        EditorBuildSettings.scenes = orderedScenes.ToArray();
     }
 
     private static void ApplyLayerRecursively(GameObject root, int layer)

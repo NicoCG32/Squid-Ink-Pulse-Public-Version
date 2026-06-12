@@ -45,6 +45,9 @@ Responsabilidad:
 - Mantener efecto visual mientras el juego esta pausado.
 - Reanudar el juego solo despues de terminar la animacion de cierre.
 
+Input:
+- `P` o `Esc` alternan el menu de pausa.
+
 ## Game over
 
 Archivo: `Assets/Implementation/Code/UI/GameOver/GameOverMenuManager.cs`
@@ -64,7 +67,7 @@ Responsabilidad:
 - Abrir overlay interactuable al tocar `DealerFish`.
 - Mostrar imagen del prefab de gadget seleccionado aleatoriamente.
 - Mostrar precio y contador de expiracion.
-- Permitir compra con camarones mediante `B`.
+- Permitir compra con camarones mediante `B` o click sobre el boton `Comprar`.
 - Cerrar automaticamente al agotarse el tiempo.
 
 Reglas:
@@ -73,6 +76,7 @@ Reglas:
 - El contador usa tiempo real cuando `pauseGameplayWhileOpen` esta activo.
 - Los textos `B` y `Precio` pulsan para llamar la atencion.
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
+- `Comprar` debe tener componente `Button` y apuntar a `InGameShopManager.BuyCurrentOffer`.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
 
 ## HUD
@@ -80,10 +84,12 @@ Reglas:
 Archivos:
 - `Assets/Implementation/Code/UI/HUD/ChargeBar.cs`
 - `Assets/Implementation/Code/UI/HUD/ShrimpCounterDisplay.cs`
+- `Assets/Implementation/Code/UI/HUD/ScoreCounterDisplay.cs`
 - `Assets/Implementation/Code/UI/HUD/GadgetInventoryHud.cs`
 
 Responsabilidad:
 - Mostrar carga del Ink-Pulse.
+- Mostrar score runtime de la run.
 - Mostrar total de camarones persistidos en `ShrimpRuntimeWallet`.
 - Mostrar gadgets con su icono dentro del hueco `GadgetN`.
 - Mostrar tecla solo si el gadget del hueco es activo: `Q` en `Gadget1`, `W` en `Gadget2`.

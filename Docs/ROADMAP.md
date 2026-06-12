@@ -22,7 +22,7 @@ Implementado:
 - Ink-Pulse formalizado como `Idle`, `Charging`, `Ready` y `Active`.
 - Animacion visual de Ink-Pulse separada entre `SquidVisual` e `InkPulseVisual`.
 - Jugador canonico como prefab `Assets/Content/Prefabs/Player/BabySquid.prefab`.
-- `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial` usan instancias de ese prefab bajo el nodo `Squid`.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan instancias de ese prefab bajo el nodo `Squid`.
 - Persistencia runtime de Ink-Pulse y gadgets entre portales.
 - Reinicio de Ink-Pulse y gadgets al entrar en `GameSessionState.GameOver`.
 - HUD de camarones, carga de Ink-Pulse y slots de gadgets.
@@ -46,10 +46,10 @@ Pendiente:
 ### Portales de zona
 
 Implementado:
-- `ScenePortal` cambia entre `ZonaEpipelagica` y `ZonaExe`.
+- `ScenePortal` cambia entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - `LevelSpawner` instancia portales como evento de mundo.
 - `ZonaEpipelagica` usa `PortalSpawnPolicy.PostBossWindow`.
-- `ZonaExe` usa `PortalSpawnPolicy.AlwaysInterval`, con aparicion cada `20s`.
+- `ZonaAbisopelagica` usa `PortalSpawnPolicy.AlwaysInterval`, con aparicion cada `20s`.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - `PlayerRuntimeState.PortalTransition` reproduce `PortalEffect` antes de cargar la escena y da prioridad visual a `PortalVisual`.
 
@@ -77,13 +77,13 @@ Implementado:
 - Perfiles de spawn por enemigo.
 - Tags formales para `EnemyPezGlobo`, `EnemyMina` y `EnemyCanaPescar`.
 - SS Carnage y red como evento de boss integrado con progresion.
-- Spawn regular aumenta durante `BossActive` y baja durante `PostBossWindow`.
-- `ZonaExe` tiene oscuridad ambiental mediante `ZoneLightingController` y `LightGrazeSource`.
+- Spawn regular aumenta durante `BossActive`; `PostBossWindow` mantiene presion alta salvo que el jugador cruce portal y reinicie la intensidad en otra zona.
+- `ZonaAbisopelagica` tiene oscuridad ambiental mediante `ZoneLightingController` y `LightGrazeSource`.
 
 Pendiente:
 - Completar comportamiento propio de mina y cana.
 - Expandir variantes de enemigos y bosses segun el informe.
-- Definir enemigos o patrones propios de `ZonaExe`.
+- Definir enemigos o patrones propios de `ZonaAbisopelagica`.
 - Balancear pesos, intensidades y multiplicadores por zona.
 
 ## Prioridad P0: Player como prefab
@@ -109,7 +109,7 @@ BabySquid
 
 ### Por que es critico
 
-- Evita que `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial` tengan copias divergentes del jugador.
+- Evita que `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` tengan copias divergentes del jugador.
 - Permite implementar skins sin reconstruir cada escena.
 - Permite que tutorial y zonas compartan exactamente el mismo contrato visual y mecanico.
 - Reduce errores al modificar `GrazeZone`, collider, `SquidVisual`, `InkPulseVisual` o inventario.
@@ -127,8 +127,8 @@ BabySquid
 
 1. `BabySquid.prefab` creado desde la jerarquia actual del jugador.
 2. Dependencias de escena resueltas en runtime por los componentes del jugador cuando el prefab no serializa referencias externas.
-3. Copias manuales de `Squid` reemplazadas por instancias de prefab en `ZonaEpipelagica`, `ZonaExe` y `ZonaTutorial`.
-4. `ZonaExe` conserva `LightGrazeSource` como override de escena, porque esa capacidad visual pertenece a la zona y no al prefab base.
+3. Copias manuales de `Squid` reemplazadas por instancias de prefab en `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial`.
+4. `ZonaAbisopelagica` conserva `LightGrazeSource` como override de escena, porque esa capacidad visual pertenece a la zona y no al prefab base.
 5. Contrato final documentado en `RuntimeHierarchyAudit.md`, `AssetFlow.md` y `AnimationStandards.md`.
 
 ### Trabajo pendiente derivado
@@ -267,7 +267,7 @@ Despues de los bloques anteriores, quedan estas mejoras de continuidad:
 2. Aparicion de tienda y portales basada en progresion mas expresiva.
 3. Comportamiento completo de mina y cana.
 4. Variantes de enemigos y bosses del informe.
-5. Balance de `ZonaExe`, incluyendo oscuridad, patrones y audio.
+5. Balance de `ZonaAbisopelagica`, incluyendo oscuridad, patrones y audio.
 6. Validaciones automaticas para boundaries, prefabs criticos y escenas.
 7. Persistencia fuera de runtime para camarones, settings y perfil.
 
@@ -286,7 +286,7 @@ Despues de los bloques anteriores, quedan estas mejoras de continuidad:
 
 ## Invariante de boundaries
 
-Esta regla aplica a `ZonaEpipelagica`, `ZonaExe`, `ZonaTutorial` y cualquier zona futura.
+Esta regla aplica a `ZonaEpipelagica`, `ZonaAbisopelagica`, `ZonaTutorial` y cualquier zona futura.
 
 | Dominio | Contenedor obligatorio | Nodos obligatorios |
 | --- | --- | --- |
