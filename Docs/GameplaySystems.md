@@ -133,6 +133,7 @@ Estado actual:
 
 Archivos:
 - `Assets/Implementation/Code/Core/Session/RuntimeRunScore.cs`
+- `Assets/Implementation/Code/Core/Session/RuntimePlayerPace.cs`
 - `Assets/Implementation/Code/Core/Session/RunProgressionDirector.cs`
 - `Assets/Implementation/Code/UI/HUD/ScoreCounterDisplay.cs`
 
@@ -140,13 +141,20 @@ Responsabilidad:
 - Registrar avance abstracto de la partida como puntaje.
 - Subir rapidamente mientras la sesion esta en gameplay activo.
 - Persistir entre portales.
+- Conservar el valor acumulado al pasar de `ZonaEpipelagica` a `ZonaAbisopelagica`.
+- Pausar acumulacion desde el contacto con portal mientras la run esta en `RunEventState.Transitioning`.
 - Reiniciarse al entrar en Game Over.
+- Reiniciarse al pulsar reintentar, porque se inicia una run nueva desde `ZonaEpipelagica`.
 - Alimentar sistemas de progresion como precios de tienda.
+- Separar score y velocidad del flujo de intensidad de spawns.
 
 Reglas:
 - El score no es moneda y no se gasta.
 - `RunProgressionDirector` acumula el valor; `ScoreCounterDisplay` solo lo muestra.
 - El HUD puede tener un nodo `Score` con `TextMeshProUGUI`; la utilidad de escena le asigna `ScoreCounterDisplay`.
+- `RuntimePlayerPace` acumula la progresion de velocidad del calamar y persiste entre portales.
+- La velocidad horizontal normal crece de forma asintotica desde `minScrollSpeed` hacia `maxScrollSpeed`.
+- La intensidad de spawn usa otra curva: baja a alta, boss, post-boss intenso; cruzar portal reinicia esa intensidad en la zona destino.
 
 ## Gadgets e inventario
 
@@ -187,7 +195,8 @@ Archivos:
 
 Responsabilidad:
 - Instanciar `DealerFish` desde `LevelSpawner`.
-- Ubicar `DealerFish` en el cuarto inferior del rango entre `PlayerBoundaries`.
+- Ubicar `DealerFish` dentro de una zona normalizada configurable de la mitad inferior del rango entre `PlayerBoundaries`.
+- Separar intervalo base de aparicion y variacion aleatoria de cadencia.
 - Abrir un overlay temporal al colisionar con `DealerFish`.
 - Seleccionar un gadget aleatorio desde ofertas configuradas.
 - Mostrar icono, precio, tecla `B`, boton `Comprar`, contador y mensaje de saldo.
@@ -202,7 +211,9 @@ Reglas:
 - El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parametros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
-- `DealerFish` se consume al primer contacto con el jugador.
+- `DealerFish` permanece visible tras abrir tienda; su collider se desactiva para evitar aperturas repetidas.
+- `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
+- `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
 - La UI de tienda pertenece a la escena; el manager no autogenera canvas.
 
 ## Flujo de interaccion

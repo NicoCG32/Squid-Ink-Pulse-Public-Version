@@ -15,7 +15,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Flujo de escenas: `SceneFlowController`.
 - Movimiento del jugador: `PlayerMovement`.
 - Ink-Pulse: `InkPulseController` y `RuntimeInkPulseState`.
-- Score runtime: `RunProgressionDirector` acumula; `RuntimeRunScore` conserva; `ScoreCounterDisplay` muestra.
+- Score y pace runtime: `RunProgressionDirector` acumula; `RuntimeRunScore` conserva puntaje; `RuntimePlayerPace` conserva progresion de velocidad; `ScoreCounterDisplay` muestra puntaje.
 - Estado runtime del jugador: `PlayerStateController`.
 - Visuales del jugador: `PlayerVisualStateController` en el root decide entre `SquidVisual`, `InkPulseVisual` y `PortalVisual`.
 - Visual del cuerpo del jugador: `SquidVisual` con `Squid.controller`.
@@ -157,6 +157,7 @@ flowchart TD
 | --- | --- | --- |
 | `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y componer las zonas locales de luz. |
 | `Enviroment/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y recibe la textura compuesta de oscuridad. |
+| `BossManager` / `SSCarnageManager` | ninguno | No debe existir en esta zona mientras SS Carnage no sea parte de su diseno. Si aparece con `BossEventDirector`, es legacy y debe retirarse. |
 
 `LayerBlack` debe quedar sobre fondos y bajo entidades de gameplay. En el modo actual usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`. El modo `VisibleOutsideMask` queda reservado para el fallback legacy con `SpriteMask`.
 
@@ -199,7 +200,8 @@ En `ZonaAbisopelagica`, `LevelSpawner` tambien garantiza `LightGrazeSource` en e
 - aparece por la derecha de la camara;
 - usa capa `Collectible`;
 - usa tag `Collectible`;
-- se ubica en el cuarto inferior del rango definido por `PlayerBoundaries`;
+- se ubica en la zona inferior configurable del rango definido por `PlayerBoundaries`;
+- agenda cada aparicion con intervalo base multiplicado por un factor aleatorio de tienda;
 - abre `InGameShopManager` al colisionar con el jugador.
 
 ## Spawn de portales
@@ -257,6 +259,7 @@ Reglas:
 - No entregar gadgets por colision directa: los gadgets se compran desde `InGameShopManager`.
 - No permitir activacion manual de Ink-Pulse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
 - No usar `LightGrazeSource` para cargar Ink-Pulse; su unica consecuencia es visual y pertenece a `ZoneLightingController`.
+- No dejar `BossEventDirector` en `ZonaAbisopelagica`; esa zona no instancia SS Carnage ni `BossNetWall` en el contrato actual.
 - No dejar portales fijos `PortalTo...` en escena; los portales nacen desde `LevelSpawner`.
 - No usar tag `Shrimp` ni `Collectible` en portales; deben usar `Portal`.
 - No cargar zonas desde scripts de enemigo, tienda o HUD; el contacto pertenece a `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.

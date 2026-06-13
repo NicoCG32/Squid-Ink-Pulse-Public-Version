@@ -495,12 +495,9 @@ public static class PlayerPrefabContractUtility
         SetObjectReference(levelSpawner, "progression", progression);
         SetObjectReference(levelSpawner, "spawnCamera", mainCamera);
         SetObjectReference(levelSpawner, "player", playerRoot.transform);
+        ConfigureLevelSpawnerTuning(scene, levelSpawner);
 
-        BossEventDirector bossDirector = FindFirstInScene<BossEventDirector>(scene);
-        SetObjectReference(bossDirector, "session", session);
-        SetObjectReference(bossDirector, "progression", progression);
-        SetObjectReference(bossDirector, "spawnCamera", mainCamera);
-        SetObjectReference(bossDirector, "eventCameraController", cameraController);
+        ConfigureBossEventDirector(scene, session, progression, mainCamera, cameraController);
 
         SetObjectReference(cameraController, "currentCamera", mainCamera);
         SetObjectReference(cameraController, "target", playerRoot.transform);
@@ -558,6 +555,113 @@ public static class PlayerPrefabContractUtility
         }
 
         ConfigureHudReferences(scene);
+    }
+
+    private static void ConfigureLevelSpawnerTuning(Scene scene, LevelSpawner levelSpawner)
+    {
+        if (levelSpawner == null)
+        {
+            return;
+        }
+
+        SetFloat(levelSpawner, "coinSpawnChance", 0.225f);
+        SetFloat(levelSpawner, "rareCoinSpawnChanceWithinCoins", 0.1f);
+        SetFloat(levelSpawner, "upperZoneSpawnCoverage", 0.75f);
+        SetFloat(levelSpawner, "lowerZoneSpawnCoverage", 0.75f);
+        SetFloat(levelSpawner, "fishingRodTuning.dropSpeed", 14f);
+
+        SetFloat(levelSpawner, "firstDealerFishSpawnDelay", 18f);
+        SetFloat(levelSpawner, "dealerFishSpawnInterval", 30f);
+        SetFloat(levelSpawner, "dealerFishIntervalRandomMultiplierMin", 1f);
+        SetFloat(levelSpawner, "dealerFishIntervalRandomMultiplierMax", 3f);
+        SetFloat(levelSpawner, "dealerFishSpawnDistanceFromCameraRight", 5f);
+        SetFloat(levelSpawner, "dealerFishSpawnZoneMin", 0f);
+        SetFloat(levelSpawner, "dealerFishSpawnZoneMax", 0.25f);
+
+        if (scene.path.Equals(SecondaryScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.AlwaysInterval);
+            SetFloat(levelSpawner, "firstPortalSpawnDelay", 20f);
+            SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
+            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
+            return;
+        }
+
+        if (scene.path.Equals(SourceScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.PostBossWindow);
+            SetFloat(levelSpawner, "firstPortalSpawnDelay", 3f);
+            SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
+            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
+            return;
+        }
+
+        if (scene.path.Equals(TutorialScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.Disabled);
+            SetFloat(levelSpawner, "firstPortalSpawnDelay", 3f);
+            SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
+            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
+        }
+    }
+
+    private static void ConfigureBossEventDirector(
+        Scene scene,
+        GameSessionController session,
+        RunProgressionDirector progression,
+        Camera mainCamera,
+        CameraController cameraController)
+    {
+        BossEventDirector[] bossDirectors = FindAllInScene<BossEventDirector>(scene).ToArray();
+        if (bossDirectors.Length == 0)
+        {
+            return;
+        }
+
+        if (SceneDisablesBossEvent(scene))
+        {
+            foreach (BossEventDirector bossDirector in bossDirectors)
+            {
+                RemoveBossDirectorOwnerIfEmpty(bossDirector);
+            }
+
+            return;
+        }
+
+        BossEventDirector primaryBossDirector = bossDirectors[0];
+        SetObjectReference(primaryBossDirector, "session", session);
+        SetObjectReference(primaryBossDirector, "progression", progression);
+        SetObjectReference(primaryBossDirector, "spawnCamera", mainCamera);
+        SetObjectReference(primaryBossDirector, "eventCameraController", cameraController);
+    }
+
+    private static bool SceneDisablesBossEvent(Scene scene)
+    {
+        return scene.path.Equals(SecondaryScenePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void RemoveBossDirectorOwnerIfEmpty(BossEventDirector bossDirector)
+    {
+        if (bossDirector == null)
+        {
+            return;
+        }
+
+        GameObject owner = bossDirector.gameObject;
+        UnityEngine.Object.DestroyImmediate(bossDirector);
+
+        if (owner == null || owner.transform.childCount > 0 || !HasOnlyTransformComponent(owner))
+        {
+            return;
+        }
+
+        UnityEngine.Object.DestroyImmediate(owner);
+    }
+
+    private static bool HasOnlyTransformComponent(GameObject gameObject)
+    {
+        return gameObject.GetComponents<Component>()
+            .All(component => component == null || component is Transform);
     }
 
     private static void ConfigureZoneSpecificPlayerOverrides(Scene scene, GameObject playerRoot)
@@ -1201,12 +1305,24 @@ public static class PlayerPrefabContractUtility
 
         SerializedObject serializedObject = new(component);
         SerializedProperty property = serializedObject.FindProperty(propertyName);
-        if (property == null || property.propertyType != SerializedPropertyType.Integer)
+        if (property == null)
         {
             return;
         }
 
-        property.intValue = value;
+        if (property.propertyType == SerializedPropertyType.Integer)
+        {
+            property.intValue = value;
+        }
+        else if (property.propertyType == SerializedPropertyType.Enum)
+        {
+            property.enumValueIndex = Mathf.Clamp(value, 0, property.enumDisplayNames.Length - 1);
+        }
+        else
+        {
+            return;
+        }
+
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
     }
 

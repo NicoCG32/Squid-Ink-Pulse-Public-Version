@@ -81,7 +81,9 @@ Esto permite usar el mismo prefab como portal de ida y portal inverso.
 Cruzar un portal no equivale a Game Over:
 - `RuntimeGadgetInventory` conserva gadgets y slots.
 - `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante.
-- `GameSessionController` reinicia ambos solo al entrar en `GameSessionState.GameOver`.
+- `RuntimeRunScore` conserva el puntaje acumulado de la run.
+- `RuntimePlayerPace` conserva la progresion de velocidad.
+- `GameSessionController` reinicia esos estados de run solo al entrar en `GameSessionState.GameOver`.
 - `ShrimpRuntimeWallet` conserva camarones durante runtime.
 - Si el jugador entra al portal durante `InkPulseState.Active`, `PortalVisual` tiene prioridad visual, pero el estado runtime de Ink-Pulse sigue persistiendo hacia la escena siguiente.
 

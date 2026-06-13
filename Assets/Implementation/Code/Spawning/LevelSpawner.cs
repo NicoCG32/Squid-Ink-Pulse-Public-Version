@@ -109,6 +109,11 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField] private bool enableDealerFishSpawns = true;
     [SerializeField, Min(0f)] private float firstDealerFishSpawnDelay = 18f;
     [SerializeField, Min(1f)] private float dealerFishSpawnInterval = 30f;
+    [SerializeField, Min(1f)] private float dealerFishIntervalRandomMultiplierMin = 1f;
+    [SerializeField, Min(1f)] private float dealerFishIntervalRandomMultiplierMax = 3f;
+    [SerializeField, Min(0f)] private float dealerFishSpawnDistanceFromCameraRight = 5f;
+    [SerializeField, Range(0f, 0.5f)] private float dealerFishSpawnZoneMin = 0f;
+    [SerializeField, Range(0.01f, 0.5f)] private float dealerFishSpawnZoneMax = 0.25f;
 
     [Header("Portal Spawning")]
     [SerializeField] private PortalSpawnPolicy portalSpawnPolicy = PortalSpawnPolicy.PostBossWindow;
@@ -120,6 +125,7 @@ public class LevelSpawner : MonoBehaviour
 
     private float timer = 0f;
     private float dealerFishTimer;
+    private float dealerFishTargetInterval;
     private float portalTimer;
     private float activeIntervalMultiplier = 1f;
     private int spawnedEnemyCount;
@@ -167,10 +173,10 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
+        EnsureDealerFishTargetInterval();
         dealerFishTimer += Time.deltaTime;
 
-        float targetInterval = hasSpawnedDealerFish ? dealerFishSpawnInterval : firstDealerFishSpawnDelay;
-        if (dealerFishTimer < targetInterval)
+        if (dealerFishTimer < dealerFishTargetInterval)
         {
             return;
         }
@@ -179,6 +185,7 @@ public class LevelSpawner : MonoBehaviour
         {
             dealerFishTimer = 0f;
             hasSpawnedDealerFish = true;
+            ScheduleNextDealerFishTargetInterval();
         }
     }
 
@@ -414,11 +421,34 @@ public class LevelSpawner : MonoBehaviour
             return false;
         }
 
-        float lowerQuarterTopY = Mathf.Lerp(playerRange.x, playerRange.y, 0.25f);
-        float randomY = UnityEngine.Random.Range(playerRange.x, lowerQuarterTopY);
-        float spawnX = GetCameraRightEdgeX() + spawnDistanceFromCameraRight;
+        float minNormalized = Mathf.Clamp(dealerFishSpawnZoneMin, 0f, 0.5f);
+        float maxNormalized = Mathf.Clamp(dealerFishSpawnZoneMax, minNormalized, 0.5f);
+        float minY = Mathf.Lerp(playerRange.x, playerRange.y, minNormalized);
+        float maxY = Mathf.Lerp(playerRange.x, playerRange.y, maxNormalized);
+        float randomY = UnityEngine.Random.Range(minY, maxY);
+        float spawnX = GetCameraRightEdgeX() + dealerFishSpawnDistanceFromCameraRight;
         spawnPosition = new Vector3(spawnX, randomY, 0f);
         return true;
+    }
+
+    private void EnsureDealerFishTargetInterval()
+    {
+        if (dealerFishTargetInterval <= 0f)
+        {
+            ScheduleNextDealerFishTargetInterval();
+        }
+    }
+
+    private void ScheduleNextDealerFishTargetInterval()
+    {
+        float baseInterval = hasSpawnedDealerFish
+            ? dealerFishSpawnInterval
+            : firstDealerFishSpawnDelay;
+        float multiplierMin = Mathf.Max(1f, dealerFishIntervalRandomMultiplierMin);
+        float multiplierMax = Mathf.Max(multiplierMin, dealerFishIntervalRandomMultiplierMax);
+        float randomMultiplier = UnityEngine.Random.Range(multiplierMin, multiplierMax);
+
+        dealerFishTargetInterval = Mathf.Max(0f, baseInterval) * randomMultiplier;
     }
 
     private bool SpawnDealerFish()

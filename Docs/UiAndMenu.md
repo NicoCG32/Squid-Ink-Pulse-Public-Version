@@ -58,6 +58,7 @@ Responsabilidad:
 - Ofrecer navegacion hacia reinicio o menu principal.
 
 El overlay oscuro debe comportarse como pantalla completa, no como subventana.
+`Reintentar` inicia una run nueva desde `SceneFlowController.primaryGameplaySceneName`, por defecto `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 
 ## Tienda temporal
 

@@ -1270,6 +1270,7 @@ MonoBehaviour:
   postBossIntensityFloor: 0.25
   minScrollSpeed: 5
   maxScrollSpeed: 9
+  speedGrowthTimeConstantSeconds: 180
   maxSpawnInterval: 1.5
   minSpawnInterval: 0.65
   bossActiveSpawnIntervalMultiplier: 0.5
@@ -1949,6 +1950,11 @@ MonoBehaviour:
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30
+  dealerFishIntervalRandomMultiplierMin: 1
+  dealerFishIntervalRandomMultiplierMax: 3
+  dealerFishSpawnDistanceFromCameraRight: 5
+  dealerFishSpawnZoneMin: 0
+  dealerFishSpawnZoneMax: 0.25
   portalSpawnPolicy: 0
   portalSpawnedParent: {fileID: 948499086}
   firstPortalSpawnDelay: 3

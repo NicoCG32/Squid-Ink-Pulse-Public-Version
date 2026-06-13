@@ -21,6 +21,12 @@ public class SceneFlowController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    public void RestartRunFromPrimaryGameplayScene()
+    {
+        ResetRunScopedRuntimeState();
+        LoadSceneByName(primaryGameplaySceneName);
+    }
+
     public void LoadMainMenu()
     {
         Time.timeScale = 1f;
@@ -160,5 +166,13 @@ public class SceneFlowController : MonoBehaviour
         }
 
         return sceneWithoutExtension.Substring(lastSlashIndex + 1);
+    }
+
+    private void ResetRunScopedRuntimeState()
+    {
+        RuntimeGadgetInventory.ResetForRuntime();
+        RuntimeInkPulseState.ResetForRuntime();
+        RuntimeRunScore.ResetForRuntime();
+        RuntimePlayerPace.ResetForRuntime();
     }
 }

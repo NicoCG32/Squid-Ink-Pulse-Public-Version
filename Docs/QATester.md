@@ -60,8 +60,9 @@ Parametros ajustables:
 | --- | --- | --- |
 | `secondsToMaxIntensity` | Tiempo necesario para llegar a intensidad maxima dentro del ciclo. | La dificultad escala mas lento. |
 | `postBossIntensityFloor` | Piso minimo defensivo tras superar un boss. | Normalmente no domina, porque tras Carnage la intensidad se mantiene al maximo si no se cruza portal. |
-| `minScrollSpeed` | Velocidad horizontal minima. | La partida empieza mas rapida. |
-| `maxScrollSpeed` | Velocidad horizontal maxima. | El late game avanza mas rapido. |
+| `minScrollSpeed` | Velocidad horizontal minima del calamar. | La partida empieza mas rapida. |
+| `maxScrollSpeed` | Limite asintotico de velocidad horizontal del calamar. | El maximo teorico de velocidad aumenta. |
+| `speedGrowthTimeConstantSeconds` | Tiempo caracteristico de crecimiento asintotico de velocidad. | La velocidad tarda mas en acercarse al maximo si se sube. |
 | `maxSpawnInterval` | Intervalo de spawn cuando la intensidad es baja. | Aparecen menos objetos al inicio. |
 | `minSpawnInterval` | Intervalo de spawn cuando la intensidad es alta. | El late game respira mas si se sube; se satura mas si se baja. |
 | `bossActiveSpawnIntervalMultiplier` | Multiplicador del intervalo durante boss activo. | Si sube, aparecen menos obstaculos durante boss; si baja, aparecen mas. |
@@ -81,9 +82,26 @@ Nodos esperados: `GameSession` y objeto UI `Score` si existe en la escena.
 Reglas vigentes:
 - El score crece durante `GameSessionState.Playing`.
 - Persiste al cruzar portales.
+- Debe conservar el valor visible al pasar desde `ZonaEpipelagica` a `ZonaAbisopelagica`.
+- Deja de crecer durante `RunEventState.Transitioning`, es decir, desde el contacto con portal hasta la carga de escena.
 - Se reinicia al entrar en `GameSessionState.GameOver`.
+- Al pulsar `Reintentar`, la escena cargada debe ser `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 - `ScoreCounterDisplay` solo presenta el numero; no calcula progresion.
 - La tienda temporal usa `RuntimeRunScore.TotalScore` para calcular precios.
+
+## Velocidad del calamar
+
+Scripts: `RunProgressionDirector`, `RuntimePlayerPace`, `PlayerMovement`
+
+Reglas vigentes:
+- La velocidad horizontal normal ya no depende de la intensidad de spawn.
+- `RuntimePlayerPace` acumula tiempo efectivo de run y persiste entre portales.
+- La curva es asintotica: parte en `minScrollSpeed` y se acerca lentamente a `maxScrollSpeed`.
+- La velocidad deja de acumular durante `RunEventState.Transitioning`.
+- `GameOver` reinicia la progresion de velocidad.
+- Ink-Pulse sigue usando `inkPulseHorizontalSpeed` como override temporal.
+
+La intensidad de spawn sigue siendo otra curva: baja a alta, boss, post-boss intenso; si el jugador no cruza portal se mantiene alta, y si cruza portal la zona destino reinicia esa intensidad.
 
 ## Spawn general
 
@@ -127,8 +145,13 @@ Parametros ajustables:
 | Campo | Script | Que controla |
 | --- | --- | --- |
 | `enableDealerFishSpawns` | `LevelSpawner` | Activa o desactiva aparicion de tienda. |
-| `firstDealerFishSpawnDelay` | `LevelSpawner` | Tiempo hasta el primer DealerFish. |
-| `dealerFishSpawnInterval` | `LevelSpawner` | Intervalo entre DealerFish posteriores. |
+| `firstDealerFishSpawnDelay` | `LevelSpawner` | Tiempo base hasta el primer DealerFish. |
+| `dealerFishSpawnInterval` | `LevelSpawner` | Intervalo base entre DealerFish posteriores. |
+| `dealerFishIntervalRandomMultiplierMin` | `LevelSpawner` | Multiplicador aleatorio minimo del intervalo base. |
+| `dealerFishIntervalRandomMultiplierMax` | `LevelSpawner` | Multiplicador aleatorio maximo del intervalo base. |
+| `dealerFishSpawnDistanceFromCameraRight` | `LevelSpawner` | Distancia horizontal propia del DealerFish desde el borde derecho de camara. |
+| `dealerFishSpawnZoneMin` | `LevelSpawner` | Inicio normalizado de la zona vertical de aparicion, dentro de la mitad inferior. |
+| `dealerFishSpawnZoneMax` | `LevelSpawner` | Fin normalizado de la zona vertical de aparicion, limitado a la mitad inferior. |
 | `offerDurationSeconds` | `InGameShopManager` | Tiempo disponible para comprar. |
 | `pauseGameplayWhileOpen` | `InGameShopManager` | Si la tienda congela gameplay mientras corre en tiempo real. |
 | `globalPriceMultiplier` | `InGameShopManager` | Multiplicador general de precios. |
@@ -145,7 +168,9 @@ Reglas vigentes:
 - `SinSaldo` aparece solo despues de intentar comprar con `B` o click sin camarones suficientes.
 - La tienda puede ofrecer un gadget repetido, pero no permite comprarlo si ya existe en inventario.
 - Formula de precio vigente: `ceil(((score / scorePriceStep) + 1) * randomPriceMultiplier * precioBaseMinimo * globalPriceMultiplier)`.
-- Al colisionar con `DealerFish`, el objeto se consume aunque la tienda no logre abrirse.
+- Al colisionar con `DealerFish`, el objeto intenta abrir tienda una vez y permanece visible; su collider queda desactivado para no reabrir tienda mientras el jugador lo atraviesa.
+- El tiempo real entre apariciones es `intervaloBase * random(1, 3)` con los limites configurables anteriores.
+- Por contrato actual, `DealerFish` aparece entre `0` y `0.25` del rango vertical de `PlayerBoundaries`; `0` es `BottomBoundary` y `0.5` es el centro del rango.
 
 ## Portales
 
@@ -373,6 +398,8 @@ Reglas vigentes:
 ## SS Carnage
 
 Scripts: `BossEventDirector`, `SSCarnageController`, `SSCarnageNetWall`
+
+Escena esperada actual: `ZonaEpipelagica`. `ZonaAbisopelagica` no debe tener `BossEventDirector`, `SSCarnageManager` ni `BossNetWall`; si aparece un warning de referencias faltantes en esa zona, el objeto es legacy y debe limpiarse, no completarse con referencias ficticias.
 
 Parametros ajustables:
 

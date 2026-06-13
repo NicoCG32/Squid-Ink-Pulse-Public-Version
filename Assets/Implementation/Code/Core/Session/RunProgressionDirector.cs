@@ -62,6 +62,7 @@ public class RunProgressionDirector : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float minScrollSpeed = 5f;
     [SerializeField] private float maxScrollSpeed = 9f;
+    [SerializeField, Min(0.01f)] private float speedGrowthTimeConstantSeconds = 180f;
 
     [Header("Spawning")]
     [SerializeField] private float maxSpawnInterval = 1.5f;
@@ -134,18 +135,27 @@ public class RunProgressionDirector : MonoBehaviour
         }
 
         float deltaTime = Time.deltaTime;
-        elapsedSeconds += deltaTime;
-        integratedDistance += Mathf.Max(Current.TargetScrollSpeed, minScrollSpeed) * deltaTime;
-        UpdateScore(deltaTime);
-
-        if (EventState == RunEventState.Normal)
+        if (ShouldAdvanceRuntimeProgression())
         {
-            cycleElapsedSeconds += deltaTime;
-            bossCycleElapsedSeconds += deltaTime;
+            elapsedSeconds += deltaTime;
+            RuntimePlayerPace.Advance(deltaTime);
+            integratedDistance += Mathf.Max(Current.TargetScrollSpeed, minScrollSpeed) * deltaTime;
+            UpdateScore(deltaTime);
+
+            if (EventState == RunEventState.Normal)
+            {
+                cycleElapsedSeconds += deltaTime;
+                bossCycleElapsedSeconds += deltaTime;
+            }
         }
 
         UpdateEventStateTimer(deltaTime);
         RefreshSnapshot();
+    }
+
+    private bool ShouldAdvanceRuntimeProgression()
+    {
+        return EventState != RunEventState.Transitioning;
     }
 
     private void UpdateScore(float deltaTime)
@@ -233,6 +243,7 @@ public class RunProgressionDirector : MonoBehaviour
         eventStateRemainingSeconds = 0f;
         scoreAccumulator = 0f;
         ProgressionCycle = 0;
+        RuntimePlayerPace.ResetForRuntime();
         ApplyEventState(RunEventState.Normal, force: true);
 
         if (distanceReference != null)
@@ -252,7 +263,7 @@ public class RunProgressionDirector : MonoBehaviour
             ? 1f
             : Mathf.Clamp01(Mathf.Max(smoothedIntensity, floor));
 
-        float targetScrollSpeed = Mathf.Lerp(minScrollSpeed, Mathf.Max(minScrollSpeed, maxScrollSpeed), intensity);
+        float targetScrollSpeed = CalculateAsymptoticScrollSpeed();
         float baseSpawnInterval = Mathf.Lerp(
             Mathf.Max(minSpawnInterval, maxSpawnInterval),
             Mathf.Max(0.01f, minSpawnInterval),
@@ -273,6 +284,15 @@ public class RunProgressionDirector : MonoBehaviour
             bossInterval,
             ProgressionCycle,
             EventState);
+    }
+
+    private float CalculateAsymptoticScrollSpeed()
+    {
+        float minSpeed = Mathf.Max(0f, minScrollSpeed);
+        float maxSpeed = Mathf.Max(minSpeed, maxScrollSpeed);
+        float growthProgress = 1f - Mathf.Exp(-RuntimePlayerPace.ElapsedSpeedSeconds / speedGrowthTimeConstantSeconds);
+
+        return Mathf.Lerp(minSpeed, maxSpeed, Mathf.Clamp01(growthProgress));
     }
 
     private float GetEventSpawnIntervalMultiplier()

@@ -103,6 +103,7 @@ public class GameSessionController : MonoBehaviour
         RuntimeGadgetInventory.ResetForRuntime();
         RuntimeInkPulseState.ResetForRuntime();
         RuntimeRunScore.ResetForRuntime();
+        RuntimePlayerPace.ResetForRuntime();
     }
 
     private void ApplyTimeScale(GameSessionState state)

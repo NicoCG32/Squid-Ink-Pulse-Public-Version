@@ -1482,6 +1482,7 @@ MonoBehaviour:
   postBossIntensityFloor: 0.25
   minScrollSpeed: 5
   maxScrollSpeed: 9
+  speedGrowthTimeConstantSeconds: 180
   maxSpawnInterval: 1.5
   minSpawnInterval: 0.65
   bossActiveSpawnIntervalMultiplier: 0.5
@@ -2161,6 +2162,11 @@ MonoBehaviour:
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30
+  dealerFishIntervalRandomMultiplierMin: 1
+  dealerFishIntervalRandomMultiplierMax: 3
+  dealerFishSpawnDistanceFromCameraRight: 5
+  dealerFishSpawnZoneMin: 0
+  dealerFishSpawnZoneMax: 0.25
   portalSpawnPolicy: 1
   portalSpawnedParent: {fileID: 948499086}
   firstPortalSpawnDelay: 3
@@ -6661,7 +6667,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 9999999999999999999 mts
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 66acf449c090a6f44872f0804661222d, type: 2}
   m_sharedMaterial: {fileID: -7624617195445399225, guid: 66acf449c090a6f44872f0804661222d, type: 2}
@@ -6755,7 +6761,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreCounterDisplay
   scoreText: {fileID: 1909532244}
   prefix: 
-  suffix: ' Mts'
+  suffix: 
   forceRightAligned: 1
 --- !u!1 &1933070221
 GameObject:

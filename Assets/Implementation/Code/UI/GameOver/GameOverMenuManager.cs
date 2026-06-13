@@ -65,7 +65,7 @@ public class GameOverMenuManager : MonoBehaviour
             return;
         }
 
-        sceneFlow.RestartCurrentScene();
+        sceneFlow.RestartRunFromPrimaryGameplayScene();
     }
 
     public void GoToMainMenu()

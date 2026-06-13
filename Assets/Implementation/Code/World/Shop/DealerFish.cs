@@ -41,6 +41,5 @@ public class DealerFish : MonoBehaviour
         }
 
         InGameShopManager.TryOpenShopFromWorld();
-        Destroy(gameObject);
     }
 }

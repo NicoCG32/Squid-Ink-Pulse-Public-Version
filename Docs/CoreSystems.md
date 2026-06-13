@@ -54,6 +54,7 @@ Archivo: `Assets/Implementation/Code/Core/Scenes/SceneFlowController.cs`
 Responsabilidad:
 - Cargar escenas por nombre, indice o ruta `.unity`.
 - Reiniciar la escena actual.
+- Reiniciar una run desde `primaryGameplaySceneName`.
 - Volver al menu principal.
 - Restaurar `Time.timeScale` antes de cambiar de escena.
 - Preparar rutas conocidas para `ZonaTutorial`, `ShopMenu` y `OptionsMenu`.
@@ -63,6 +64,12 @@ Uso por portales:
 - `primaryGameplaySceneName` y `secondaryGameplaySceneName` definen el par de zonas jugables: `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - Las escenas destino deben estar registradas en Build Settings.
 - La carga por portal no reinicia gadgets ni Ink-Pulse.
+- La carga por portal tampoco reinicia score ni pace runtime.
+
+Uso por Game Over:
+- `GameOverMenuManager.Retry()` no recarga la escena activa.
+- Reintentar siempre inicia una run nueva desde `primaryGameplaySceneName`, aunque la derrota haya ocurrido en `ZonaAbisopelagica`.
+- Ese reintento limpia estado de run: gadgets, Ink-Pulse, score y pace.
 
 ## BoundaryReferenceResolver
 
@@ -79,7 +86,7 @@ La especificacion completa esta en [WorldAndCamera.md](WorldAndCamera.md).
 
 - La sesion global manda sobre pausa, game over y reanudacion.
 - La progresion no debe mezclarse con logica de UI.
-- Los cambios de escena no deben limpiar estado runtime salvo que la sesion entre en Game Over.
+- Los cambios de zona no deben limpiar estado runtime salvo que la sesion entre en Game Over o se ejecute un reintento explicito.
 - Los cambios de zona se disparan por `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.
 - Los limites de escena pertenecen a `PlayerBoundaries` y `CameraBoundaries`, no a campos manuales de scripts.
 - La limpieza fuera de pantalla pertenece a `DestroyOffscreen`; su posicion runtime se deriva de la camara, no de coordenadas manuales.

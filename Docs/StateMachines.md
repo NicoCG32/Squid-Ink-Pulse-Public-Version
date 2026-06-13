@@ -35,7 +35,7 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | --- | --- |
 | `Playing` | Gameplay activo y `Time.timeScale` normal. |
 | `Paused` | Pausa global, menus interactuables. |
-| `GameOver` | Derrota; reinicia gadgets e Ink-Pulse para siguiente partida. |
+| `GameOver` | Derrota; reinicia gadgets, Ink-Pulse, score y pace para la siguiente partida. |
 
 ### RunEventState
 
@@ -46,7 +46,7 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 | `Normal` | Frecuencia base segun intensidad. | Puede disparar un nuevo boss si el intervalo se cumple. |
 | `BossActive` | Fuerza intensidad maxima y frecuencia duplicada por defecto mediante intervalo `0.5x`. | No puede disparar otro boss. |
 | `PostBossWindow` | Mantiene la run intensa mientras aparece la oportunidad de portal. | Reinicia el reloj interno de boss para evitar otro Carnage inmediato. |
-| `Transitioning` | Bloquea spawn regular; al cruzar portal, la zona destino vuelve a empezar relajada. | No puede disparar otro boss. |
+| `Transitioning` | Bloquea spawn regular y pausa acumulacion de score/velocidad; al cruzar portal, la zona destino vuelve a empezar relajada en intensidad de spawn. | No puede disparar otro boss. |
 
 ### PlayerRuntimeState
 
