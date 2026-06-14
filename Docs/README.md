@@ -5,6 +5,7 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 ## Base del proyecto
 
 - [ProjectOverview.md](ProjectOverview.md) - vision general, pilares y estado actual.
+- [SoftwareArchitecture.md](SoftwareArchitecture.md) - contrato de capas, dependencias, estados, especializaciones y excepciones.
 - [ProjectStructure.md](ProjectStructure.md) - organizacion de carpetas y criterios.
 - [RuntimeHierarchyAudit.md](RuntimeHierarchyAudit.md) - scripts esperados por nodo, prefab y responsabilidad.
 - [ZonaEpipelagica.md](ZonaEpipelagica.md) - estructura de escena, managers y jerarquia runtime.
@@ -15,6 +16,7 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 ## Sistemas de juego
 
 - [CoreSystems.md](CoreSystems.md) - sesion, progresion, flujo de escenas y persistencia.
+- [PersistentProfile.md](PersistentProfile.md) - JSON local de progreso permanente, camarones, upgrades, skins y stats.
 - [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
 - [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos y SS Carnage.
 - [Portals.md](Portals.md) - portales entre zonas y reglas de carga.

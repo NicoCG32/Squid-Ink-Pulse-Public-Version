@@ -196,7 +196,7 @@ DifficultySettings
 Reglas:
 - El menu global puede modificar dificultad antes de iniciar partida.
 - La dificultad no debe ser un campo suelto en spawners; debe alimentar progresion desde un modelo central.
-- La persistencia real puede empezar con runtime y luego pasar a almacenamiento local.
+- Settings debe tener almacenamiento propio; no pertenece a `player-profile.json`.
 - `OptionsMenu` no debe duplicar logica con el menu de pausa.
 
 ## Prioridad P1: Tienda out-of-game
@@ -218,14 +218,14 @@ Permitir invertir camarones acumulados fuera de la run en:
 Antes de implementarla conviene tener:
 
 1. Player prefab, para que skins tengan una base clara.
-2. Persistencia durable de camarones, no solo runtime.
-3. Un modelo de perfil del jugador.
+2. Perfil persistente JSON con camarones, upgrades, skins y stats.
+3. Un modelo de settings separado.
 4. Catalogo de mejoras y costos.
 
 ### Arquitectura recomendada
 
-Componentes futuros:
-- `PlayerProfile`: dinero persistente, upgrades comprados y skin activa.
+Componentes actuales/futuros:
+- `PersistentPlayerProfile`: dinero persistente, upgrades comprados, skin activa y stats.
 - `UpgradeCatalog`: definiciones de mejoras.
 - `OutGameShopManager`: UI y compra.
 - `UpgradeEffectResolver`: aplica efectos al iniciar una run.
@@ -269,7 +269,7 @@ Despues de los bloques anteriores, quedan estas mejoras de continuidad:
 4. Variantes de enemigos y bosses del informe.
 5. Balance de `ZonaAbisopelagica`, incluyendo oscuridad, patrones y audio.
 6. Validaciones automaticas para boundaries, prefabs criticos y escenas.
-7. Persistencia fuera de runtime para camarones, settings y perfil.
+7. Persistencia fuera de runtime para camarones y perfil; settings queda como almacenamiento separado.
 
 ## Orden recomendado
 

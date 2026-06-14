@@ -105,24 +105,28 @@ La intensidad de spawn sigue siendo otra curva: baja a alta, boss, post-boss int
 
 ## Spawn general
 
-Script: `LevelSpawner`
+Scripts: `LevelSpawner`, `ZoneSpawnProfile`
 
 Nodo esperado: `LevelSpawner`
 
+Fuente de parametros:
+- Si `LevelSpawner.zoneSpawnProfile` esta asignado, balancear el asset `ZoneSpawnProfile`.
+- Si `zoneSpawnProfile` esta vacio, `LevelSpawner` usa sus campos legacy como fallback para escenas antiguas.
+
 Parametros ajustables:
 
-| Campo | Que controla | Efecto esperado al subirlo |
+| Campo | Fuente | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
-| `timeBetweenSpawns` | Intervalo base cuando no hay `RunProgressionDirector`. | Menos spawns si no hay progresion conectada. |
-| `spawnDistanceFromCameraRight` | Distancia horizontal desde el borde derecho de camara. | Los objetos aparecen mas lejos y tardan mas en llegar. |
-| `verticalPadding` | Margen vertical contra camara y boundaries. | Los spawns se alejan mas de los limites. |
-| `coinSpawnChance` | Probabilidad de que el spawn sea camaron. | Hay mas recompensa y menos peligro. |
-| `rareCoinSpawnChanceWithinCoins` | Probabilidad de camaron x10 cuando ya salio camaron. | Aumenta la economia de la run. |
-| `fishingRodEnemyInterval` | Cada cuantos enemigos de juego normal se fuerza una cana. | La cana aparece menos seguido si se sube. |
-| `upperZoneSpawnCoverage` | Porcion superior disponible para Pez Globo. | El Pez Globo tiene mas dispersion vertical. |
-| `lowerZoneSpawnCoverage` | Porcion inferior disponible para Mina. | La Mina tiene mas dispersion vertical. |
+| `timeBetweenSpawns` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Intervalo base cuando no hay `RunProgressionDirector`. | Menos spawns si no hay progresion conectada. |
+| `spawnDistanceFromCameraRight` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Distancia horizontal desde el borde derecho de camara. | Los objetos aparecen mas lejos y tardan mas en llegar. |
+| `verticalPadding` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Margen vertical contra camara y boundaries. | Los spawns se alejan mas de los limites. |
+| `coinSpawnChance` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Probabilidad de que el spawn sea camaron. | Hay mas recompensa y menos peligro. |
+| `rareCoinSpawnChanceWithinCoins` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Probabilidad de camaron x10 cuando ya salio camaron. | Aumenta la economia de la run. |
+| `fishingRodEnemyInterval` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Cada cuantos enemigos de juego normal se fuerza una cana. | La cana aparece menos seguido si se sube. |
+| `upperZoneSpawnCoverage` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Porcion superior disponible para Pez Globo. | El Pez Globo tiene mas dispersion vertical. |
+| `lowerZoneSpawnCoverage` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Porcion inferior disponible para Mina. | La Mina tiene mas dispersion vertical. |
 
-`enemyProfiles` define el peso por enemigo:
+`enemyProfiles` define el peso por enemigo. Si existe `ZoneSpawnProfile`, usar su arreglo:
 
 | Campo | Que controla | Nota de test |
 | --- | --- | --- |
@@ -136,22 +140,22 @@ Valor vigente de referencia: `coinSpawnChance = 0.225`, equivalente a tres cuart
 
 ## Tienda temporal
 
-Scripts: `LevelSpawner`, `DealerFish`, `InGameShopManager`
+Scripts: `LevelSpawner`, `ZoneSpawnProfile`, `DealerFish`, `InGameShopManager`
 
 Nodos esperados: `LevelSpawner`, prefab `DealerFish`, `UI/InGameShopManager`
 
 Parametros ajustables:
 
-| Campo | Script | Que controla |
+| Campo | Fuente | Que controla |
 | --- | --- | --- |
-| `enableDealerFishSpawns` | `LevelSpawner` | Activa o desactiva aparicion de tienda. |
-| `firstDealerFishSpawnDelay` | `LevelSpawner` | Tiempo base hasta el primer DealerFish. |
-| `dealerFishSpawnInterval` | `LevelSpawner` | Intervalo base entre DealerFish posteriores. |
-| `dealerFishIntervalRandomMultiplierMin` | `LevelSpawner` | Multiplicador aleatorio minimo del intervalo base. |
-| `dealerFishIntervalRandomMultiplierMax` | `LevelSpawner` | Multiplicador aleatorio maximo del intervalo base. |
-| `dealerFishSpawnDistanceFromCameraRight` | `LevelSpawner` | Distancia horizontal propia del DealerFish desde el borde derecho de camara. |
-| `dealerFishSpawnZoneMin` | `LevelSpawner` | Inicio normalizado de la zona vertical de aparicion, dentro de la mitad inferior. |
-| `dealerFishSpawnZoneMax` | `LevelSpawner` | Fin normalizado de la zona vertical de aparicion, limitado a la mitad inferior. |
+| `enableDealerFishSpawns` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Activa o desactiva aparicion de tienda. |
+| `firstDealerFishSpawnDelay` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Tiempo base hasta el primer DealerFish. |
+| `dealerFishSpawnInterval` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Intervalo base entre DealerFish posteriores. |
+| `dealerFishIntervalRandomMultiplierMin` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Multiplicador aleatorio minimo del intervalo base. |
+| `dealerFishIntervalRandomMultiplierMax` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Multiplicador aleatorio maximo del intervalo base. |
+| `dealerFishSpawnDistanceFromCameraRight` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Distancia horizontal propia del DealerFish desde el borde derecho de camara. |
+| `dealerFishSpawnZoneMin` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Inicio normalizado de la zona vertical de aparicion, dentro de la mitad inferior. |
+| `dealerFishSpawnZoneMax` | `ZoneSpawnProfile` o fallback `LevelSpawner` | Fin normalizado de la zona vertical de aparicion, limitado a la mitad inferior. |
 | `offerDurationSeconds` | `InGameShopManager` | Tiempo disponible para comprar. |
 | `pauseGameplayWhileOpen` | `InGameShopManager` | Si la tienda congela gameplay mientras corre en tiempo real. |
 | `globalPriceMultiplier` | `InGameShopManager` | Multiplicador general de precios. |
@@ -186,13 +190,13 @@ Parametros ajustables:
 
 | Campo | Que controla | Nota de test |
 | --- | --- | --- |
-| `portalPrefab` | Prefab de portal que se instancia en runtime. | Debe apuntar a `ScenePortal.prefab`. |
-| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaAbisopelagica` usa `AlwaysInterval`. |
+| `portalPrefab` | Prefab de portal que se instancia en runtime. | Vive en `ZoneSpawnProfile` si hay perfil asignado; si no, en fallback `LevelSpawner`. |
+| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaAbisopelagica` usa `AlwaysInterval`. Vive en `ZoneSpawnProfile` si hay perfil. |
 | `portalSpawnedParent` | Contenedor donde se agrupan los portales instanciados. | Debe apuntar al nodo `Portals`. |
-| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | `ZonaEpipelagica` usa `3s`; `ZonaAbisopelagica` usa `20s`. |
-| `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Solo aplica a `PostBossWindow`; `1` significa garantizado. |
-| `portalSpawnInterval` | Intervalo entre portales posteriores. | `ZonaAbisopelagica` usa `20s`. |
-| `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Debe estar activo por defecto. |
+| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | Vive en `ZoneSpawnProfile` si hay perfil; `ZonaEpipelagica` usa `3s`; `ZonaAbisopelagica` usa `20s`. |
+| `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Vive en `ZoneSpawnProfile` si hay perfil; solo aplica a `PostBossWindow`; `1` significa garantizado. |
+| `portalSpawnInterval` | Intervalo entre portales posteriores. | Vive en `ZoneSpawnProfile` si hay perfil; `ZonaAbisopelagica` usa `20s`. |
+| `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Vive en `ZoneSpawnProfile` si hay perfil; debe estar activo por defecto. |
 | `fallbackTransitionDelay` | Espera de respaldo si el jugador no tiene `PlayerVisualStateController`. | Vive en `ScenePortal`; normalmente debe ganar la duracion de `PortalEffect`. |
 | `primaryGameplaySceneName` | Zona base o retorno. | Vive en `SceneFlowController`; por defecto `ZonaEpipelagica`. |
 | `secondaryGameplaySceneName` | Zona alterna. | Vive en `SceneFlowController`; por defecto `ZonaAbisopelagica`. |
@@ -238,13 +242,13 @@ Reglas vigentes:
 
 ## Gadgets e inventario
 
-Scripts: `GadgetDefinitions`, `GadgetShopItem`, `PlayerGadgetInventory`, `GadgetInventoryHud`
+Scripts: `GadgetId`, `GadgetActivationKind`, `GadgetCatalog`, `GadgetShopItem`, `PlayerGadgetInventory`, `GadgetInventoryHud`
 
 Parametros ajustables:
 
 | Campo | Script | Que controla |
 | --- | --- | --- |
-| `GadgetCatalog.GetBaseShopPrice()` | `GadgetDefinitions` | Precio base por tipo de gadget. Actualmente es codigo, no Inspector. |
+| `GadgetCatalog.GetBaseShopPrice()` | `GadgetCatalog` | Precio base por tipo de gadget. Actualmente es codigo, no Inspector. |
 | `gadgetId` | `GadgetShopItem` | Identidad del gadget vendido por el prefab. |
 | `hudIcon` | `GadgetShopItem` | Icono mostrado en tienda y HUD. |
 | `hudIconTint` | `GadgetShopItem` | Tinte del icono. |
@@ -338,7 +342,7 @@ Parametros ajustables:
 
 Script de comportamiento: `PufferfishEnemy`
 
-Owner de parametros: `LevelSpawner.pufferfishTuning`
+Owner de parametros: `ZoneSpawnProfile.pufferfishTuning` cuando existe perfil; si no, fallback `LevelSpawner.pufferfishTuning`.
 
 Parametros ajustables:
 
@@ -362,15 +366,15 @@ La animacion de hinchado se reproduce una sola vez al entrar en expansion. El cl
 
 La mina no tiene script propio todavia. Su balance actual depende de:
 
-- Perfil `EnemyMina` en `LevelSpawner.enemyProfiles`.
-- `lowerZoneSpawnCoverage`.
+- Perfil `EnemyMina` en `ZoneSpawnProfile.enemyProfiles` o fallback `LevelSpawner.enemyProfiles`.
+- `lowerZoneSpawnCoverage` en `ZoneSpawnProfile` o fallback `LevelSpawner`.
 - Collider y escala del prefab.
 
 ### Cana de pescar
 
 Script de comportamiento: `FishingRodEnemy`
 
-Owner de parametros: `LevelSpawner.fishingRodTuning`
+Owner de parametros: `ZoneSpawnProfile.fishingRodTuning` cuando existe perfil; si no, fallback `LevelSpawner.fishingRodTuning`.
 
 Parametros ajustables:
 
@@ -383,7 +387,7 @@ Parametros ajustables:
 | `minimumHorizontalLeadDistance` | Distancia minima propia de la cana desde el borde derecho de camara. | Evita que aparezca demasiado cerca a velocidades bajas. |
 
 Tambien depende de:
-- Perfil `EnemyCanaPescar` en `LevelSpawner.enemyProfiles`.
+- Perfil `EnemyCanaPescar` en `ZoneSpawnProfile.enemyProfiles` o fallback `LevelSpawner.enemyProfiles`.
 - `fishingRodEnemyInterval`.
 - Collider y escala del prefab.
 
@@ -446,7 +450,12 @@ Parametros ajustables:
 | `followVertical` | `ParallaxLayer` | Si la capa acompana movimiento vertical. |
 | `extraTilesPerSide` | `ParallaxLayer` | Cantidad de tiles laterales para continuidad visual. |
 
-`HorizontalTracker` no tiene parametros de balance: solo sigue la camara asignada. `DestroyOffscreen` no tiene parametros de balance: sigue el borde izquierdo de la camara y destruye enemigos, camarones, collectibles y portales que ya salieron de pantalla. La referencia `targetCamera` es cableado tecnico, no un valor de balance.
+`HorizontalTracker` no tiene parametros de balance: solo sigue la camara asignada. `DestroyOffscreen` no tiene parametros de balance: sigue el borde izquierdo de la camara, ajusta el alto del trigger desde `CameraBoundaries` y destruye enemigos, camarones, collectibles y portales que ya salieron de pantalla. La referencia `targetCamera` es cableado tecnico, no un valor de balance.
+
+Contrato de `CleanUp`:
+- Debe ser instancia de `Assets/Content/Prefabs/World/CleanUp.prefab`.
+- Su altura efectiva es la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
+- Para corregir su cobertura vertical, no se edita el prefab ni la posicion del `GarbageCollector`; se corrigen los colliders de `CameraBoundaries`.
 
 ## UI y menus
 
@@ -470,9 +479,9 @@ Parametros ajustables:
 Reglas vigentes:
 - La pausa se alterna con `P` o `Esc`.
 
-## Economia de camarones
+## Economia de camarones y perfil persistente
 
-Scripts: `ShrimpValue`, `ShrimpRuntimeWallet`, `ShrimpCounterDisplay`
+Scripts: `ShrimpValue`, `ShrimpRuntimeWallet`, `PersistentPlayerProfile`, `PlayerProfileRepository`, `ShrimpCounterDisplay`
 
 Parametros ajustables:
 
@@ -482,6 +491,13 @@ Parametros ajustables:
 | `prefix` | `ShrimpCounterDisplay` | Texto previo al numero en HUD. |
 
 `ShrimpRuntimeWallet` no tiene parametros de balance en Inspector. Es almacenamiento runtime y API de suma/gasto.
+
+Persistencia:
+- El archivo se guarda como `Application.persistentDataPath/player-profile.json`.
+- `wallet.totalShrimps` debe sobrevivir al cierre del juego.
+- `stats.totalShrimpsCollected` aumenta al recolectar camarones, no al recibir reembolsos.
+- La skin default debe existir como `skin.default` en `skins.unlockedSkinIds` y `skins.equippedSkinId`.
+- Settings no deben aparecer en este JSON.
 
 ## Valores que no conviene tocar como balance
 

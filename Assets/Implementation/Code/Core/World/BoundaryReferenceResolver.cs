@@ -1,11 +1,5 @@
 using UnityEngine;
 
-public enum BoundaryReferenceDomain
-{
-    Camera,
-    Player
-}
-
 public static class BoundaryReferenceResolver
 {
     public const string BoundaryGroupName = "Boundaries";

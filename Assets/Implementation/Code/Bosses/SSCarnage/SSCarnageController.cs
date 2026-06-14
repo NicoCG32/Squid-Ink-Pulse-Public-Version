@@ -2,18 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public enum SSCarnageAttackState
-{
-    Inactive,
-    Warning,
-    DeployingNet,
-    NetActive,
-    Resolved,
-    Failed,
-    Exiting,
-    Finished
-}
-
 [DisallowMultipleComponent]
 public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
 {

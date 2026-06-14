@@ -37,6 +37,7 @@ public class PauseMenuManager : MonoBehaviour
 
     private void Awake()
     {
+        ResolveUiReferences();
         WireButtons();
         CacheAnimatedElementPositions();
         WarnIfMissingReferences();
@@ -244,6 +245,40 @@ public class PauseMenuManager : MonoBehaviour
         WireButton(exitButton, Salir);
     }
 
+    private void ResolveUiReferences()
+    {
+        Transform uiRoot = menuRoot != null ? menuRoot.transform : transform.Find("PauseCanvas");
+        if (menuRoot == null && uiRoot != null)
+        {
+            menuRoot = uiRoot.gameObject;
+        }
+
+        if (canvasGroup == null && menuRoot != null)
+        {
+            canvasGroup = menuRoot.GetComponent<CanvasGroup>();
+        }
+
+        resumeButton ??= FindChildComponent<Button>(uiRoot, "BotonReanudar");
+        optionsButton ??= FindChildComponent<Button>(uiRoot, "BotonOpciones");
+        menuButton ??= FindChildComponent<Button>(uiRoot, "BotonMenu");
+        exitButton ??= FindChildComponent<Button>(uiRoot, "BotonSalir");
+
+        if (animatedDecorations == null || animatedDecorations.Length == 0)
+        {
+            animatedDecorations = FindChildRectTransforms(uiRoot, "PauseDecoration");
+        }
+
+        if (animatedButtons == null || animatedButtons.Length == 0)
+        {
+            animatedButtons = FindChildRectTransforms(
+                uiRoot,
+                "BotonReanudar",
+                "BotonOpciones",
+                "BotonMenu",
+                "BotonSalir");
+        }
+    }
+
     private void CacheAnimatedElementPositions()
     {
         if (animatedDecorations == null)
@@ -333,5 +368,57 @@ public class PauseMenuManager : MonoBehaviour
         {
             button.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
         }
+    }
+
+    private T FindChildComponent<T>(Transform root, string childName) where T : Component
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == childName && children[i].TryGetComponent(out T component))
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    private RectTransform[] FindChildRectTransforms(Transform root, params string[] childNames)
+    {
+        if (root == null || childNames == null || childNames.Length == 0)
+        {
+            return new RectTransform[0];
+        }
+
+        RectTransform[] results = new RectTransform[childNames.Length];
+        int count = 0;
+        for (int i = 0; i < childNames.Length; i++)
+        {
+            RectTransform rectTransform = FindChildComponent<RectTransform>(root, childNames[i]);
+            if (rectTransform != null)
+            {
+                results[count] = rectTransform;
+                count++;
+            }
+        }
+
+        if (count == results.Length)
+        {
+            return results;
+        }
+
+        RectTransform[] compact = new RectTransform[count];
+        for (int i = 0; i < count; i++)
+        {
+            compact[i] = results[i];
+        }
+
+        return compact;
     }
 }

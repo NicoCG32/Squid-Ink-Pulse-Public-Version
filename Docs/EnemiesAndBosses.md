@@ -46,9 +46,11 @@ Tags actuales:
 - `EnemyPezGlobo`
 - `EnemyCanaPescar`
 
-## EnemySpawnContextReceiver
+## EnemySpawnContext
 
-Archivo: `Assets/Implementation/Code/Enemies/EnemySpawnContextReceiver.cs`
+Archivos:
+- `Assets/Implementation/Code/Enemies/EnemySpawnContext.cs`
+- `Assets/Implementation/Code/Enemies/IEnemySpawnContextReceiver.cs`
 
 Responsabilidad:
 - Recibir contexto minimo de spawn cuando un enemigo necesita camara o jugador.
@@ -84,7 +86,7 @@ Parametros de balance:
 - `erraticDirectionChangeIntervalMax`
 - `erraticDirectionChangeChance`
 
-Estos parametros pertenecen a `LevelSpawner.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
+Estos parametros pertenecen a `ZoneSpawnProfile.pufferfishTuning` cuando la zona tiene perfil asignado; si no, se usa el fallback legacy `LevelSpawner.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
 
 ### Mina
 
@@ -110,7 +112,7 @@ Parametros de balance:
 - `horizontalLeadTimePaddingSeconds`
 - `minimumHorizontalLeadDistance`
 
-Estos parametros pertenecen a `LevelSpawner.fishingRodTuning`.
+Estos parametros pertenecen a `ZoneSpawnProfile.fishingRodTuning` cuando la zona tiene perfil asignado; si no, se usa el fallback legacy `LevelSpawner.fishingRodTuning`.
 
 ## BossEventDirector
 

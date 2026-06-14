@@ -1,18 +1,5 @@
 using UnityEngine;
 
-public enum GadgetId
-{
-    None,
-    ShellShield,
-    InkBottle
-}
-
-public enum GadgetActivationKind
-{
-    Passive,
-    Active
-}
-
 public static class GadgetCatalog
 {
     public static int GetBaseShopPrice(GadgetId gadget)

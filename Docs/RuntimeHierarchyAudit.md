@@ -10,6 +10,8 @@ La ficha completa de la escena principal esta en [ZonaEpipelagica.md](ZonaEpipel
 
 Un nodo debe tener un solo propietario por responsabilidad.
 
+La regla de capas completa esta definida en [SoftwareArchitecture.md](SoftwareArchitecture.md): los managers, controllers, directors y spawners de sistema son duenos de flujo; los `...State` modelan fases; las especializaciones ejecutan comportamiento concreto; y los datos/catalogos no ejecutan gameplay.
+
 - Estado global: `GameSessionController`.
 - Progresion macro de run: `RunProgressionDirector`.
 - Flujo de escenas: `SceneFlowController`.
@@ -27,7 +29,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Movimiento horizontal del mundo y boundaries: `HorizontalTracker`.
 - Limpieza de objetos fuera de camara: `DestroyOffscreen`.
 - Resolucion de boundaries: `BoundaryReferenceResolver`.
-- Spawn de enemigos, camarones, tienda y portales: `LevelSpawner`.
+- Spawn de enemigos, camarones, tienda y portales: `LevelSpawner`, parametrizado por `ZoneSpawnProfile` cuando la zona lo tenga asignado.
 - Tags compartidos: `GameplayTagCatalog`.
 - Tags de enemigos: `EnemyTagCatalog`.
 - Inventario runtime de gadgets: `PlayerGadgetInventory` y `RuntimeGadgetInventory`.
@@ -35,7 +37,7 @@ Un nodo debe tener un solo propietario por responsabilidad.
 - Tienda temporal: `DealerFish` e `InGameShopManager`.
 - Portales: `ScenePortal` detecta contacto; `SceneFlowController` decide destino.
 - Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` declara posiciones de luz visual.
-- Economia runtime: `ShrimpRuntimeWallet`.
+- Economia persistente: `ShrimpRuntimeWallet` como API runtime y `PersistentPlayerProfile` como almacenamiento JSON.
 - Boss SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
 - UI de game over: `GameOverMenuManager`.
@@ -77,12 +79,12 @@ Toda zona jugable debe contener estas jerarquias exactas:
 
 ```text
 PlayerBoundaries
-├── TopBoundary
-└── BottomBoundary
+|-- TopBoundary
+`-- BottomBoundary
 
 CameraBoundaries
-├── TopBoundary
-└── BottomBoundary
+|-- TopBoundary
+`-- BottomBoundary
 ```
 
 Cada `TopBoundary` y `BottomBoundary` debe tener un `Collider2D`. Los sistemas leen bounds fisicos internos mediante `BoundaryReferenceResolver`.
@@ -108,45 +110,65 @@ Campos que no deben existir:
 - Canvas o nodos visuales autogenerados por scripts cuando la escena ya contiene la UI.
 - Prefabs de enemigo genericos que compitan con `enemyProfiles`.
 
-## Jerarquia de ZonaEpipelagica
+Los perfiles de datos serializados (`ZoneSpawnProfile`, `EnemySpawnProfile`, `PufferfishEnemyTuning`, `FishingRodEnemyTuning`, `ShopGadgetOffer`) pueden tener campos editables, pero no son duenos de comportamiento: existen para que el manager/controller dueno lea configuracion declarativa.
 
-La escena se organiza bajo `GameRoot`:
+## Jerarquia de escenas jugables
+
+La escena se organiza con roots de escena separados. `GameRoot` agrupa sistemas de gameplay y UI; `CameraRig`, `Enviroment` y `Audio` son roots hermanos para mantener la composicion espacial clara.
 
 ```mermaid
 flowchart TD
+    Scene[Scene Roots] --> GameRoot
+    Scene --> CameraRig
+    Scene --> Enviroment
+    Scene --> Audio
     GameRoot --> Systems
     GameRoot --> Gameplay
     GameRoot --> Player
-    GameRoot --> CameraRig
-    GameRoot --> UI
-    GameRoot --> Enviroment
-    GameRoot --> Audio
+    GameRoot --> GameUIRoot
 ```
+
+## Estandar de coordenadas
+
+Las escenas `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben quedar centradas alrededor del origen de mundo:
+
+- `CameraRig/Main Camera`: posicion inicial `(0, 0, -10)`.
+- `GameRoot/Player/Squid`: posicion inicial `(-5, 0, 0)`, conservando el desplazamiento del jugador respecto de la camara.
+- `GameRoot/Gameplay/Boundaries`: cerca del origen; las distancias reales las definen sus hijos `TopBoundary` y `BottomBoundary`.
+- `Enviroment/Background`: posicion local `(0, 0, 0)`; sus capas visuales se ubican cerca de la camara con sus escalas propias.
+- No escalar `GameRoot`, `Gameplay`, `CameraRig`, `Enviroment` ni `Audio` para corregir tamano. Los roots estructurales deben permanecer con escala `(1, 1, 1)`.
+- Un escalado global distinto de `1` requiere una pasada de balance separada, porque afecta velocidades, offsets, colliders, camara, spawn y limpieza.
+
+La herramienta `Tools/Squid/Normalize Gameplay Scene Coordinates` ejecuta esta normalizacion sobre las tres escenas jugables. Su codigo vive en `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`.
 
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
 | `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida y progresion temporal. |
 | `SceneFlow` | `SceneFlowController` | Carga de escenas y retorno al menu. |
-| `LevelSpawner` | `LevelSpawner` | Spawn de monedas, enemigos, tienda y portales. |
+| `LevelSpawner` | `LevelSpawner` con `zoneSpawnProfile` opcional | Spawn de monedas, enemigos, tienda y portales. Si hay perfil asignado, el asset es la fuente autoritativa de balance de spawn. |
 | `Main Camera` | `CameraController` | Seguimiento y eventos de camara. |
 | `Boundaries` | `HorizontalTracker` | Mantener boundaries alineados con el avance horizontal. |
 | `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
+| `GameUIRoot` | `GameUIRoot` | Contrato de composicion de UI jugable: referencia EventSystem, HUD, vistas prefab y managers, sin gobernar estados ni gameplay. |
 | `Squid` | Instancia de `BabySquid.prefab`; `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController` | Control completo del jugador sin copia manual por escena. |
 | `GrazeZone` | `GrazeDetector` | Carga de Ink-Pulse por proximidad a amenazas. |
 | `SquidVisual` | `SpriteRenderer`, `Animator` | Sprite del calamar y animacion de movimiento. |
 | `InkPulseVisual` | `SpriteRenderer`, `Animator` | Sprite largo del impulso de tinta; visible solo cuando `PlayerVisualStateController` selecciona Ink-Pulse. |
 | `PortalVisual` | `SpriteRenderer`, `Animator` | Transicion visual `PortalEffect`; visible solo durante `PlayerRuntimeState.PortalTransition`. |
-| `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Seguir el borde izquierdo de camara y destruir enemigos, camarones, collectibles y portales que ya salieron de pantalla. |
+| `CleanUp` | Instancia de `Assets/Content/Prefabs/World/CleanUp.prefab` | Contenedor canonico de limpieza fuera de camara. No debe ser copia local de escena. |
+| `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Seguir el borde izquierdo de camara, adaptar su alto a `CameraBoundaries` y destruir enemigos, camarones, collectibles y portales que ya salieron de pantalla. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
 | `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Abrir, cerrar y cablear derrota. |
 | `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal, calcular oferta/precio con score y resolver compra. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual fija del boton; no expone parametros por boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido. |
-| `InkPulseBar` | `ChargeBar` | Representacion visual de carga Ink-Pulse. |
+| `InkBar` en `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter` con `RevealThroughFill` | Barra moderna horizontal/rotada. `Fill` funciona como mascara invisible y revela `InkBarEffectVisual`. |
+| `InkBar` en `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter` con `FollowFillTip` | Barra moderna vertical. `EffectAnchor` acompana la punta del relleno. |
+| `InkPulseBar` en `ZonaTutorial` | `ChargeBar`, `Slider` | Variante legacy conservada temporalmente para tutorial. No debe mezclarse con los presenters modernos hasta redisenar esa escena. |
 | `Score` | `ScoreCounterDisplay` | Puntaje runtime de la run. |
-| `ShrimpCounter` | `ShrimpCounterDisplay` | Total persistente de camarones runtime. |
+| `ShrimpCounter` | `ShrimpCounterDisplay` | Saldo persistente de camarones del perfil. |
 | `GadgetSlots` | `GadgetInventoryHud` | Slots de inventario y teclas de gadgets activos. |
 
 ## Jerarquia especifica de ZonaAbisopelagica
@@ -177,12 +199,40 @@ flowchart TD
 | `ScenePortal` | `ScenePortal` | `Portal` | `Collectible` |
 | `SSCarnage` | `SSCarnageController` | `SSCarnage` | `Enemy` |
 | `BossNetWall` | `SSCarnageNetWall` | `SSCarnage` | `Enemy` |
+| `CleanUp` | `DestroyOffscreen` en `DestroyZone/GarbageCollector` | root `Untagged`; hijo `DestroyZone` | root `Default`; hijos `DestroyZone` |
 
 La mina no tiene script propio todavia porque su logica actual vive en el algoritmo de spawn. La cana ya tiene `FishingRodEnemy`; su temporizacion de aparicion pertenece a `LevelSpawner`, pero su caida vertical pertenece al prefab.
 
+## Prefabs UI
+
+Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs separados por variante. `ZonaEpipelagica` y `ZonaAbisopelagica` deben consumir estos assets como instancias de prefab, no como copias locales desempaquetadas.
+
+| Prefab | Uso | Componentes esperados |
+| --- | --- | --- |
+| `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab` | `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` invisible en `Fill`, `Animator` en `InkBarEffectVisual` |
+| `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab` | `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` en `FillViewport`, `Animator` en `InkBarEffectVisual` |
+| `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab` | `ZonaTutorial` temporal | `ChargeBar`, `Slider` |
+| `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab` | HUD comun | `GadgetInventoryHud`, slots `Gadget1`/`Gadget2`, textos `Q`/`W` |
+| `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab` | HUD comun | `ShrimpCounterDisplay`, icono y texto de cantidad |
+| `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab` | HUD comun | `ScoreCounterDisplay` |
+| `Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab` | Overlay de pausa | `PauseCanvas`, `CanvasGroup`, botones y animaciones visuales; sin manager dentro del prefab |
+| `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab` | Overlay de derrota | `GameOverCanvas`, `CanvasGroup`, botones y animaciones visuales; sin manager dentro del prefab |
+| `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab` | Tienda temporal in-run | `InGameCanvas`, `CanvasGroup`, `Comprar`, `Gadget`, `Precio`, `B`, `SinSaldo`; sin manager dentro del prefab |
+
+Reglas:
+- La UI jugable debe colgar de `GameUIRoot`, no de un root generico `UI`.
+- `GameUIRoot` es un contrato de composicion: expone referencias, pero no instancia prefabs ni decide estados.
+- `ChargeBar` no debe contener reglas de layout de una variante concreta.
+- `InkBarFillPresenter` no debe conocer gameplay; solo interpreta el valor recibido.
+- Los prefabs UI no deben serializar referencias a `Squid`, `InkPulseController`, sesion ni managers.
+- Las escenas asignan el `ChargeBar` al `InkPulseController` del jugador.
+- Los botones de prefabs UI no deben serializar eventos persistentes hacia managers. El manager de escena los cablea al despertar.
+- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquia.
+- `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs` permite reejecutar la migracion y validacion desde `Tools/Squid/Migrate Gameplay UI To Prefab Instances`.
+
 ## Spawn de enemigos
 
-`LevelSpawner` no usa un prefab generico heredado. Todo enemigo nace desde `enemyProfiles`, donde cada entrada define:
+`LevelSpawner` no usa un prefab generico heredado. Todo enemigo nace desde `ZoneSpawnProfile.enemyProfiles` si la zona tiene perfil asignado; si no, usa los `enemyProfiles` legacy del componente como compatibilidad. Cada entrada define:
 
 - `prefab`: prefab concreto a instanciar.
 - `enemyTag`: tag logico del enemigo.
@@ -249,13 +299,18 @@ Reglas:
 - No serializar tags de enemigos en `PlayerCollision`, `GrazeDetector` o `DestroyOffscreen`.
 - No declarar tags compartidos (`Player`, `Shrimp`, `Collectible`, `Portal`) como strings locales en scripts de gameplay.
 - No posicionar `GarbageCollector` manualmente para balancear limpieza; `DestroyOffscreen` se alinea por camara en runtime.
+- No desempaquetar ni duplicar `CleanUp` en escenas jugables; usar siempre `Assets/Content/Prefabs/World/CleanUp.prefab`.
+- No dimensionar `CleanUp` desde el viewport ni desde la ortografica de camara; el alto valido es la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
 - No declarar Game Over por colision sin consultar antes `PlayerGadgetInventory` para `Shell Shield`.
 - No fijar `W` o `Q` desde el prefab de gadget; el slot visual se asigna por orden de adquisicion.
 - Mantener `Gadget1 = Q` y `Gadget2 = W` tanto en HUD como en input.
 - No autogenerar nodos visuales de `GadgetSlots` desde `GadgetInventoryHud`; la UI pertenece al canvas de escena.
 - No stackear gadgets: cada `GadgetId` existe como posesion unica.
 - No comprar desde tienda sin pasar por `ShrimpRuntimeWallet.TrySpend`.
+- No modificar `player-profile.json` directamente desde sistemas de gameplay; usar `PersistentPlayerProfile` o `ShrimpRuntimeWallet`.
+- No guardar settings en `player-profile.json`; volumen, brillo, pantalla y dificultad pertenecen a otro almacenamiento.
 - No autogenerar canvas de tienda desde `InGameShopManager`.
+- No volver a introducir un root generico `UI` en escenas jugables; usar `GameUIRoot`.
 - No entregar gadgets por colision directa: los gadgets se compran desde `InGameShopManager`.
 - No permitir activacion manual de Ink-Pulse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
 - No usar `LightGrazeSource` para cargar Ink-Pulse; su unica consecuencia es visual y pertenece a `ZoneLightingController`.

@@ -2,14 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum InkPulseState
-{
-    Idle,
-    Charging,
-    Ready,
-    Active
-}
-
 [DisallowMultipleComponent]
 public class InkPulseController : MonoBehaviour
 {

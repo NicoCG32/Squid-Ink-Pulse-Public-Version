@@ -2,14 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-public enum PlayerRuntimeState
-{
-    Moving,
-    InkPulse,
-    PortalTransition,
-    Death
-}
-
 [DisallowMultipleComponent]
 public class PlayerStateController : MonoBehaviour
 {

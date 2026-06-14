@@ -65,6 +65,7 @@ public class ScenePortal : MonoBehaviour
 
         if (sceneFlow.TryLoadPortalDestinationFromActiveScene())
         {
+            PersistentPlayerProfile.RecordPortalCrossed();
             yield break;
         }
 

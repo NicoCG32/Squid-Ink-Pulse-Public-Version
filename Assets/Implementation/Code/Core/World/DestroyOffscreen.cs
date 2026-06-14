@@ -8,13 +8,16 @@ public class DestroyOffscreen : MonoBehaviour
 {
     private const float HorizontalOffsetBehindCamera = 3f;
     private const float ColliderWidthWorldUnits = 1f;
-    private const float VerticalPaddingWorldUnits = 8f;
 
     [Header("References")]
     [SerializeField] private Camera targetCamera;
 
     private BoxCollider2D cleanupCollider;
     private Rigidbody2D cleanupBody;
+    private Collider2D cameraTopBorder;
+    private Collider2D cameraBottomBorder;
+    private bool missingBoundaryWarningLogged;
+    private bool invalidBoundaryWarningLogged;
 
     private void Reset()
     {
@@ -95,20 +98,51 @@ public class DestroyOffscreen : MonoBehaviour
             return;
         }
 
-        FitColliderToCameraHeight();
+        if (!TryGetCameraBoundaryRange(out float centerY, out float height))
+        {
+            return;
+        }
+
+        FitColliderToCameraBoundaries(height);
         PositionBehindCameraLeftEdge();
+        AlignVerticallyToCameraBoundaries(centerY);
     }
 
-    private void FitColliderToCameraHeight()
+    private bool TryGetCameraBoundaryRange(out float centerY, out float height)
     {
-        if (cleanupCollider == null || !targetCamera.orthographic)
+        centerY = 0f;
+        height = 0f;
+
+        ResolveCameraBoundaries();
+        if (cameraTopBorder == null || cameraBottomBorder == null)
+        {
+            WarnMissingCameraBoundaries();
+            return false;
+        }
+
+        float topY = cameraTopBorder.bounds.min.y;
+        float bottomY = cameraBottomBorder.bounds.max.y;
+        height = topY - bottomY;
+
+        if (height <= 0f)
+        {
+            WarnInvalidCameraBoundaries(topY, bottomY);
+            return false;
+        }
+
+        centerY = (topY + bottomY) * 0.5f;
+        return true;
+    }
+
+    private void FitColliderToCameraBoundaries(float worldHeight)
+    {
+        if (cleanupCollider == null)
         {
             return;
         }
 
         float scaleX = Mathf.Max(0.01f, Mathf.Abs(transform.lossyScale.x));
         float scaleY = Mathf.Max(0.01f, Mathf.Abs(transform.lossyScale.y));
-        float worldHeight = targetCamera.orthographicSize * 2f + VerticalPaddingWorldUnits;
 
         cleanupCollider.offset = Vector2.zero;
         cleanupCollider.size = new Vector2(
@@ -123,8 +157,53 @@ public class DestroyOffscreen : MonoBehaviour
         Vector3 nextPosition = transform.position;
 
         nextPosition.x = cameraLeftEdge.x - HorizontalOffsetBehindCamera;
-        nextPosition.y = targetCamera.transform.position.y;
         transform.position = nextPosition;
+    }
+
+    private void AlignVerticallyToCameraBoundaries(float centerY)
+    {
+        Vector3 nextPosition = transform.position;
+        nextPosition.y = centerY;
+        transform.position = nextPosition;
+    }
+
+    private void ResolveCameraBoundaries()
+    {
+        if (cameraTopBorder != null && cameraBottomBorder != null)
+        {
+            return;
+        }
+
+        BoundaryReferenceResolver.TryResolve(
+            BoundaryReferenceDomain.Camera,
+            out cameraTopBorder,
+            out cameraBottomBorder);
+    }
+
+    private void WarnMissingCameraBoundaries()
+    {
+        if (missingBoundaryWarningLogged)
+        {
+            return;
+        }
+
+        missingBoundaryWarningLogged = true;
+        Debug.LogWarning(
+            $"[DestroyOffscreen] Faltan boundaries de camara. Configura la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)}.",
+            this);
+    }
+
+    private void WarnInvalidCameraBoundaries(float topY, float bottomY)
+    {
+        if (invalidBoundaryWarningLogged)
+        {
+            return;
+        }
+
+        invalidBoundaryWarningLogged = true;
+        Debug.LogWarning(
+            $"[DestroyOffscreen] CameraBoundaries invalidos: TopBoundary ({topY}) debe estar sobre BottomBoundary ({bottomY}).",
+            this);
     }
 
     private void DestroyIfOwnedByCleanableObject(Collider2D other)

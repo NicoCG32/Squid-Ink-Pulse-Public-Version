@@ -23,6 +23,9 @@
 - `Prefabs/Shop/`: `DealerFish`.
 - `Prefabs/Portals/`: `ScenePortal`.
 - `Prefabs/Collectibles/`: camarones normales y x10.
+- `Prefabs/World/`: `CleanUp`.
+- `Prefabs/UI/HUD/`: barras Ink-Pulse y piezas HUD reutilizables.
+- `Prefabs/UI/Menus/`: vistas de pausa, game over y tienda in-run.
 
 ## Regla para prefabs
 
@@ -31,6 +34,59 @@
 - Si necesita jugador o camara, el manager o el script los resuelve en runtime.
 - Si necesita limites, usa `BoundaryReferenceResolver`.
 - Si es gadget comprable, usa `GadgetShopItem`; no debe actuar como pickup directo.
+- Si es prefab UI, no debe guardar referencias a managers, jugador o escena; esas referencias las asigna la escena o el controlador que consume la vista.
+
+## UI/HUD
+
+Las barras Ink-Pulse se separan en tres prefabs para conservar variantes por zona sin mezclar responsabilidades:
+
+- `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab`: `ZonaEpipelagica`, barra horizontal/rotada, con `InkBarFillPresenter` en modo `RevealThroughFill`.
+- `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: `ZonaAbisopelagica`, barra vertical, con `InkBarFillPresenter` en modo `FollowFillTip`.
+- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: `ZonaTutorial`, barra legacy con `Slider`.
+
+La escena puede conservar overrides de posicion, rotacion, escala y referencias hacia managers/controladores. La jerarquia interna, mascara, animador y componentes de presentacion deben mantenerse en el prefab. En `ZonaEpipelagica` y `ZonaAbisopelagica`, estas piezas deben existir como instancias prefab.
+
+Vistas de menu disponibles:
+
+- `Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab`: vista `PauseCanvas`, sin referencias persistentes a `PauseMenuManager`.
+- `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab`: vista `GameOverCanvas`, sin referencias persistentes a `GameOverMenuManager`.
+- `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab`: vista `InGameCanvas`, sin referencias persistentes a `InGameShopManager`.
+
+Piezas HUD disponibles:
+
+- `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab`
+- `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab`
+- `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab`
+
+Regla de eventos:
+- Los prefabs de vista no deben guardar `onClick` persistentes hacia managers de escena.
+- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` cablean listeners en runtime.
+- La migracion/validacion de estas instancias vive en `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs`.
+
+## World prefabs
+
+`Assets/Content/Prefabs/World/CleanUp.prefab` es la fuente canonica de limpieza fuera de camara.
+
+Jerarquia:
+
+```text
+CleanUp
+`-- DestroyZone
+    `-- GarbageCollector
+```
+
+Reglas:
+- `CleanUp` debe existir como instancia prefab bajo `GameRoot/Gameplay` en cada zona jugable.
+- `GarbageCollector` contiene `DestroyOffscreen`, `BoxCollider2D` trigger y `Rigidbody2D` kinematic.
+- El prefab no guarda referencias de escena; `DestroyOffscreen` resuelve `Camera.main` y `CameraBoundaries` en runtime.
+- El alto del trigger no se escala ni se balancea a mano: se calcula desde la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
+- Si una escena cambia dimensiones, se ajustan los colliders de `CameraBoundaries`; el prefab se adapta automaticamente.
+
+Contrato de escena:
+- Las escenas jugables usan un root llamado `GameUIRoot`.
+- `GameUIRoot` tiene `Assets/Implementation/Code/UI/GameUIRoot.cs` y conserva referencias a `EventSystem`, `HUD`, vistas prefab y managers UI.
+- `GameUIRoot` no instancia prefabs, no navega escenas y no decide estados de pausa, tienda o derrota.
+- Si se cambia la composicion de UI, se debe actualizar `GameUIRoot` y validar con `Tools/Squid/Validate Gameplay UI Prefab Instances`.
 
 ## Player prefab
 

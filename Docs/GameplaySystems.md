@@ -115,19 +115,21 @@ Archivos:
 - `Assets/Implementation/Code/Player/Interaction/ShrimpCollector.cs`
 - `Assets/Implementation/Code/Player/Interaction/ShrimpValue.cs`
 - `Assets/Implementation/Code/Player/Interaction/ShrimpRuntimeWallet.cs`
+- `Assets/Implementation/Code/Player/Profile/PersistentPlayerProfile.cs`
 - `Assets/Implementation/Code/UI/HUD/ShrimpCounterDisplay.cs`
 
 Responsabilidad:
 - Registrar recoleccion de camarones.
 - Definir el valor de cada recogible.
-- Alimentar una billetera runtime persistente durante la ejecucion del juego.
+- Alimentar una billetera persistente respaldada por `player-profile.json`.
 - Mostrar el total en HUD.
 
 Estado actual:
 - `ShrimpCoin` vale `1`.
 - `ShrimpCoinX10` vale `10`.
-- El total persiste durante runtime.
-- La persistencia fuera de runtime sigue pendiente.
+- El total persiste fuera del juego mediante `PersistentPlayerProfile`.
+- La tienda in-run gasta desde la misma billetera persistente.
+- Los reembolsos usan `ShrimpRuntimeWallet.Refund` para no inflar `totalShrimpsCollected`.
 
 ## Score de run
 
@@ -159,7 +161,9 @@ Reglas:
 ## Gadgets e inventario
 
 Archivos:
-- `Assets/Implementation/Code/Player/Inventory/GadgetDefinitions.cs`
+- `Assets/Implementation/Code/Player/Inventory/GadgetId.cs`
+- `Assets/Implementation/Code/Player/Inventory/GadgetActivationKind.cs`
+- `Assets/Implementation/Code/Player/Inventory/GadgetCatalog.cs`
 - `Assets/Implementation/Code/Player/Inventory/RuntimeGadgetInventory.cs`
 - `Assets/Implementation/Code/Player/Inventory/PlayerGadgetInventory.cs`
 - `Assets/Implementation/Code/Player/Inventory/GadgetShopItem.cs`

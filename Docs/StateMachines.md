@@ -6,6 +6,8 @@ Este documento registra las maquinas de estado formales de Squid Ink-Pulse y las
 
 Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea interacciones, gobierna una transicion importante, o evita que varios sistemas dependan de temporizadores y banderas sueltas.
 
+La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchitecture.md). En particular, un `...State` modela la fase; el `...Controller`, `...Manager` o `...Director` dueno ejecuta la transicion y aplica efectos sobre las especializaciones.
+
 ## Jerarquia conceptual
 
 | Nivel | Maquina | Pregunta que responde |
@@ -21,13 +23,13 @@ Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea 
 
 ## Estados implementados
 
-- `GameSessionState`
-- `PlayerRuntimeState`
-- `RunEventState`
-- `InkPulseState`
-- `ShopEventState`
-- `SSCarnageAttackState`
-- `CameraEventMode`
+- `GameSessionState` (`Core/Session/GameSessionState.cs`)
+- `RunEventState` (`Core/Session/RunEventState.cs`)
+- `PlayerRuntimeState` (`Player/State/PlayerRuntimeState.cs`)
+- `InkPulseState` (`Player/Abilities/InkPulseState.cs`)
+- `ShopEventState` (`UI/Shop/ShopEventState.cs`)
+- `SSCarnageAttackState` (`Bosses/SSCarnage/SSCarnageAttackState.cs`)
+- `CameraEventMode` (`Core/Camera/CameraEventMode.cs`)
 
 ### GameSessionState
 

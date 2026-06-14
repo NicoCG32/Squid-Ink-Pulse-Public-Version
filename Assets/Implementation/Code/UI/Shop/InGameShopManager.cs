@@ -5,38 +5,6 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public enum ShopEventState
-{
-    Closed,
-    Offering
-}
-
-[Serializable]
-public class ShopGadgetOffer
-{
-    [SerializeField] private GameObject gadgetPrefab;
-    [SerializeField, Min(0)] private int basePriceOverride;
-
-    public GameObject GadgetPrefab => gadgetPrefab;
-
-    public GadgetShopItem ShopItem => gadgetPrefab != null
-        ? gadgetPrefab.GetComponent<GadgetShopItem>()
-        : null;
-
-    public GadgetId GadgetId => ShopItem != null ? ShopItem.GadgetId : GadgetId.None;
-    public Sprite Icon => ShopItem != null ? ShopItem.HudIcon : null;
-    public Color IconTint => ShopItem != null ? ShopItem.HudIconTint : Color.white;
-
-    public bool IsConfigured => gadgetPrefab != null && GadgetId != GadgetId.None;
-
-    public int GetBasePrice()
-    {
-        return basePriceOverride > 0
-            ? basePriceOverride
-            : GadgetCatalog.GetBaseShopPrice(GadgetId);
-    }
-}
-
 [DisallowMultipleComponent]
 public class InGameShopManager : MonoBehaviour
 {
@@ -212,7 +180,7 @@ public class InGameShopManager : MonoBehaviour
 
         if (!RuntimeGadgetInventory.Acquire(gadget, currentOffer.Icon, currentOffer.IconTint))
         {
-            ShrimpRuntimeWallet.Add(currentPrice);
+            ShrimpRuntimeWallet.Refund(currentPrice);
             SetInsufficientFundsVisible(false);
             return;
         }

@@ -19,8 +19,3 @@ public readonly struct EnemySpawnContext
     public PufferfishEnemyTuning PufferfishTuning { get; }
     public FishingRodEnemyTuning FishingRodTuning { get; }
 }
-
-public interface IEnemySpawnContextReceiver
-{
-    void InitializeEnemySpawnContext(EnemySpawnContext context);
-}

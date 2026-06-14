@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class HorizontalTracker : MonoBehaviour
 {
     [SerializeField] private Transform cameraTransform;

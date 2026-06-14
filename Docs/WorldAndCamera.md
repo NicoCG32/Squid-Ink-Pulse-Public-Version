@@ -72,12 +72,14 @@ Responsabilidad:
 - Evitar acumulacion innecesaria de enemigos, props o proyectiles.
 - Reconocer amenazas y collectibles mediante catalogos de tags, no strings locales editables.
 - Seguir el borde izquierdo de la camara de gameplay con un trigger vertical.
-- Ajustar automaticamente el alto del trigger segun el viewport ortografico activo.
+- Ajustar automaticamente el alto del trigger segun la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
 - Resolver el objeto a destruir desde el collider o sus padres, para soportar prefabs con colliders hijos.
 
 Contrato:
+- `CleanUp` debe ser una instancia de `Assets/Content/Prefabs/World/CleanUp.prefab`.
 - La posicion del `GarbageCollector` en editor no es fuente de verdad runtime.
 - La referencia tecnica `targetCamera` debe apuntar a la camara principal de gameplay; si falta, usa `Camera.main`.
+- El alto del trigger se calcula desde `bottom.bounds.max.y` hasta `top.bounds.min.y` del dominio `Camera`.
 - El trigger queda detras del borde izquierdo visible, por lo que limpia solo objetos que ya quedaron fuera de camara.
 - No expone parametros de balance. Si el ritmo de acumulacion cambia, se ajusta el spawn o la progresion, no el limpiador.
 

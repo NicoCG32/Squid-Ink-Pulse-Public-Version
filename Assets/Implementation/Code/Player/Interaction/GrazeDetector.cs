@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class GrazeDetector : MonoBehaviour
 {
     [Header("References")]

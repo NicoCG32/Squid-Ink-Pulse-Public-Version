@@ -1,13 +1,7 @@
 using System;
 using UnityEngine;
 
-public enum CameraEventMode
-{
-    Follow,
-    WideEvent,
-    ReturningToFollow
-}
-
+[DisallowMultipleComponent]
 public class CameraController : MonoBehaviour
 {
     [Header("References")]

@@ -8,15 +8,18 @@ Esta escena es el escenario principal de juego. Reune progresion de run, spawner
 
 ```mermaid
 flowchart TD
+    Scene[Scene Roots]
     GameRoot[GameRoot]
+
+    Scene --> GameRoot
+    Scene --> CameraRig[CameraRig]
+    Scene --> Enviroment[Enviroment]
+    Scene --> Audio[Audio]
 
     GameRoot --> Systems[Systems]
     GameRoot --> Gameplay[Gameplay]
     GameRoot --> Player[Player]
-    GameRoot --> CameraRig[CameraRig]
-    GameRoot --> UI[UI]
-    GameRoot --> Enviroment[Enviroment]
-    GameRoot --> Audio[Audio]
+    GameRoot --> GameUIRoot[GameUIRoot]
 
     Systems --> GameSession[GameSession]
     Systems --> SceneFlow[SceneFlow]
@@ -42,18 +45,18 @@ flowchart TD
 
     CameraRig --> MainCamera[Main Camera]
 
-    UI --> HUD[HUD]
-    UI --> PauseMenu[PauseMenuManager]
-    UI --> GameOverMenu[GameOverMenuManager]
-    UI --> ShopMenu[InGameShopManager]
-    UI --> EventSystem[EventSystem]
+    GameUIRoot --> HUD[HUD]
+    GameUIRoot --> PauseMenu[PauseMenuManager]
+    GameUIRoot --> GameOverMenu[GameOverMenuManager]
+    GameUIRoot --> ShopMenu[InGameShopManager]
+    GameUIRoot --> EventSystem[EventSystem]
 ```
 
 ## Nodos y scripts
 
 | Nodo | Scripts o componentes principales | Funcion |
 | --- | --- | --- |
-| `GameRoot` | ninguno | Nodo raiz de escena. |
+| `GameRoot` | ninguno | Root de sistemas jugables y UI. |
 | `Systems` | ninguno | Contenedor de sesion y flujo. |
 | `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida e intensidad de run. |
 | `SceneFlow` | `SceneFlowController` | Retorno a menu y cambios de escena. |
@@ -62,7 +65,8 @@ flowchart TD
 | `Boundaries` | `HorizontalTracker` | Mantener fronteras alineadas con el avance del mundo. |
 | `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
-| `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Limpiar objetos que quedan detras del borde izquierdo de camara. |
+| `CleanUp` | Instancia de `Assets/Content/Prefabs/World/CleanUp.prefab` | Contenedor canonico de limpieza fuera de camara. |
+| `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Limpiar objetos que quedan detras del borde izquierdo de camara, con alto adaptado a `CameraBoundaries`. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar evento del SS Carnage y cue de camara. |
 | `Portals` | ninguno | Contenedor para instancias runtime de `ScenePortal`. |
 | `Player` | ninguno | Contenedor del jugador. |
@@ -72,6 +76,7 @@ flowchart TD
 | `InkPulseVisual` | `SpriteRenderer`, `Animator` con `InkPulseVisual.controller` | Efecto largo de Ink-Pulse, visible solo cuando `PlayerVisualStateController` selecciona Ink-Pulse. |
 | `PortalVisual` | `SpriteRenderer`, `Animator` con `PortalEffect.controller` | Transicion visual previa al cambio de escena por portal. |
 | `Main Camera` | `CameraController`, `Camera`, `AudioListener`, URP | Seguimiento, eventos de camara y render. |
+| `GameUIRoot` | `GameUIRoot` | Contrato de composicion de UI jugable. |
 | `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Ink-Pulse, camarones y gadgets. |
 | `PauseMenuManager` | `PauseMenuManager` | Pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Derrota. |
@@ -86,12 +91,12 @@ La escena debe mantener nombres exactos:
 
 ```text
 Boundaries
-├── PlayerBoundaries
-│   ├── TopBoundary
-│   └── BottomBoundary
-└── CameraBoundaries
-    ├── TopBoundary
-    └── BottomBoundary
+|-- PlayerBoundaries
+|   |-- TopBoundary
+|   `-- BottomBoundary
+`-- CameraBoundaries
+    |-- TopBoundary
+    `-- BottomBoundary
 ```
 
 Reglas:
@@ -101,6 +106,18 @@ Reglas:
 - `LevelSpawner` usa ambos dominios segun lo que este posicionando.
 - No se ajustan limites desde scripts individuales.
 - Al cambiar dimensiones del escenario, se actualizan estos colliders y no campos sueltos.
+
+## Contrato de coordenadas
+
+Las zonas jugables usan una composicion centrada alrededor del origen:
+
+- `CameraRig/Main Camera` inicia en `(0, 0, -10)`.
+- `GameRoot/Player/Squid` inicia en `(-5, 0, 0)` respecto del mundo, manteniendo su desplazamiento visual frente a camara.
+- `Enviroment/Background` inicia en `(0, 0, 0)` y sus capas quedan cerca del area visible.
+- `Boundaries` queda cerca del origen, pero la dimension real sigue determinada por `PlayerBoundaries` y `CameraBoundaries`.
+- No se escala un root para corregir tamano. Si se requiere un escalado global, debe hacerse como tarea de balance completa.
+
+La utilidad de mantenimiento es `Tools/Squid/Normalize Gameplay Scene Coordinates`.
 
 ## Managers y responsabilidades
 
@@ -115,6 +132,8 @@ Reglas:
 - `CameraController` decide seguimiento normal, vista amplia de evento y feedback de Ink-Pulse.
 - `HorizontalTracker` mantiene fronteras utiles sincronizadas con el mundo.
 - `DestroyOffscreen` sigue la camara y limpia enemigos, camarones, collectibles y portales que quedan fuera de pantalla.
+- `CleanUp` debe ser instancia de `Assets/Content/Prefabs/World/CleanUp.prefab`; no se dimensiona ni se balancea a mano en escena.
+- El alto efectivo del `GarbageCollector` es la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
 - `PauseMenuManager` y `GameOverMenuManager` gobiernan solo su capa de interfaz.
 
 ## Flujo de escena
@@ -155,4 +174,4 @@ flowchart LR
 - Si una responsabilidad empieza a duplicarse, se traslada al manager correcto antes de agregar una excepcion.
 - Los managers pueden exponer parametros de balance; los prefabs no deben exponer dependencias de escena que puedan resolverse por contrato.
 - Los cambios estructurales del jugador se aplican en `BabySquid.prefab`; la escena solo conserva posicion, nombre de instancia y overrides realmente especificos de zona.
-- `GarbageCollector` debe quedar en posicion neutra de editor; su posicion efectiva se calcula en runtime desde la camara.
+- `GarbageCollector` debe quedar en posicion neutra de editor; su posicion efectiva y su alto se calculan en runtime desde la camara y `CameraBoundaries`.

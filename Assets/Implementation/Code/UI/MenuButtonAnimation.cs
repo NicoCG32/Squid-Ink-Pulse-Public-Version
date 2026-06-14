@@ -8,6 +8,7 @@ using UnityEngine.UI;
 ///
 /// USO: Agregar como componente a cada boton interactivo de menus in-game.
 /// </summary>
+[DisallowMultipleComponent]
 public class MenuButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
     private const float HoverScale = 1.08f;

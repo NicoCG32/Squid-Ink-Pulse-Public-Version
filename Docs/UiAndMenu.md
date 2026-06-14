@@ -22,6 +22,12 @@ Responsabilidad de escena/prefab:
 - canvas groups;
 - orden y anchors.
 
+Prefabs UI:
+- `Assets/Content/Prefabs/UI/HUD/`: piezas de HUD reutilizables.
+- `Assets/Content/Prefabs/UI/Menus/`: vistas de menus y overlays.
+- Los prefabs de vista no guardan referencias a managers, jugador ni sesion.
+- Los botones dentro de prefabs de vista no deben depender de eventos persistentes; el manager correspondiente cablea los listeners en runtime.
+
 ## Menu principal
 
 Archivo: `Assets/Implementation/Code/MainMenu/MainMenu.cs`
@@ -45,6 +51,11 @@ Responsabilidad:
 - Mantener efecto visual mientras el juego esta pausado.
 - Reanudar el juego solo despues de terminar la animacion de cierre.
 
+Prefab de vista:
+- `Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab`
+- Root esperado: `PauseCanvas`.
+- `PauseMenuManager` puede resolver automaticamente `PauseCanvas`, `CanvasGroup`, botones y elementos animados si la vista existe como hija del manager.
+
 Input:
 - `P` o `Esc` alternan el menu de pausa.
 
@@ -60,6 +71,11 @@ Responsabilidad:
 El overlay oscuro debe comportarse como pantalla completa, no como subventana.
 `Reintentar` inicia una run nueva desde `SceneFlowController.primaryGameplaySceneName`, por defecto `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 
+Prefab de vista:
+- `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab`
+- Root esperado: `GameOverCanvas`.
+- `GameOverMenuManager` puede resolver automaticamente `GameOverCanvas`, `CanvasGroup`, botones y elementos animados si la vista existe como hija del manager.
+
 ## Tienda temporal
 
 Archivo: `Assets/Implementation/Code/UI/Shop/InGameShopManager.cs`
@@ -72,28 +88,76 @@ Responsabilidad:
 - Cerrar automaticamente al agotarse el tiempo.
 
 Reglas:
-- El canvas de tienda pertenece a la escena.
+- El canvas de tienda pertenece a la escena o a un prefab de vista instanciado bajo el manager.
 - El nodo manager vive en `UI/InGameShopManager`.
+- Prefab de vista: `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab`.
+- Root esperado: `InGameCanvas`.
 - El contador usa tiempo real cuando `pauseGameplayWhileOpen` esta activo.
 - Los textos `B` y `Precio` pulsan para llamar la atencion.
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
-- `Comprar` debe tener componente `Button` y apuntar a `InGameShopManager.BuyCurrentOffer`.
+- `Comprar` debe tener componente `Button`; `InGameShopManager` cablea en runtime su accion hacia `BuyCurrentOffer`.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
 
 ## HUD
 
 Archivos:
+- `Assets/Implementation/Code/UI/GameUIRoot.cs`
 - `Assets/Implementation/Code/UI/HUD/ChargeBar.cs`
+- `Assets/Implementation/Code/UI/HUD/InkBarFillPresenter.cs`
 - `Assets/Implementation/Code/UI/HUD/ShrimpCounterDisplay.cs`
 - `Assets/Implementation/Code/UI/HUD/ScoreCounterDisplay.cs`
 - `Assets/Implementation/Code/UI/HUD/GadgetInventoryHud.cs`
 
+## GameUIRoot
+
+`GameUIRoot` es el contrato de composicion de UI de una escena jugable. No gobierna gameplay, no instancia prefabs y no decide estados; solo agrupa y expone referencias hacia la UI declarada en escena.
+
+Estructura esperada en `ZonaEpipelagica` y `ZonaAbisopelagica`:
+
+```text
+GameUIRoot
+|- EventSystem
+|- HUD
+|  |- InkBar
+|  |- GadgetSlots
+|  |- ShrimpCounter
+|  \- Score
+|- PauseMenuManager
+|  \- PauseCanvas
+|- GameOverMenuManager
+|  \- GameOverCanvas
+\- InGameShopManager
+   \- InGameCanvas
+```
+
+Reglas:
+- `GameUIRoot` puede tener referencias a vistas, HUD y managers UI.
+- Los managers siguen siendo duenos del comportamiento de pausa, game over y tienda.
+- Los prefabs de vista no deben contener managers ni referencias a sesion.
+- Si se reestructura la UI, se debe actualizar `GameUIRoot` y luego validar con la utilidad de editor.
+
 Responsabilidad:
 - Mostrar carga del Ink-Pulse.
 - Mostrar score runtime de la run.
-- Mostrar total de camarones persistidos en `ShrimpRuntimeWallet`.
+- Mostrar el saldo de camarones del perfil persistente mediante `ShrimpRuntimeWallet`.
 - Mostrar gadgets con su icono dentro del hueco `GadgetN`.
 - Mostrar tecla solo si el gadget del hueco es activo: `Q` en `Gadget1`, `W` en `Gadget2`.
+
+Contrato de barra Ink-Pulse:
+- `ChargeBar` es la fachada consumida por `InkPulseController`. Solo recibe un valor normalizado y lo replica al presenter visual o al slider legacy.
+- `InkBarFillPresenter` es la especializacion visual de barras modernas. No conoce sesion, jugador, Ink-Pulse ni progresion; solo traduce un valor normalizado a layout.
+- `EffectPresentationMode.FollowFillTip` mueve `EffectAnchor` hacia la punta del relleno. Es la variante vertical usada en `ZonaAbisopelagica`.
+- `EffectPresentationMode.RevealThroughFill` deja `InkBarEffectVisual` espacialmente fijo y usa `Fill` como mascara invisible. Es la variante horizontal/rotada usada en `ZonaEpipelagica`.
+- `ZonaTutorial` conserva `InkPulseBar` legacy con `Slider` y `ChargeBar` sin presenter. Esto se mantiene deliberadamente hasta redisenar el tutorial.
+
+Prefabs disponibles:
+- `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab`: fuente para `ZonaEpipelagica`.
+- `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: fuente para `ZonaAbisopelagica`.
+- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: referencia temporal para `ZonaTutorial`.
+- `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab`: slots de gadgets activos/pasivos.
+- `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab`: contador de camarones persistentes.
+- `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab`: puntaje runtime.
+- `ZonaEpipelagica` y `ZonaAbisopelagica` usan estas piezas como instancias prefab. Las escenas pueden conservar overrides de posicion, rotacion y escala. El prefab debe conservar jerarquia interna, imagenes, animador, mascara y componentes `ChargeBar`/`InkBarFillPresenter`.
 
 Regla visual de inventario:
 - Los slots no tienen gadget fijo en escena; se llenan por orden de adquisicion.

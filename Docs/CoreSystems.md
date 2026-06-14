@@ -22,11 +22,31 @@ Estados:
 Regla de persistencia:
 - Cruzar un portal no cambia a `GameOver`; por tanto conserva gadgets e Ink-Pulse.
 - Entrar en `GameOver` limpia gadgets e Ink-Pulse para la siguiente partida.
-- La billetera de camarones persiste durante runtime; su almacenamiento permanente sigue pendiente.
+- La billetera de camarones persiste fuera del juego mediante `PersistentPlayerProfile`.
+- Al entrar en `GameOver`, `PersistentPlayerProfile` registra `bestScore` y `totalRuns` antes de limpiar score runtime.
+
+## PersistentPlayerProfile
+
+Archivos:
+- `Assets/Implementation/Code/Player/Profile/PlayerProfileSaveData.cs`
+- `Assets/Implementation/Code/Player/Profile/PlayerProfileRepository.cs`
+- `Assets/Implementation/Code/Player/Profile/PersistentPlayerProfile.cs`
+- `Assets/Implementation/Code/Player/Profile/PlayerSkinIds.cs`
+
+Responsabilidad:
+- Cargar y guardar `player-profile.json` en `Application.persistentDataPath`.
+- Persistir saldo de camarones, upgrades permanentes, skins y stats.
+- Normalizar defaults, incluyendo la skin base `skin.default`.
+- Mantener settings fuera de este archivo.
+
+La especificacion completa esta en [PersistentProfile.md](PersistentProfile.md).
 
 ## RunProgressionDirector
 
-Archivo: `Assets/Implementation/Code/Core/Session/RunProgressionDirector.cs`
+Archivos:
+- `Assets/Implementation/Code/Core/Session/RunProgressionDirector.cs`
+- `Assets/Implementation/Code/Core/Session/RunEventState.cs`
+- `Assets/Implementation/Code/Core/Session/RunDifficultySnapshot.cs`
 
 Responsabilidad:
 - Llevar el ritmo de la run.
@@ -90,3 +110,5 @@ La especificacion completa esta en [WorldAndCamera.md](WorldAndCamera.md).
 - Los cambios de zona se disparan por `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.
 - Los limites de escena pertenecen a `PlayerBoundaries` y `CameraBoundaries`, no a campos manuales de scripts.
 - La limpieza fuera de pantalla pertenece a `DestroyOffscreen`; su posicion runtime se deriva de la camara, no de coordenadas manuales.
+- Las escenas jugables se componen alrededor del origen: `Main Camera` inicia en `(0, 0, -10)` y `Squid` en `(-5, 0, 0)`.
+- No se corrige tamano escalando roots estructurales; un escalado global requiere balancear tambien velocidad, camara, spawn, colliders y offsets.
