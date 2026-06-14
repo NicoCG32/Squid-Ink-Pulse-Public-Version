@@ -26,7 +26,7 @@ La mecánica central gira en torno a la adrenalina: acercarte a amenazas como ti
 - [Docs/EnemiesAndBosses.md](Docs/EnemiesAndBosses.md)
 - [Docs/WorldAndCamera.md](Docs/WorldAndCamera.md)
 - [Docs/UiAndMenu.md](Docs/UiAndMenu.md)
-- [Docs/Roadmap.md](Docs/Roadmap.md)
+- [Docs/ROADMAP.md](Docs/ROADMAP.md)
 - [Docs/ProjectReport.md](Docs/ProjectReport.md)
 - [Docs/Reports/InformeSquidInkPulse.md](Docs/Reports/InformeSquidInkPulse.md)
 

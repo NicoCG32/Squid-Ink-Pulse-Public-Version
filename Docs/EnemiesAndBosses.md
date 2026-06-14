@@ -15,7 +15,10 @@ Responsabilidad:
 - Suspender spawn regular solo cuando `RunEventState` esta en `Transitioning`.
 - Instanciar enemigos unicamente desde `enemyProfiles`.
 
-Cada perfil define prefab, tag logico, peso de aparicion, intensidad minima y multiplicador de intervalo. El spawner aplica el tag con `EnemyTagCatalog` y fuerza la capa `Enemy` de forma recursiva al objeto instanciado.
+Cada perfil define prefab, tag logico, peso de aparicion, intensidad minima y multiplicador de intervalo. `LevelSpawner` conserva la autoridad de instanciar, pero delega trabajo interno:
+- `EnemySpawnSelector`: seleccion de perfil por intensidad, pesos y regla de cana forzada.
+- `SpawnPositionResolver`: calculo de posiciones desde camara, boundaries, jugador y `ZoneSpawnProfile`.
+- `SpawnedObjectConfigurator`: aplicacion de tag, layer, `LightGrazeSource` y `EnemySpawnContext`.
 
 Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresion, por lo que los obstaculos aparecen con mayor frecuencia. Durante `PostBossWindow`, la run conserva intensidad alta mientras ofrece el portal. Si el jugador no cruza, la partida sigue intensa; si cruza, la zona destino empieza relajada.
 
@@ -57,7 +60,7 @@ Responsabilidad:
 
 Contrato actual:
 - Recibe `Camera` y `Transform player`.
-- Recibe tuning de comportamiento especifico desde `LevelSpawner` cuando aplica.
+- Recibe tuning de comportamiento especifico desde `LevelSpawner` mediante `SpawnedObjectConfigurator` cuando aplica.
 - No recibe boundaries.
 - Si el enemigo necesita limites, debe resolverlos con `BoundaryReferenceResolver`.
 
@@ -86,7 +89,7 @@ Parametros de balance:
 - `erraticDirectionChangeIntervalMax`
 - `erraticDirectionChangeChance`
 
-Estos parametros pertenecen a `ZoneSpawnProfile.pufferfishTuning` cuando la zona tiene perfil asignado; si no, se usa el fallback legacy `LevelSpawner.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
+Estos parametros pertenecen a `ZoneSpawnProfile.pufferfishTuning`. El prefab `PezGlobo` no debe exponerlos: su script solo ejecuta comportamiento con el contexto recibido al spawnear.
 
 ### Mina
 
@@ -112,7 +115,7 @@ Parametros de balance:
 - `horizontalLeadTimePaddingSeconds`
 - `minimumHorizontalLeadDistance`
 
-Estos parametros pertenecen a `ZoneSpawnProfile.fishingRodTuning` cuando la zona tiene perfil asignado; si no, se usa el fallback legacy `LevelSpawner.fishingRodTuning`.
+Estos parametros pertenecen a `ZoneSpawnProfile.fishingRodTuning`.
 
 ## BossEventDirector
 
@@ -139,6 +142,13 @@ Responsabilidad:
 - Informar si el evento se resolvio o fallo.
 - Retirarse hacia la derecha cuando termina su fase.
 
+Contrato de cleanup:
+- El prefab `SSCarnage` usa tag `SSCarnage` y conserva un `BoxCollider2D` trigger no jugable para que `DestroyOffscreen` pueda limpiarlo si queda atras.
+- Ese collider no define dano ni graze; solo participa en limpieza fuera de camara.
+- Si `BossNetWall` o el root de `SSCarnage` quedan fuera de camara y `DestroyOffscreen` los limpia durante `NetActive`, `SSCarnageController` interpreta el evento como resuelto. Este fallback evita que `RunProgressionDirector` quede bloqueado en `BossActive` y permite que el siguiente ciclo de Carnage vuelva a programarse.
+- La distancia de aparicion de la red usa una regla proporcional a la velocidad horizontal actual del jugador: `max(netSpawnDistanceFromCameraRight, velocidadJugador * netHorizontalLeadTimeSeconds)`.
+- `netSpawnDistanceFromCameraRight` es un piso minimo defensivo; `netHorizontalLeadTimeSeconds` cumple el mismo papel conceptual que el lead del anzuelo/cana, manteniendo una ventana de lectura estable cuando la velocidad crece.
+
 Estados principales:
 - `Inactive`
 - `Warning`
@@ -159,6 +169,8 @@ La red usa `PlayerBoundaries` como fuente de altura:
 
 La anchura fisica y las proporciones visuales proceden del prefab de autor; no se balancean con campos manuales de runtime. Al romperse, la red conserva su feedback visual y cambia a `BrokenNet`; no existe un flag local para destruirla.
 
+El collider de `BossNetWall` permanece activo aunque la red este rota. La logica interna ignora nuevas colisiones cuando `isBroken` es verdadero, pero el collider debe seguir activo para que `DestroyOffscreen` pueda limpiar la red cuando queda fuera de camara.
+
 El prefab puede incluir `AuthoringPlayerBoundaries` como referencia inactiva. Esta referencia define el tramo local authored que debe coincidir con los `PlayerBoundaries` reales de escena. No debe renombrarse a `PlayerBoundaries`, porque ese nombre queda reservado para la jerarquia runtime bajo `Boundaries`.
 
 La escala de la red se calcula en espacio de mundo. Esto significa que el ajuste usa la altura fisica entre boundaries reales y compensa la escala heredada de padres, evitando diferencias entre la vista del prefab y Play.
@@ -170,6 +182,6 @@ La escala de la red se calcula en espacio de mundo. Esto significa que el ajuste
 3. `CameraController` entra en vista amplia.
 4. `SSCarnageController` entra en `Warning`.
 5. `SSCarnageController` despliega `BossNetWall`.
-6. `SSCarnageNetWall` detecta si el jugador resolvio o fallo.
+6. `SSCarnageNetWall` detecta si el jugador resolvio o fallo. Si la red o el root del boss fueron limpiados por quedar atras durante `NetActive`, `SSCarnageController` cierra el evento como resuelto.
 7. `RunProgressionDirector` recibe `NotifyBossResolved()` o `NotifyBossFailed()`.
 8. El boss sale o se destruye segun su configuracion.

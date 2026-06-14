@@ -50,4 +50,26 @@ public static class GadgetCatalog
             _ => string.Empty
         };
     }
+
+    public static string GetUnlockId(GadgetId gadget)
+    {
+        return gadget switch
+        {
+            GadgetId.ShellShield => PlayerUnlockableIds.ShellShieldGadget,
+            GadgetId.InkBottle => PlayerUnlockableIds.InkBottleGadget,
+            _ => string.Empty
+        };
+    }
+
+    public static bool TryGetGadgetId(string unlockId, out GadgetId gadget)
+    {
+        gadget = unlockId switch
+        {
+            PlayerUnlockableIds.ShellShieldGadget => GadgetId.ShellShield,
+            PlayerUnlockableIds.InkBottleGadget => GadgetId.InkBottle,
+            _ => GadgetId.None
+        };
+
+        return gadget != GadgetId.None;
+    }
 }

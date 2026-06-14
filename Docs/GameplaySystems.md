@@ -96,7 +96,7 @@ Reglas:
 - En modo compuesto, `LayerBlack` usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`.
 - `SpriteRenderer.maskInteraction = VisibleOutsideMask` solo corresponde al fallback legacy con `SpriteMask`.
 - La instancia `Squid` de `BabySquid.prefab` en `ZonaAbisopelagica` declara `LightGrazeSource` como override de escena.
-- `LevelSpawner` agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
+- `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
 
 ## PlayerCollision
 
@@ -121,7 +121,7 @@ Archivos:
 Responsabilidad:
 - Registrar recoleccion de camarones.
 - Definir el valor de cada recogible.
-- Alimentar una billetera persistente respaldada por `player-profile.json`.
+- Alimentar una billetera persistente respaldada por `player-records.json`.
 - Mostrar el total en HUD.
 
 Estado actual:
@@ -130,6 +130,7 @@ Estado actual:
 - El total persiste fuera del juego mediante `PersistentPlayerProfile`.
 - La tienda in-run gasta desde la misma billetera persistente.
 - Los reembolsos usan `ShrimpRuntimeWallet.Refund` para no inflar `totalShrimpsCollected`.
+- La mejora permanente `upgrade.shrimp_multiplier` aumenta la recompensa antes de guardarla en `player-records.json`.
 
 ## Score de run
 
@@ -157,6 +158,7 @@ Reglas:
 - `RuntimePlayerPace` acumula la progresion de velocidad del calamar y persiste entre portales.
 - La velocidad horizontal normal crece de forma asintotica desde `minScrollSpeed` hacia `maxScrollSpeed`.
 - La intensidad de spawn usa otra curva: baja a alta, boss, post-boss intenso; cruzar portal reinicia esa intensidad en la zona destino.
+- La mejora permanente `upgrade.score_multiplier` multiplica el score producido por `RunProgressionDirector`.
 
 ## Gadgets e inventario
 
@@ -168,6 +170,7 @@ Archivos:
 - `Assets/Implementation/Code/Player/Inventory/PlayerGadgetInventory.cs`
 - `Assets/Implementation/Code/Player/Inventory/GadgetShopItem.cs`
 - `Assets/Implementation/Code/UI/HUD/GadgetInventoryHud.cs`
+- `Assets/Implementation/Code/Player/Profile/RunGadgetUnlockService.cs`
 
 Responsabilidad:
 - Inicializar inventario runtime.
@@ -178,6 +181,7 @@ Responsabilidad:
 - Activar `Gadget1` con `Q` y `Gadget2` con `W`.
 - Persistir entre portales mediante `RuntimeGadgetInventory`.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
+- Separar compras de run de desbloqueos permanentes: el inventario guarda lo comprado en la run; `RunGadgetUnlockService` solo decide si ese gadget puede aparecer en la tienda temporal.
 
 Gadgets implementados:
 - `Shell Shield`: pasivo, se consume automaticamente para cancelar un Game Over.
@@ -203,6 +207,7 @@ Responsabilidad:
 - Separar intervalo base de aparicion y variacion aleatoria de cadencia.
 - Abrir un overlay temporal al colisionar con `DealerFish`.
 - Seleccionar un gadget aleatorio desde ofertas configuradas.
+- Filtrar ofertas mediante `RunGadgetUnlockService`, de modo que solo aparezcan gadgets habilitados por defecto o por hitos de perfil.
 - Mostrar icono, precio, tecla `B`, boton `Comprar`, contador y mensaje de saldo.
 - Consumir camarones solo si la compra se concreta.
 - Registrar el gadget comprado en `RuntimeGadgetInventory`.
@@ -215,7 +220,7 @@ Reglas:
 - El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parametros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
-- `DealerFish` permanece visible tras abrir tienda; su collider se desactiva para evitar aperturas repetidas.
+- `DealerFish` permanece visible tras abrir tienda; conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
 - `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
 - `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
 - La UI de tienda pertenece a la escena; el manager no autogenera canvas.

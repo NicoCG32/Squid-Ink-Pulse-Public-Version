@@ -55,6 +55,11 @@ public class DestroyOffscreen : MonoBehaviour
         DestroyIfOwnedByCleanableObject(other);
     }
 
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        DestroyIfOwnedByCleanableObject(other);
+    }
+
     private void ResolveComponents()
     {
         if (cleanupCollider == null)
@@ -209,10 +214,68 @@ public class DestroyOffscreen : MonoBehaviour
     private void DestroyIfOwnedByCleanableObject(Collider2D other)
     {
         GameObject cleanableObject = ResolveCleanableObject(other);
-        if (cleanableObject != null)
+        if (cleanableObject != null && IsFullyBehindCleanupPlane(cleanableObject))
         {
             Destroy(cleanableObject);
         }
+    }
+
+    private bool IsFullyBehindCleanupPlane(GameObject cleanableObject)
+    {
+        float cleanupPlaneX = cleanupCollider != null
+            ? cleanupCollider.bounds.center.x
+            : transform.position.x;
+
+        if (TryCalculateCleanableBounds(cleanableObject, out Bounds bounds))
+        {
+            return bounds.max.x <= cleanupPlaneX;
+        }
+
+        return cleanableObject.transform.position.x <= cleanupPlaneX;
+    }
+
+    private bool TryCalculateCleanableBounds(GameObject cleanableObject, out Bounds bounds)
+    {
+        bounds = default;
+        bool hasBounds = false;
+
+        Collider2D[] colliders = cleanableObject.GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D candidate = colliders[i];
+            if (candidate == null || !candidate.enabled)
+            {
+                continue;
+            }
+
+            EncapsulateBounds(candidate.bounds, ref bounds, ref hasBounds);
+        }
+
+        Renderer[] renderers = cleanableObject.GetComponentsInChildren<Renderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer candidate = renderers[i];
+            if (candidate == null || !candidate.enabled)
+            {
+                continue;
+            }
+
+            EncapsulateBounds(candidate.bounds, ref bounds, ref hasBounds);
+        }
+
+        return hasBounds;
+    }
+
+    private static void EncapsulateBounds(Bounds candidate, ref Bounds aggregate, ref bool hasBounds)
+    {
+        if (!hasBounds)
+        {
+            aggregate = candidate;
+            hasBounds = true;
+            return;
+        }
+
+        aggregate.Encapsulate(candidate);
     }
 
     private GameObject ResolveCleanableObject(Collider2D other)
@@ -242,6 +305,7 @@ public class DestroyOffscreen : MonoBehaviour
         return EnemyTagCatalog.IsEnemyTag(tag)
             || tag == GameplayTagCatalog.Shrimp
             || tag == GameplayTagCatalog.Collectible
-            || tag == GameplayTagCatalog.Portal;
+            || tag == GameplayTagCatalog.Portal
+            || tag == GameplayTagCatalog.SSCarnage;
     }
 }

@@ -4,4 +4,5 @@ public static class GameplayTagCatalog
     public const string Shrimp = "Shrimp";
     public const string Collectible = "Collectible";
     public const string Portal = "Portal";
+    public const string SSCarnage = "SSCarnage";
 }

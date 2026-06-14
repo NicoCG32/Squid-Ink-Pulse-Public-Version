@@ -36,12 +36,14 @@ Pendiente:
 Implementado:
 - `BoundaryReferenceResolver` resuelve por dominio exacto: `PlayerBoundaries` o `CameraBoundaries`.
 - Los nodos obligatorios son `TopBoundary` y `BottomBoundary`.
+- `Assets/Content/Prefabs/World/Boundaries.prefab` es la fuente canonica de la jerarquia `Boundaries`.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan instancias del prefab con overrides de colliders por zona.
 - `PlayerMovement`, `LevelSpawner`, `CameraController`, `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall` dejaron de depender de limites serializados manualmente.
-- Se eliminaron rangos de respaldo (`fallbackMinY`, `fallbackMaxY`, `minY`, `maxY`) y offsets manuales de top boundary.
+- Se eliminaron rangos serializados de respaldo (`fallbackMinY`, `fallbackMaxY`, `minY`, `maxY`) y offsets manuales de top boundary como fuente de configuracion.
 
 Pendiente:
 - Agregar validacion automatizada en editor o Play Mode para detectar jerarquias de boundaries rotas antes de ejecutar QA.
-- Crear plantilla de zona nueva con `PlayerBoundaries` y `CameraBoundaries` ya incluidos.
+- Crear plantilla de zona nueva que incluya instancias de `Boundaries`, `CleanUp`, `GameUIRoot` y `BabySquid`.
 
 ### Portales de zona
 
@@ -65,6 +67,7 @@ Implementado:
 - `InGameShopManager` muestra oferta temporal, precio y compra con `B`.
 - Los gadgets se compran; no se recogen directamente.
 - El inventario impide stacks.
+- Las ofertas se filtran por `RunGadgetUnlockService`; un gadget bloqueado por hito no aparece en la tienda temporal.
 
 Pendiente:
 - Hacer que la aparicion de tienda dependa de progresion y eventos, no solo de intervalos.
@@ -139,7 +142,7 @@ BabySquid
 
 ## Prioridad P0: Nivel tutorial
 
-El tutorial es la segunda prioridad importante, pero conviene implementarlo despues de convertir al jugador en prefab. Asi el tutorial ensena el comportamiento real del jugador y no una copia temporal.
+Estado: base formal implementada. `ZonaTutorial` ya usa el jugador canonico y contiene `TutorialDirector` sobre `GameSession` para gobernar la progresion pedagogica por `TutorialStep`.
 
 ### Objetivo
 
@@ -153,9 +156,9 @@ Implementar `ZonaTutorial` como secuencia guiada:
 6. Boss/pared.
 7. Portal hacia zona principal.
 
-### Controlador requerido
+### Controlador implementado
 
-Crear un `TutorialDirector` dedicado.
+`TutorialDirector` dedicado.
 
 Responsabilidades:
 - Activar pasos en orden.
@@ -165,11 +168,26 @@ Responsabilidades:
 - Mostrar UI de tutorial si se requiere.
 - Terminar cargando `ZonaEpipelagica` mediante `SceneFlowController`.
 
+Pasos actuales:
+- `Movement`
+- `Graze`
+- `InkPulse`
+- `Shop`
+- `Gadgets`
+- `BossAndNet`
+- `Portal`
+- `Completed`
+
 Reglas:
 - No meter excepciones pedagogicas en `LevelSpawner` si solo existen para tutorial.
 - No alterar `RunProgressionDirector` para ensenar mecanicas.
 - No duplicar el jugador en escena.
 - No usar enemigos reales de progresion si el paso requiere una version controlada.
+
+Pendiente:
+- Crear UI de instrucciones tutorial.
+- Crear spawns dirigidos por paso.
+- Definir salida final hacia `ZonaEpipelagica` con una transicion clara de fin de tutorial.
 
 ## Prioridad P1: Menu de opciones global
 
@@ -196,7 +214,7 @@ DifficultySettings
 Reglas:
 - El menu global puede modificar dificultad antes de iniciar partida.
 - La dificultad no debe ser un campo suelto en spawners; debe alimentar progresion desde un modelo central.
-- Settings debe tener almacenamiento propio; no pertenece a `player-profile.json`.
+- Settings debe tener almacenamiento propio; no pertenece a la base `db` de progreso.
 - `OptionsMenu` no debe duplicar logica con el menu de pausa.
 
 ## Prioridad P1: Tienda out-of-game
@@ -205,34 +223,39 @@ Reglas:
 
 ### Objetivo
 
-Permitir invertir camarones acumulados fuera de la run en:
+Permitir invertir camarones acumulados fuera de la run en dos subtiendas:
 
-- mejoras de skills;
-- bonificaciones permanentes;
-- mejoras de economia;
 - skins;
-- posibles modificadores iniciales de run.
+- mejoras permanentes: duracion de Ink-Pulse, rate de recarga de Ink-Pulse, multiplicador de camarones y multiplicador de score.
 
 ### Dependencias
 
-Antes de implementarla conviene tener:
+Base ya disponible:
 
 1. Player prefab, para que skins tengan una base clara.
-2. Perfil persistente JSON con camarones, upgrades, skins y stats.
-3. Un modelo de settings separado.
-4. Catalogo de mejoras y costos.
+2. Base JSON local `db` con `unlockables-catalog.json`, `player-profile.json`, `player-records.json` y `local-leaderboard.json`.
+
+Dependencias pendientes:
+
+1. UI de `ShopMenu`.
+2. Presenter para listar skins, niveles, precios, metas y estados de compra.
+3. Aplicacion visual de la skin equipada sobre el prefab del jugador.
+4. Un modelo de settings separado.
 
 ### Arquitectura recomendada
 
 Componentes actuales/futuros:
-- `PersistentPlayerProfile`: dinero persistente, upgrades comprados, skin activa y stats.
-- `UpgradeCatalog`: definiciones de mejoras.
+- `PersistentPlayerProfile`: mejoras permanentes, skin activa, gadgets de run habilitados por hitos y records.
+- `unlockables-catalog.json`: definiciones de `skins`, `permanentUpgrades` y `runGadgets`.
+- `LocalLeaderboardRepository`: ranking local de feria.
 - `OutGameShopManager`: UI y compra.
-- `UpgradeEffectResolver`: aplica efectos al iniciar una run.
+- `PermanentShopService`: validacion transaccional de saldo, nivel maximo y desbloqueos.
+- `PermanentUpgradeEffectResolver`: aplica efectos permanentes a Ink-Pulse, camarones y score.
+- `RunGadgetUnlockService`: habilita gadgets para la tienda in-run segun hitos de records.
 
 Reglas:
 - No mezclar esta tienda con `InGameShopManager`.
-- No vender gadgets temporales aqui si pertenecen a la run.
+- No vender gadgets aqui. Los gadgets pertenecen a la run; fuera de la run solo se desbloquea su elegibilidad por hitos automaticos.
 - No aplicar upgrades directamente desde botones sin pasar por un modelo de perfil.
 - Las skins deben cambiar prefab variant, visual o override, no el controlador de gameplay.
 
@@ -275,12 +298,12 @@ Despues de los bloques anteriores, quedan estas mejoras de continuidad:
 
 1. Player como prefab.
 2. Reemplazo del jugador en todas las zonas.
-3. Tutorial con `TutorialDirector`.
+3. Tutorial con UI y spawns dirigidos sobre `TutorialDirector`.
 4. Modelo compartido de settings.
 5. `OptionsMenu` global.
 6. Opciones in-game reducidas desde pausa.
-7. Persistencia durable de perfil/camarones.
-8. `ShopMenu` out-of-game de mejoras y skins.
+7. `ShopMenu` out-of-game de mejoras y skins.
+8. Aplicacion visual de skins sobre `BabySquid`.
 9. Portales con transicion formal.
 10. Expansion de enemigos, bosses y zonas.
 

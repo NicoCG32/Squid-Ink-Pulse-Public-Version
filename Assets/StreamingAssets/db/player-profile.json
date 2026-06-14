@@ -1,0 +1,21 @@
+{
+    "version": 3,
+    "permanentUpgrades": {
+        "inkPulseDurationLevel": 0,
+        "inkPulseRechargeRateLevel": 0,
+        "shrimpMultiplierLevel": 0,
+        "scoreMultiplierLevel": 0
+    },
+    "skins": {
+        "unlockedSkinIds": [
+            "skin.default"
+        ],
+        "equippedSkinId": "skin.default"
+    },
+    "runGadgetUnlocks": {
+        "unlockedRunGadgetIds": [
+            "gadget.shell_shield",
+            "gadget.ink_bottle"
+        ]
+    }
+}

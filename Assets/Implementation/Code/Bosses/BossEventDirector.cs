@@ -9,14 +9,14 @@ public class BossEventDirector : MonoBehaviour
     [SerializeField] private RunProgressionDirector progression;
     [SerializeField] private Camera spawnCamera;
     [SerializeField] private CameraController eventCameraController;
-    [SerializeField] private Transform bossParent;
+    [SerializeField] private Transform bossParent = null;
 
     [Header("Boss Event")]
-    [SerializeField] private GameObject bossPrefab;
+    [SerializeField] private GameObject bossPrefab = null;
     [SerializeField] private float triggerAfterSeconds = 45f;
     [SerializeField, FormerlySerializedAs("spawnDistanceFromCameraLeft")] private float spawnDistanceFromCameraRight = 1f;
     [SerializeField, Range(0f, 1f)] private float viewportY = 0.5f;
-    [SerializeField] private bool triggerOnce;
+    [SerializeField] private bool triggerOnce = false;
 
     [Header("Camera Cue")]
     [SerializeField] private float wideCameraHoldSeconds = 12f;

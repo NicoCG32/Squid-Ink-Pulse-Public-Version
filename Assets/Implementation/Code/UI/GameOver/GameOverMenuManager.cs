@@ -7,8 +7,8 @@ using UnityEngine.UI;
 public class GameOverMenuManager : MonoBehaviour
 {
     [Header("Controllers")]
-    [SerializeField] private GameSessionController session;
-    [SerializeField] private SceneFlowController sceneFlow;
+    [SerializeField] private GameSessionController session = null;
+    [SerializeField] private SceneFlowController sceneFlow = null;
 
     [Header("UI References")]
     [SerializeField] private GameObject menuRoot;

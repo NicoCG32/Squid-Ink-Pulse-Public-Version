@@ -17,6 +17,7 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 | Entidad jugador | `PlayerRuntimeState` | El jugador se mueve, esta en Ink-Pulse, esta cruzando portal o murio? |
 | Recurso del jugador | `InkPulseState` | El Ink-Pulse esta vacio, cargando, listo o activo? |
 | Evento de suministro | `ShopEventState` | La tienda temporal esta cerrada u ofreciendo un gadget? |
+| Tutorial | `TutorialStep` | Que mecanica pedagogica debe ensenarse o validarse ahora? |
 | Boss especifico | `SSCarnageAttackState` | En que fase interna esta el ataque del SS Carnage? |
 | Camara | `CameraEventMode` | Seguir, abrir vista amplia o volver al seguimiento? |
 | Feedback visual de zona | ciclo no formal de `ZoneLightingController` | La zona esta oscura, revelada o volviendo a oscuridad? |
@@ -28,6 +29,7 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 - `PlayerRuntimeState` (`Player/State/PlayerRuntimeState.cs`)
 - `InkPulseState` (`Player/Abilities/InkPulseState.cs`)
 - `ShopEventState` (`UI/Shop/ShopEventState.cs`)
+- `TutorialStep` (`Tutorial/TutorialStep.cs`)
 - `SSCarnageAttackState` (`Bosses/SSCarnage/SSCarnageAttackState.cs`)
 - `CameraEventMode` (`Core/Camera/CameraEventMode.cs`)
 
@@ -93,6 +95,24 @@ El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCro
 | `Closed` | No hay oferta visible. |
 | `Offering` | La tienda muestra gadget, precio y contador. La compra se intenta con `B`. |
 
+### TutorialStep
+
+`TutorialStep` pertenece a `TutorialDirector` y representa progresion pedagogica, no dificultad normal. Su contrato es observar o solicitar eventos de aprendizaje sin cambiar el significado de `RunEventState`, `GameSessionState` o `LevelSpawner`.
+
+| Estado | Efecto |
+| --- | --- |
+| `Inactive` | Director presente pero sin secuencia activa. |
+| `Movement` | Valida desplazamiento vertical dentro de `PlayerBoundaries`. |
+| `Graze` | Valida carga parcial de Ink-Pulse por riesgo controlado. |
+| `InkPulse` | Valida activacion real de Ink-Pulse. |
+| `Shop` | Espera que la tienda temporal se presente. |
+| `Gadgets` | Espera adquisicion o uso de un gadget. |
+| `BossAndNet` | Espera resolucion pedagogica del evento de SS Carnage y red. |
+| `Portal` | Espera entrada en transicion de portal. |
+| `Completed` | Tutorial completado. |
+
+El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`, pero esos flags viven en `TutorialDirector`; no son excepciones dispersas en los sistemas de gameplay.
+
 ### SSCarnageAttackState
 
 | Estado | Efecto |
@@ -100,7 +120,7 @@ El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCro
 | `Inactive` | Boss sin ataque activo. |
 | `Warning` | Carnage avisa antes de desplegar red. |
 | `DeployingNet` | Instanciacion de la red. |
-| `NetActive` | La red decide resolucion o fallo. |
+| `NetActive` | La red decide resolucion o fallo; si cleanup elimina la red o el root del boss por quedar fuera de camara, el boss lo trata como resolucion para no bloquear `RunEventState.BossActive`. |
 | `Resolved` | El jugador supero el evento. |
 | `Failed` | El jugador fallo el evento. |
 | `Exiting` | Carnage se retira hacia la derecha. |
@@ -142,6 +162,8 @@ Nota sobre gadgets:
 - La asignacion de slots deriva del orden de adquisicion: `Gadget1` usa `Q`, `Gadget2` usa `W`.
 - `Shell Shield` es pasivo y se consume antes de Game Over.
 - `Ink-Bottle` es activo y fuerza `InkPulseState.Ready` cuando procede.
+- Los desbloqueos permanentes de gadgets no son posesion runtime: `RunGadgetUnlockService` solo decide si pueden aparecer en `ShopEventState.Offering`.
+- La tienda out-of-game no agrega estados de gadget; sus compras son skins o niveles de `permanentUpgrades`.
 - `GadgetRuntimeState` se justifica cuando existan cooldowns, duraciones o animaciones de activacion.
 
 ## Lo que no es estado

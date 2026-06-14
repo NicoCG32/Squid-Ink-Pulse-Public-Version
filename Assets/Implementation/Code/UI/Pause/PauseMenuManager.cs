@@ -9,8 +9,8 @@ using UnityEngine.UI;
 public class PauseMenuManager : MonoBehaviour
 {
     [Header("Controllers")]
-    [SerializeField] private GameSessionController session;
-    [SerializeField] private SceneFlowController sceneFlow;
+    [SerializeField] private GameSessionController session = null;
+    [SerializeField] private SceneFlowController sceneFlow = null;
 
     [Header("UI References")]
     [SerializeField, FormerlySerializedAs("pauseMenuUI")] private GameObject menuRoot;

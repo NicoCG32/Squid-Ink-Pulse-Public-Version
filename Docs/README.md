@@ -16,7 +16,7 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 ## Sistemas de juego
 
 - [CoreSystems.md](CoreSystems.md) - sesion, progresion, flujo de escenas y persistencia.
-- [PersistentProfile.md](PersistentProfile.md) - JSON local de progreso permanente, camarones, upgrades, skins y stats.
+- [PersistentProfile.md](PersistentProfile.md) - base JSON local `db`: catalogo de desbloqueables, perfil, records y leaderboard.
 - [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
 - [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos y SS Carnage.
 - [Portals.md](Portals.md) - portales entre zonas y reglas de carga.
@@ -39,3 +39,4 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 - Si algo describe flujo de produccion o contenido, debe quedar separado de la logica de codigo.
 - Si una seccion crece demasiado, se divide en otro `.md`.
 - Si una implementacion cambia el contrato de escena, actualizar `RuntimeHierarchyAudit.md`, `WorldAndCamera.md` y `QATester.md`.
+- El contexto operativo de trabajo con Codex vive en [`../CODEX/`](../CODEX/); `Docs/` conserva la documentacion tecnica del proyecto.

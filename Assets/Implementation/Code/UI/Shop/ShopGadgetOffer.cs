@@ -4,8 +4,8 @@ using UnityEngine;
 [Serializable]
 public class ShopGadgetOffer
 {
-    [SerializeField] private GameObject gadgetPrefab;
-    [SerializeField, Min(0)] private int basePriceOverride;
+    [SerializeField] private GameObject gadgetPrefab = null;
+    [SerializeField, Min(0)] private int basePriceOverride = 0;
 
     public GameObject GadgetPrefab => gadgetPrefab;
 

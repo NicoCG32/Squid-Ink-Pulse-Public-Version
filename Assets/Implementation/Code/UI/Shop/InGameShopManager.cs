@@ -34,7 +34,7 @@ public class InGameShopManager : MonoBehaviour
     [SerializeField, Min(0f)] private float randomPriceMultiplierMax = 2f;
 
     [Header("Offers")]
-    [SerializeField] private ShopGadgetOffer[] offers;
+    [SerializeField] private ShopGadgetOffer[] offers = new ShopGadgetOffer[0];
 
     [Header("Attention Animation")]
     [SerializeField, Min(0f)] private float textPulseAmplitude = 0.12f;
@@ -133,14 +133,20 @@ public class InGameShopManager : MonoBehaviour
             return false;
         }
 
-        currentOffer = SelectOffer();
+        RunGadgetUnlockService.RefreshUnlockedRunGadgets();
+        currentOffer = ShopOfferSelector.SelectOffer(offers, RunGadgetUnlockService.CanOfferAppearInRunShop);
         if (currentOffer == null)
         {
             return false;
         }
 
         currentRandomPriceMultiplier = RollRandomPriceMultiplier();
-        currentPrice = CalculatePrice(currentOffer);
+        currentPrice = ShopPriceCalculator.CalculatePrice(
+            currentOffer,
+            RuntimeRunScore.TotalScore,
+            scorePriceStep,
+            globalPriceMultiplier,
+            currentRandomPriceMultiplier);
         remainingSeconds = Mathf.Max(0.5f, offerDurationSeconds);
 
         if (pauseGameplayWhileOpen)
@@ -215,62 +221,6 @@ public class InGameShopManager : MonoBehaviour
         CurrentState = nextState;
         StateChanged?.Invoke(previousState, nextState);
         onStateChanged.Invoke(nextState);
-    }
-
-    private ShopGadgetOffer SelectOffer()
-    {
-        if (offers == null || offers.Length == 0)
-        {
-            return null;
-        }
-
-        int configuredCount = 0;
-        for (int i = 0; i < offers.Length; i++)
-        {
-            if (CanShowOffer(offers[i]))
-            {
-                configuredCount++;
-            }
-        }
-
-        if (configuredCount == 0)
-        {
-            return null;
-        }
-
-        int selectedIndex = UnityEngine.Random.Range(0, configuredCount);
-        for (int i = 0; i < offers.Length; i++)
-        {
-            if (!CanShowOffer(offers[i]))
-            {
-                continue;
-            }
-
-            if (selectedIndex == 0)
-            {
-                return offers[i];
-            }
-
-            selectedIndex--;
-        }
-
-        return null;
-    }
-
-    private bool CanShowOffer(ShopGadgetOffer offer)
-    {
-        return offer != null && offer.IsConfigured && offer.GetBasePrice() > 0;
-    }
-
-    private int CalculatePrice(ShopGadgetOffer offer)
-    {
-        float scoreMultiplier = (RuntimeRunScore.TotalScore / Mathf.Max(1f, scorePriceStep)) + 1f;
-        float rawPrice = offer.GetBasePrice()
-            * Mathf.Max(0.01f, globalPriceMultiplier)
-            * Mathf.Max(0f, currentRandomPriceMultiplier)
-            * Mathf.Max(1f, scoreMultiplier);
-
-        return Mathf.Max(1, Mathf.CeilToInt(rawPrice));
     }
 
     private float RollRandomPriceMultiplier()

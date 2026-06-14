@@ -12,9 +12,11 @@ public static class GameplayUiPrefabSceneMigration
 {
     private const string PrimaryScenePath = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     private const string SecondaryScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
+    private const string TutorialScenePath = "Assets/Scenes/Game/ZonaTutorial.unity";
 
     private const string InkBarHorizontalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab";
     private const string InkBarVerticalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab";
+    private const string InkBarLegacyPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab";
     private const string GadgetSlotsPrefabPath = "Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab";
     private const string ShrimpCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab";
     private const string ScoreCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab";
@@ -24,8 +26,9 @@ public static class GameplayUiPrefabSceneMigration
 
     private static readonly SceneUiPrefabContract[] SceneContracts =
     {
-        new(PrimaryScenePath, InkBarHorizontalPrefabPath),
-        new(SecondaryScenePath, InkBarVerticalPrefabPath)
+        new(PrimaryScenePath, "InkBar", InkBarHorizontalPrefabPath),
+        new(SecondaryScenePath, "InkBar", InkBarVerticalPrefabPath),
+        new(TutorialScenePath, "InkPulseBar", InkBarLegacyPrefabPath)
     };
 
     [MenuItem("Tools/Squid/Migrate Gameplay UI To Prefab Instances")]
@@ -63,7 +66,7 @@ public static class GameplayUiPrefabSceneMigration
     {
         Scene scene = EditorSceneManager.OpenScene(sceneContract.ScenePath, OpenSceneMode.Single);
 
-        GameObject inkBar = ReplaceSceneObjectWithPrefab(scene, "InkBar", sceneContract.InkBarPrefabPath);
+        GameObject inkBar = ReplaceSceneObjectWithPrefab(scene, sceneContract.InkBarObjectName, sceneContract.InkBarPrefabPath);
         ReplaceSceneObjectWithPrefab(scene, "GadgetSlots", GadgetSlotsPrefabPath);
         ReplaceSceneObjectWithPrefab(scene, "ShrimpCounter", ShrimpCounterPrefabPath);
         ReplaceSceneObjectWithPrefab(scene, "Score", ScoreCounterPrefabPath);
@@ -251,7 +254,7 @@ public static class GameplayUiPrefabSceneMigration
 
     private static void ValidateScene(Scene scene, SceneUiPrefabContract sceneContract)
     {
-        ValidatePrefabInstance(scene, "InkBar", sceneContract.InkBarPrefabPath);
+        ValidatePrefabInstance(scene, sceneContract.InkBarObjectName, sceneContract.InkBarPrefabPath);
         ValidatePrefabInstance(scene, "GadgetSlots", GadgetSlotsPrefabPath);
         ValidatePrefabInstance(scene, "ShrimpCounter", ShrimpCounterPrefabPath);
         ValidatePrefabInstance(scene, "Score", ScoreCounterPrefabPath);
@@ -477,13 +480,15 @@ public static class GameplayUiPrefabSceneMigration
 
     private readonly struct SceneUiPrefabContract
     {
-        public SceneUiPrefabContract(string scenePath, string inkBarPrefabPath)
+        public SceneUiPrefabContract(string scenePath, string inkBarObjectName, string inkBarPrefabPath)
         {
             ScenePath = scenePath;
+            InkBarObjectName = inkBarObjectName;
             InkBarPrefabPath = inkBarPrefabPath;
         }
 
         public string ScenePath { get; }
+        public string InkBarObjectName { get; }
         public string InkBarPrefabPath { get; }
     }
 

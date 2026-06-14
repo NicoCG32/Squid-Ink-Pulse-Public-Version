@@ -12,7 +12,7 @@ public class InkPulseMusicCrossfader : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float normalTargetVolume = 0.6f;
     [SerializeField, Range(0f, 1f)] private float inkTargetVolume = 0.6f;
     [SerializeField, Min(0.01f)] private float fadeSeconds = 0.45f;
-    [SerializeField] private bool useEqualPowerCrossfade;
+    [SerializeField] private bool useEqualPowerCrossfade = false;
     [SerializeField, Min(0f)] private float syncStartDelay = 0.05f;
 
     private InkPulseController subscribedInkPulse;

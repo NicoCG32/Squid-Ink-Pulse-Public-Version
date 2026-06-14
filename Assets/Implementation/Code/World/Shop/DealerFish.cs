@@ -34,12 +34,6 @@ public class DealerFish : MonoBehaviour
         }
 
         consumed = true;
-        Collider2D triggerCollider = GetComponent<Collider2D>();
-        if (triggerCollider != null)
-        {
-            triggerCollider.enabled = false;
-        }
-
         InGameShopManager.TryOpenShopFromWorld();
     }
 }

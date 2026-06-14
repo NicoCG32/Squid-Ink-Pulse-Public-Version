@@ -51,6 +51,24 @@ Sufijos canonicos:
 - `...Director`: gobierna ritmo macro, eventos de run o coordinacion temporal.
 - `...Spawner`: excepcion aceptada cuando el sistema es, semanticamente, un generador runtime.
 
+Sufijos auxiliares permitidos:
+
+| Sufijo | Capa | Uso correcto |
+| --- | --- | --- |
+| `...State` | Estado formal | Enum o modelo de fase sin dependencias de Unity ni escena. |
+| `Runtime...` | Estado runtime | Store estatico o snapshot mutable durante la run. |
+| `...Snapshot` | Estado calculado | Lectura inmutable de una situacion compleja. |
+| `...Profile` | Datos configurables | Asset o clase serializable de balance/configuracion. No instancia objetos por si mismo. |
+| `...Tuning` | Datos de ajuste | Parametros serializables de una especializacion. |
+| `...Catalog` | Datos/codigos | IDs, tags, precios base o definiciones estables. |
+| `...Repository` | Persistencia | Lectura/escritura de almacenamiento externo. |
+| `...Selector` | Servicio interno | Elige una opcion entre datos disponibles, sin tocar escena. |
+| `...Resolver` | Servicio interno | Calcula o resuelve un valor derivado de contratos existentes. |
+| `...Configurator` | Servicio interno | Aplica configuracion repetible a una instancia creada por un orquestador. |
+| `...Presenter` | Presentacion UI | Traduce estado a layout/visual, sin cambiar gameplay. |
+
+Regla de nomenclatura: si un script no necesita ciclo de vida Unity, referencias de Inspector ni `GameObject`, debe preferirse como clase estatica o tipo de datos puro. Si requiere `Update`, coroutines, eventos de escena o referencias serializadas, entonces debe ser `MonoBehaviour` y usar un sufijo de orquestador, especializacion o presenter segun corresponda.
+
 Ejemplos actuales:
 - `GameSessionController`
 - `RunProgressionDirector`
@@ -69,6 +87,8 @@ Ejemplos actuales:
 - `ZoneLightingController`
 
 `GameUIRoot` no se clasifica como manager porque no gobierna comportamiento. Es un contrato de composicion de escena: agrupa referencias hacia `EventSystem`, HUD, vistas prefab y managers UI para que la jerarquia jugable sea verificable.
+
+`AudioRoot_*`, `CameraRig_*`, `EnviromentRoot_*` y `GameRoot_*` tampoco son managers. Son prefabs de composicion por zona: estabilizan jerarquia, componentes y overrides serializados, pero la autoridad sigue en los controladores y managers que contienen. No deben recibir logica propia ni convertirse en un lugar alternativo para reglas de gameplay.
 
 Reglas:
 - Solo los orquestadores o controladores duenos deben exponer parametros ajustables de balance.
@@ -147,10 +167,21 @@ Ejemplos:
 - `ZoneSpawnProfile`
 - `PortalSpawnPolicy`
 - `ShopGadgetOffer`
+- `UnlockablesCatalogSaveData`
 - `PlayerProfileSaveData`
+- `PlayerRecordsSaveData`
+- `LocalLeaderboardSaveData`
+- `PersistentDbPaths`
+- `JsonSaveFile`
 - `PlayerProfileRepository`
 - `PersistentPlayerProfile`
+- `LocalLeaderboardRepository`
 - `PlayerSkinIds`
+- `UnlockablesCatalogQuery`
+- `RunGadgetUnlockService`
+- `PermanentShopService`
+- `PermanentShopPurchaseResult`
+- `PermanentUpgradeEffectResolver`
 - `BoundaryReferenceDomain`
 - `EnemySpawnContext`
 - `IEnemySpawnContextReceiver`
@@ -159,7 +190,35 @@ Reglas:
 - Los catalogos evitan strings locales repetidos.
 - Los perfiles/tuning son datos; no ejecutan gameplay.
 - La persistencia JSON vive en `PlayerProfileRepository`; gameplay no escribe JSON directamente.
-- Settings de pantalla, volumen, brillo y dificultad no pertenecen a `player-profile.json`.
+- `Assets/StreamingAssets/db` contiene semillas incluidas en build; `Application.persistentDataPath/db` contiene datos escritos en runtime.
+- `player-profile.json` guarda decisiones del jugador: skins, mejoras permanentes y gadgets de run habilitados por hitos.
+- `player-records.json` guarda economia y records; `local-leaderboard.json` guarda ranking local.
+- `unlockables-catalog.json` separa tres grupos: `skins`, `permanentUpgrades` y `runGadgets`.
+- Los gadgets no pertenecen a la tienda out-of-game. Solo se desbloquea su elegibilidad permanente para aparecer en la tienda temporal de la run.
+- La tienda out-of-game compra skins y mejoras permanentes mediante `PermanentShopService`.
+- Settings de pantalla, volumen, brillo y dificultad no pertenecen a esta base local.
+
+### 6. Servicios internos sin estado Unity
+
+Los servicios internos reducen el tamano de los orquestadores sin quitarles autoridad. No deben ser `MonoBehaviour` si no necesitan `Awake`, `Update`, coroutines ni referencias de Inspector.
+
+Ejemplos actuales:
+- `EnemySpawnSelector`: selecciona perfiles de enemigo segun intensidad, peso y regla de cana forzada.
+- `SpawnPositionResolver`: calcula posiciones de camaron, enemigo, DealerFish y portal desde camara, boundaries y `ZoneSpawnProfile`.
+- `SpawnedObjectConfigurator`: aplica tag, layer, `LightGrazeSource` y `EnemySpawnContext` a objetos recien instanciados por `LevelSpawner`.
+- `ShopOfferSelector`: elige una oferta valida de tienda temporal.
+- `ShopPriceCalculator`: calcula el precio de oferta desde score, multiplicador global, multiplicador aleatorio y precio base.
+- `UnlockablesCatalogQuery`: consulta catalogo persistente, calcula precios por nivel y evalua metas contra records.
+- `RunGadgetUnlockService`: convierte metas alcanzadas en gadgets de run habilitados para `InGameShopManager`.
+- `PermanentShopService`: valida y ejecuta compras out-of-game de skins y mejoras permanentes.
+- `PermanentUpgradeEffectResolver`: expone multiplicadores derivados de niveles persistentes a Ink-Pulse, score y camarones.
+
+Reglas:
+- Un `Selector` no instancia ni modifica escena.
+- Un `Resolver` no decide si algo debe ocurrir; solo calcula el valor pedido.
+- Un `Configurator` puede tocar un `GameObject` ya creado, pero no decide cuando crearlo.
+- Un `Calculator` debe ser determinista para los mismos parametros de entrada.
+- El orquestador conserva la decision de flujo y el momento de ejecucion.
 
 ## Direccion de dependencias
 
@@ -189,6 +248,18 @@ GameUIRoot -> EventSystem/HUD/vistas/managers UI
 ```
 
 Los HUD displays observan estado, no lo gobiernan. Los managers de UI no deben autogenerar canvas si la escena ya declara su UI.
+
+Regla de composicion de escena:
+
+```text
+AudioRoot_* prefab -> Soundtrack/SFX
+GameRoot_* prefab -> Systems/Player y composicion mayor de zona
+CameraRig_* prefab -> Main Camera/CameraController
+EnviromentRoot_* prefab -> Background/parallax/luz ambiental de zona
+GameUIRoot -> EventSystem/HUD/vistas/managers UI
+```
+
+Estos prefabs reducen divergencia estructural entre escenas. Si una referencia externa puede resolverse por contrato estable, como jugador por tag `Player` o boundaries por `BoundaryReferenceResolver`, no debe quedar como requisito fragil del prefab asset.
 
 ## Excepciones permitidas
 
@@ -225,10 +296,12 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 
 ### Riesgos controlados
 
-- `LevelSpawner` sigue siendo un archivo grande porque concentra spawn de camarones, enemigos, DealerFish y portales. Es aceptable por ahora porque es el dueno unico de aparicion runtime. Si crece mas, el siguiente paso es separar estrategias internas sin mover la autoridad fuera del spawner.
+- `LevelSpawner` conserva la autoridad unica de aparicion runtime, pero ya no concentra seleccion, calculo de posiciones ni configuracion repetible de instancias. Si crece de nuevo, la regla es extraer otro servicio interno antes de crear un segundo spawner.
 - `MainMenu` no sigue sufijo `Controller`. No se renombro para evitar perder referencias serializadas de escena. Refactor futuro recomendado: `MainMenuController` con migracion de escena.
 - `InkPulseMusicCrossfader` es un adaptador de audio, no un controlador de gameplay. Su nombre es valido porque describe una especializacion tecnica.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepcion visual deliberada para entidades spawneadas.
+- `InGameShopManager` sigue siendo grande porque administra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y calculo de precio ya viven en helpers puros; la siguiente separacion razonable seria una vista/presenter de tienda si el canvas crece.
+- `PermanentShopService` ya existe como servicio de dominio, pero la escena `ShopMenu` todavia requiere un manager/presenter de UI que lo consuma. Ese manager no debe reimplementar precios, metas ni descuentos.
 
 ### Refactor aplicado
 
@@ -261,6 +334,17 @@ Tambien se marcaron con `DisallowMultipleComponent` componentes que no deben dup
 - `InkBarFillPresenter`
 - `HorizontalTracker`
 - `MenuButtonAnimation`
+
+Se extrajeron servicios internos sin estado Unity para bajar responsabilidades de orquestadores:
+- `EnemySpawnSelector`
+- `SpawnPositionResolver`
+- `SpawnedObjectConfigurator`
+- `ShopOfferSelector`
+- `ShopPriceCalculator`
+- `UnlockablesCatalogQuery`
+- `RunGadgetUnlockService`
+- `PermanentShopService`
+- `PermanentUpgradeEffectResolver`
 
 ### UI como fachada y presentacion
 

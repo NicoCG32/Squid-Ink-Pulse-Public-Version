@@ -29,7 +29,7 @@ La regla de capas completa esta definida en [SoftwareArchitecture.md](SoftwareAr
 - Movimiento horizontal del mundo y boundaries: `HorizontalTracker`.
 - Limpieza de objetos fuera de camara: `DestroyOffscreen`.
 - Resolucion de boundaries: `BoundaryReferenceResolver`.
-- Spawn de enemigos, camarones, tienda y portales: `LevelSpawner`, parametrizado por `ZoneSpawnProfile` cuando la zona lo tenga asignado.
+- Spawn de enemigos, camarones, tienda y portales: `LevelSpawner`, parametrizado obligatoriamente por `ZoneSpawnProfile`.
 - Tags compartidos: `GameplayTagCatalog`.
 - Tags de enemigos: `EnemyTagCatalog`.
 - Inventario runtime de gadgets: `PlayerGadgetInventory` y `RuntimeGadgetInventory`.
@@ -78,28 +78,30 @@ Reglas:
 Toda zona jugable debe contener estas jerarquias exactas:
 
 ```text
-PlayerBoundaries
-|-- TopBoundary
-`-- BottomBoundary
-
-CameraBoundaries
-|-- TopBoundary
-`-- BottomBoundary
+Boundaries
+|-- CameraBoundaries
+|   |-- TopBoundary
+|   `-- BottomBoundary
+`-- PlayerBoundaries
+    |-- TopBoundary
+    `-- BottomBoundary
 ```
+
+`Boundaries` debe ser una instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`. La instancia de cada zona puede tener overrides de posicion y colliders para representar su geometria concreta, pero no debe ser una copia local desempaquetada.
 
 Cada `TopBoundary` y `BottomBoundary` debe tener un `Collider2D`. Los sistemas leen bounds fisicos internos mediante `BoundaryReferenceResolver`.
 
 Reglas de mantenimiento:
 - No serializar `topBorder`, `bottomBorder`, `playerTopBorder` ni `playerBottomBorder` en escenas o prefabs.
-- No usar `fallbackMinY`, `fallbackMaxY`, `minY`, `maxY` ni offsets manuales de top boundary.
+- No usar `fallbackMinY`, `fallbackMaxY`, `minY`, `maxY` serializados ni offsets manuales de top boundary como fuente de configuracion.
 - No usar tags para encontrar boundaries.
 - No crear una tercera jerarquia de limites para resolver un caso puntual.
-- Si se cambia el tamano del escenario, se ajustan los colliders de `PlayerBoundaries` y `CameraBoundaries`; el codigo debe adaptarse solo.
+- Si se cambia el tamano del escenario, se ajustan los colliders de la instancia prefab `Boundaries`; el codigo debe adaptarse solo.
 
 ## Propiedad de configuracion
 
 Campos editables permitidos:
-- Parametros de balance en managers o controladores duenos del sistema, por ejemplo `RunProgressionDirector`, `LevelSpawner`, `InGameShopManager`, `SceneFlowController`, `CameraController`, `BossEventDirector` o `SSCarnageController`.
+- Parametros de balance en managers/controladores duenos del sistema o en assets de datos consumidos por ellos, por ejemplo `RunProgressionDirector`, `InGameShopManager`, `SceneFlowController`, `CameraController`, `BossEventDirector`, `SSCarnageController` o `ZoneSpawnProfile`.
 - Referencias tecnicas en managers de escena, cuando el manager es el dueno de la coordinacion.
 - Datos propios de prefab, por ejemplo `GadgetShopItem.gadgetId` o `ShrimpValue.amount`.
 
@@ -107,6 +109,7 @@ Campos que no deben existir:
 - Tags como strings locales si ya existe catalogo.
 - Boundaries como referencias serializadas por componente.
 - Parametros de balance en entidades puras como `PufferfishEnemy`, `DealerFish`, `ScenePortal` o `SSCarnageNetWall`.
+- Parametros ajustables en servicios internos puros como `EnemySpawnSelector`, `SpawnPositionResolver`, `SpawnedObjectConfigurator`, `ShopOfferSelector` o `ShopPriceCalculator`.
 - Canvas o nodos visuales autogenerados por scripts cuando la escena ya contiene la UI.
 - Prefabs de enemigo genericos que compitan con `enemyProfiles`.
 
@@ -141,13 +144,15 @@ Las escenas `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben quedar
 
 La herramienta `Tools/Squid/Normalize Gameplay Scene Coordinates` ejecuta esta normalizacion sobre las tres escenas jugables. Su codigo vive en `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`.
 
+La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de solo lectura sobre las zonas jugables. Valida prefabs obligatorios, `ZoneSpawnProfile`, tags, layers, boundaries, `CleanUp`, `GameUIRoot`, ausencia de scripts faltantes y reglas especificas por zona como SS Carnage solo en `ZonaEpipelagica` y `ZoneLightingController` solo en `ZonaAbisopelagica`.
+
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
 | `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida y progresion temporal. |
 | `SceneFlow` | `SceneFlowController` | Carga de escenas y retorno al menu. |
-| `LevelSpawner` | `LevelSpawner` con `zoneSpawnProfile` opcional | Spawn de monedas, enemigos, tienda y portales. Si hay perfil asignado, el asset es la fuente autoritativa de balance de spawn. |
+| `LevelSpawner` | `LevelSpawner` con `zoneSpawnProfile` asignado | Autoridad de instanciacion de monedas, enemigos, tienda y portales. El asset `ZoneSpawnProfile` es la fuente autoritativa de balance; `EnemySpawnSelector`, `SpawnPositionResolver` y `SpawnedObjectConfigurator` son helpers internos sin nodo de escena. |
 | `Main Camera` | `CameraController` | Seguimiento y eventos de camara. |
-| `Boundaries` | `HorizontalTracker` | Mantener boundaries alineados con el avance horizontal. |
+| `Boundaries` | Instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`; `HorizontalTracker` | Mantener boundaries alineados con el avance horizontal. No debe ser copia local de escena. |
 | `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
 | `GameUIRoot` | `GameUIRoot` | Contrato de composicion de UI jugable: referencia EventSystem, HUD, vistas prefab y managers, sin gobernar estados ni gameplay. |
@@ -161,12 +166,12 @@ La herramienta `Tools/Squid/Normalize Gameplay Scene Coordinates` ejecuta esta n
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
 | `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Abrir, cerrar y cablear derrota. |
-| `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal, calcular oferta/precio con score y resolver compra. |
+| `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal y resolver compra. `ShopOfferSelector` y `ShopPriceCalculator` calculan oferta/precio sin nodo de escena. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual fija del boton; no expone parametros por boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido. |
 | `InkBar` en `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter` con `RevealThroughFill` | Barra moderna horizontal/rotada. `Fill` funciona como mascara invisible y revela `InkBarEffectVisual`. |
 | `InkBar` en `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter` con `FollowFillTip` | Barra moderna vertical. `EffectAnchor` acompana la punta del relleno. |
-| `InkPulseBar` en `ZonaTutorial` | `ChargeBar`, `Slider` | Variante legacy conservada temporalmente para tutorial. No debe mezclarse con los presenters modernos hasta redisenar esa escena. |
+| `InkPulseBar` en `ZonaTutorial` | `ChargeBar`, `Slider` | Variante legacy conservada como prefab para tutorial. No debe mezclarse con los presenters modernos hasta redisenar esa escena. |
 | `Score` | `ScoreCounterDisplay` | Puntaje runtime de la run. |
 | `ShrimpCounter` | `ShrimpCounterDisplay` | Saldo persistente de camarones del perfil. |
 | `GadgetSlots` | `GadgetInventoryHud` | Slots de inventario y teclas de gadgets activos. |
@@ -197,21 +202,22 @@ La herramienta `Tools/Squid/Normalize Gameplay Scene Coordinates` ejecuta esta n
 | `InkBottle` | `GadgetShopItem` | `Untagged` | segun UI/prefab |
 | `DealerFish` | `DealerFish` | `Collectible` | `Collectible` |
 | `ScenePortal` | `ScenePortal` | `Portal` | `Collectible` |
-| `SSCarnage` | `SSCarnageController` | `SSCarnage` | `Enemy` |
-| `BossNetWall` | `SSCarnageNetWall` | `SSCarnage` | `Enemy` |
+| `SSCarnage` | `SSCarnageController`, `BoxCollider2D` trigger para cleanup | `SSCarnage` | `Boss` |
+| `BossNetWall` | `SSCarnageNetWall`, collider trigger activo para cleanup | `SSCarnage` | `Boss` |
 | `CleanUp` | `DestroyOffscreen` en `DestroyZone/GarbageCollector` | root `Untagged`; hijo `DestroyZone` | root `Default`; hijos `DestroyZone` |
+| `Boundaries` | `HorizontalTracker` en root, colliders en `TopBoundary`/`BottomBoundary` | `Untagged` | `Boundary` |
 
 La mina no tiene script propio todavia porque su logica actual vive en el algoritmo de spawn. La cana ya tiene `FishingRodEnemy`; su temporizacion de aparicion pertenece a `LevelSpawner`, pero su caida vertical pertenece al prefab.
 
 ## Prefabs UI
 
-Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs separados por variante. `ZonaEpipelagica` y `ZonaAbisopelagica` deben consumir estos assets como instancias de prefab, no como copias locales desempaquetadas.
+Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs separados por variante. `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben consumir estos assets como instancias de prefab, no como copias locales desempaquetadas.
 
 | Prefab | Uso | Componentes esperados |
 | --- | --- | --- |
 | `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab` | `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` invisible en `Fill`, `Animator` en `InkBarEffectVisual` |
 | `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab` | `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` en `FillViewport`, `Animator` en `InkBarEffectVisual` |
-| `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab` | `ZonaTutorial` temporal | `ChargeBar`, `Slider` |
+| `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab` | `ZonaTutorial` legacy | `ChargeBar`, `Slider` |
 | `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab` | HUD comun | `GadgetInventoryHud`, slots `Gadget1`/`Gadget2`, textos `Q`/`W` |
 | `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab` | HUD comun | `ShrimpCounterDisplay`, icono y texto de cantidad |
 | `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab` | HUD comun | `ScoreCounterDisplay` |
@@ -229,10 +235,11 @@ Reglas:
 - Los botones de prefabs UI no deben serializar eventos persistentes hacia managers. El manager de escena los cablea al despertar.
 - `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquia.
 - `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs` permite reejecutar la migracion y validacion desde `Tools/Squid/Migrate Gameplay UI To Prefab Instances`.
+- `Tools/Squid/Validate Scene Contracts` tambien valida que cada zona tenga la variante de UI esperada: `InkBarHorizontal`, `InkBarVertical` o `InkPulseBarLegacy`.
 
 ## Spawn de enemigos
 
-`LevelSpawner` no usa un prefab generico heredado. Todo enemigo nace desde `ZoneSpawnProfile.enemyProfiles` si la zona tiene perfil asignado; si no, usa los `enemyProfiles` legacy del componente como compatibilidad. Cada entrada define:
+`LevelSpawner` no usa un prefab generico heredado ni campos legacy de balance en escena. Todo enemigo nace desde `ZoneSpawnProfile.enemyProfiles`. Cada entrada define:
 
 - `prefab`: prefab concreto a instanciar.
 - `enemyTag`: tag logico del enemigo.
@@ -240,9 +247,9 @@ Reglas:
 - `minIntensity`: intensidad minima de run.
 - `spawnIntervalMultiplier`: modificador local del intervalo tras ese spawn.
 
-Despues de instanciar, `LevelSpawner` aplica el tag con `EnemyTagCatalog.ApplyEnemyTag()` y asigna capa `Enemy` de forma recursiva.
-Los comportamientos de enemigos reciben `EnemySpawnContext`; sus parametros de balance viven en `LevelSpawner`, no en el prefab.
-En `ZonaAbisopelagica`, `LevelSpawner` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados, porque `LightGrazeSource.EnsureOn()` solo actua si existe `ZoneLightingController`.
+Despues de instanciar, `LevelSpawner` llama a `SpawnedObjectConfigurator`, que aplica tag con `EnemyTagCatalog.ApplyEnemyTag()`, asigna capa `Enemy` de forma recursiva y entrega `EnemySpawnContext`.
+Los comportamientos de enemigos reciben `EnemySpawnContext`; sus parametros de balance viven en `ZoneSpawnProfile`, no en el prefab.
+En `ZonaAbisopelagica`, `SpawnedObjectConfigurator` tambien garantiza `LightGrazeSource` en enemigos, camarones, `DealerFish` y portales instanciados, porque `LightGrazeSource.EnsureOn()` solo actua si existe `ZoneLightingController`.
 
 ## Spawn de tienda
 
@@ -274,7 +281,7 @@ Configuracion actual:
 Reglas:
 - El balance visual vive solo en `ZoneLightingController`.
 - La instancia `Squid` de `BabySquid.prefab` debe tener `LightGrazeSource` solo en `ZonaAbisopelagica`.
-- Las entidades spawneadas reciben `LightGrazeSource` por `LevelSpawner` solo en zonas con `ZoneLightingController`.
+- Las entidades spawneadas reciben `LightGrazeSource` por `SpawnedObjectConfigurator` solo en zonas con `ZoneLightingController`.
 - En modo compuesto, `LightGrazeSource` no crea renderers visibles: solo registra su posicion para que `ZoneLightingController` regenere una unica textura de oscuridad.
 - El fallback legacy puede crear `LightGrazeMask` y `LightGrazeFeather` como hijos runtime si se desactiva `useCompositeLightOverlay`.
 - `GrazeDetector` y `LightGrazeSource` no deben compartir estado ni cargar el mismo recurso.
@@ -294,24 +301,29 @@ Reglas:
 
 - No agregar un segundo script de movimiento a `Main Camera`.
 - No agregar un fallback generico de enemigo al spawner si ya existen perfiles.
+- No dejar `LevelSpawner.zoneSpawnProfile` vacio en zonas jugables.
+- Ejecutar `Tools/Squid/Validate Scene Contracts` antes de cerrar una refactorizacion de escenas, prefabs o perfiles de spawn.
 - No bloquear el spawn regular durante `BossActive`; el evento debe duplicar frecuencia, no detener obstaculos.
 - No usar `LevelSpawner` para lanzar anzuelos desde el SS Carnage; los ataques que nacen del boss deben vivir en el controlador/prefab del boss.
 - No serializar tags de enemigos en `PlayerCollision`, `GrazeDetector` o `DestroyOffscreen`.
 - No declarar tags compartidos (`Player`, `Shrimp`, `Collectible`, `Portal`) como strings locales en scripts de gameplay.
 - No posicionar `GarbageCollector` manualmente para balancear limpieza; `DestroyOffscreen` se alinea por camara en runtime.
+- No desempaquetar ni duplicar `Boundaries` en escenas jugables; usar siempre `Assets/Content/Prefabs/World/Boundaries.prefab`.
 - No desempaquetar ni duplicar `CleanUp` en escenas jugables; usar siempre `Assets/Content/Prefabs/World/CleanUp.prefab`.
 - No dimensionar `CleanUp` desde el viewport ni desde la ortografica de camara; el alto valido es la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
+- No desactivar colliders de objetos que deben permanecer visibles y ser limpiados por `DestroyOffscreen`; usar flags internos para ignorar nuevas interacciones.
 - No declarar Game Over por colision sin consultar antes `PlayerGadgetInventory` para `Shell Shield`.
 - No fijar `W` o `Q` desde el prefab de gadget; el slot visual se asigna por orden de adquisicion.
 - Mantener `Gadget1 = Q` y `Gadget2 = W` tanto en HUD como en input.
 - No autogenerar nodos visuales de `GadgetSlots` desde `GadgetInventoryHud`; la UI pertenece al canvas de escena.
 - No stackear gadgets: cada `GadgetId` existe como posesion unica.
 - No comprar desde tienda sin pasar por `ShrimpRuntimeWallet.TrySpend`.
-- No modificar `player-profile.json` directamente desde sistemas de gameplay; usar `PersistentPlayerProfile` o `ShrimpRuntimeWallet`.
-- No guardar settings en `player-profile.json`; volumen, brillo, pantalla y dificultad pertenecen a otro almacenamiento.
+- No modificar JSON de `Application.persistentDataPath/db` directamente desde sistemas de gameplay; usar `PersistentPlayerProfile`, `ShrimpRuntimeWallet` o `LocalLeaderboardRepository`.
+- No guardar settings en `player-profile.json`, `player-records.json`, `unlockables-catalog.json` ni `local-leaderboard.json`; volumen, brillo, pantalla y dificultad pertenecen a otro almacenamiento.
 - No autogenerar canvas de tienda desde `InGameShopManager`.
 - No volver a introducir un root generico `UI` en escenas jugables; usar `GameUIRoot`.
 - No entregar gadgets por colision directa: los gadgets se compran desde `InGameShopManager`.
+- No vender gadgets desde `ShopMenu` ni desde la tienda out-of-game; fuera de la run solo se habilita su elegibilidad mediante `RunGadgetUnlockService`.
 - No permitir activacion manual de Ink-Pulse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
 - No usar `LightGrazeSource` para cargar Ink-Pulse; su unica consecuencia es visual y pertenece a `ZoneLightingController`.
 - No dejar `BossEventDirector` en `ZonaAbisopelagica`; esa zona no instancia SS Carnage ni `BossNetWall` en el contrato actual.

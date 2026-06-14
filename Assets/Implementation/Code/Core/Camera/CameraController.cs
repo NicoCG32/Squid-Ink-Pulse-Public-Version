@@ -6,7 +6,7 @@ public class CameraController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Camera currentCamera;
-    [SerializeField] private Transform target;
+    [SerializeField] private Transform target = null;
     [SerializeField] private InkPulseController inkPulse;
 
     [Header("Target Settings")]
@@ -338,6 +338,15 @@ public class CameraController : MonoBehaviour
         if (currentCamera == null)
         {
             currentCamera = GetComponent<Camera>();
+        }
+
+        if (target == null)
+        {
+            GameObject playerObject = GameObject.FindGameObjectWithTag(GameplayTagCatalog.Player);
+            if (playerObject != null)
+            {
+                target = playerObject.transform;
+            }
         }
 
         if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Camera, out Collider2D resolvedTop, out Collider2D resolvedBottom))

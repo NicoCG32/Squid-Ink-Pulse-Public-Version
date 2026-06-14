@@ -13,6 +13,21 @@
 - `Assets/Content/Animations/Environment/`: animaciones de entorno.
 - `Assets/Content/Animations/UI/`: animaciones de interfaz.
 - `Assets/Content/Prefabs/`: prefabs listos para runtime.
+- `Assets/Implementation/Config/Spawning/`: perfiles `ZoneSpawnProfile` por zona.
+
+## Configuracion de spawn por zona
+
+Los parametros de spawn ya no viven como fallback dentro de `LevelSpawner`. Cada zona jugable debe asignar un asset `ZoneSpawnProfile`:
+
+- `Assets/Implementation/Config/Spawning/ZonaEpipelagicaSpawnProfile.asset`
+- `Assets/Implementation/Config/Spawning/ZonaAbisopelagicaSpawnProfile.asset`
+- `Assets/Implementation/Config/Spawning/ZonaTutorialSpawnProfile.asset`
+
+Regla:
+- `LevelSpawner` orquesta la aparicion runtime.
+- `ZoneSpawnProfile` almacena prefabs, pesos, intervalos, tienda, portales y tuning de enemigos.
+- Una zona jugable con `zoneSpawnProfile` vacio esta mal configurada.
+- `Tools/Squid/Validate Scene Contracts` valida que cada zona apunte a su perfil correcto.
 
 ## Prefabs actuales
 
@@ -22,8 +37,14 @@
 - `Prefabs/Gadgets/`: `ShellShield`, `InkBottle`.
 - `Prefabs/Shop/`: `DealerFish`.
 - `Prefabs/Portals/`: `ScenePortal`.
+
+Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanente se define por id en `Assets/StreamingAssets/db/unlockables-catalog.json/runGadgets`; su posesion durante una partida vive en `RuntimeGadgetInventory`.
 - `Prefabs/Collectibles/`: camarones normales y x10.
-- `Prefabs/World/`: `CleanUp`.
+- `Prefabs/Core/Audio/`: `AudioRoot_*` por zona jugable.
+- `Prefabs/Core/Camera/`: `CameraRig_*` por zona jugable.
+- `Prefabs/Core/Environment/`: `EnviromentRoot_*` por zona jugable.
+- `Prefabs/Core/Scenes/`: `GameRoot_*` por zona jugable.
+- `Prefabs/World/`: `Boundaries`, `CleanUp`.
 - `Prefabs/UI/HUD/`: barras Ink-Pulse y piezas HUD reutilizables.
 - `Prefabs/UI/Menus/`: vistas de pausa, game over y tienda in-run.
 
@@ -34,7 +55,44 @@
 - Si necesita jugador o camara, el manager o el script los resuelve en runtime.
 - Si necesita limites, usa `BoundaryReferenceResolver`.
 - Si es gadget comprable, usa `GadgetShopItem`; no debe actuar como pickup directo.
+- Si es contenido permanente, debe tener id estable en `unlockables-catalog.json`; no guardar referencias Unity directas dentro del JSON.
 - Si es prefab UI, no debe guardar referencias a managers, jugador o escena; esas referencias las asigna la escena o el controlador que consume la vista.
+
+## Core scene prefabs
+
+`Assets/Content/Prefabs/Core/Audio/` contiene una instancia prefab de `Audio` por zona:
+
+- `AudioRoot_ZonaEpipelagica.prefab`
+- `AudioRoot_ZonaAbisopelagica.prefab`
+- `AudioRoot_ZonaTutorial.prefab`
+
+`AudioRoot_*` agrupa `Soundtrack` y `SFX`. En `ZonaEpipelagica`, `Soundtrack` incluye dos `AudioSource` y `InkPulseMusicCrossfader`; en las otras zonas conserva la musica base actual. El prefab no debe depender de referencias externas: `InkPulseMusicCrossfader` resuelve el `InkPulseController` en runtime si no esta serializado.
+
+`Assets/Content/Prefabs/Core/Camera/` contiene una instancia prefab de `CameraRig` por zona:
+
+- `CameraRig_ZonaEpipelagica.prefab`
+- `CameraRig_ZonaAbisopelagica.prefab`
+- `CameraRig_ZonaTutorial.prefab`
+
+`CameraRig` agrupa `Main Camera`, `AudioListener`, `Camera` y `CameraController`. Las zonas pueden conservar overrides de posicion, ortografia y parametros de camara. `CameraController` resuelve al jugador por tag `Player` si `target` no esta serializado, por lo que el prefab no depende de una referencia externa obligatoria al squid.
+
+`Assets/Content/Prefabs/Core/Environment/` contiene una instancia prefab de `Enviroment` por zona:
+
+- `EnviromentRoot_ZonaEpipelagica.prefab`
+- `EnviromentRoot_ZonaAbisopelagica.prefab`
+- `EnviromentRoot_ZonaTutorial.prefab`
+
+`EnviromentRoot_*` agrupa fondos, capas de parallax, luz global y efectos visuales de zona. `ParallaxLayer` resuelve `Camera.main` como respaldo si `cameraTransform` no esta serializado, por lo que el prefab puede aplicarse sin depender de enlaces fragiles a una camara de escena.
+
+`Assets/Content/Prefabs/Core/Scenes/` contiene una instancia prefab de `GameRoot` por zona:
+
+- `GameRoot_ZonaEpipelagica.prefab`
+- `GameRoot_ZonaAbisopelagica.prefab`
+- `GameRoot_ZonaTutorial.prefab`
+
+Estos prefabs son raices de composicion por zona, no prefabs globales compartidos. Conservan la estructura mayor de `GameRoot`, `Systems` y `Player`, junto a los overrides propios de cada escena. Si en el futuro las tres zonas estabilizan una jerarquia identica, se puede extraer un prefab base comun y dejar estas piezas como variants.
+
+`GameRoot_*` tambien conserva el subroot `Gameplay`, que agrupa `LevelSpawner`, `Boundaries`, `CleanUp`, `Bosses` y `Portals`. No se separo `Gameplay` como prefab independiente porque Unity no permite guardar directamente una parte de una instancia prefab como nuevo prefab sin reestructurar el asset padre. Arquitectonicamente, ese subroot ya queda protegido por el contrato de `GameRoot_*` y por `Tools/Squid/Validate Scene Contracts`.
 
 ## UI/HUD
 
@@ -44,7 +102,7 @@ Las barras Ink-Pulse se separan en tres prefabs para conservar variantes por zon
 - `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: `ZonaAbisopelagica`, barra vertical, con `InkBarFillPresenter` en modo `FollowFillTip`.
 - `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: `ZonaTutorial`, barra legacy con `Slider`.
 
-La escena puede conservar overrides de posicion, rotacion, escala y referencias hacia managers/controladores. La jerarquia interna, mascara, animador y componentes de presentacion deben mantenerse en el prefab. En `ZonaEpipelagica` y `ZonaAbisopelagica`, estas piezas deben existir como instancias prefab.
+La escena puede conservar overrides de posicion, rotacion, escala y referencias hacia managers/controladores. La jerarquia interna, mascara, animador y componentes de presentacion deben mantenerse en el prefab. En `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial`, estas piezas deben existir como instancias prefab.
 
 Vistas de menu disponibles:
 
@@ -64,6 +122,27 @@ Regla de eventos:
 - La migracion/validacion de estas instancias vive en `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs`.
 
 ## World prefabs
+
+`Assets/Content/Prefabs/World/Boundaries.prefab` es la fuente canonica de la jerarquia de limites de gameplay.
+
+Jerarquia:
+
+```text
+Boundaries
+|-- CameraBoundaries
+|   |-- TopBoundary
+|   `-- BottomBoundary
+`-- PlayerBoundaries
+    |-- TopBoundary
+    `-- BottomBoundary
+```
+
+Reglas:
+- `Boundaries` debe existir como instancia prefab bajo `GameRoot/Gameplay` en cada zona jugable.
+- La instancia puede conservar overrides de posicion y tamano de colliders por zona.
+- La estructura, nombres obligatorios e `HorizontalTracker` pertenecen al prefab.
+- El prefab no guarda referencias de escena; `HorizontalTracker` resuelve `Camera.main` en runtime.
+- No se deben crear copias locales desempaquetadas para ajustar una zona. Si cambia la altura jugable, se ajustan los colliders de la instancia prefab.
 
 `Assets/Content/Prefabs/World/CleanUp.prefab` es la fuente canonica de limpieza fuera de camara.
 

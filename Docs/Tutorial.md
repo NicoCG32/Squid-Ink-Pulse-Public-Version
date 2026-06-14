@@ -16,23 +16,38 @@ El tutorial debe presentar las mecanicas en este orden:
 6. Evento de boss con SS Carnage y pared/red.
 7. Portal hacia zona de juego.
 
-## Controlador futuro
+## Controlador implementado
 
-La implementacion recomendada es un `TutorialDirector` dedicado.
+`ZonaTutorial` contiene `TutorialDirector` en el nodo `GameSession`. Este director formaliza la secuencia pedagogica mediante `TutorialStep` y observa sistemas existentes sin meter excepciones de tutorial en el spawner, la progresion o el jugador.
 
 Responsabilidades:
 - Activar pasos en orden.
 - Bloquear o habilitar mecanicas segun el paso activo.
-- Solicitar spawns tutorializados sin usar la progresion normal como fuente primaria.
+- Permitir bloquear o habilitar `LevelSpawner` y `BossEventDirector` desde parametros del propio director.
 - Medir criterios de avance, por ejemplo moverse, cargar Ink-Pulse, comprar un gadget o cruzar un portal.
 - Terminar cargando `ZonaEpipelagica` mediante `SceneFlowController`.
+
+Pasos formales:
+
+| Paso | Criterio actual |
+| --- | --- |
+| `Movement` | El jugador se desplaza verticalmente al menos `movementRequiredVerticalDelta`. |
+| `Graze` | `InkPulseController.ChargeRatio` llega a `grazeRequiredChargeRatio`. |
+| `InkPulse` | Se activa Ink-Pulse. |
+| `Shop` | `InGameShopManager` entra en `ShopEventState.Offering`. |
+| `Gadgets` | El inventario runtime registra algun gadget o la compra notifica al director. |
+| `BossAndNet` | `RunProgressionDirector` llega a `PostBossWindow` o se llama `NotifyBossTutorialResolved`. |
+| `Portal` | La progresion entra en `Transitioning` o se llama `NotifyPortalEntered`. |
+| `Completed` | La secuencia pedagogica termino. |
+
+El director tambien expone metodos manuales (`NotifyShopPresented`, `NotifyGadgetAcquiredOrUsed`, `NotifyBossTutorialResolved`, `NotifyPortalEntered`) para que futuros overlays, spawns dirigidos o botones de QA puedan avanzar sin acoplarse a detalles internos.
 
 Reglas:
 - No meter excepciones de tutorial en `LevelSpawner` si el comportamiento solo existe para ensenar.
 - No alterar `RunProgressionDirector` para pasos pedagogicos.
 - Mantener `PlayerBoundaries` y `CameraBoundaries` como contrato obligatorio tambien en tutorial.
 - Usar una instancia de `Assets/Content/Prefabs/Player/BabySquid.prefab`; no duplicar ni simplificar al jugador para tutorial.
-- Si el tutorial requiere una posicion inicial pedagogica, debe resolverla mediante un `PlayerSpawnPoint` o el futuro `TutorialDirector`, no editando el prefab.
+- Si el tutorial requiere una posicion inicial pedagogica, debe resolverla mediante un `PlayerSpawnPoint` o `TutorialDirector`, no editando el prefab.
 - Si un paso necesita texto, marcador o overlay, debe pertenecer a UI de tutorial, no a los prefabs de enemigos.
 
 ## Menus relacionados

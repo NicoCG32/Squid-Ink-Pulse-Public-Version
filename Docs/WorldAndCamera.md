@@ -15,6 +15,8 @@ Responsabilidad:
 - Aplicar un feedback breve de tambaleo y pulso de zoom cuando `InkPulseController` emite `PulseStarted`.
 - Limitar su posicion vertical usando exclusivamente `CameraBoundaries`.
 
+`Main Camera` vive bajo una instancia prefab `CameraRig_*` por zona en `Assets/Content/Prefabs/Core/Camera/`. El prefab estabiliza la composicion de camara, pero las referencias externas siguen siendo contrato de escena: `CameraController` puede resolver el jugador por tag `Player`, `Camera.main` y `CameraBoundaries` en runtime.
+
 Estados de camara:
 - `Follow`
 - `WideEvent`
@@ -41,6 +43,8 @@ Contrato obligatorio:
 | Jugador | `PlayerBoundaries` | `TopBoundary`, `BottomBoundary` |
 | Camara | `CameraBoundaries` | `TopBoundary`, `BottomBoundary` |
 
+Estos contenedores viven bajo una instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`. El prefab define la estructura y el `HorizontalTracker`; cada zona conserva overrides de colliders para su altura real.
+
 Reglas:
 - Los nombres son contrato de codigo, no convencion opcional.
 - Los hijos deben tener `Collider2D`.
@@ -48,6 +52,7 @@ Reglas:
 - No se usan tags para encontrar boundaries.
 - No se asignan `topBorder` ni `bottomBorder` en Inspector.
 - No existen rangos manuales de respaldo para gameplay normal.
+- No se desempaqueta ni duplica la jerarquia para resolver un caso local.
 
 Consumidores actuales:
 - `PlayerMovement` limita al squid con `PlayerBoundaries`.
@@ -74,6 +79,8 @@ Responsabilidad:
 - Seguir el borde izquierdo de la camara de gameplay con un trigger vertical.
 - Ajustar automaticamente el alto del trigger segun la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.
 - Resolver el objeto a destruir desde el collider o sus padres, para soportar prefabs con colliders hijos.
+- Destruir solo cuando el borde derecho completo del objeto ya cruzo el plano de cleanup, no cuando su primer collider toca la franja.
+- Limpiar tambien objetos de boss con tag `SSCarnage`, como el boss y `BossNetWall`, cuando quedan atras.
 
 Contrato:
 - `CleanUp` debe ser una instancia de `Assets/Content/Prefabs/World/CleanUp.prefab`.
@@ -81,6 +88,8 @@ Contrato:
 - La referencia tecnica `targetCamera` debe apuntar a la camara principal de gameplay; si falta, usa `Camera.main`.
 - El alto del trigger se calcula desde `bottom.bounds.max.y` hasta `top.bounds.min.y` del dominio `Camera`.
 - El trigger queda detras del borde izquierdo visible, por lo que limpia solo objetos que ya quedaron fuera de camara.
+- La franja de trigger es detectora, no criterio final de destruccion. `DestroyOffscreen` calcula bounds agregados de colliders y renderers activos; el objeto se destruye cuando `bounds.max.x` queda detras del plano central del collector. Esto evita limpieza temprana en prefabs anchos como `BossNetWall`.
+- Todo objeto limpiable debe conservar al menos un `Collider2D` trigger activo mientras exista visualmente. Si se desactiva el collider, el cleanup no puede detectarlo.
 - No expone parametros de balance. Si el ritmo de acumulacion cambia, se ajusta el spawn o la progresion, no el limpiador.
 
 ## HorizontalTracker
@@ -91,6 +100,7 @@ Responsabilidad:
 - Seguir el avance horizontal del mundo o de un objeto de referencia.
 - Mantener alineados los contenedores de boundaries cuando la escena avanza.
 - Servir de apoyo para logica de distancia o scroll.
+- Resolver `Camera.main` si la instancia prefab de `Boundaries` no tiene una referencia de escena serializada.
 
 ## ParallaxLayer
 

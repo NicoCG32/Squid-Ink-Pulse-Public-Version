@@ -21,8 +21,8 @@ public class InkPulseController : MonoBehaviour
     private bool runtimeStateRestored;
     private bool activationSuppressed;
 
-    public float ChargeRate => chargeRate;
-    public float PulseDuration => pulseDuration;
+    public float ChargeRate => chargeRate * PermanentUpgradeEffectResolver.InkPulseRechargeRateMultiplier;
+    public float PulseDuration => pulseDuration * PermanentUpgradeEffectResolver.InkPulseDurationMultiplier;
     public float PulseRemainingSeconds => IsPulseActive ? Mathf.Max(0f, pulseTimer) : 0f;
     public float CurrentCharge => currentCharge;
     public float ChargeRatio => maxCharge > 0f ? currentCharge / maxCharge : 0f;
@@ -159,7 +159,7 @@ public class InkPulseController : MonoBehaviour
     private void StartPulse()
     {
         IsPulseActive = true;
-        pulseTimer = pulseDuration;
+        pulseTimer = PulseDuration;
         currentCharge = 0f;
         UpdateChargeBar();
         ApplyState(ResolveState());

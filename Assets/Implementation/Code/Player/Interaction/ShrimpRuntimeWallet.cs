@@ -25,7 +25,8 @@ public static class ShrimpRuntimeWallet
         }
 
         EnsureInitialized();
-        PersistentPlayerProfile.AddShrimps(amount);
+        int adjustedAmount = Mathf.Max(amount, Mathf.RoundToInt(amount * PermanentUpgradeEffectResolver.ShrimpRewardMultiplier));
+        PersistentPlayerProfile.AddShrimps(adjustedAmount);
         totalShrimp = PersistentPlayerProfile.TotalShrimps;
         TotalChanged?.Invoke(totalShrimp);
     }

@@ -27,7 +27,7 @@
 Las entidades de mundo relevantes en `ZonaAbisopelagica` reciben `LightGrazeSource`:
 
 - La instancia `Squid` de `BabySquid.prefab` lo tiene como override de escena en `ZonaAbisopelagica`.
-- `LevelSpawner` lo agrega a camarones, enemigos, `DealerFish` y portales si existe `ZoneLightingController` activo.
+- `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, lo agrega a camarones, enemigos, `DealerFish` y portales si existe `ZoneLightingController` activo.
 
 Los prefabs compartidos no deben depender de esta mecanica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaAbisopelagica`.
 

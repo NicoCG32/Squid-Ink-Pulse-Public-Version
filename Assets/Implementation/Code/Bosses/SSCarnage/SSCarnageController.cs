@@ -23,8 +23,9 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     [SerializeField] private float exitSpeed = 8f;
 
     [Header("Carnage Net")]
-    [SerializeField] private GameObject bossNetWallPrefab;
-    [SerializeField] private float netSpawnDistanceFromCameraRight = 2f;
+    [SerializeField] private GameObject bossNetWallPrefab = null;
+    [SerializeField] private float netSpawnDistanceFromCameraRight = 4f;
+    [SerializeField, Min(0f)] private float netHorizontalLeadTimeSeconds = 0.75f;
     [SerializeField, Range(0f, 1f)] private float netViewportY = 0.5f;
     [SerializeField] private bool deployNetOnStart = true;
 
@@ -35,6 +36,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     private bool exitStarted;
     private SSCarnageNetWall activeNetWall;
     private Collider2D playerTopBorder;
+    private PlayerMovement playerMovement;
 
     public SSCarnageAttackState CurrentAttackState { get; private set; } = SSCarnageAttackState.Inactive;
     public event Action<SSCarnageAttackState, SSCarnageAttackState> AttackStateChanged;
@@ -48,6 +50,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
 
         ResolveProgressionReference();
         ResolveBoundaryReferences();
+        ResolvePlayerMovementReference();
     }
 
     private void Start()
@@ -76,6 +79,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
             }
         }
 
+        DestroyIfActiveNetWallWasCleanedUp();
         UpdateDestroyAfterDeploy();
     }
 
@@ -90,6 +94,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         gameplayCamera = cameraReference;
         ownedObjectsParent = parentReference;
         ResolveBoundaryReferences();
+        ResolvePlayerMovementReference();
         transform.position = CalculateWarningPosition();
         ApplyAttackState(deployNetOnStart ? SSCarnageAttackState.Warning : SSCarnageAttackState.Inactive);
     }
@@ -183,11 +188,45 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         }
     }
 
+    private void DestroyIfActiveNetWallWasCleanedUp()
+    {
+        if (CurrentAttackState != SSCarnageAttackState.NetActive || activeNetWall != null)
+        {
+            return;
+        }
+
+        activeNetWall = null;
+        CompleteBossAsResolved();
+    }
+
     private Vector3 CalculateNetSpawnPosition()
     {
         float depthToWorldZero = Mathf.Abs(gameplayCamera.transform.position.z);
         Vector3 rightEdge = gameplayCamera.ViewportToWorldPoint(new Vector3(1f, netViewportY, depthToWorldZero));
-        return new Vector3(rightEdge.x + netSpawnDistanceFromCameraRight, rightEdge.y, 0f);
+        return new Vector3(rightEdge.x + CalculateNetSpawnDistanceFromCameraRight(), rightEdge.y, 0f);
+    }
+
+    private float CalculateNetSpawnDistanceFromCameraRight()
+    {
+        float minimumDistance = Mathf.Max(0f, netSpawnDistanceFromCameraRight);
+        float dynamicLeadDistance = GetCurrentPlayerHorizontalSpeed() * Mathf.Max(0f, netHorizontalLeadTimeSeconds);
+        return Mathf.Max(minimumDistance, dynamicLeadDistance);
+    }
+
+    private float GetCurrentPlayerHorizontalSpeed()
+    {
+        ResolvePlayerMovementReference();
+        if (playerMovement != null)
+        {
+            return Mathf.Max(0f, playerMovement.CurrentHorizontalSpeed);
+        }
+
+        if (progression != null)
+        {
+            return Mathf.Max(0f, progression.Current.TargetScrollSpeed);
+        }
+
+        return 0f;
     }
 
     private Vector3 CalculateExitPosition()
@@ -237,16 +276,36 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         }
     }
 
+    private void ResolvePlayerMovementReference()
+    {
+        if (playerMovement != null)
+        {
+            return;
+        }
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag(GameplayTagCatalog.Player);
+        if (playerObject != null)
+        {
+            playerMovement = playerObject.GetComponent<PlayerMovement>();
+        }
+    }
+
     private void HandleNetResolved()
     {
         UnsubscribeFromActiveNetWall();
-        ApplyAttackState(SSCarnageAttackState.Resolved);
+        CompleteBossAsResolved();
     }
 
     private void HandleNetFailed()
     {
         UnsubscribeFromActiveNetWall();
         ApplyAttackState(SSCarnageAttackState.Failed);
+    }
+
+    private void CompleteBossAsResolved()
+    {
+        progression?.NotifyBossResolved();
+        ApplyAttackState(SSCarnageAttackState.Resolved);
     }
 
     private void ApplyAttackState(SSCarnageAttackState nextState, bool force = false)
@@ -275,6 +334,16 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
 
     private void OnDestroy()
     {
+        SSCarnageNetWall netWall = activeNetWall;
+        if (CurrentAttackState == SSCarnageAttackState.NetActive && session != null && session.IsPlaying)
+        {
+            CompleteBossAsResolved();
+        }
+
         UnsubscribeFromActiveNetWall();
+        if (netWall != null)
+        {
+            Destroy(netWall.gameObject);
+        }
     }
 }

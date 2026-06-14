@@ -4,17 +4,38 @@ using UnityEngine;
 
 public static class PersistentPlayerProfile
 {
-    private static PlayerProfileSaveData current;
+    private static PlayerProfileSaveData currentProfile;
+    private static PlayerRecordsSaveData currentRecords;
+    private static UnlockablesCatalogSaveData currentCatalog;
     private static bool loaded;
 
     public static event Action<PlayerProfileSaveData> ProfileChanged;
+    public static event Action<PlayerRecordsSaveData> RecordsChanged;
 
     public static PlayerProfileSaveData Current
     {
         get
         {
             EnsureLoaded();
-            return current;
+            return currentProfile;
+        }
+    }
+
+    public static PlayerRecordsSaveData Records
+    {
+        get
+        {
+            EnsureLoaded();
+            return currentRecords;
+        }
+    }
+
+    public static UnlockablesCatalogSaveData UnlockablesCatalog
+    {
+        get
+        {
+            EnsureLoaded();
+            return currentCatalog;
         }
     }
 
@@ -23,7 +44,16 @@ public static class PersistentPlayerProfile
         get
         {
             EnsureLoaded();
-            return current.wallet.totalShrimps;
+            return currentRecords.totalShrimps;
+        }
+    }
+
+    public static long BestScore
+    {
+        get
+        {
+            EnsureLoaded();
+            return currentRecords.bestScore;
         }
     }
 
@@ -32,7 +62,7 @@ public static class PersistentPlayerProfile
         get
         {
             EnsureLoaded();
-            return current.skins.equippedSkinId;
+            return currentProfile.skins.equippedSkinId;
         }
     }
 
@@ -44,9 +74,10 @@ public static class PersistentPlayerProfile
         }
 
         EnsureLoaded();
-        current.wallet.totalShrimps = Mathf.Max(0, current.wallet.totalShrimps + amount);
-        current.stats.totalShrimpsCollected = Mathf.Max(0, current.stats.totalShrimpsCollected + amount);
-        SaveAndNotify();
+        currentRecords.totalShrimps = Mathf.Max(0, currentRecords.totalShrimps + amount);
+        currentRecords.totalShrimpsCollected = Mathf.Max(0, currentRecords.totalShrimpsCollected + amount);
+        SaveRecordsAndNotify();
+        RunGadgetUnlockService.RefreshUnlockedRunGadgets();
     }
 
     public static void RefundShrimps(int amount)
@@ -57,8 +88,8 @@ public static class PersistentPlayerProfile
         }
 
         EnsureLoaded();
-        current.wallet.totalShrimps = Mathf.Max(0, current.wallet.totalShrimps + amount);
-        SaveAndNotify();
+        currentRecords.totalShrimps = Mathf.Max(0, currentRecords.totalShrimps + amount);
+        SaveRecordsAndNotify();
     }
 
     public static bool TrySpendShrimps(int amount)
@@ -69,36 +100,38 @@ public static class PersistentPlayerProfile
         }
 
         EnsureLoaded();
-        if (current.wallet.totalShrimps < amount)
+        if (currentRecords.totalShrimps < amount)
         {
             return false;
         }
 
-        current.wallet.totalShrimps -= amount;
-        SaveAndNotify();
+        currentRecords.totalShrimps -= amount;
+        SaveRecordsAndNotify();
         return true;
     }
 
     public static void RecordRunEnded(long score)
     {
         EnsureLoaded();
-        current.stats.totalRuns = Mathf.Max(0, current.stats.totalRuns + 1);
-        current.stats.bestScore = Math.Max(current.stats.bestScore, Math.Max(0, score));
-        SaveAndNotify();
+        currentRecords.totalRuns = Mathf.Max(0, currentRecords.totalRuns + 1);
+        currentRecords.bestScore = Math.Max(currentRecords.bestScore, Math.Max(0, score));
+        SaveRecordsAndNotify();
+        RunGadgetUnlockService.RefreshUnlockedRunGadgets();
     }
 
     public static void RecordPortalCrossed()
     {
         EnsureLoaded();
-        current.stats.totalPortalsCrossed = Mathf.Max(0, current.stats.totalPortalsCrossed + 1);
-        SaveAndNotify();
+        currentRecords.totalPortalsCrossed = Mathf.Max(0, currentRecords.totalPortalsCrossed + 1);
+        SaveRecordsAndNotify();
+        RunGadgetUnlockService.RefreshUnlockedRunGadgets();
     }
 
     public static bool HasUnlockedSkin(string skinId)
     {
         EnsureLoaded();
         return !string.IsNullOrWhiteSpace(skinId)
-            && current.skins.unlockedSkinIds.Contains(skinId);
+            && currentProfile.skins.unlockedSkinIds.Contains(skinId);
     }
 
     public static void UnlockSkin(string skinId)
@@ -109,16 +142,17 @@ public static class PersistentPlayerProfile
         }
 
         EnsureLoaded();
-        if (current.skins.unlockedSkinIds.Contains(skinId))
+        string normalizedSkinId = skinId.Trim();
+        if (currentProfile.skins.unlockedSkinIds.Contains(normalizedSkinId))
         {
             return;
         }
 
-        current.skins.unlockedSkinIds = current.skins.unlockedSkinIds
-            .Concat(new[] { skinId })
+        currentProfile.skins.unlockedSkinIds = currentProfile.skins.unlockedSkinIds
+            .Concat(new[] { normalizedSkinId })
             .Distinct()
             .ToArray();
-        SaveAndNotify();
+        SaveProfileAndNotify();
     }
 
     public static bool TryEquipSkin(string skinId)
@@ -128,42 +162,116 @@ public static class PersistentPlayerProfile
             return false;
         }
 
-        current.skins.equippedSkinId = skinId;
-        SaveAndNotify();
+        currentProfile.skins.equippedSkinId = skinId.Trim();
+        SaveProfileAndNotify();
         return true;
     }
 
     public static int GetInkPulseDurationLevel()
     {
         EnsureLoaded();
-        return current.upgrades.inkPulseDurationLevel;
+        return currentProfile.permanentUpgrades.inkPulseDurationLevel;
     }
 
     public static int GetInkPulseRechargeRateLevel()
     {
         EnsureLoaded();
-        return current.upgrades.inkPulseRechargeRateLevel;
+        return currentProfile.permanentUpgrades.inkPulseRechargeRateLevel;
+    }
+
+    public static int GetShrimpMultiplierLevel()
+    {
+        EnsureLoaded();
+        return currentProfile.permanentUpgrades.shrimpMultiplierLevel;
+    }
+
+    public static int GetScoreMultiplierLevel()
+    {
+        EnsureLoaded();
+        return currentProfile.permanentUpgrades.scoreMultiplierLevel;
+    }
+
+    public static int GetPermanentUpgradeLevel(string upgradeId)
+    {
+        EnsureLoaded();
+        return currentProfile.permanentUpgrades.GetLevel(upgradeId);
     }
 
     public static void SetInkPulseDurationLevel(int level)
     {
         EnsureLoaded();
-        current.upgrades.inkPulseDurationLevel = Mathf.Max(0, level);
-        SaveAndNotify();
+        currentProfile.permanentUpgrades.inkPulseDurationLevel = Mathf.Max(0, level);
+        SaveProfileAndNotify();
     }
 
     public static void SetInkPulseRechargeRateLevel(int level)
     {
         EnsureLoaded();
-        current.upgrades.inkPulseRechargeRateLevel = Mathf.Max(0, level);
-        SaveAndNotify();
+        currentProfile.permanentUpgrades.inkPulseRechargeRateLevel = Mathf.Max(0, level);
+        SaveProfileAndNotify();
+    }
+
+    public static void SetPermanentUpgradeLevel(string upgradeId, int level)
+    {
+        EnsureLoaded();
+        currentProfile.permanentUpgrades.SetLevel(upgradeId, level);
+        SaveProfileAndNotify();
+    }
+
+    public static bool HasUnlockedRunGadget(string gadgetId)
+    {
+        EnsureLoaded();
+        return !string.IsNullOrWhiteSpace(gadgetId)
+            && currentProfile.runGadgetUnlocks.unlockedRunGadgetIds.Contains(gadgetId);
+    }
+
+    public static bool HasUnlockedRunGadget(GadgetId gadget)
+    {
+        return HasUnlockedRunGadget(GadgetCatalog.GetUnlockId(gadget));
+    }
+
+    public static void UnlockRunGadget(string gadgetId)
+    {
+        if (string.IsNullOrWhiteSpace(gadgetId))
+        {
+            return;
+        }
+
+        EnsureLoaded();
+        string normalizedGadgetId = gadgetId.Trim();
+        if (currentProfile.runGadgetUnlocks.unlockedRunGadgetIds.Contains(normalizedGadgetId))
+        {
+            return;
+        }
+
+        currentProfile.runGadgetUnlocks.unlockedRunGadgetIds = currentProfile.runGadgetUnlocks.unlockedRunGadgetIds
+            .Concat(new[] { normalizedGadgetId })
+            .Distinct()
+            .ToArray();
+        SaveProfileAndNotify();
+    }
+
+    public static void UnlockRunGadget(GadgetId gadget)
+    {
+        UnlockRunGadget(GadgetCatalog.GetUnlockId(gadget));
+    }
+
+    public static bool HasUnlockedGadget(string gadgetId)
+    {
+        return HasUnlockedRunGadget(gadgetId);
+    }
+
+    public static void UnlockGadget(string gadgetId)
+    {
+        UnlockRunGadget(gadgetId);
     }
 
     public static void Reload()
     {
         loaded = false;
         EnsureLoaded();
-        ProfileChanged?.Invoke(current);
+        ProfileChanged?.Invoke(currentProfile);
+        RecordsChanged?.Invoke(currentRecords);
     }
 
     private static void EnsureLoaded()
@@ -173,15 +281,27 @@ public static class PersistentPlayerProfile
             return;
         }
 
-        current = PlayerProfileRepository.Load();
-        current.Normalize();
+        currentCatalog = PlayerProfileRepository.LoadUnlockablesCatalog();
+        currentProfile = PlayerProfileRepository.LoadProfile();
+        currentRecords = PlayerProfileRepository.LoadRecords();
+
+        currentCatalog.Normalize();
+        currentProfile.Normalize();
+        currentRecords.Normalize();
         loaded = true;
     }
 
-    private static void SaveAndNotify()
+    private static void SaveProfileAndNotify()
     {
-        current.Normalize();
-        PlayerProfileRepository.Save(current);
-        ProfileChanged?.Invoke(current);
+        currentProfile.Normalize();
+        PlayerProfileRepository.Save(currentProfile);
+        ProfileChanged?.Invoke(currentProfile);
+    }
+
+    private static void SaveRecordsAndNotify()
+    {
+        currentRecords.Normalize();
+        PlayerProfileRepository.SaveRecords(currentRecords);
+        RecordsChanged?.Invoke(currentRecords);
     }
 }

@@ -1,0 +1,93 @@
+{
+    "version": 1,
+    "skins": [
+        {
+            "id": "skin.default",
+            "displayName": "Default",
+            "defaultUnlocked": true,
+            "basePrice": 0,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            }
+        }
+    ],
+    "runGadgets": [
+        {
+            "id": "gadget.shell_shield",
+            "displayName": "Shell Shield",
+            "defaultUnlocked": true,
+            "basePrice": 0,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "gameplayId": "ShellShield"
+        },
+        {
+            "id": "gadget.ink_bottle",
+            "displayName": "Ink-Bottle",
+            "defaultUnlocked": true,
+            "basePrice": 0,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "gameplayId": "InkBottle"
+        }
+    ],
+    "permanentUpgrades": [
+        {
+            "id": "upgrade.ink_pulse_duration",
+            "displayName": "Ink Pulse Duration",
+            "defaultUnlocked": true,
+            "basePrice": 100,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "maxLevel": 5,
+            "priceGrowthMultiplier": 1.5,
+            "effectPerLevel": 0.15
+        },
+        {
+            "id": "upgrade.ink_pulse_recharge_rate",
+            "displayName": "Ink Pulse Recharge Rate",
+            "defaultUnlocked": true,
+            "basePrice": 100,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "maxLevel": 5,
+            "priceGrowthMultiplier": 1.5,
+            "effectPerLevel": 0.15
+        },
+        {
+            "id": "upgrade.shrimp_multiplier",
+            "displayName": "Shrimp Multiplier",
+            "defaultUnlocked": true,
+            "basePrice": 150,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "maxLevel": 5,
+            "priceGrowthMultiplier": 1.6,
+            "effectPerLevel": 0.1
+        },
+        {
+            "id": "upgrade.score_multiplier",
+            "displayName": "Score Multiplier",
+            "defaultUnlocked": true,
+            "basePrice": 150,
+            "unlockGoal": {
+                "goalType": "None",
+                "targetValue": 0
+            },
+            "maxLevel": 5,
+            "priceGrowthMultiplier": 1.6,
+            "effectPerLevel": 0.1
+        }
+    ]
+}

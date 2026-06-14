@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c993da135cd77a409e7be3cb7bda8a8, type: 3}
+  m_Name: ZonaEpipelagicaSpawnProfile
+  m_EditorClassIdentifier: 
+  coinPrefab: {fileID: 3035727691093939351, guid: 187ed2f1610ba5a4dac5875bb15fe45a, type: 3}
+  rareCoinPrefab: {fileID: 7402000000000000001, guid: e6aa67b7e44740b2af84358ae30f59ac, type: 3}
+  dealerFishPrefab: {fileID: 8302000000000000001, guid: ae5b0c496d6d4d72b1f303ca6f9e892f, type: 3}
+  portalPrefab: {fileID: 9101000000000000001, guid: d118cb2bfc0d40afba46931f1c275280, type: 3}
+  enemyProfiles:
+  - prefab: {fileID: 7102000000000000001, guid: 5c379b433a4f4a2f9d0bd93be236a1a1, type: 3}
+    enemyTag: EnemyPezGlobo
+    baseWeight: 1
+    minIntensity: 0
+    spawnIntervalMultiplier: 1
+  - prefab: {fileID: 7302000000000000001, guid: 93fcf4206e184f0aa7d640766d953c28, type: 3}
+    enemyTag: EnemyMina
+    baseWeight: 0.8
+    minIntensity: 0
+    spawnIntervalMultiplier: 1.2
+  - prefab: {fileID: 7202000000000000001, guid: 62f0056052f34fb0a4ae3d4e4c0679b1, type: 3}
+    enemyTag: EnemyCanaPescar
+    baseWeight: 1
+    minIntensity: 0
+    spawnIntervalMultiplier: 1
+  timeBetweenSpawns: 1.5
+  spawnDistanceFromCameraRight: 2
+  verticalPadding: 0.75
+  coinSpawnChance: 0.225
+  rareCoinSpawnChanceWithinCoins: 0.1
+  fishingRodEnemyInterval: 5
+  upperZoneSpawnCoverage: 0.75
+  lowerZoneSpawnCoverage: 0.75
+  pufferfishTuning:
+    fallSpeed: 0.55
+    expandedSpeedMultiplier: 2.2
+    proximityRadius: 2.5
+    expandedScaleMultiplier: 2
+    expansionSmoothSpeed: 8
+    erraticDirectionChangeIntervalMin: 1.2
+    erraticDirectionChangeIntervalMax: 2.6
+    erraticDirectionChangeChance: 0.45
+  fishingRodTuning:
+    dropSpeed: 14
+    startYOffsetBelowTopBoundary: 0.15
+    arriveDistance: 0.03
+    horizontalLeadTimePaddingSeconds: 0.25
+    minimumHorizontalLeadDistance: 2
+  enableDealerFishSpawns: 1
+  firstDealerFishSpawnDelay: 18
+  dealerFishSpawnInterval: 30
+  dealerFishIntervalRandomMultiplierMin: 1
+  dealerFishIntervalRandomMultiplierMax: 3
+  dealerFishSpawnDistanceFromCameraRight: 5
+  dealerFishSpawnZoneMin: 0
+  dealerFishSpawnZoneMax: 0.25
+  portalSpawnPolicy: 1
+  firstPortalSpawnDelay: 3
+  postBossPortalSpawnChance: 1
+  portalSpawnInterval: 20
+  requireNoActivePortal: 1

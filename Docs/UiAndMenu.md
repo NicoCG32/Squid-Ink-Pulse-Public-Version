@@ -97,6 +97,30 @@ Reglas:
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
 - `Comprar` debe tener componente `Button`; `InGameShopManager` cablea en runtime su accion hacia `BuyCurrentOffer`.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
+- Las ofertas se filtran por `RunGadgetUnlockService`; un gadget no habilitado por hitos no aparece.
+- Esta tienda es la unica que vende gadgets.
+
+## Tienda out-of-game
+
+Escena prevista: `ShopMenu`
+
+Servicios de dominio:
+- `PermanentShopService`
+- `UnlockablesCatalogQuery`
+- `PermanentUpgradeEffectResolver`
+
+Responsabilidad:
+- Mostrar subtienda de skins.
+- Mostrar subtienda de mejoras permanentes.
+- Consumir camarones persistentes mediante transacciones de `PermanentShopService`.
+- Mostrar estados derivados: bloqueado por meta, sin saldo, ya comprado, nivel maximo o compra exitosa.
+
+Reglas:
+- No vende gadgets. Los gadgets son compras de run mediante `DealerFish`.
+- No descuenta camarones directamente desde botones.
+- No modifica `player-profile.json` de forma directa.
+- No calcula precios por su cuenta; usa `PermanentShopService.GetPermanentUpgradePrice()` o datos del catalogo cuando corresponda.
+- La aplicacion visual de skins debe modificar visuales del jugador, no movimiento, colision ni reglas de Ink-Pulse.
 
 ## HUD
 
@@ -153,11 +177,15 @@ Contrato de barra Ink-Pulse:
 Prefabs disponibles:
 - `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab`: fuente para `ZonaEpipelagica`.
 - `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: fuente para `ZonaAbisopelagica`.
-- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: referencia temporal para `ZonaTutorial`.
+- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: fuente legacy para `ZonaTutorial`.
 - `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab`: slots de gadgets activos/pasivos.
 - `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab`: contador de camarones persistentes.
 - `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab`: puntaje runtime.
-- `ZonaEpipelagica` y `ZonaAbisopelagica` usan estas piezas como instancias prefab. Las escenas pueden conservar overrides de posicion, rotacion y escala. El prefab debe conservar jerarquia interna, imagenes, animador, mascara y componentes `ChargeBar`/`InkBarFillPresenter`.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan estas piezas como instancias prefab. Las escenas pueden conservar overrides de posicion, rotacion y escala. El prefab debe conservar jerarquia interna, imagenes, animador, mascara y componentes `ChargeBar`/`InkBarFillPresenter` cuando corresponda.
+
+Nota sobre Tutorial:
+- La estructura es igual, salvo que el HUD contiene `InkPulseBar` en vez de `InkBar`.
+- Esta diferencia esta validada explicitamente por `SceneContractValidator`; no debe resolverse renombrando nodos sin actualizar el contrato.
 
 Regla visual de inventario:
 - Los slots no tienen gadget fijo en escena; se llenan por orden de adquisicion.

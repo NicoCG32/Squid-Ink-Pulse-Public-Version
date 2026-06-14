@@ -85,7 +85,7 @@ Cruzar un portal no equivale a Game Over:
 - `RuntimePlayerPace` conserva la progresion de velocidad.
 - `GameSessionController` reinicia esos estados de run solo al entrar en `GameSessionState.GameOver`.
 - `ShrimpRuntimeWallet` conserva camarones durante runtime.
-- `PersistentPlayerProfile` incrementa `stats.totalPortalsCrossed` cuando el portal acepta cargar la escena destino.
+- `PersistentPlayerProfile` incrementa `player-records.json.totalPortalsCrossed` cuando el portal acepta cargar la escena destino.
 - Si el jugador entra al portal durante `InkPulseState.Active`, `PortalVisual` tiene prioridad visual, pero el estado runtime de Ink-Pulse sigue persistiendo hacia la escena siguiente.
 
 ## Contrato de zona
@@ -95,7 +95,7 @@ Para que un portal pueda aparecer, la zona debe tener:
 - `PlayerBoundaries/BottomBoundary`
 - `CameraBoundaries/TopBoundary`
 - `CameraBoundaries/BottomBoundary`
-- `LevelSpawner.portalPrefab`
+- `LevelSpawner.zoneSpawnProfile` con `portalPrefab` configurado.
 - `ProjectSettings/EditorBuildSettings.asset` con la escena destino habilitada.
 
 Si faltan boundaries, el portal no debe inventar una altura manual.

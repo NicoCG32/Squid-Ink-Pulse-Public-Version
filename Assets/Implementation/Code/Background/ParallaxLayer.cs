@@ -5,8 +5,8 @@ using UnityEngine;
 public class ParallaxLayer : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SpriteRenderer sourceRenderer;
-    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private SpriteRenderer sourceRenderer = null;
+    [SerializeField] private Transform cameraTransform = null;
 
     [Header("Parallax")]
     [SerializeField, Range(0f, 1f)] private float parallaxFactor = 0.2f;
@@ -22,9 +22,11 @@ public class ParallaxLayer : MonoBehaviour
 
     private void Start()
     {
+        ResolveCameraTransform();
+
         if (cameraTransform == null)
         {
-            Debug.LogError($"[{name}] Falta asignar CameraTransform en el Inspector.", this);
+            Debug.LogError($"[{name}] No encontro Camera.main para inicializar parallax.", this);
             enabled = false;
             return;
         }
@@ -62,6 +64,12 @@ public class ParallaxLayer : MonoBehaviour
             return;
         }
 
+        ResolveCameraTransform();
+        if (cameraTransform == null)
+        {
+            return;
+        }
+
         Vector3 cameraDelta = cameraTransform.position - lastCameraPosition;
 
         float moveX = cameraDelta.x * parallaxFactor;
@@ -72,6 +80,14 @@ public class ParallaxLayer : MonoBehaviour
         RecycleTiles();
 
         lastCameraPosition = cameraTransform.position;
+    }
+
+    private void ResolveCameraTransform()
+    {
+        if (cameraTransform == null && Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
     }
 
     private void BuildTiles()

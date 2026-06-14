@@ -9,11 +9,11 @@ public class PlayerGadgetInventory : MonoBehaviour
     [SerializeField] private InkPulseController inkPulseController;
 
     [Header("Runtime Starting Inventory")]
-    [SerializeField] private bool grantStartingInventory;
-    [SerializeField] private bool startWithShellShield;
-    [SerializeField] private bool startWithInkBottle;
-    [SerializeField] private Sprite startingShellShieldIcon;
-    [SerializeField] private Sprite startingInkBottleIcon;
+    [SerializeField] private bool grantStartingInventory = false;
+    [SerializeField] private bool startWithShellShield = false;
+    [SerializeField] private bool startWithInkBottle = false;
+    [SerializeField] private Sprite startingShellShieldIcon = null;
+    [SerializeField] private Sprite startingInkBottleIcon = null;
 
     private void Awake()
     {

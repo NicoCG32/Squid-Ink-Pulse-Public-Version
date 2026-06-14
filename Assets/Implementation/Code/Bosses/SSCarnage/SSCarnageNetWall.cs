@@ -110,11 +110,6 @@ public class SSCarnageNetWall : MonoBehaviour
     {
         isBroken = true;
 
-        if (wallCollider != null)
-        {
-            wallCollider.enabled = false;
-        }
-
         ApplyVisualState();
         progression?.NotifyBossResolved();
         Resolved?.Invoke();

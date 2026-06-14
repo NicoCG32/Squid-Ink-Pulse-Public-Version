@@ -28,16 +28,38 @@ Regla de persistencia:
 ## PersistentPlayerProfile
 
 Archivos:
+- `Assets/Implementation/Code/Player/Profile/PersistentDbPaths.cs`
+- `Assets/Implementation/Code/Player/Profile/JsonSaveFile.cs`
 - `Assets/Implementation/Code/Player/Profile/PlayerProfileSaveData.cs`
+- `Assets/Implementation/Code/Player/Profile/PlayerRecordsSaveData.cs`
+- `Assets/Implementation/Code/Player/Profile/UnlockablesCatalogSaveData.cs`
+- `Assets/Implementation/Code/Player/Profile/LocalLeaderboardSaveData.cs`
 - `Assets/Implementation/Code/Player/Profile/PlayerProfileRepository.cs`
 - `Assets/Implementation/Code/Player/Profile/PersistentPlayerProfile.cs`
+- `Assets/Implementation/Code/Player/Profile/LocalLeaderboardRepository.cs`
 - `Assets/Implementation/Code/Player/Profile/PlayerSkinIds.cs`
+- `Assets/Implementation/Code/Player/Profile/UnlockablesCatalogQuery.cs`
+- `Assets/Implementation/Code/Player/Profile/RunGadgetUnlockService.cs`
+- `Assets/Implementation/Code/Player/Profile/PermanentShopService.cs`
+- `Assets/Implementation/Code/Player/Profile/PermanentShopPurchaseResult.cs`
+- `Assets/Implementation/Code/Player/Profile/PermanentUpgradeEffectResolver.cs`
 
 Responsabilidad:
-- Cargar y guardar `player-profile.json` en `Application.persistentDataPath`.
-- Persistir saldo de camarones, upgrades permanentes, skins y stats.
+- Cargar semillas desde `Assets/StreamingAssets/db`.
+- Crear y guardar archivos reales en `Application.persistentDataPath/db`.
+- Persistir perfil logico en `player-profile.json`.
+- Persistir economia y records en `player-records.json`.
+- Persistir leaderboard local de feria en `local-leaderboard.json`.
+- Cargar catalogo de desbloqueables desde `unlockables-catalog.json`.
 - Normalizar defaults, incluyendo la skin base `skin.default`.
-- Mantener settings fuera de este archivo.
+- Mantener settings fuera de esta base local.
+- Separar perfil permanente en skins, mejoras permanentes y gadgets de run habilitados por hitos.
+- Proveer servicios de dominio para compras permanentes, consulta de catalogo, desbloqueo de gadgets por hito y resolucion de multiplicadores.
+
+Reglas:
+- Los gadgets son exclusivos de la tienda temporal in-game; `player-profile.json/runGadgetUnlocks` solo decide si pueden aparecer en ella.
+- `ShopMenu` debe usar `PermanentShopService` para skins y mejoras permanentes.
+- `InGameShopManager` debe usar `RunGadgetUnlockService` para filtrar ofertas de gadgets.
 
 La especificacion completa esta en [PersistentProfile.md](PersistentProfile.md).
 

@@ -10,7 +10,7 @@ public class RunProgressionDirector : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameSessionController session;
-    [SerializeField] private Transform distanceReference;
+    [SerializeField] private Transform distanceReference = null;
 
     [Header("Progression")]
     [SerializeField] private float secondsToMaxIntensity = 120f;
@@ -118,7 +118,7 @@ public class RunProgressionDirector : MonoBehaviour
     private void UpdateScore(float deltaTime)
     {
         float intensityMultiplier = 1f + Current.Intensity * scoreIntensityBonusMultiplier;
-        scoreAccumulator += scorePerSecond * intensityMultiplier * deltaTime;
+        scoreAccumulator += scorePerSecond * intensityMultiplier * PermanentUpgradeEffectResolver.ScoreMultiplier * deltaTime;
 
         long wholeScore = (long)Mathf.Floor(scoreAccumulator);
         if (wholeScore <= 0)

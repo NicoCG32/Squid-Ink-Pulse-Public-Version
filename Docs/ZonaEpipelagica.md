@@ -61,8 +61,8 @@ flowchart TD
 | `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida e intensidad de run. |
 | `SceneFlow` | `SceneFlowController` | Retorno a menu y cambios de escena. |
 | `Gameplay` | ninguno | Agrupacion de logica del nivel. |
-| `LevelSpawner` | `LevelSpawner` | Spawn de monedas, enemigos, tienda y portales. |
-| `Boundaries` | `HorizontalTracker` | Mantener fronteras alineadas con el avance del mundo. |
+| `LevelSpawner` | `LevelSpawner` con `ZoneSpawnProfile` asignado | Spawn de monedas, enemigos, tienda y portales. |
+| `Boundaries` | Instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`; `HorizontalTracker` | Mantener fronteras alineadas con el avance del mundo. |
 | `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de camara. |
 | `CleanUp` | Instancia de `Assets/Content/Prefabs/World/CleanUp.prefab` | Contenedor canonico de limpieza fuera de camara. |
@@ -100,6 +100,7 @@ Boundaries
 ```
 
 Reglas:
+- `Boundaries` debe ser instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`.
 - Cada `TopBoundary` y `BottomBoundary` debe tener `Collider2D`.
 - El jugador usa `PlayerBoundaries`.
 - La camara usa `CameraBoundaries`.
@@ -124,13 +125,14 @@ La utilidad de mantenimiento es `Tools/Squid/Normalize Gameplay Scene Coordinate
 - `GameSessionController` gobierna el estado global.
 - `RunProgressionDirector` define intensidad, velocidad y ritmo de spawn.
 - `SceneFlowController` resuelve retorno al menu y cambios de escena.
-- `LevelSpawner` genera enemigos, camarones, tienda y portales sin mezclar progresion global.
+- `LevelSpawner` genera enemigos, camarones, tienda y portales usando el `ZoneSpawnProfile` de la zona, sin mezclar progresion global.
 - `ScenePortal` gobierna el cambio entre `ZonaEpipelagica` y `ZonaAbisopelagica`, pero nace desde `LevelSpawner`.
 - `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de camara.
 - `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarse con pausa ni game over.
 - `GadgetInventoryHud` muestra `Q` en `Gadget1` y `W` en `Gadget2` cuando el gadget del slot es activo.
 - `CameraController` decide seguimiento normal, vista amplia de evento y feedback de Ink-Pulse.
 - `HorizontalTracker` mantiene fronteras utiles sincronizadas con el mundo.
+- `Boundaries` debe ser instancia de `Assets/Content/Prefabs/World/Boundaries.prefab`; las medidas propias de zona viven como overrides de colliders, no como copias locales.
 - `DestroyOffscreen` sigue la camara y limpia enemigos, camarones, collectibles y portales que quedan fuera de pantalla.
 - `CleanUp` debe ser instancia de `Assets/Content/Prefabs/World/CleanUp.prefab`; no se dimensiona ni se balancea a mano en escena.
 - El alto efectivo del `GarbageCollector` es la distancia interna entre `CameraBoundaries/BottomBoundary` y `CameraBoundaries/TopBoundary`.

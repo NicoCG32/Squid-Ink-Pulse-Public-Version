@@ -16,7 +16,7 @@ public class ZoneLightingController : MonoBehaviour
     [SerializeField] private GameSessionController session;
     [SerializeField] private Camera targetCamera;
     [FormerlySerializedAs("darknessOverlay")]
-    [SerializeField] private SpriteRenderer layerBlack;
+    [SerializeField] private SpriteRenderer layerBlack = null;
 
     [Header("Layer Black")]
     [FormerlySerializedAs("darkAlpha")]

@@ -6,10 +6,10 @@ using UnityEngine;
 public class ZoneSpawnProfile : ScriptableObject
 {
     [Header("What to Spawn")]
-    [SerializeField] private GameObject coinPrefab;
-    [SerializeField] private GameObject rareCoinPrefab;
-    [SerializeField] private GameObject dealerFishPrefab;
-    [SerializeField] private GameObject portalPrefab;
+    [SerializeField] private GameObject coinPrefab = null;
+    [SerializeField] private GameObject rareCoinPrefab = null;
+    [SerializeField] private GameObject dealerFishPrefab = null;
+    [SerializeField] private GameObject portalPrefab = null;
     [SerializeField] private EnemySpawnProfile[] enemyProfiles =
     {
         new EnemySpawnProfile(EnemyTagCatalog.Pufferfish, 1f, 0f, 1f),

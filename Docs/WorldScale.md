@@ -34,6 +34,8 @@ Importante: si el `SpriteRenderer` esta en `Draw Mode = Simple`, el campo `Size`
 
 ## Boundaries del jugador
 
+`Boundaries` debe provenir de `Assets/Content/Prefabs/World/Boundaries.prefab`. La escala canonica se conserva ajustando los colliders de la instancia prefab de cada zona, no creando una jerarquia nueva.
+
 La ventana vertical util del jugador se define por la jerarquia obligatoria:
 
 ```text
@@ -50,6 +52,8 @@ La altura util no se mide desde la posicion central de los transforms, sino desd
 En la configuracion actual de `ZonaEpipelagica`, esa distancia esta normalizada en `14.69 unidades Unity`, equivalentes a `1469 px` de arte a `100 PPU`.
 
 ## Boundaries de camara
+
+`CameraBoundaries` tambien pertenece a la misma instancia prefab `Boundaries`.
 
 La camara usa una jerarquia separada:
 
