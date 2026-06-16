@@ -17,6 +17,7 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button optionsButton;
+    [SerializeField] private OptionsMenuManager optionsMenu;
     [SerializeField] private Button menuButton;
     [SerializeField] private Button exitButton;
 
@@ -117,7 +118,25 @@ public class PauseMenuManager : MonoBehaviour
 
     public void Opciones()
     {
-        Debug.Log("Opciones: aun no implementado");
+        if (optionsMenu == null)
+        {
+            Debug.LogError("[PauseMenuManager] Faltó asignar el OptionsMenuManager.");
+            return;
+        }
+
+        // Hide the pause menu temporarily
+        SetVisible(false); 
+        
+        // Open options, and pass a callback to run when Options closes
+        optionsMenu.Open(OnOptionsClosed); 
+    }
+
+    // This runs when the user clicks "Back" in the Options menu
+    private void OnOptionsClosed()
+    {
+        // Bring the pause menu back
+        SetVisible(true);
+        StartCoroutine(AnimateIn()); 
     }
 
     public void IrAlMenu()

@@ -9,6 +9,10 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     [SerializeField] private string optionsSceneName = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
     [SerializeField] private float timeDelay = 0.6f;
+    
+    [Header("UI Panels")]
+    [SerializeField] private OptionsMenuManager optionsMenuPanel;
+    [SerializeField] private MainMenuStoreManager storeMenuPanel; // Added Store Reference
 
     private bool isLoading;
 
@@ -19,13 +23,25 @@ public class MainMenu : MonoBehaviour
 
     public void Opciones()
     {
-        if (string.IsNullOrWhiteSpace(optionsSceneName))
+        if (optionsMenuPanel == null)
         {
-            Debug.LogWarning("[MainMenu] La escena de opciones aun no esta configurada.", this);
+            Debug.LogWarning("[MainMenu] El panel de opciones no está asignado.", this);
             return;
         }
 
-        LoadConfiguredScene(optionsSceneName, "opciones");
+        optionsMenuPanel.Open(); 
+    }
+
+    // New method to open the store
+    public void AbrirTienda()
+    {
+        if (storeMenuPanel == null)
+        {
+            Debug.LogWarning("[MainMenu] El panel de la tienda no está asignado.", this);
+            return;
+        }
+
+        storeMenuPanel.Open();
     }
 
     private void LoadConfiguredScene(string sceneName, string sceneLabel)

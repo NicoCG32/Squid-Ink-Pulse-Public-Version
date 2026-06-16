@@ -93,6 +93,14 @@ public class InkPulseController : MonoBehaviour
     {
         if (!CanActivatePulse())
         {
+
+            if (IsGameplayActive() && !activationSuppressed && !InGameShopManager.IsShopOpen && !IsPulseActive && !IsCharged)
+            {
+                if (chargeBar != null)
+                {
+                    chargeBar.TriggerErrorFeedback();
+                }
+            }
             return false;
         }
 

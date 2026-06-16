@@ -204,6 +204,7 @@ MonoBehaviour:
   canvasGroup: {fileID: 1064918735136538035}
   resumeButton: {fileID: 1064918736475787244}
   optionsButton: {fileID: 1064918735378552897}
+  optionsMenu: {fileID: 0}
   menuButton: {fileID: 1064918735958011320}
   exitButton: {fileID: 1064918736308143668}
   animatedDecorations:
