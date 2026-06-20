@@ -7,7 +7,7 @@ public static class PlayerProfileRepository
 {
     public const int CurrentVersion = 3;
     public const int RecordsVersion = 1;
-    public const int UnlockablesCatalogVersion = 1;
+    public const int UnlockablesCatalogVersion = 2;
     public const int LeaderboardVersion = 1;
 
     public static string ProfilePath => PersistentDbPaths.PlayerProfilePath;

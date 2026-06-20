@@ -520,7 +520,6 @@ MonoBehaviour:
   mainMenuBuildIndex: 0
   tutorialSceneName: Assets/Scenes/Game/ZonaTutorial.unity
   shopMenuSceneName: Assets/Scenes/ShopMenu/ShopMenu.unity
-  optionsMenuSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
   primaryGameplaySceneName: Assets/Scenes/Game/ZonaEpipelagica.unity
   secondaryGameplaySceneName: Assets/Scenes/Game/ZonaAbisopelagica.unity
 --- !u!1 &8413606509887838465

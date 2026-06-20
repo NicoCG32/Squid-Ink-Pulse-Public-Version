@@ -61,7 +61,53 @@ public static class UnlockablesCatalogQuery
     public static float GetPermanentUpgradeMultiplier(string upgradeId)
     {
         PermanentUpgradeDefinition upgrade = FindPermanentUpgrade(upgradeId);
+        if (upgrade == null)
+        {
+            return 1f;
+        }
+
+        upgrade.Normalize();
+        if (upgrade.IsAdditiveEffect)
+        {
+            return 1f;
+        }
+
         int level = PersistentPlayerProfile.GetPermanentUpgradeLevel(upgradeId);
-        return 1f + Math.Max(0, level) * Math.Max(0f, upgrade?.effectPerLevel ?? 0f);
+        return Math.Max(0f, CalculatePermanentUpgradeEffectValue(upgrade, level));
+    }
+
+    public static float GetPermanentUpgradeAdditiveBonus(string upgradeId)
+    {
+        PermanentUpgradeDefinition upgrade = FindPermanentUpgrade(upgradeId);
+        if (upgrade == null)
+        {
+            return 0f;
+        }
+
+        upgrade.Normalize();
+        int level = PersistentPlayerProfile.GetPermanentUpgradeLevel(upgradeId);
+        float effectValue = CalculatePermanentUpgradeEffectValue(upgrade, level);
+        return upgrade.IsAdditiveEffect
+            ? Math.Max(0f, effectValue)
+            : Math.Max(0f, effectValue - 1f);
+    }
+
+    public static float GetPermanentUpgradeEffectValue(string upgradeId)
+    {
+        PermanentUpgradeDefinition upgrade = FindPermanentUpgrade(upgradeId);
+        if (upgrade == null)
+        {
+            return 0f;
+        }
+
+        upgrade.Normalize();
+        int level = PersistentPlayerProfile.GetPermanentUpgradeLevel(upgradeId);
+        return CalculatePermanentUpgradeEffectValue(upgrade, level);
+    }
+
+    private static float CalculatePermanentUpgradeEffectValue(PermanentUpgradeDefinition upgrade, int currentLevel)
+    {
+        int normalizedLevel = Math.Max(0, currentLevel);
+        return upgrade.baseEffectValue + normalizedLevel * Math.Max(0f, upgrade.effectPerLevel);
     }
 }

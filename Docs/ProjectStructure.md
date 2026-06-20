@@ -14,7 +14,6 @@
 - `Assets/Implementation/Config/Spawning/`: assets `ZoneSpawnProfile` por zona (`ZonaEpipelagicaSpawnProfile`, `ZonaAbisopelagicaSpawnProfile`, `ZonaTutorialSpawnProfile`).
 - `Assets/Implementation/Editor/`: herramientas de editor para migraciones o validaciones, fuera de runtime.
 - `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`: herramienta para centrar las escenas jugables alrededor del origen.
-- `CODEX/`: memoria operativa para continuar trabajo con Codex; no reemplaza la documentacion tecnica de `Docs/`.
 - `Assets/Implementation/Editor/CleanupPrefabMigration.cs`: herramienta para crear y conectar el prefab canonico `CleanUp` en escenas jugables.
 - `Assets/Implementation/Editor/SceneContractValidator.cs`: herramienta `Tools/Squid/Validate Scene Contracts` para auditar zonas jugables, prefabs criticos, perfiles de spawn, tags y layers.
 - `Assets/Content/Prefabs/`: prefabs runtime.

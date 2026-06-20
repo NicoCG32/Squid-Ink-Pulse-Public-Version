@@ -131,6 +131,11 @@ public static class SceneContractValidator
             (UnlockablesCatalogSaveData catalog) =>
             {
                 catalog.Normalize();
+                if (catalog.version < PlayerProfileRepository.UnlockablesCatalogVersion)
+                {
+                    failures.Add($"unlockables-catalog.json version must be at least {PlayerProfileRepository.UnlockablesCatalogVersion}.");
+                }
+
                 if (!catalog.skins.Any(skin => skin.id == PlayerSkinIds.Default))
                 {
                     failures.Add("unlockables-catalog.json must contain skin.default.");
@@ -165,6 +170,35 @@ public static class SceneContractValidator
                 {
                     failures.Add("unlockables-catalog.json must contain upgrade.score_multiplier.");
                 }
+
+                RequirePermanentUpgradeEffect(
+                    catalog,
+                    PlayerUnlockableIds.InkPulseDurationUpgrade,
+                    PermanentUpgradeEffectModes.Multiplier,
+                    1f,
+                    "Ink Pulse Duration",
+                    failures);
+                RequirePermanentUpgradeEffect(
+                    catalog,
+                    PlayerUnlockableIds.InkPulseRechargeRateUpgrade,
+                    PermanentUpgradeEffectModes.Additive,
+                    0f,
+                    "Ink Pulse Recharge Rate",
+                    failures);
+                RequirePermanentUpgradeEffect(
+                    catalog,
+                    PlayerUnlockableIds.ShrimpMultiplierUpgrade,
+                    PermanentUpgradeEffectModes.Multiplier,
+                    1f,
+                    "Shrimp Multiplier",
+                    failures);
+                RequirePermanentUpgradeEffect(
+                    catalog,
+                    PlayerUnlockableIds.PointsMultiplierUpgrade,
+                    PermanentUpgradeEffectModes.Multiplier,
+                    1f,
+                    "Points Multiplier",
+                    failures);
             },
             failures);
 
@@ -185,6 +219,33 @@ public static class SceneContractValidator
             "local leaderboard seed",
             (LocalLeaderboardSaveData leaderboard) => leaderboard.Normalize(),
             failures);
+    }
+
+    private static void RequirePermanentUpgradeEffect(
+        UnlockablesCatalogSaveData catalog,
+        string upgradeId,
+        string expectedMode,
+        float expectedBaseValue,
+        string displayName,
+        List<string> failures)
+    {
+        PermanentUpgradeDefinition upgrade = catalog.permanentUpgrades
+            .FirstOrDefault(candidate => candidate.id == upgradeId);
+        if (upgrade == null)
+        {
+            return;
+        }
+
+        upgrade.Normalize();
+        if (!string.Equals(upgrade.effectMode, expectedMode, StringComparison.OrdinalIgnoreCase))
+        {
+            failures.Add($"unlockables-catalog.json {displayName} must use {expectedMode} effect mode.");
+        }
+
+        if (Math.Abs(upgrade.baseEffectValue - expectedBaseValue) > 0.0001f)
+        {
+            failures.Add($"unlockables-catalog.json {displayName} baseEffectValue must be {expectedBaseValue}.");
+        }
     }
 
     private static void ValidateJsonSeed<T>(

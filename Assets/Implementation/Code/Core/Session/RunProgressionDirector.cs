@@ -118,7 +118,7 @@ public class RunProgressionDirector : MonoBehaviour
     private void UpdateScore(float deltaTime)
     {
         float intensityMultiplier = 1f + Current.Intensity * scoreIntensityBonusMultiplier;
-        scoreAccumulator += scorePerSecond * intensityMultiplier * PermanentUpgradeEffectResolver.ScoreMultiplier * deltaTime;
+        scoreAccumulator += scorePerSecond * intensityMultiplier * PermanentUpgradeEffectResolver.PointsMultiplier * deltaTime;
 
         long wholeScore = (long)Mathf.Floor(scoreAccumulator);
         if (wholeScore <= 0)

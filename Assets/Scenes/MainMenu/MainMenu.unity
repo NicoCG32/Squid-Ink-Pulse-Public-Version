@@ -2093,7 +2093,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   playSceneName: Assets/Scenes/Game/ZonaEpipelagica.unity
-  optionsSceneName: Assets/Scenes/OptionsMenu/OptionsMenu.unity
   timeDelay: 0.6
   optionsMenuPanel: {fileID: 350162439}
   storeMenuPanel: {fileID: 253103920}

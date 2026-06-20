@@ -7,7 +7,6 @@ public class MainMenu : MonoBehaviour
 {
     [Header("Scene Flow")]
     [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
-    [SerializeField] private string optionsSceneName = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
     [SerializeField] private float timeDelay = 0.6f;
     
     [Header("UI Panels")]

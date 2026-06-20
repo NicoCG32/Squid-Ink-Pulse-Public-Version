@@ -1,5 +1,5 @@
 {
-    "version": 1,
+    "version": 2,
     "skins": [
         {
             "id": "skin.default",
@@ -48,6 +48,8 @@
             },
             "maxLevel": 5,
             "priceGrowthMultiplier": 1.5,
+            "effectMode": "Multiplier",
+            "baseEffectValue": 1,
             "effectPerLevel": 0.15
         },
         {
@@ -61,7 +63,9 @@
             },
             "maxLevel": 5,
             "priceGrowthMultiplier": 1.5,
-            "effectPerLevel": 0.15
+            "effectMode": "Additive",
+            "baseEffectValue": 0,
+            "effectPerLevel": 22.5
         },
         {
             "id": "upgrade.shrimp_multiplier",
@@ -74,11 +78,13 @@
             },
             "maxLevel": 5,
             "priceGrowthMultiplier": 1.6,
+            "effectMode": "Multiplier",
+            "baseEffectValue": 1,
             "effectPerLevel": 0.1
         },
         {
             "id": "upgrade.score_multiplier",
-            "displayName": "Score Multiplier",
+            "displayName": "Points Multiplier",
             "defaultUnlocked": true,
             "basePrice": 150,
             "unlockGoal": {
@@ -87,6 +93,8 @@
             },
             "maxLevel": 5,
             "priceGrowthMultiplier": 1.6,
+            "effectMode": "Multiplier",
+            "baseEffectValue": 1,
             "effectPerLevel": 0.1
         }
     ]

@@ -9,7 +9,6 @@ public class SceneFlowController : MonoBehaviour
     [SerializeField] private int mainMenuBuildIndex = 0;
     [SerializeField] private string tutorialSceneName = "Assets/Scenes/Game/ZonaTutorial.unity";
     [SerializeField] private string shopMenuSceneName = "Assets/Scenes/ShopMenu/ShopMenu.unity";
-    [SerializeField] private string optionsMenuSceneName = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
 
     [Header("Portal Scenes")]
     [SerializeField] private string primaryGameplaySceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
@@ -58,7 +57,7 @@ public class SceneFlowController : MonoBehaviour
 
     public void LoadOptionsMenu()
     {
-        LoadSceneByName(optionsMenuSceneName);
+        Debug.LogWarning("[SceneFlowController] OptionsMenu ya no es una escena. Debe abrirse mediante el prefab OptionsMenuManager asignado en la escena.", this);
     }
 
     public void LoadSceneByName(string sceneName)

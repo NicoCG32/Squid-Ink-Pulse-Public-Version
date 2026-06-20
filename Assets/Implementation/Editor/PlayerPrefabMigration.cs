@@ -17,7 +17,6 @@ public static class PlayerPrefabContractUtility
     private const string SecondaryScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
     private const string TutorialScenePath = "Assets/Scenes/Game/ZonaTutorial.unity";
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu/MainMenu.unity";
-    private const string OptionsMenuScenePath = "Assets/Scenes/OptionsMenu/OptionsMenu.unity";
     private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
     private const string FishingRodPrefabPath = "Assets/Content/Prefabs/Enemies/CanaPescar.prefab";
     private const string PufferfishPrefabPath = "Assets/Content/Prefabs/Enemies/PezGlobo.prefab";
@@ -37,7 +36,6 @@ public static class PlayerPrefabContractUtility
     private static readonly string[] MenuScenePaths =
     {
         MainMenuScenePath,
-        OptionsMenuScenePath,
         ShopMenuScenePath
     };
 
@@ -47,8 +45,7 @@ public static class PlayerPrefabContractUtility
         SourceScenePath,
         SecondaryScenePath,
         TutorialScenePath,
-        ShopMenuScenePath,
-        OptionsMenuScenePath
+        ShopMenuScenePath
     };
 
     [MenuItem("Tools/Squid/Wire All Scene Contracts And Clean Legacy")]
@@ -755,7 +752,6 @@ public static class PlayerPrefabContractUtility
         SetInt(sceneFlow, "mainMenuBuildIndex", 0);
         SetString(sceneFlow, "tutorialSceneName", TutorialScenePath);
         SetString(sceneFlow, "shopMenuSceneName", ShopMenuScenePath);
-        SetString(sceneFlow, "optionsMenuSceneName", OptionsMenuScenePath);
         SetString(sceneFlow, "primaryGameplaySceneName", SourceScenePath);
         SetString(sceneFlow, "secondaryGameplaySceneName", SecondaryScenePath);
     }
@@ -919,7 +915,6 @@ public static class PlayerPrefabContractUtility
         }
 
         SetString(controller, "playSceneName", SourceScenePath);
-        SetString(controller, "optionsSceneName", OptionsMenuScenePath);
 
         if (GetFloat(controller, "timeDelay") <= 0f)
         {
