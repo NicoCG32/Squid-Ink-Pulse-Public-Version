@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1404684228032725935}
   - component: {fileID: 2123272869399151787}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BossPillars
-  m_TagString: Untagged
+  m_TagString: EnemyMina
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

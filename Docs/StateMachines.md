@@ -84,7 +84,7 @@ Esta separacion evita que `PortalEffect`, `InkPulse.anim` y `Movement.anim` dibu
 
 `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante entre portales. `GameOver` lo reinicia.
 
-El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCrossfader` observa `InkPulseState.Active` y ajusta mezcla; no gobierna input, dificultad, spawn ni dano.
+El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCrossfader` observa `InkPulseState.Active` y ajusta mezcla; `SoundtrackPitchProgression` observa `RuntimePlayerPace.ElapsedSpeedSeconds` y ajusta pitch. Ninguno gobierna input, dificultad, spawn ni dano.
 
 ### ShopEventState
 

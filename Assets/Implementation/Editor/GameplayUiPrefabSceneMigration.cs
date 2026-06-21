@@ -314,7 +314,7 @@ public static class GameplayUiPrefabSceneMigration
             RequireObjectReference(new SerializedObject(controller), "chargeBar", scene.path, nameof(InkPulseController));
         }
 
-        RequireManagerReferences(scene, FindSceneComponent<PauseMenuManager>(scene), nameof(PauseMenuManager), "menuRoot", "canvasGroup", "resumeButton", "optionsButton", "menuButton", "exitButton");
+        RequireManagerReferences(scene, FindSceneComponent<PauseMenuManager>(scene), nameof(PauseMenuManager), "menuRoot", "canvasGroup", "resumeButton", "optionsButton", "menuButton");
         RequireManagerReferences(scene, FindSceneComponent<GameOverMenuManager>(scene), nameof(GameOverMenuManager), "menuRoot", "canvasGroup", "retryButton", "menuButton");
         RequireManagerReferences(scene, FindSceneComponent<InGameShopManager>(scene), nameof(InGameShopManager), "menuRoot", "canvasGroup", "gadgetImage", "priceText", "buyKeyText", "buyButton", "insufficientFundsText");
     }

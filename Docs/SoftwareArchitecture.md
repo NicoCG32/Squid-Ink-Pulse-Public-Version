@@ -299,6 +299,7 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 - `LevelSpawner` conserva la autoridad unica de aparicion runtime, pero ya no concentra seleccion, calculo de posiciones ni configuracion repetible de instancias. Si crece de nuevo, la regla es extraer otro servicio interno antes de crear un segundo spawner.
 - `MainMenu` no sigue sufijo `Controller`. No se renombro para evitar perder referencias serializadas de escena. Refactor futuro recomendado: `MainMenuController` con migracion de escena.
 - `InkPulseMusicCrossfader` es un adaptador de audio, no un controlador de gameplay. Su nombre es valido porque describe una especializacion tecnica.
+- `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresion, pero no gobierna dificultad, input, spawn, score ni estado de sesion.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepcion visual deliberada para entidades spawneadas.
 - `InGameShopManager` sigue siendo grande porque administra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y calculo de precio ya viven en helpers puros; la siguiente separacion razonable seria una vista/presenter de tienda si el canvas crece.
 - `PermanentShopService` ya existe como servicio de dominio, pero la escena `ShopMenu` todavia requiere un manager/presenter de UI que lo consuma. Ese manager no debe reimplementar precios, metas ni descuentos.

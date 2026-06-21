@@ -26,7 +26,7 @@
 ## Codigo por dominio
 
 - `Assets/Implementation/Code/Core/`: sesion, escenas, camara y utilidades de mundo.
-- `Assets/Implementation/Code/Audio/`: musica dinamica y transiciones de soundtrack.
+- `Assets/Implementation/Code/Audio/`: musica dinamica, crossfade de Ink-Pulse y progresion de pitch del soundtrack.
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Player/Profile/`: persistencia JSON local, catalogo de desbloqueables, perfil, records, skins, economia permanente y leaderboard local.
 - `Assets/Implementation/Code/Player/Visual/`: controladores visuales del jugador que observan estado sin decidir gameplay.
@@ -51,7 +51,7 @@ La arquitectura formal esta definida en [SoftwareArchitecture.md](SoftwareArchit
 - `Assets/Content/Prefabs/Gadgets/`: gadgets comprables durante la run mediante `DealerFish`.
 - `Assets/Content/Prefabs/Shop/`: `DealerFish`.
 - `Assets/Content/Prefabs/Portals/`: `ScenePortal`.
-- `Assets/Content/Prefabs/Core/Audio/`: `AudioRoot_*` por zona, con `Soundtrack` y `SFX`.
+- `Assets/Content/Prefabs/Core/Audio/`: `AudioRoot_*` por zona, con `Soundtrack`, `SFX` y componentes de musica dinamica por zona.
 - `Assets/Content/Prefabs/Core/Camera/`: `CameraRig_*` por zona, con `Main Camera` y `CameraController`.
 - `Assets/Content/Prefabs/Core/Environment/`: `EnviromentRoot_*` por zona, con fondos, parallax y efectos ambientales.
 - `Assets/Content/Prefabs/Core/Scenes/`: `GameRoot_*` por zona, como raiz de composicion jugable.

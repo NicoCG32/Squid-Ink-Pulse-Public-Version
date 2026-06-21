@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
-public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
+public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver, IOffscreenCleanupEligibility
 {
     [Header("References")]
     [SerializeField] private GameSessionController session;
@@ -39,6 +39,12 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     private PlayerMovement playerMovement;
 
     public SSCarnageAttackState CurrentAttackState { get; private set; } = SSCarnageAttackState.Inactive;
+    public bool CanBeCleanedUpOffscreen =>
+        CurrentAttackState == SSCarnageAttackState.Resolved
+        || CurrentAttackState == SSCarnageAttackState.Failed
+        || CurrentAttackState == SSCarnageAttackState.Exiting
+        || CurrentAttackState == SSCarnageAttackState.Finished;
+
     public event Action<SSCarnageAttackState, SSCarnageAttackState> AttackStateChanged;
 
     private void Awake()
@@ -79,7 +85,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
             }
         }
 
-        DestroyIfActiveNetWallWasCleanedUp();
+        FailIfActiveNetWallWasUnexpectedlyDestroyed();
         UpdateDestroyAfterDeploy();
     }
 
@@ -188,7 +194,7 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         }
     }
 
-    private void DestroyIfActiveNetWallWasCleanedUp()
+    private void FailIfActiveNetWallWasUnexpectedlyDestroyed()
     {
         if (CurrentAttackState != SSCarnageAttackState.NetActive || activeNetWall != null)
         {
@@ -196,7 +202,9 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
         }
 
         activeNetWall = null;
-        CompleteBossAsResolved();
+        progression?.NotifyBossFailed();
+        ApplyAttackState(SSCarnageAttackState.Failed);
+        Debug.LogError("[SSCarnageController] La red activa desaparecio antes de resolverse. No se marcara el boss como resuelto.", this);
     }
 
     private Vector3 CalculateNetSpawnPosition()
@@ -335,11 +343,6 @@ public class SSCarnageController : MonoBehaviour, IBossSpawnContextReceiver
     private void OnDestroy()
     {
         SSCarnageNetWall netWall = activeNetWall;
-        if (CurrentAttackState == SSCarnageAttackState.NetActive && session != null && session.IsPlaying)
-        {
-            CompleteBossAsResolved();
-        }
-
         UnsubscribeFromActiveNetWall();
         if (netWall != null)
         {

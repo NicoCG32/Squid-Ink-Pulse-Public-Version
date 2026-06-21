@@ -56,6 +56,9 @@ MonoBehaviour:
   maxJumpDistance: 6
   minGapSize: 4
   maxGapSize: 8
+  minRevealDuration: 0.35
+  maxRevealDuration: 0.75
+  maxRevealStagger: 0.25
 --- !u!1 &8598988260774372391
 GameObject:
   m_ObjectHideFlags: 0

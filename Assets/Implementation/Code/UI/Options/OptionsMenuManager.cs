@@ -36,9 +36,17 @@ public class OptionsMenuManager : MonoBehaviour
     private Action onClosedCallback;
     private Resolution[] resolutions;
     private Coroutine animationRoutine;
+    private bool isOpen;
+
+    private void Awake()
+    {
+        ResolveUiReferences();
+    }
 
     private void Start()
     {
+        ResolveUiReferences();
+
         if (backButton != null)
         {
             backButton.onClick.AddListener(Close);
@@ -53,12 +61,17 @@ public class OptionsMenuManager : MonoBehaviour
         if (resolutionDropdown != null) resolutionDropdown.onValueChanged.AddListener(SetResolution);
         if (fullscreenToggle != null) fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
         
-        SetVisible(false);
+        if (!isOpen)
+        {
+            SetVisible(false);
+        }
     }
 
     public void Open(Action onClosed = null)
     {
+        ResolveUiReferences();
         onClosedCallback = onClosed;
+        isOpen = true;
         SetVisible(true);
         StartAnimation(AnimateIn());
     }
@@ -290,6 +303,7 @@ public class OptionsMenuManager : MonoBehaviour
         if (canvasGroup == null)
         {
             SetVisible(false);
+            isOpen = false;
             onClosedCallback?.Invoke();
             onClosedCallback = null;
             yield break;
@@ -299,6 +313,7 @@ public class OptionsMenuManager : MonoBehaviour
         yield return MenuScreenAnimation.FadeCanvas(canvasGroup, 0f, fadeDuration);
         
         SetVisible(false);
+        isOpen = false;
         onClosedCallback?.Invoke();
         onClosedCallback = null;
     }
@@ -320,12 +335,42 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void SetVisible(bool visible)
     {
-        if (menuRoot != null) menuRoot.SetActive(visible);
+        bool menuRootIsManagerObject = menuRoot == gameObject;
+        if (visible && menuRootIsManagerObject && !gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        if (menuRoot != null && !menuRootIsManagerObject)
+        {
+            menuRoot.SetActive(visible);
+        }
+
         if (canvasGroup != null)
         {
             canvasGroup.alpha = visible ? 1f : 0f;
             canvasGroup.interactable = visible;
             canvasGroup.blocksRaycasts = visible;
         }
+    }
+
+    private void ResolveUiReferences()
+    {
+        Transform uiRoot = menuRoot != null ? menuRoot.transform : transform.Find("Canvas");
+        if (menuRoot == null && uiRoot != null)
+        {
+            menuRoot = uiRoot.gameObject;
+        }
+
+        if (canvasGroup == null && menuRoot != null)
+        {
+            canvasGroup = menuRoot.GetComponentInChildren<CanvasGroup>(includeInactive: true);
+        }
+
+        backButton ??= UiButtonContract.FindButton(
+            uiRoot,
+            "VolverBoton",
+            "BackBoton",
+            "BackButton");
     }
 }

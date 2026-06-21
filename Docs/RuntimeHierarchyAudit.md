@@ -30,6 +30,7 @@ La regla de capas completa esta definida en [SoftwareArchitecture.md](SoftwareAr
 - Limpieza de objetos fuera de camara: `DestroyOffscreen`.
 - Resolucion de boundaries: `BoundaryReferenceResolver`.
 - Spawn de enemigos, camarones, tienda y portales: `LevelSpawner`, parametrizado obligatoriamente por `ZoneSpawnProfile`.
+- Soundtrack de zona: `Soundtrack` bajo `AudioRoot_*`; `InkPulseMusicCrossfader` gobierna mezcla normal/INK cuando existe y `SoundtrackPitchProgression` gobierna pitch progresivo por pace runtime.
 - Tags compartidos: `GameplayTagCatalog`.
 - Tags de enemigos: `EnemyTagCatalog`.
 - Inventario runtime de gadgets: `PlayerGadgetInventory` y `RuntimeGadgetInventory`.

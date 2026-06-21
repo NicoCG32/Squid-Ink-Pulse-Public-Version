@@ -167,8 +167,8 @@ public class GameOverMenuManager : MonoBehaviour
             canvasGroup = menuRoot.GetComponent<CanvasGroup>();
         }
 
-        retryButton ??= FindChildComponent<Button>(uiRoot, "BotonReintentar");
-        menuButton ??= FindChildComponent<Button>(uiRoot, "BotonMenu");
+        retryButton ??= UiButtonContract.FindButton(uiRoot, "ReintentarBoton", "BotonReintentar");
+        menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
@@ -177,7 +177,11 @@ public class GameOverMenuManager : MonoBehaviour
 
         if (animatedButtons == null || animatedButtons.Length == 0)
         {
-            animatedButtons = FindChildRectTransforms(uiRoot, "BotonReintentar", "BotonMenu");
+            animatedButtons = UiButtonContract.FindButtonRootRects(uiRoot, "ReintentarBoton", "MenuBoton");
+            if (animatedButtons.Length == 0)
+            {
+                animatedButtons = FindChildRectTransforms(uiRoot, "BotonReintentar", "BotonMenu");
+            }
         }
     }
 

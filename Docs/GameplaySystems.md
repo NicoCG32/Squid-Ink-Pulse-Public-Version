@@ -35,7 +35,9 @@ Archivo: `Assets/Implementation/Code/Player/Abilities/InkPulseController.cs`
 
 Estado runtime: `Assets/Implementation/Code/Player/Abilities/RuntimeInkPulseState.cs`
 
-Feedback musical: `Assets/Implementation/Code/Audio/InkPulseMusicCrossfader.cs`
+Feedback musical:
+- `Assets/Implementation/Code/Audio/InkPulseMusicCrossfader.cs`
+- `Assets/Implementation/Code/Audio/SoundtrackPitchProgression.cs`
 
 Feedback visual: `Assets/Implementation/Code/Player/Visual/PlayerVisualStateController.cs`
 
@@ -68,6 +70,10 @@ Regla de audio:
 - Al entrar en `Active`, la mezcla cruza hacia la pista `INK`.
 - Al salir de `Active`, la mezcla vuelve a la pista normal.
 - Para dos mezclas completas del mismo tema, el crossfade lineal complementario es el valor por defecto porque evita sumar ambas mezclas a volumen completo.
+- `SoundtrackPitchProgression` vive en el mismo nodo `Soundtrack` cuando la zona usa pitch progresivo.
+- En `ZonaEpipelagica`, el pitch progresivo afecta ambas pistas para mantenerlas musicalmente alineadas durante el crossfade.
+- En `ZonaAbisopelagica`, afecta la pista unica del soundtrack.
+- El pitch usa `RuntimePlayerPace.ElapsedSpeedSeconds`; no debe aumentar en pausa, Game Over ni transiciones donde la run no avanza.
 
 ## GrazeDetector
 

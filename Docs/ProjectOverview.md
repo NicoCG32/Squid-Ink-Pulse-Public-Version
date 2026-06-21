@@ -25,6 +25,7 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 - Portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - Gadgets e Ink-Pulse persisten entre portales y se reinician al entrar en Game Over.
 - `ZonaAbisopelagica` tiene oscuridad ambiental por overlay y `LightGraze` visual independiente del graze de Ink-Pulse.
+- Soundtrack dinamico: `ZonaEpipelagica` cruza entre pista normal e `INK`, y `ZonaEpipelagica`/`ZonaAbisopelagica` aumentan pitch segun la progresion efectiva de la run.
 
 ## Estructura general
 

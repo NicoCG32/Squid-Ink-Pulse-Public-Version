@@ -157,6 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DestroyOffscreen
   targetCamera: {fileID: 0}
+  safetyDistanceBehindCamera: 3
 --- !u!50 &8101000000000000009
 Rigidbody2D:
   serializedVersion: 5

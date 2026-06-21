@@ -336,6 +336,38 @@ Reglas vigentes:
 - Para dos mezclas completas del mismo tema, mantener `useEqualPowerCrossfade` desactivado.
 - Si se percibe desfase, revisar la exportacion de los audios antes de tocar parametros: mismo inicio, tempo, duracion y loop.
 
+## Pitch progresivo del soundtrack
+
+Script: `SoundtrackPitchProgression`
+
+Nodos esperados:
+- `AudioRoot_ZonaEpipelagica/Soundtrack`
+- `AudioRoot_ZonaAbisopelagica/Soundtrack`
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `tracks` | AudioSources afectados por el pitch progresivo. | Permite incluir varias pistas sincronizadas, como normal e `INK`. |
+| `pitchIncreasePerSecond` | Constante lineal de crecimiento por segundo efectivo de run. | La musica acelera antes durante la progresion. |
+| `maxPitchOffset` | Limite del incremento sobre el pitch base. | Permite un pico mayor de intensidad sonora. |
+
+Reglas vigentes:
+
+- Usa `RuntimePlayerPace.ElapsedSpeedSeconds`, no tiempo absoluto de escena.
+- No debe avanzar en pausa, Game Over ni transiciones donde la progresion esta bloqueada.
+- En `ZonaEpipelagica`, `tracks` debe incluir las dos pistas del crossfade para mantenerlas alineadas.
+- En `ZonaAbisopelagica`, `tracks` debe incluir la pista unica del soundtrack.
+- Valores actuales: `pitchIncreasePerSecond = 0.0005`, `maxPitchOffset = 0.18`.
+- Con pitch base `1.1`, el maximo esperado es `1.28`.
+
+Pruebas recomendadas:
+
+- Iniciar run y observar que el pitch sube gradualmente.
+- Pausar y confirmar que el pitch deja de crecer.
+- Activar Ink-Pulse en `ZonaEpipelagica` y confirmar que el crossfade no revela desafinacion entre pistas.
+- Entrar a Game Over/reintentar y confirmar que la siguiente run vuelve al pitch base.
+
 ## Movimiento del jugador
 
 Script: `PlayerMovement`

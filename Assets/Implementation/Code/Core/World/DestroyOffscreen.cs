@@ -6,11 +6,14 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class DestroyOffscreen : MonoBehaviour
 {
-    private const float HorizontalOffsetBehindCamera = 3f;
+    private const float DefaultSafetyDistanceBehindCamera = 3f;
     private const float ColliderWidthWorldUnits = 1f;
 
     [Header("References")]
     [SerializeField] private Camera targetCamera;
+
+    [Header("Cleanup Contract")]
+    [SerializeField, Min(0f)] private float safetyDistanceBehindCamera = DefaultSafetyDistanceBehindCamera;
 
     private BoxCollider2D cleanupCollider;
     private Rigidbody2D cleanupBody;
@@ -161,7 +164,7 @@ public class DestroyOffscreen : MonoBehaviour
         Vector3 cameraLeftEdge = targetCamera.ViewportToWorldPoint(new Vector3(0f, 0.5f, cameraDepthToCollector));
         Vector3 nextPosition = transform.position;
 
-        nextPosition.x = cameraLeftEdge.x - HorizontalOffsetBehindCamera;
+        nextPosition.x = cameraLeftEdge.x - Mathf.Max(0f, safetyDistanceBehindCamera);
         transform.position = nextPosition;
     }
 
@@ -214,10 +217,27 @@ public class DestroyOffscreen : MonoBehaviour
     private void DestroyIfOwnedByCleanableObject(Collider2D other)
     {
         GameObject cleanableObject = ResolveCleanableObject(other);
-        if (cleanableObject != null && IsFullyBehindCleanupPlane(cleanableObject))
+        if (cleanableObject != null
+            && IsCleanupEligible(cleanableObject)
+            && IsFullyBehindCleanupPlane(cleanableObject))
         {
             Destroy(cleanableObject);
         }
+    }
+
+    private bool IsCleanupEligible(GameObject cleanableObject)
+    {
+        MonoBehaviour[] behaviours = cleanableObject.GetComponentsInChildren<MonoBehaviour>(includeInactive: true);
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            MonoBehaviour behaviour = behaviours[i];
+            if (behaviour is IOffscreenCleanupEligibility eligibility && !eligibility.CanBeCleanedUpOffscreen)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool IsFullyBehindCleanupPlane(GameObject cleanableObject)
@@ -285,19 +305,20 @@ public class DestroyOffscreen : MonoBehaviour
             return null;
         }
 
+        GameObject cleanableObject = null;
         Transform current = other.transform;
         while (current != null)
         {
             GameObject candidate = current.gameObject;
             if (IsCleanableTag(candidate.tag))
             {
-                return candidate;
+                cleanableObject = candidate;
             }
 
             current = current.parent;
         }
 
-        return null;
+        return cleanableObject;
     }
 
     private bool IsCleanableTag(string tag)
@@ -308,4 +329,9 @@ public class DestroyOffscreen : MonoBehaviour
             || tag == GameplayTagCatalog.Portal
             || tag == GameplayTagCatalog.SSCarnage;
     }
+}
+
+public interface IOffscreenCleanupEligibility
+{
+    bool CanBeCleanedUpOffscreen { get; }
 }

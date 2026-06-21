@@ -277,10 +277,10 @@ public class PauseMenuManager : MonoBehaviour
             canvasGroup = menuRoot.GetComponent<CanvasGroup>();
         }
 
-        resumeButton ??= FindChildComponent<Button>(uiRoot, "BotonReanudar");
-        optionsButton ??= FindChildComponent<Button>(uiRoot, "BotonOpciones");
-        menuButton ??= FindChildComponent<Button>(uiRoot, "BotonMenu");
-        exitButton ??= FindChildComponent<Button>(uiRoot, "BotonSalir");
+        resumeButton ??= UiButtonContract.FindButton(uiRoot, "ReanudarBoton", "BotonReanudar");
+        optionsButton ??= UiButtonContract.FindButton(uiRoot, "OpcionesBoton", "BotonOpciones");
+        menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
+        exitButton ??= UiButtonContract.FindButton(uiRoot, "SalirBoton", "BotonSalir");
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
@@ -289,12 +289,22 @@ public class PauseMenuManager : MonoBehaviour
 
         if (animatedButtons == null || animatedButtons.Length == 0)
         {
-            animatedButtons = FindChildRectTransforms(
+            animatedButtons = UiButtonContract.FindButtonRootRects(
                 uiRoot,
-                "BotonReanudar",
-                "BotonOpciones",
-                "BotonMenu",
-                "BotonSalir");
+                "ReanudarBoton",
+                "OpcionesBoton",
+                "MenuBoton",
+                "SalirBoton");
+
+            if (animatedButtons.Length == 0)
+            {
+                animatedButtons = FindChildRectTransforms(
+                    uiRoot,
+                    "BotonReanudar",
+                    "BotonOpciones",
+                    "BotonMenu",
+                    "BotonSalir");
+            }
         }
     }
 
@@ -345,10 +355,10 @@ public class PauseMenuManager : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || sceneFlow == null || menuRoot == null || canvasGroup == null || resumeButton == null || optionsButton == null || menuButton == null || exitButton == null)
+        if (session == null || sceneFlow == null || menuRoot == null || canvasGroup == null || resumeButton == null || optionsButton == null || menuButton == null)
         {
             Debug.LogWarning(
-                "[PauseMenuManager] Faltan referencias. Asigna Session, SceneFlow, MenuRoot, CanvasGroup, ResumeButton, OptionsButton, MenuButton y ExitButton en este componente.",
+                "[PauseMenuManager] Faltan referencias. Asigna Session, SceneFlow, MenuRoot, CanvasGroup, ResumeButton, OptionsButton y MenuButton en este componente.",
                 this);
         }
 

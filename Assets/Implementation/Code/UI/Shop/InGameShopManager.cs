@@ -389,7 +389,7 @@ public class InGameShopManager : MonoBehaviour
         gadgetImage ??= FindChildComponent<Image>(uiRoot, "Gadget");
         priceText ??= FindChildComponent<TMP_Text>(uiRoot, "Precio");
         buyKeyText ??= FindChildComponent<TMP_Text>(uiRoot, "B");
-        buyButton ??= FindChildComponent<Button>(uiRoot, "Comprar");
+        buyButton ??= UiButtonContract.FindButton(uiRoot, "ComprarBoton", "Comprar");
         insufficientFundsText ??= FindChildComponent<TMP_Text>(uiRoot, "SinSaldo");
         timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Tiempo");
         timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Timer");

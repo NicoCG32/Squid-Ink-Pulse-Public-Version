@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2782597566710907513}
   m_Layer: 0
-  m_Name: Audio
+  m_Name: AudioRoot_ZonaAbisopelagica
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74,6 +74,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6961113484956412405}
   - component: {fileID: 6635149461678378320}
+  - component: {fileID: 2934489706364521189}
   m_Layer: 0
   m_Name: Soundtrack
   m_TagString: Untagged
@@ -110,7 +111,7 @@ AudioSource:
   m_Resource: {fileID: 8300000, guid: bb7508ddce3a6bd4b91fc40d126f6e31, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.6
-  m_Pitch: 1.1
+  m_Pitch: 1
   Loop: 1
   Mute: 0
   Spatialize: 0
@@ -193,3 +194,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &2934489706364521189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8907243546690606930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c6d1df2f4564a3b9d3f3e0fb6b4239a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundtrackPitchProgression
+  tracks:
+  - {fileID: 6635149461678378320}
+  pitchIncreasePerSecond: 0.00001
+  maxPitchOffset: 1.5

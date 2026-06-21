@@ -30,10 +30,16 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
     [SerializeField] private float minGapSize = 2f; 
     [SerializeField] private float maxGapSize = 4f; 
 
+    [Header("Pillar Reveal")]
+    [SerializeField, Min(0f)] private float minRevealDuration = 0.35f;
+    [SerializeField, Min(0f)] private float maxRevealDuration = 0.75f;
+    [SerializeField, Min(0f)] private float maxRevealStagger = 0.25f;
+
     private Camera mainCamera;
     private GameObject levelSpawner;
     private float lastGapY = 0f; 
     private RunProgressionDirector progression;
+    private Transform pillarParent;
     
     // This variable tells the Update method where the boss should be on the screen right now
     private Vector2 currentViewportTarget = new Vector2(1.2f, 0.5f); 
@@ -48,10 +54,13 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         
         // 2. Save the progression reference!
         progression = progressionReference; 
+        pillarParent = parentReference;
         
         levelSpawner = GameObject.Find("LevelSpawner");
         if (levelSpawner != null) levelSpawner.SetActive(false);
-        lastGapY = 0f; 
+        lastGapY = TryResolvePillarVerticalRange(out Vector2 initialRange)
+            ? (initialRange.x + initialRange.y) * 0.5f
+            : 0f;
         currentViewportTarget = new Vector2(1.2f, 0.5f);
         
         StartCoroutine(BossSequence());
@@ -126,18 +135,93 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         Vector3 rightEdge = mainCamera.ViewportToWorldPoint(new Vector3(1f, 0.5f, depth));
         float spawnX = rightEdge.x + spawnDistanceAhead;
 
-        float highestPossibleY = Mathf.Min(absoluteMaxVerticalOffset, lastGapY + maxJumpDistance);
-        float lowestPossibleY = Mathf.Max(-absoluteMaxVerticalOffset, lastGapY - maxJumpDistance);
-        float nextGapY = Random.Range(lowestPossibleY, highestPossibleY);
-        lastGapY = nextGapY; 
+        if (!TryResolvePillarVerticalRange(out Vector2 verticalRange))
+        {
+            return;
+        }
 
-        float screenTopY = mainCamera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depth)).y;
-        float screenBottomY = mainCamera.ViewportToWorldPoint(new Vector3(0.5f, 0f, depth)).y;
+        float availableHeight = Mathf.Max(0.1f, verticalRange.y - verticalRange.x);
+        float randomGapSize = Mathf.Clamp(
+            Random.Range(Mathf.Min(minGapSize, maxGapSize), Mathf.Max(minGapSize, maxGapSize)),
+            0.1f,
+            availableHeight);
+        float nextGapY = CalculateNextGapCenter(verticalRange, randomGapSize);
+        lastGapY = nextGapY;
 
         Vector3 spawnPosition = new Vector3(spawnX, 0f, 0f); 
-        GameObject newPillar = Instantiate(pillarObstaclePrefab, spawnPosition, Quaternion.identity);
+        GameObject newPillar = Instantiate(pillarObstaclePrefab, spawnPosition, Quaternion.identity, pillarParent);
         
-        float randomGapSize = Random.Range(minGapSize, maxGapSize);
-        newPillar.GetComponent<PillarObstacle>().Setup(nextGapY, randomGapSize, screenTopY, screenBottomY);
+        if (newPillar.TryGetComponent(out PillarObstacle obstacle))
+        {
+            float minReveal = Mathf.Max(0f, Mathf.Min(minRevealDuration, maxRevealDuration));
+            float maxReveal = Mathf.Max(minReveal, Mathf.Max(minRevealDuration, maxRevealDuration));
+            float revealStagger = Mathf.Max(0f, maxRevealStagger);
+            obstacle.Setup(
+                nextGapY,
+                randomGapSize,
+                verticalRange.y,
+                verticalRange.x,
+                Random.Range(minReveal, maxReveal),
+                Random.Range(0f, revealStagger),
+                Random.Range(0f, revealStagger));
+        }
+    }
+
+    private bool TryResolvePillarVerticalRange(out Vector2 verticalRange)
+    {
+        if (BoundaryReferenceResolver.TryResolveInnerVerticalRange(
+                BoundaryReferenceDomain.Player,
+                0f,
+                out verticalRange))
+        {
+            return true;
+        }
+
+        verticalRange = default;
+        if (mainCamera == null)
+        {
+            return false;
+        }
+
+        float depth = Mathf.Abs(mainCamera.transform.position.z);
+        float topY = mainCamera.ViewportToWorldPoint(new Vector3(0.5f, 1f, depth)).y;
+        float bottomY = mainCamera.ViewportToWorldPoint(new Vector3(0.5f, 0f, depth)).y;
+        if (bottomY > topY)
+        {
+            return false;
+        }
+
+        verticalRange = new Vector2(bottomY, topY);
+        return true;
+    }
+
+    private float CalculateNextGapCenter(Vector2 verticalRange, float gapSize)
+    {
+        float halfGap = gapSize * 0.5f;
+        float centerY = (verticalRange.x + verticalRange.y) * 0.5f;
+        float minCenterY = verticalRange.x + halfGap;
+        float maxCenterY = verticalRange.y - halfGap;
+
+        float boundedMin = Mathf.Max(
+            minCenterY,
+            centerY - Mathf.Max(0f, absoluteMaxVerticalOffset),
+            lastGapY - Mathf.Max(0f, maxJumpDistance));
+        float boundedMax = Mathf.Min(
+            maxCenterY,
+            centerY + Mathf.Max(0f, absoluteMaxVerticalOffset),
+            lastGapY + Mathf.Max(0f, maxJumpDistance));
+
+        if (boundedMin > boundedMax)
+        {
+            boundedMin = minCenterY;
+            boundedMax = maxCenterY;
+        }
+
+        if (boundedMin > boundedMax)
+        {
+            return centerY;
+        }
+
+        return Random.Range(boundedMin, boundedMax);
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class MainMenu : MonoBehaviour
 {
     [Header("Scene Flow")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
     [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     [SerializeField] private float timeDelay = 0.6f;
     
@@ -15,6 +16,16 @@ public class MainMenu : MonoBehaviour
 
     private bool isLoading;
 
+    private void Awake()
+    {
+        ResolveUiReferences();
+    }
+
+    private void OnValidate()
+    {
+        ResolveUiReferences();
+    }
+
     public void Jugar()
     {
         LoadConfiguredScene(playSceneName, "juego");
@@ -22,6 +33,8 @@ public class MainMenu : MonoBehaviour
 
     public void Opciones()
     {
+        ResolveUiReferences();
+
         if (optionsMenuPanel == null)
         {
             Debug.LogWarning("[MainMenu] El panel de opciones no está asignado.", this);
@@ -34,6 +47,8 @@ public class MainMenu : MonoBehaviour
     // New method to open the store
     public void AbrirTienda()
     {
+        ResolveUiReferences();
+
         if (storeMenuPanel == null)
         {
             Debug.LogWarning("[MainMenu] El panel de la tienda no está asignado.", this);
@@ -41,6 +56,11 @@ public class MainMenu : MonoBehaviour
         }
 
         storeMenuPanel.Open();
+    }
+
+    public void VolverAlMenuPrincipal()
+    {
+        LoadConfiguredScene(mainMenuSceneName, "menu principal");
     }
 
     private void LoadConfiguredScene(string sceneName, string sceneLabel)
@@ -98,6 +118,35 @@ public class MainMenu : MonoBehaviour
         yield return new WaitForSecondsRealtime(timeDelay);
         Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);
+    }
+
+    private void ResolveUiReferences()
+    {
+        optionsMenuPanel ??= GetComponentInChildren<OptionsMenuManager>(includeInactive: true);
+        optionsMenuPanel ??= FindInScene<OptionsMenuManager>();
+        storeMenuPanel ??= GetComponentInChildren<MainMenuStoreManager>(includeInactive: true);
+        storeMenuPanel ??= FindInScene<MainMenuStoreManager>();
+    }
+
+    private T FindInScene<T>() where T : Component
+    {
+        Scene scene = gameObject.scene;
+        if (!scene.IsValid() || !scene.isLoaded)
+        {
+            return null;
+        }
+
+        GameObject[] roots = scene.GetRootGameObjects();
+        for (int i = 0; i < roots.Length; i++)
+        {
+            T component = roots[i].GetComponentInChildren<T>(includeInactive: true);
+            if (component != null)
+            {
+                return component;
+            }
+        }
+
+        return null;
     }
 
     public void Salir()

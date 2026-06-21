@@ -3,13 +3,14 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider2D))]
-public class ScenePortal : MonoBehaviour
+public class ScenePortal : MonoBehaviour, IOffscreenCleanupEligibility
 {
     [Header("Scene Flow")]
     [SerializeField] private SceneFlowController sceneFlow;
     [SerializeField, Min(0f)] private float fallbackTransitionDelay = 0.75f;
 
     private bool isTransitioning;
+    public bool CanBeCleanedUpOffscreen => !isTransitioning;
 
     private void Awake()
     {

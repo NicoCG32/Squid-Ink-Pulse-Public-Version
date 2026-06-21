@@ -4,7 +4,7 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider2D))]
-public class SSCarnageNetWall : MonoBehaviour
+public class SSCarnageNetWall : MonoBehaviour, IOffscreenCleanupEligibility
 {
     private const string AuthoringBoundaryRootName = "AuthoringPlayerBoundaries";
 
@@ -31,6 +31,7 @@ public class SSCarnageNetWall : MonoBehaviour
 
     public event Action Resolved;
     public event Action Failed;
+    public bool CanBeCleanedUpOffscreen => isBroken || hasFailed;
 
     private void Awake()
     {

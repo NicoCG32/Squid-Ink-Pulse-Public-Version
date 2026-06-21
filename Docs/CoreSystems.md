@@ -69,6 +69,7 @@ Archivos:
 - `Assets/Implementation/Code/Core/Session/RunProgressionDirector.cs`
 - `Assets/Implementation/Code/Core/Session/RunEventState.cs`
 - `Assets/Implementation/Code/Core/Session/RunDifficultySnapshot.cs`
+- `Assets/Implementation/Code/Core/Session/RuntimePlayerPace.cs`
 
 Responsabilidad:
 - Llevar el ritmo de la run.
@@ -76,6 +77,7 @@ Responsabilidad:
 - Gestionar ventanas de boss y transicion.
 - Modular la frecuencia de spawn segun estado macro.
 - Separar el reloj de intensidad del reloj de reaparicion de boss, para sostener presion alta sin disparar otro SS Carnage de inmediato.
+- Avanzar `RuntimePlayerPace` solo cuando la run progresa efectivamente; ese reloj alimenta velocidad, score y pitch progresivo del soundtrack.
 
 Estados de evento:
 - `Normal`
@@ -88,6 +90,12 @@ Reglas de spawn por evento:
 - `BossActive`: reduce el intervalo con `bossActiveSpawnIntervalMultiplier`; por defecto `0.5`, equivalente a doble frecuencia.
 - `PostBossWindow`: conserva la intensidad alcanzada tras el boss mientras ofrece la oportunidad de portal.
 - `Transitioning`: bloquea spawn regular; al completar portal, la zona destino empieza relajada.
+
+Regla de pace runtime:
+- `RuntimePlayerPace.ElapsedSpeedSeconds` no representa tiempo absoluto de escena.
+- Solo avanza mientras la sesion esta en juego y el evento macro permite progresion.
+- Se reinicia al comenzar una run nueva o al entrar en Game Over.
+- Puede ser consumido por sistemas que deben crecer con la run sin duplicar relojes propios, como scroll speed y `SoundtrackPitchProgression`.
 
 ## SceneFlowController
 

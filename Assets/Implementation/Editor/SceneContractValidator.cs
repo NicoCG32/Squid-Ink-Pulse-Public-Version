@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public static class SceneContractValidator
 {
@@ -24,6 +25,23 @@ public static class SceneContractValidator
     private const string PauseMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab";
     private const string GameOverMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab";
     private const string InGameShopMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab";
+    private const string OptionsMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab";
+    private const string MainMenuStorePrefabPath = "Assets/Content/Prefabs/UI/Menus/MainMenuStore.prefab";
+
+    private static readonly string[] MenuScenePaths =
+    {
+        "Assets/Scenes/MainMenu/MainMenu.unity",
+        "Assets/Scenes/ShopMenu/ShopMenu.unity"
+    };
+
+    private static readonly string[] ButtonContractPrefabPaths =
+    {
+        PauseMenuPrefabPath,
+        GameOverMenuPrefabPath,
+        InGameShopMenuPrefabPath,
+        OptionsMenuPrefabPath,
+        MainMenuStorePrefabPath
+    };
 
     private static readonly SceneContract[] SceneContracts =
     {
@@ -37,7 +55,7 @@ public static class SceneContractValidator
             "Assets/Scenes/Game/ZonaAbisopelagica.unity",
             AbisopelagicaSpawnProfilePath,
             PortalSpawnPolicy.AlwaysInterval,
-            BossContract.Forbidden,
+            BossContract.Required,
             LightingContract.Required),
         new(
             "Assets/Scenes/Game/ZonaTutorial.unity",
@@ -71,12 +89,15 @@ public static class SceneContractValidator
         ValidateRequiredAssets(failures);
         ValidatePersistentDbSeeds(failures);
         ValidatePrefabContracts(failures);
+        ValidateButtonContractPrefabs(failures);
         ValidateSpawnProfiles(failures);
 
         foreach (SceneContract contract in SceneContracts)
         {
             ValidateScene(contract, failures);
         }
+
+        ValidateMenuSceneButtonContracts(failures);
 
         if (failures.Count > 0)
         {
@@ -108,6 +129,8 @@ public static class SceneContractValidator
         RequireAsset<GameObject>(PauseMenuPrefabPath, failures);
         RequireAsset<GameObject>(GameOverMenuPrefabPath, failures);
         RequireAsset<GameObject>(InGameShopMenuPrefabPath, failures);
+        RequireAsset<GameObject>(OptionsMenuPrefabPath, failures);
+        RequireAsset<GameObject>(MainMenuStorePrefabPath, failures);
 
         foreach (SceneContract contract in SceneContracts)
         {
@@ -300,6 +323,35 @@ public static class SceneContractValidator
         }
     }
 
+    private static void ValidateButtonContractPrefabs(List<string> failures)
+    {
+        foreach (string prefabPath in ButtonContractPrefabPaths)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                continue;
+            }
+
+            ValidateButtonContracts(prefab.transform, prefabPath, failures);
+        }
+    }
+
+    private static void ValidateMenuSceneButtonContracts(List<string> failures)
+    {
+        foreach (string scenePath in MenuScenePaths)
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
+            {
+                failures.Add($"Missing menu scene asset: {scenePath}");
+                continue;
+            }
+
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            ValidateButtonContracts(scene, Path.GetFileNameWithoutExtension(scenePath), failures);
+        }
+    }
+
     private static void ValidateSpawnProfiles(List<string> failures)
     {
         foreach (SceneContract contract in SceneContracts)
@@ -387,9 +439,146 @@ public static class SceneContractValidator
         ValidateLevelSpawner(scene, contract, sceneName, failures);
         ValidateGameUIRoot(scene, sceneName, failures);
         ValidateGameUiPrefabInstances(scene, sceneName, failures);
+        ValidateButtonContracts(scene, sceneName, failures);
         ValidateBossContract(scene, contract, sceneName, failures);
         ValidateLightingContract(scene, contract, sceneName, failures);
         ValidateCriticalSceneTagsAndLayers(scene, sceneName, failures);
+    }
+
+    private static void ValidateButtonContracts(Scene scene, string sceneName, List<string> failures)
+    {
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            ValidateButtonContracts(root.transform, sceneName, failures);
+        }
+    }
+
+    private static void ValidateButtonContracts(Transform root, string context, List<string> failures)
+    {
+        foreach (Button button in root.GetComponentsInChildren<Button>(includeInactive: true))
+        {
+            ValidateButtonContract(button, context, failures);
+        }
+    }
+
+    private static void ValidateButtonContract(Button button, string context, List<string> failures)
+    {
+        string buttonPath = $"{context}/{GetHierarchyPath(button.transform)}";
+        if (button.name != UiButtonContract.ButtonChildName)
+        {
+            failures.Add($"{buttonPath} must be named '{UiButtonContract.ButtonChildName}'. The logical root must be AccionBoton.");
+            return;
+        }
+
+        Transform contractRoot = button.transform.parent;
+        if (contractRoot == null || !contractRoot.name.EndsWith("Boton", StringComparison.Ordinal))
+        {
+            failures.Add($"{buttonPath} must be a child of a logical '*Boton' root.");
+            return;
+        }
+
+        if (contractRoot.GetComponent<Button>() != null)
+        {
+            failures.Add($"{context}/{GetHierarchyPath(contractRoot)} must not keep Button on the logical root.");
+        }
+
+        ValidateButtonDirectChildren(contractRoot, context, failures);
+        ValidateFunctionalButtonNode(button, context, failures);
+
+        Transform visualRoot = contractRoot.Find(UiButtonContract.VisualChildName);
+        if (visualRoot == null)
+        {
+            failures.Add($"{context}/{GetHierarchyPath(contractRoot)} is missing child '{UiButtonContract.VisualChildName}'.");
+            return;
+        }
+
+        Transform normalState = visualRoot.Find(UiButtonContract.NormalStateName);
+        Transform highlightedState = visualRoot.Find(UiButtonContract.HighlightedStateName);
+        Transform pressedState = visualRoot.Find(UiButtonContract.PressedStateName);
+        if (normalState == null || highlightedState == null || pressedState == null)
+        {
+            failures.Add($"{context}/{GetHierarchyPath(visualRoot)} must contain Normal, Destacado and Presionado states.");
+        }
+
+        ButtonVisualState visualState = button.GetComponent<ButtonVisualState>();
+        if (visualState == null)
+        {
+            failures.Add($"{buttonPath} must have ButtonVisualState.");
+            return;
+        }
+
+        if (button.targetGraphic == null)
+        {
+            failures.Add($"{buttonPath} must have a targetGraphic hitbox.");
+        }
+
+        if (visualState.NormalState == null || visualState.HighlightedState == null || visualState.PressedState == null)
+        {
+            failures.Add($"{buttonPath} ButtonVisualState must reference Normal, Destacado and Presionado.");
+        }
+
+        AudioSource pressedAudioSource = visualState.PressedAudioSource;
+        if (pressedAudioSource == null || (pressedAudioSource.clip == null && visualState.PressedSfx == null))
+        {
+            failures.Add($"{buttonPath} ButtonVisualState must have pressed SFX through PressedAudioSource.clip or PressedSfx.");
+        }
+    }
+
+    private static void ValidateFunctionalButtonNode(Button button, string context, List<string> failures)
+    {
+        string buttonPath = $"{context}/{GetHierarchyPath(button.transform)}";
+        if (button.transform.childCount > 0)
+        {
+            failures.Add($"{buttonPath} must not have children. Put text, animations, sprites and special visuals under Visual.");
+        }
+
+        foreach (Component component in button.GetComponents<Component>())
+        {
+            if (IsAllowedFunctionalButtonComponent(component))
+            {
+                continue;
+            }
+
+            failures.Add($"{buttonPath} has visual or non-contract component '{component.GetType().Name}'. Move special behavior or visuals under Visual.");
+        }
+    }
+
+    private static bool IsAllowedFunctionalButtonComponent(Component component)
+    {
+        return component == null
+            || component is RectTransform
+            || component is CanvasRenderer
+            || component is Image
+            || component is Button
+            || component is ButtonVisualState
+            || component is AudioSource;
+    }
+
+    private static void ValidateButtonDirectChildren(Transform contractRoot, string context, List<string> failures)
+    {
+        bool hasButtonChild = false;
+        bool hasVisualChild = false;
+        foreach (Transform child in contractRoot)
+        {
+            if (child.name == UiButtonContract.ButtonChildName)
+            {
+                hasButtonChild = true;
+                continue;
+            }
+
+            if (child.name == UiButtonContract.VisualChildName)
+            {
+                hasVisualChild = true;
+                continue;
+            }
+
+            failures.Add($"{context}/{GetHierarchyPath(contractRoot)} has unexpected direct child '{child.name}'. Button roots must only contain Button and Visual.");
+        }
+
+        if (!hasButtonChild || !hasVisualChild)
+        {
+            failures.Add($"{context}/{GetHierarchyPath(contractRoot)} must have direct children Button and Visual.");
+        }
     }
 
     private static void ValidateSceneCompositionPrefabs(Scene scene, string sceneName, List<string> failures)
@@ -532,9 +721,19 @@ public static class SceneContractValidator
         }
 
         ValidateLayer(garbageCollector.gameObject, "Cleanup", $"{sceneName}/CleanUp/DestroyZone/GarbageCollector", failures);
-        if (garbageCollector.GetComponent<DestroyOffscreen>() == null)
+        DestroyOffscreen destroyOffscreen = garbageCollector.GetComponent<DestroyOffscreen>();
+        if (destroyOffscreen == null)
         {
             failures.Add($"{sceneName}/CleanUp/DestroyZone/GarbageCollector must have DestroyOffscreen.");
+        }
+        else
+        {
+            SerializedObject serializedDestroyOffscreen = new(destroyOffscreen);
+            SerializedProperty safetyDistance = serializedDestroyOffscreen.FindProperty("safetyDistanceBehindCamera");
+            if (safetyDistance == null || safetyDistance.floatValue <= 0f)
+            {
+                failures.Add($"{sceneName}/CleanUp/DestroyZone/GarbageCollector must keep a positive cleanup safety distance.");
+            }
         }
 
         BoxCollider2D trigger = garbageCollector.GetComponent<BoxCollider2D>();

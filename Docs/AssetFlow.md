@@ -66,7 +66,7 @@ Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanent
 - `AudioRoot_ZonaAbisopelagica.prefab`
 - `AudioRoot_ZonaTutorial.prefab`
 
-`AudioRoot_*` agrupa `Soundtrack` y `SFX`. En `ZonaEpipelagica`, `Soundtrack` incluye dos `AudioSource` y `InkPulseMusicCrossfader`; en las otras zonas conserva la musica base actual. El prefab no debe depender de referencias externas: `InkPulseMusicCrossfader` resuelve el `InkPulseController` en runtime si no esta serializado.
+`AudioRoot_*` agrupa `Soundtrack` y `SFX`. En `ZonaEpipelagica`, `Soundtrack` incluye dos `AudioSource` y `InkPulseMusicCrossfader`; en `ZonaAbisopelagica` conserva una pista base. `ZonaEpipelagica` y `ZonaAbisopelagica` usan `SoundtrackPitchProgression` para subir pitch segun la progresion efectiva de la run. El prefab no debe depender de referencias externas: `InkPulseMusicCrossfader` resuelve el `InkPulseController` en runtime si no esta serializado, y `SoundtrackPitchProgression` lee `RuntimePlayerPace`.
 
 `Assets/Content/Prefabs/Core/Camera/` contiene una instancia prefab de `CameraRig` por zona:
 
@@ -223,3 +223,10 @@ En `ZonaEpipelagica`, el nodo `Soundtrack` mantiene dos `AudioSource`: normal e 
 Regla de mezcla:
 - Si la pista `INK` es una mezcla completa alternativa, usar crossfade lineal complementario.
 - Si en el futuro se usan stems complementarios que no duplican el mismo contenido, puede probarse `useEqualPowerCrossfade`.
+
+Regla de pitch progresivo:
+- `SoundtrackPitchProgression` no reemplaza al crossfade; solo suma un offset de pitch sobre el pitch base de cada `AudioSource`.
+- La formula runtime es `pitchBase + min(maxPitchOffset, RuntimePlayerPace.ElapsedSpeedSeconds * pitchIncreasePerSecond)`.
+- Los valores actuales son `pitchIncreasePerSecond = 0.0005` y `maxPitchOffset = 0.18`.
+- Si el pitch base del `AudioSource` es `1.1`, el maximo efectivo queda en `1.28`.
+- En `ZonaEpipelagica`, ambas pistas deben recibir el mismo offset para evitar que el crossfade revele desajuste musical.
