@@ -379,31 +379,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_Pivot.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_Pivot.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8554497912881070406, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_Name
@@ -1275,6 +1275,14 @@ PrefabInstance:
       propertyPath: inkPulse
       value: 
       objectReference: {fileID: 37288306}
+    - target: {fileID: 2505931075090453696, guid: dfcbfcf0657274344a044eed24bf37b9, type: 3}
+      propertyPath: fadeSeconds
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2505931075090453696, guid: dfcbfcf0657274344a044eed24bf37b9, type: 3}
+      propertyPath: inkTargetVolume
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 5423973062714894170, guid: dfcbfcf0657274344a044eed24bf37b9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

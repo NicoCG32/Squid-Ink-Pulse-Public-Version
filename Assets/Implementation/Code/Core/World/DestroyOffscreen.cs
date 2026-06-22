@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -14,11 +15,14 @@ public class DestroyOffscreen : MonoBehaviour
 
     [Header("Cleanup Contract")]
     [SerializeField, Min(0f)] private float safetyDistanceBehindCamera = DefaultSafetyDistanceBehindCamera;
+    [SerializeField, Min(0.02f)] private float safetySweepInterval = 0.25f;
 
     private BoxCollider2D cleanupCollider;
     private Rigidbody2D cleanupBody;
     private Collider2D cameraTopBorder;
     private Collider2D cameraBottomBorder;
+    private readonly HashSet<GameObject> safetySweepCandidates = new();
+    private float safetySweepTimer;
     private bool missingBoundaryWarningLogged;
     private bool invalidBoundaryWarningLogged;
 
@@ -46,6 +50,7 @@ public class DestroyOffscreen : MonoBehaviour
     {
         ResolveCamera();
         AlignToCamera();
+        UpdateSafetySweep();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -217,6 +222,57 @@ public class DestroyOffscreen : MonoBehaviour
     private void DestroyIfOwnedByCleanableObject(Collider2D other)
     {
         GameObject cleanableObject = ResolveCleanableObject(other);
+        DestroyIfFullyBehindCleanupPlane(cleanableObject);
+    }
+
+    private void UpdateSafetySweep()
+    {
+        safetySweepTimer += Time.unscaledDeltaTime;
+        if (safetySweepTimer < safetySweepInterval)
+        {
+            return;
+        }
+
+        safetySweepTimer = 0f;
+        RunSafetySweep();
+    }
+
+    private void RunSafetySweep()
+    {
+        safetySweepCandidates.Clear();
+        AddTaggedCandidates(EnemyTagCatalog.Mine);
+        AddTaggedCandidates(EnemyTagCatalog.Pufferfish);
+        AddTaggedCandidates(EnemyTagCatalog.FishingRod);
+        AddTaggedCandidates(GameplayTagCatalog.Shrimp);
+        AddTaggedCandidates(GameplayTagCatalog.Collectible);
+        AddTaggedCandidates(GameplayTagCatalog.Portal);
+        AddTaggedCandidates(GameplayTagCatalog.SSCarnage);
+
+        foreach (GameObject cleanableObject in safetySweepCandidates)
+        {
+            DestroyIfFullyBehindCleanupPlane(cleanableObject);
+        }
+    }
+
+    private void AddTaggedCandidates(string cleanableTag)
+    {
+        if (string.IsNullOrWhiteSpace(cleanableTag))
+        {
+            return;
+        }
+
+        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(cleanableTag);
+        for (int i = 0; i < taggedObjects.Length; i++)
+        {
+            if (taggedObjects[i] != null)
+            {
+                safetySweepCandidates.Add(taggedObjects[i]);
+            }
+        }
+    }
+
+    private void DestroyIfFullyBehindCleanupPlane(GameObject cleanableObject)
+    {
         if (cleanableObject != null
             && IsCleanupEligible(cleanableObject)
             && IsFullyBehindCleanupPlane(cleanableObject))

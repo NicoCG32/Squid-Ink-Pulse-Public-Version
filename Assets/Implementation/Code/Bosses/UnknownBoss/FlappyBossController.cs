@@ -18,6 +18,7 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
     [Header("Attack Timing")]
     [SerializeField] private float attackDuration = 15f;
     [SerializeField] private float timeBetweenSpawns = 1.5f; 
+    [SerializeField] private bool spawnFinalContinuousWall = true;
 
     [Header("Spawn Layout")]
     [SerializeField] private float spawnDistanceAhead = 15f; 
@@ -97,11 +98,13 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
 
         // --- PHASE 2: THE ATTACK (Spawn pillars) ---
         elapsed = 0f;
+        float safeSpawnInterval = Mathf.Max(0.01f, timeBetweenSpawns);
         while (elapsed < attackDuration)
         {
-            SpawnPillarObstacle();
-            yield return new WaitForSeconds(timeBetweenSpawns);
-            elapsed += timeBetweenSpawns;
+            bool isFinalPillar = spawnFinalContinuousWall && elapsed + safeSpawnInterval >= attackDuration;
+            SpawnPillarObstacle(isFinalPillar);
+            yield return new WaitForSeconds(safeSpawnInterval);
+            elapsed += safeSpawnInterval;
         }
 
         // The attack is over! Bring the normal enemies back before the boss even leaves.
@@ -127,7 +130,7 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
 
         Destroy(gameObject);
     }
-    private void SpawnPillarObstacle()
+    private void SpawnPillarObstacle(bool continuousWall)
     {
         if (pillarObstaclePrefab == null || mainCamera == null) return;
 
@@ -141,11 +144,15 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         }
 
         float availableHeight = Mathf.Max(0.1f, verticalRange.y - verticalRange.x);
-        float randomGapSize = Mathf.Clamp(
-            Random.Range(Mathf.Min(minGapSize, maxGapSize), Mathf.Max(minGapSize, maxGapSize)),
-            0.1f,
-            availableHeight);
-        float nextGapY = CalculateNextGapCenter(verticalRange, randomGapSize);
+        float randomGapSize = continuousWall
+            ? 0f
+            : Mathf.Clamp(
+                Random.Range(Mathf.Min(minGapSize, maxGapSize), Mathf.Max(minGapSize, maxGapSize)),
+                0.1f,
+                availableHeight);
+        float nextGapY = continuousWall
+            ? (verticalRange.x + verticalRange.y) * 0.5f
+            : CalculateNextGapCenter(verticalRange, randomGapSize);
         lastGapY = nextGapY;
 
         Vector3 spawnPosition = new Vector3(spawnX, 0f, 0f); 
@@ -156,21 +163,23 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
             float minReveal = Mathf.Max(0f, Mathf.Min(minRevealDuration, maxRevealDuration));
             float maxReveal = Mathf.Max(minReveal, Mathf.Max(minRevealDuration, maxRevealDuration));
             float revealStagger = Mathf.Max(0f, maxRevealStagger);
+            float topRevealDelay = continuousWall ? 0f : Random.Range(0f, revealStagger);
+            float bottomRevealDelay = continuousWall ? 0f : Random.Range(0f, revealStagger);
             obstacle.Setup(
                 nextGapY,
                 randomGapSize,
                 verticalRange.y,
                 verticalRange.x,
                 Random.Range(minReveal, maxReveal),
-                Random.Range(0f, revealStagger),
-                Random.Range(0f, revealStagger));
+                topRevealDelay,
+                bottomRevealDelay);
         }
     }
 
     private bool TryResolvePillarVerticalRange(out Vector2 verticalRange)
     {
         if (BoundaryReferenceResolver.TryResolveInnerVerticalRange(
-                BoundaryReferenceDomain.Player,
+                BoundaryReferenceDomain.Camera,
                 0f,
                 out verticalRange))
         {

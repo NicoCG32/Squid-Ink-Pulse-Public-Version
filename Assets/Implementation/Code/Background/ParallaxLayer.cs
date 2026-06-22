@@ -15,6 +15,8 @@ public class ParallaxLayer : MonoBehaviour
     [SerializeField] private bool followVertical = false;
     [SerializeField, Min(0)] private int extraTilesPerSide = 2;
     [SerializeField, Min(0f)] private float recycleSafetyTiles = 1f;
+    [SerializeField] private bool cullTilesOutsideCamera = true;
+    [SerializeField, Min(0f)] private float tileVisibilitySafetyDistance = 2f;
     [SerializeField, Min(MinimumTileCount)] private int maximumGeneratedTiles = 31;
 
     private readonly List<Transform> tiles = new();
@@ -59,6 +61,7 @@ public class ParallaxLayer : MonoBehaviour
         BuildTiles();
 
         sourceRenderer.enabled = false;
+        UpdateTileVisibility();
         lastCameraPosition = cameraTransform.position;
         initialized = true;
     }
@@ -86,6 +89,7 @@ public class ParallaxLayer : MonoBehaviour
         transform.position += new Vector3(moveX, moveY, 0f);
 
         RecycleTiles();
+        UpdateTileVisibility();
 
         lastCameraPosition = cameraTransform.position;
     }
@@ -293,6 +297,49 @@ public class ParallaxLayer : MonoBehaviour
         }
     }
 
+    private void UpdateTileVisibility()
+    {
+        if (!cullTilesOutsideCamera || !TryGetCameraHorizontalRange(out float visibleLeft, out float visibleRight))
+        {
+            SetAllTileRenderersEnabled(true);
+            return;
+        }
+
+        float visibleMinX = visibleLeft - Mathf.Max(0f, tileVisibilitySafetyDistance);
+        float visibleMaxX = visibleRight + Mathf.Max(0f, tileVisibilitySafetyDistance);
+
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            Transform tile = tiles[i];
+            if (tile == null)
+            {
+                continue;
+            }
+
+            bool isInsideVisibilityRange = GetTileRightEdge(tile) >= visibleMinX
+                && GetTileLeftEdge(tile) <= visibleMaxX;
+            SetTileRendererEnabled(tile, isInsideVisibilityRange);
+        }
+    }
+
+    private void SetAllTileRenderersEnabled(bool enabled)
+    {
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            SetTileRendererEnabled(tiles[i], enabled);
+        }
+    }
+
+    private void SetTileRendererEnabled(Transform tile, bool enabled)
+    {
+        if (tile != null
+            && tile.TryGetComponent(out SpriteRenderer renderer)
+            && renderer.enabled != enabled)
+        {
+            renderer.enabled = enabled;
+        }
+    }
+
     private bool TryGetCameraHorizontalRange(out float visibleLeft, out float visibleRight)
     {
         visibleLeft = 0f;
@@ -314,22 +361,35 @@ public class ParallaxLayer : MonoBehaviour
 
     private float GetTileLeftEdge(Transform tile)
     {
-        if (tile != null && tile.TryGetComponent(out Renderer renderer))
+        if (tile != null && tile.TryGetComponent(out Renderer renderer) && renderer.enabled)
         {
             return renderer.bounds.min.x;
         }
 
-        return tile != null ? tile.position.x - tileWidthWorld * 0.5f : 0f;
+        return tile != null ? tile.position.x - GetTileWorldWidth(tile) * 0.5f : 0f;
     }
 
     private float GetTileRightEdge(Transform tile)
     {
-        if (tile != null && tile.TryGetComponent(out Renderer renderer))
+        if (tile != null && tile.TryGetComponent(out Renderer renderer) && renderer.enabled)
         {
             return renderer.bounds.max.x;
         }
 
-        return tile != null ? tile.position.x + tileWidthWorld * 0.5f : 0f;
+        return tile != null ? tile.position.x + GetTileWorldWidth(tile) * 0.5f : 0f;
+    }
+
+    private float GetTileWorldWidth(Transform tile)
+    {
+        if (tile != null
+            && tile.TryGetComponent(out SpriteRenderer renderer)
+            && renderer.sprite != null)
+        {
+            float spriteWidth = renderer.sprite.bounds.size.x * Mathf.Abs(tile.lossyScale.x);
+            return Mathf.Max(0.01f, spriteWidth);
+        }
+
+        return Mathf.Max(0.01f, tileWidthWorld);
     }
 
     private Transform GetLeftmostTile()
