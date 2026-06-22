@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1643545884424202525}
   - component: {fileID: 62003046911630847}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: UnknownBoss
-  m_TagString: Untagged
+  m_TagString: Boss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -71,7 +71,7 @@ GameObject:
   - component: {fileID: 7554217118411734605}
   - component: {fileID: 2406647107283512348}
   - component: {fileID: 2372785312834314212}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}

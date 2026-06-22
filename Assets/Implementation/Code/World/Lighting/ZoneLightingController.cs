@@ -35,6 +35,10 @@ public class ZoneLightingController : MonoBehaviour
     [SerializeField, Min(32)] private int compositeTextureWidth = 256;
     [SerializeField, Min(18)] private int compositeTextureHeight = 144;
 
+    [Header("Composite Performance")]
+    [SerializeField, Min(1f)] private float compositeUpdatesPerSecond = 60f;
+    [SerializeField, Min(0f)] private float lightSourceCullingPadding = 0.5f;
+
     private readonly List<Vector3> activeLightPositions = new();
     private Sprite originalLayerBlackSprite;
     private Texture2D compositeTexture;
@@ -42,6 +46,8 @@ public class ZoneLightingController : MonoBehaviour
     private Color32[] compositePixels;
     private int currentCompositeTextureWidth;
     private int currentCompositeTextureHeight;
+    private float nextCompositeUpdateTime;
+    private bool compositeNeedsRefresh = true;
 
     public static ZoneLightingController Instance => instance;
     public static bool HasInstance => instance != null;
@@ -183,12 +189,14 @@ public class ZoneLightingController : MonoBehaviour
         }
 
         EnsureCompositeResources();
-        LightGrazeSource.CollectActiveWorldPositions(activeLightPositions);
+        if (compositeTexture == null || compositePixels == null || !ShouldUpdateCompositeOverlay())
+        {
+            return;
+        }
 
         int width = currentCompositeTextureWidth;
         int height = currentCompositeTextureHeight;
         float alphaOutsideLight = Mathf.Clamp01(blackAlpha);
-
         float worldHeight = targetCamera.orthographicSize * 2f + overlayPadding;
         float worldWidth = worldHeight * targetCamera.aspect + overlayPadding;
         Vector3 cameraPosition = targetCamera.transform.position;
@@ -198,40 +206,136 @@ public class ZoneLightingController : MonoBehaviour
         float innerRadius = radius * (1f - Mathf.Clamp01(lightEdgeSoftness));
         float featherWidth = Mathf.Max(0.0001f, radius - innerRadius);
 
-        for (int y = 0; y < height; y++)
+        Rect lightCollectionBounds = CreateLightCollectionBounds(worldMinX, worldMinY, worldWidth, worldHeight, radius);
+        LightGrazeSource.CollectActiveWorldPositions(activeLightPositions, lightCollectionBounds);
+        FillCompositeOverlay(width, height, alphaOutsideLight);
+
+        for (int i = 0; i < activeLightPositions.Count; i++)
         {
-            float normalizedY = (y + 0.5f) / height;
-            float worldY = worldMinY + normalizedY * worldHeight;
-
-            for (int x = 0; x < width; x++)
-            {
-                float normalizedX = (x + 0.5f) / width;
-                float worldX = worldMinX + normalizedX * worldWidth;
-                float targetAlpha = alphaOutsideLight;
-
-                for (int i = 0; i < activeLightPositions.Count; i++)
-                {
-                    Vector3 lightPosition = activeLightPositions[i];
-                    float distance = Vector2.Distance(
-                        new Vector2(worldX, worldY),
-                        new Vector2(lightPosition.x, lightPosition.y));
-
-                    if (distance > radius)
-                    {
-                        continue;
-                    }
-
-                    float lightAlpha = CalculateCompositeLightAlpha(distance, innerRadius, featherWidth, alphaOutsideLight);
-                    targetAlpha = Mathf.Min(targetAlpha, lightAlpha);
-                }
-
-                byte alphaByte = (byte)Mathf.RoundToInt(targetAlpha * byte.MaxValue);
-                compositePixels[y * width + x] = new Color32(0, 0, 0, alphaByte);
-            }
+            PaintCompositeLight(
+                activeLightPositions[i],
+                worldMinX,
+                worldMinY,
+                worldWidth,
+                worldHeight,
+                radius,
+                innerRadius,
+                featherWidth,
+                alphaOutsideLight,
+                width,
+                height);
         }
 
         compositeTexture.SetPixels32(compositePixels);
         compositeTexture.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+    }
+
+    private bool ShouldUpdateCompositeOverlay()
+    {
+        float now = Time.unscaledTime;
+        if (!compositeNeedsRefresh && now < nextCompositeUpdateTime)
+        {
+            return false;
+        }
+
+        float interval = 1f / Mathf.Max(1f, compositeUpdatesPerSecond);
+        nextCompositeUpdateTime = now + interval;
+        compositeNeedsRefresh = false;
+        return true;
+    }
+
+    private Rect CreateLightCollectionBounds(
+        float worldMinX,
+        float worldMinY,
+        float worldWidth,
+        float worldHeight,
+        float radius)
+    {
+        float padding = radius + Mathf.Max(0f, lightSourceCullingPadding);
+        return new Rect(
+            worldMinX - padding,
+            worldMinY - padding,
+            worldWidth + padding * 2f,
+            worldHeight + padding * 2f);
+    }
+
+    private void FillCompositeOverlay(int width, int height, float alphaOutsideLight)
+    {
+        byte outsideAlpha = (byte)Mathf.RoundToInt(alphaOutsideLight * byte.MaxValue);
+        Color32 outsidePixel = new(0, 0, 0, outsideAlpha);
+        int pixelCount = width * height;
+        for (int i = 0; i < pixelCount; i++)
+        {
+            compositePixels[i] = outsidePixel;
+        }
+    }
+
+    private void PaintCompositeLight(
+        Vector3 lightPosition,
+        float worldMinX,
+        float worldMinY,
+        float worldWidth,
+        float worldHeight,
+        float radius,
+        float innerRadius,
+        float featherWidth,
+        float alphaOutsideLight,
+        int width,
+        int height)
+    {
+        int minPixelX = Mathf.FloorToInt((lightPosition.x - radius - worldMinX) / worldWidth * width);
+        int maxPixelX = Mathf.CeilToInt((lightPosition.x + radius - worldMinX) / worldWidth * width);
+        int minPixelY = Mathf.FloorToInt((lightPosition.y - radius - worldMinY) / worldHeight * height);
+        int maxPixelY = Mathf.CeilToInt((lightPosition.y + radius - worldMinY) / worldHeight * height);
+
+        if (maxPixelX < 0 || minPixelX >= width || maxPixelY < 0 || minPixelY >= height)
+        {
+            return;
+        }
+
+        minPixelX = Mathf.Clamp(minPixelX, 0, width - 1);
+        maxPixelX = Mathf.Clamp(maxPixelX, 0, width - 1);
+        minPixelY = Mathf.Clamp(minPixelY, 0, height - 1);
+        maxPixelY = Mathf.Clamp(maxPixelY, 0, height - 1);
+
+        float radiusSqr = radius * radius;
+        float innerRadiusSqr = innerRadius * innerRadius;
+
+        for (int y = minPixelY; y <= maxPixelY; y++)
+        {
+            float normalizedY = (y + 0.5f) / height;
+            float worldY = worldMinY + normalizedY * worldHeight;
+            float deltaY = worldY - lightPosition.y;
+            float deltaYSqr = deltaY * deltaY;
+
+            for (int x = minPixelX; x <= maxPixelX; x++)
+            {
+                float normalizedX = (x + 0.5f) / width;
+                float worldX = worldMinX + normalizedX * worldWidth;
+                float deltaX = worldX - lightPosition.x;
+                float distanceSqr = deltaX * deltaX + deltaYSqr;
+
+                if (distanceSqr > radiusSqr)
+                {
+                    continue;
+                }
+
+                float lightAlpha = distanceSqr <= innerRadiusSqr
+                    ? 0f
+                    : CalculateCompositeLightAlpha(Mathf.Sqrt(distanceSqr), innerRadius, featherWidth, alphaOutsideLight);
+                byte lightAlphaByte = (byte)Mathf.RoundToInt(lightAlpha * byte.MaxValue);
+                int pixelIndex = y * width + x;
+
+                if (lightAlphaByte >= compositePixels[pixelIndex].a)
+                {
+                    continue;
+                }
+
+                Color32 pixel = compositePixels[pixelIndex];
+                pixel.a = lightAlphaByte;
+                compositePixels[pixelIndex] = pixel;
+            }
+        }
     }
 
     private float CalculateCompositeLightAlpha(
@@ -276,6 +380,7 @@ public class ZoneLightingController : MonoBehaviour
         currentCompositeTextureWidth = width;
         currentCompositeTextureHeight = height;
         compositePixels = new Color32[width * height];
+        compositeNeedsRefresh = true;
 
         compositeTexture = new Texture2D(width, height, TextureFormat.RGBA32, false)
         {

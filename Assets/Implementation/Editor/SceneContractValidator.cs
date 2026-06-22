@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -26,7 +29,6 @@ public static class SceneContractValidator
     private const string GameOverMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab";
     private const string InGameShopMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab";
     private const string OptionsMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab";
-    private const string MainMenuStorePrefabPath = "Assets/Content/Prefabs/UI/Menus/MainMenuStore.prefab";
 
     private static readonly string[] MenuScenePaths =
     {
@@ -39,8 +41,7 @@ public static class SceneContractValidator
         PauseMenuPrefabPath,
         GameOverMenuPrefabPath,
         InGameShopMenuPrefabPath,
-        OptionsMenuPrefabPath,
-        MainMenuStorePrefabPath
+        OptionsMenuPrefabPath
     };
 
     private static readonly SceneContract[] SceneContracts =
@@ -74,9 +75,11 @@ public static class SceneContractValidator
         new("Assets/Content/Prefabs/Collectibles/ShrimpCoin.prefab", "ShrimpCoin", GameplayTagCatalog.Shrimp, "Collectible"),
         new("Assets/Content/Prefabs/Collectibles/ShrimpCoinX10.prefab", "ShrimpCoinX10", GameplayTagCatalog.Shrimp, "Collectible"),
         new("Assets/Content/Prefabs/Shop/DealerFish.prefab", "DealerFish", GameplayTagCatalog.Collectible, "Collectible"),
+        new("Assets/Content/Prefabs/Shop/DealerFish_ZonaAbisopelagica.prefab", "DealerFish_ZonaAbisopelagica", GameplayTagCatalog.Collectible, "Collectible"),
         new("Assets/Content/Prefabs/Portals/ScenePortal.prefab", "ScenePortal", GameplayTagCatalog.Portal, "Collectible"),
         new("Assets/Content/Prefabs/Bosses/SSCarnage/SSCarnage.prefab", "SSCarnage", GameplayTagCatalog.SSCarnage, "Boss"),
         new("Assets/Content/Prefabs/Bosses/SSCarnage/BossNetWall.prefab", "BossNetWall", GameplayTagCatalog.SSCarnage, "Boss"),
+        new("Assets/Content/Prefabs/Bosses/UnknownBoss/UnknownBoss.prefab", "UnknownBoss", GameplayTagCatalog.Boss, "Boss"),
         new(BoundariesPrefabPath, "Boundaries", "Untagged", "Boundary"),
         new(CleanupPrefabPath, "DestroyZone", "DestroyZone", "Cleanup")
     };
@@ -90,6 +93,7 @@ public static class SceneContractValidator
         ValidatePersistentDbSeeds(failures);
         ValidatePrefabContracts(failures);
         ValidateButtonContractPrefabs(failures);
+        ValidateGameOverMenuContract(failures);
         ValidateSpawnProfiles(failures);
 
         foreach (SceneContract contract in SceneContracts)
@@ -130,7 +134,6 @@ public static class SceneContractValidator
         RequireAsset<GameObject>(GameOverMenuPrefabPath, failures);
         RequireAsset<GameObject>(InGameShopMenuPrefabPath, failures);
         RequireAsset<GameObject>(OptionsMenuPrefabPath, failures);
-        RequireAsset<GameObject>(MainMenuStorePrefabPath, failures);
 
         foreach (SceneContract contract in SceneContracts)
         {
@@ -335,6 +338,18 @@ public static class SceneContractValidator
 
             ValidateButtonContracts(prefab.transform, prefabPath, failures);
         }
+    }
+
+    private static void ValidateGameOverMenuContract(List<string> failures)
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameOverMenuPrefabPath);
+        if (prefab == null)
+        {
+            return;
+        }
+
+        RequireChildTextByContract(prefab.transform, "PuntajeObtenido", GameOverMenuPrefabPath, failures);
+        RequireChildTextByContract(prefab.transform, "MaximoPuntaje", GameOverMenuPrefabPath, failures);
     }
 
     private static void ValidateMenuSceneButtonContracts(List<string> failures)
@@ -1008,6 +1023,54 @@ public static class SceneContractValidator
         }
 
         return null;
+    }
+
+    private static void RequireChildTextByContract(Transform root, string normalizedObjectName, string context, List<string> failures)
+    {
+        if (FindChildTextByNormalizedName(root, normalizedObjectName) == null)
+        {
+            failures.Add($"{context} is missing TMP text '{normalizedObjectName}'.");
+        }
+    }
+
+    private static TMP_Text FindChildTextByNormalizedName(Transform root, string normalizedObjectName)
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        string expectedName = NormalizeContractName(normalizedObjectName);
+        foreach (Transform child in root.GetComponentsInChildren<Transform>(includeInactive: true))
+        {
+            if (NormalizeContractName(child.name) == expectedName && child.TryGetComponent(out TMP_Text text))
+            {
+                return text;
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeContractName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        string decomposed = value.Normalize(NormalizationForm.FormD);
+        StringBuilder builder = new(decomposed.Length);
+        for (int i = 0; i < decomposed.Length; i++)
+        {
+            char character = decomposed[i];
+            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark && !char.IsWhiteSpace(character))
+            {
+                builder.Append(character);
+            }
+        }
+
+        return builder.ToString().Normalize(NormalizationForm.FormC).ToUpperInvariant();
     }
 
     private static T GetObjectReference<T>(SerializedObject serializedObject, string propertyName) where T : UnityEngine.Object

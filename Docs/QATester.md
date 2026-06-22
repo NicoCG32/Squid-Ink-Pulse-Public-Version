@@ -83,9 +83,15 @@ Parametros ajustables:
 | `scorePerSecond` | Puntaje base ganado por segundo de gameplay activo. | El marcador sube mas rapido. |
 | `scoreIntensityBonusMultiplier` | Bono proporcional a intensidad actual. | El marcador acelera mas en momentos intensos. |
 
+Valores globales actuales para las tres zonas jugables:
+- `secondsToMaxIntensity`: `150`
+- `maxScrollSpeed`: `15`
+- `speedGrowthTimeConstantSeconds`: `120`
+- `scorePerSecond`: `3200`
+
 ## Score
 
-Scripts: `RunProgressionDirector`, `RuntimeRunScore`, `ScoreCounterDisplay`
+Scripts: `RunProgressionDirector`, `RuntimeRunScore`, `ScoreCounterDisplay`, `GameOverMenuManager`
 
 Nodos esperados: `GameSession` y objeto UI `Score` si existe en la escena.
 
@@ -94,9 +100,10 @@ Reglas vigentes:
 - Persiste al cruzar portales.
 - Debe conservar el valor visible al pasar desde `ZonaEpipelagica` a `ZonaAbisopelagica`.
 - Deja de crecer durante `RunEventState.Transitioning`, es decir, desde el contacto con portal hasta la carga de escena.
-- Se reinicia al entrar en `GameSessionState.GameOver`.
+- Al entrar en `GameSessionState.GameOver`, `RuntimeRunScore` captura `LastCompletedScore`, `PersistentPlayerProfile` actualiza `bestScore` y luego el score runtime se reinicia.
 - Al pulsar `Reintentar`, la escena cargada debe ser `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 - `ScoreCounterDisplay` solo presenta el numero; no calcula progresion.
+- `GameOverMenuManager` muestra `LastCompletedScore` en `PuntajeObtenido` y `PersistentPlayerProfile.BestScore` en `MaximoPuntaje` / `MáximoPuntaje`.
 - La tienda temporal usa `RuntimeRunScore.TotalScore` para calcular precios.
 
 ## Velocidad del calamar
@@ -233,7 +240,7 @@ Reglas vigentes:
 
 Script: `ZoneLightingController`
 
-Nodo esperado: `Enviroment/ZoneLightingController` en `ZonaAbisopelagica`
+Nodo esperado: `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController` en `ZonaAbisopelagica`
 
 Parametros ajustables:
 
@@ -248,6 +255,7 @@ Parametros ajustables:
 | `useCompositeLightOverlay` | Usa una unica textura runtime para componer todas las luces. | Evita acumulacion visual extrana cuando dos luces se cruzan. |
 | `compositeTextureWidth` | Resolucion horizontal de la textura de oscuridad. | Mayor nitidez horizontal, mayor costo por frame. |
 | `compositeTextureHeight` | Resolucion vertical de la textura de oscuridad. | Mayor nitidez vertical, mayor costo por frame. |
+| `compositeUpdatesPerSecond` | Frecuencia maxima de recomposicion del overlay. | El contrato actual usa `60` para evitar saltos visibles durante Ink-Pulse. |
 
 Reglas vigentes:
 
@@ -257,6 +265,7 @@ Reglas vigentes:
 - La instancia `Squid` de `BabySquid.prefab` tiene `LightGrazeSource` en `ZonaAbisopelagica`.
 - `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, agrega `LightGrazeSource` a entidades runtime solo si existe `ZoneLightingController`.
 - `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaAbisopelagica`.
+- `ZonaAbisopelagicaSpawnProfile` debe usar `DealerFish_ZonaAbisopelagica.prefab`; tutorial y zona epipelagica deben conservar `DealerFish.prefab`.
 
 ## Gadgets e inventario
 
@@ -434,6 +443,8 @@ Parametros ajustables:
 | --- | --- | --- |
 | `dropSpeed` | Velocidad vertical de bajada hacia la Y capturada del jugador. | La caña cae mas brusca y rapidamente. |
 | `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La caña nace mas abajo si se sube. |
+| `descentStartViewportX` | Punto horizontal de viewport donde se permite iniciar la bajada. `1` es el borde derecho de camara. | Valores mayores inician la accion levemente antes de entrar a camara; valores menores la retrasan. |
+| `descentWindupSeconds` | Pausa breve entre entrar en ventana de lectura y empezar a caer. | Da mas lectura, pero debe mantenerse corta para no volver trivial la amenaza. |
 | `arriveDistance` | Tolerancia para considerar que llego a la Y objetivo. | Detiene el movimiento con menos precision si se sube. |
 | `horizontalLeadTimePaddingSeconds` | Margen temporal agregado al calculo de distancia horizontal del anzuelo. | El anzuelo aparece mas lejos cuando el jugador va rapido. |
 | `minimumHorizontalLeadDistance` | Distancia minima propia de la cana desde el borde derecho de camara. | Evita que aparezca demasiado cerca a velocidades bajas. |
@@ -445,17 +456,22 @@ Tambien depende de:
 
 Reglas vigentes:
 - La caña regular captura la altura Y del jugador al spawnear.
-- Luego baja verticalmente desde el top del rango jugable hasta esa Y.
+- Luego espera a entrar en ventana de lectura, mantiene una pausa breve y baja verticalmente desde el top del rango jugable hasta esa Y.
 - La distancia X de aparicion se calcula con la velocidad horizontal actual del jugador y el tiempo estimado de caida.
 - No persigue al jugador despues de capturar la Y.
 - La caña regular se fuerza solo fuera de `BossActive`.
 - Un futuro anzuelo del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
 
+Contrato de tamano visual de `CanaPescar`:
+- El tamano de `Rope`/`Visual` en `CanaPescar.prefab` es parte de la autoria del prefab. No es legacy ni debe reducirse por normalizacion automatica.
+- Al cambiar el tamano visual de `CanaPescar`, validar que el root siga con tag `EnemyCanaPescar` y layer `Enemy`, y que `Rope`/`Visual` permanezcan como hijos en layer `Enemy`.
+- El cleanup debe ocurrir solo cuando los bounds agregados de colliders/renderers de la cana completa quedaron detras de la distancia segura.
+
 ## SS Carnage
 
 Scripts: `BossEventDirector`, `SSCarnageController`, `SSCarnageNetWall`
 
-Escena esperada actual: `ZonaEpipelagica`. `ZonaAbisopelagica` no debe tener `BossEventDirector`, `SSCarnageManager` ni `BossNetWall`; si aparece un warning de referencias faltantes en esa zona, el objeto es legacy y debe limpiarse, no completarse con referencias ficticias.
+Escena esperada actual para SS Carnage: `ZonaEpipelagica`. `ZonaAbisopelagica` puede reutilizar `BossEventDirector` como disparador generico de `UnknownBoss`/`FlappyBoss`, pero no debe tener `SSCarnageManager`, `SSCarnage` ni `BossNetWall`.
 
 Parametros ajustables:
 

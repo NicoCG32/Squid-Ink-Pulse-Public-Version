@@ -12,6 +12,7 @@ TagManager:
   - EnemyPezGlobo
   - EnemyCanaPescar
   - SSCarnage
+  - Boss
   - Portal
   layers:
   - Default

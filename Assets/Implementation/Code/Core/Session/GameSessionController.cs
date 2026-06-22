@@ -100,7 +100,8 @@ public class GameSessionController : MonoBehaviour
             return;
         }
 
-        PersistentPlayerProfile.RecordRunEnded(RuntimeRunScore.TotalScore);
+        long completedScore = RuntimeRunScore.CaptureCompletedScore();
+        PersistentPlayerProfile.RecordRunEnded(completedScore);
         RuntimeGadgetInventory.ResetForRuntime();
         RuntimeInkPulseState.ResetForRuntime();
         RuntimeRunScore.ResetForRuntime();

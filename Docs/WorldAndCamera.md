@@ -110,6 +110,12 @@ Responsabilidad:
 - Aplicar desplazamiento de fondo para dar sensacion de profundidad.
 - Acompanar el avance de la run sin competir con la lectura del gameplay.
 - Mantener la logica visual del fondo separada de los limites de gameplay.
+- Reciclar tiles con distancia de seguridad, ocultar tiles fuera de camara y limitar el numero maximo de tiles generados.
+
+Contrato de `ZonaAbisopelagica`:
+- `EnviromentRoot_ZonaAbisopelagica` contiene cinco capas de parallax: `Layer1`, `Layer2`, `Layer3`, `Layer4` y `Layer5`.
+- Cada capa debe tener `recycleSafetyTiles`, `cullTilesOutsideCamera`, `tileVisibilitySafetyDistance` y `maximumGeneratedTiles` serializados.
+- La quinta capa es parte del environment abisal actual y no debe eliminarse como legacy.
 
 ## ZoneLightingController
 

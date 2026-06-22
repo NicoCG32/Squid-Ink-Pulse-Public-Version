@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Globalization;
+using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -15,6 +18,12 @@ public class GameOverMenuManager : MonoBehaviour
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private Button retryButton;
     [SerializeField] private Button menuButton;
+
+    [Header("Score Display")]
+    [SerializeField] private TMP_Text obtainedScoreText;
+    [SerializeField] private TMP_Text bestScoreText;
+    [SerializeField] private string obtainedScorePrefix = "Puntaje: ";
+    [SerializeField] private string bestScorePrefix = "Best: ";
 
     [Header("Animated Elements")]
     [SerializeField] private RectTransform[] animatedDecorations;
@@ -101,6 +110,7 @@ public class GameOverMenuManager : MonoBehaviour
     {
         StopAllCoroutines();
         SetMenuRootActive(true);
+        RefreshScoreDisplay();
 
         if (canvasGroup == null)
         {
@@ -169,6 +179,8 @@ public class GameOverMenuManager : MonoBehaviour
 
         retryButton ??= UiButtonContract.FindButton(uiRoot, "ReintentarBoton", "BotonReintentar");
         menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
+        obtainedScoreText ??= FindChildTextByContract(uiRoot, "PuntajeObtenido");
+        bestScoreText ??= FindChildTextByContract(uiRoot, "MaximoPuntaje", "MejorPuntaje", "BestScore");
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
@@ -201,12 +213,33 @@ public class GameOverMenuManager : MonoBehaviour
         originalPositions = MenuScreenAnimation.CachePositions(animatedElements);
     }
 
+    private void RefreshScoreDisplay()
+    {
+        SetScoreText(obtainedScoreText, obtainedScorePrefix, RuntimeRunScore.LastCompletedScore);
+        SetScoreText(bestScoreText, bestScorePrefix, PersistentPlayerProfile.BestScore);
+    }
+
+    private void SetScoreText(TMP_Text targetText, string prefix, long score)
+    {
+        if (targetText != null)
+        {
+            targetText.text = $"{prefix}{score}";
+        }
+    }
+
     private void WarnIfMissingReferences()
     {
         if (session == null || sceneFlow == null || menuRoot == null || canvasGroup == null || retryButton == null || menuButton == null)
         {
             Debug.LogWarning(
                 "[GameOverMenuManager] Faltan referencias. Asigna Session, SceneFlow, MenuRoot, CanvasGroup, RetryButton y MenuButton en este componente.",
+                this);
+        }
+
+        if (obtainedScoreText == null || bestScoreText == null)
+        {
+            Debug.LogWarning(
+                "[GameOverMenuManager] Faltan textos de puntaje. Asigna PuntajeObtenido y MaximoPuntaje en este componente o mantenlos como hijos del GameOverCanvas.",
                 this);
         }
 
@@ -306,5 +339,54 @@ public class GameOverMenuManager : MonoBehaviour
         }
 
         return compact;
+    }
+
+    private TMP_Text FindChildTextByContract(Transform root, params string[] contractNames)
+    {
+        if (root == null || contractNames == null || contractNames.Length == 0)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (!children[i].TryGetComponent(out TMP_Text text))
+            {
+                continue;
+            }
+
+            string normalizedChildName = NormalizeContractName(children[i].name);
+            for (int contractIndex = 0; contractIndex < contractNames.Length; contractIndex++)
+            {
+                if (normalizedChildName == NormalizeContractName(contractNames[contractIndex]))
+                {
+                    return text;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeContractName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        string decomposed = value.Normalize(NormalizationForm.FormD);
+        StringBuilder builder = new StringBuilder(decomposed.Length);
+        for (int i = 0; i < decomposed.Length; i++)
+        {
+            char character = decomposed[i];
+            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark && !char.IsWhiteSpace(character))
+            {
+                builder.Append(character);
+            }
+        }
+
+        return builder.ToString().Normalize(NormalizationForm.FormC).ToUpperInvariant();
     }
 }

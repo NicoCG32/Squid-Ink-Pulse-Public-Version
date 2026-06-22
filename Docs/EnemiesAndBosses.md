@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este documento reune el sistema de spawn, el catalogo de enemigos, los enemigos actuales y el boss SS Carnage.
+Este documento reune el sistema de spawn, el catalogo de enemigos, los enemigos actuales, SS Carnage y el boss abisal `UnknownBoss` / `FlappyBoss`.
 
 ## LevelSpawner
 
@@ -104,18 +104,34 @@ Estado actual:
 - Prefab y tag implementados.
 - Script propio `FishingRodEnemy` implementado.
 - En juego normal se fuerza cada `fishingRodEnemyInterval` enemigos.
-- Aparece desde la derecha, captura la Y del jugador en el momento de spawn y baja desde el top del rango jugable hasta esa altura.
+- Aparece desde la derecha, captura la Y del jugador en el momento de spawn y queda arriba hasta entrar en su ventana de lectura.
+- Al llegar a la ventana de lectura, espera una pausa breve configurable y baja desde el top del rango jugable hasta la Y capturada.
 - No persigue al jugador despues de capturar la Y.
 - Durante `BossActive`, el spawner regular no fuerza cañas; los anzuelos del SS Carnage deben implementarse como ataque de boss separado.
 
 Parametros de balance:
 - `dropSpeed`
 - `startYOffsetBelowTopBoundary`
+- `descentStartViewportX`
+- `descentWindupSeconds`
 - `arriveDistance`
 - `horizontalLeadTimePaddingSeconds`
 - `minimumHorizontalLeadDistance`
 
 Estos parametros pertenecen a `ZoneSpawnProfile.fishingRodTuning`.
+
+Contrato de legibilidad:
+- La bajada no debe consumirse completamente fuera de camara.
+- `descentStartViewportX` define en que posicion horizontal de viewport se permite iniciar la accion: `1` es el borde derecho de camara y valores mayores empiezan levemente antes de entrar.
+- `descentWindupSeconds` agrega una pausa corta antes de caer, sin recapturar la posicion del jugador.
+- `SpawnPositionResolver` incluye la duracion de bajada, la pausa y el margen horizontal al calcular la distancia de spawn, para que mejorar la lectura no vuelva injusta la amenaza.
+
+Contrato visual de `CanaPescar.prefab`:
+- El largo de `Rope` y la escala de `Visual` son autoria del prefab. No deben normalizarse por codigo ni desde `ZoneSpawnProfile`.
+- El root mantiene la identidad jugable: tag `EnemyCanaPescar`, layer `Enemy` y script `FishingRodEnemy`.
+- `Rope` y `Visual` son hijos visuales/estructurales del enemigo; deben permanecer en layer `Enemy` y sin tag logico propio salvo que una mecanica futura lo justifique.
+- Si la cana se hace mas grande visualmente, el cleanup debe respetar sus bounds agregados. Esto implica destruirla mas tarde, cuando todo el volumen visual/fisico ya quedo detras de la distancia segura.
+- Si el cambio de tamano hace que la amenaza se lea demasiado pronto, demasiado tarde o demasiado injusta, el ajuste correcto es `ZoneSpawnProfile.fishingRodTuning`, no una correccion de escala en runtime.
 
 ## BossEventDirector
 
@@ -128,6 +144,29 @@ Responsabilidad:
 - Entregar contexto de sesion, progresion, camara y parent al boss activo.
 
 No entrega boundaries al boss. La escena debe proveer `CameraBoundaries` y `PlayerBoundaries`, y cada consumidor los resuelve por dominio.
+
+Uso por zona:
+- `ZonaEpipelagica` usa `BossEventDirector` para instanciar `SSCarnage`.
+- `ZonaAbisopelagica` usa `BossEventDirector` en el nodo `FlappyBossManager` para instanciar `UnknownBoss`.
+- `ZonaTutorial` puede tener director de boss si el `TutorialDirector` lo habilita como parte de su flujo.
+
+## UnknownBoss / FlappyBoss
+
+Archivos:
+- `Assets/Implementation/Code/Bosses/UnknownBoss/FlappyBossController.cs`
+- `Assets/Content/Prefabs/Bosses/UnknownBoss/UnknownBoss.prefab`
+- `Assets/Content/Prefabs/Bosses/UnknownBoss/BossPillars.prefab`
+
+Responsabilidad:
+- Controlar el boss propio de `ZonaAbisopelagica`.
+- Usar pilares tipo Flappy Bird como amenaza principal.
+- Resolver alturas desde `CameraBoundaries`, no desde constantes fijas.
+- Avisar a `RunProgressionDirector` con `NotifyBossResolved()` al terminar su secuencia.
+
+Contrato:
+- `UnknownBoss` usa tag `Boss` y layer `Boss`.
+- `BossPillars` usan layer `Enemy` y tag de enemigo para que colision, graze y cleanup los traten como obstaculos jugables.
+- El ultimo pilar puede actuar como pared continua cuando `spawnFinalContinuousWall` esta activo.
 
 ## SSCarnage
 

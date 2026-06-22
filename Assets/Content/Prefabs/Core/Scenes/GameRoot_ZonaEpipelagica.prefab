@@ -438,11 +438,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunProgressionDirector
   session: {fileID: 4053827515301101199}
   distanceReference: {fileID: 4197707104351753346}
-  secondsToMaxIntensity: 120
+  secondsToMaxIntensity: 150
   postBossIntensityFloor: 0.25
   minScrollSpeed: 5
-  maxScrollSpeed: 9
-  speedGrowthTimeConstantSeconds: 180
+  maxScrollSpeed: 15
+  speedGrowthTimeConstantSeconds: 120
   maxSpawnInterval: 1.5
   minSpawnInterval: 0.65
   bossActiveSpawnIntervalMultiplier: 0.5
@@ -450,7 +450,7 @@ MonoBehaviour:
   maxBossInterval: 45
   minBossInterval: 30
   postBossWindowSeconds: 6
-  scorePerSecond: 1250
+  scorePerSecond: 3200
   scoreIntensityBonusMultiplier: 1
   onEventStateChanged:
     m_PersistentCalls:

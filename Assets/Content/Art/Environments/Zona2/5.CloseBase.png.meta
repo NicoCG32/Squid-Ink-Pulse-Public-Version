@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e5359835469180442ae243852e7bae39
+guid: e455621f52e7d2040a21b8c7c8f3df9c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8003644038684665340
-    second: 4_CloseTerrenal_0
+      213: 1545555952283532705
+    second: 5.CloseBase_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 4_CloseTerrenal_0
+      name: 5.CloseBase_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 2172
-        height: 337
+        width: 3855
+        height: 708
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cf5e87a19d7a21f60800000000000000
-      internalID: 8003644038684665340
+      spriteID: 1adb95c23fae27510800000000000000
+      internalID: 1545555952283532705
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      4_CloseTerrenal_0: 8003644038684665340
+      5.CloseBase_0: 1545555952283532705
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

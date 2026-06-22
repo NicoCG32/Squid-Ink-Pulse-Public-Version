@@ -44,6 +44,16 @@ public class LightGrazeSource : MonoBehaviour
 
     public static void CollectActiveWorldPositions(List<Vector3> results)
     {
+        CollectActiveWorldPositions(results, useBounds: false, default);
+    }
+
+    public static void CollectActiveWorldPositions(List<Vector3> results, Rect worldBounds)
+    {
+        CollectActiveWorldPositions(results, useBounds: true, worldBounds);
+    }
+
+    private static void CollectActiveWorldPositions(List<Vector3> results, bool useBounds, Rect worldBounds)
+    {
         if (results == null)
         {
             return;
@@ -59,10 +69,22 @@ public class LightGrazeSource : MonoBehaviour
                 continue;
             }
 
-            if (source.isActiveAndEnabled)
+            if (!source.isActiveAndEnabled)
             {
-                results.Add(source.transform.position);
+                continue;
             }
+
+            Vector3 position = source.transform.position;
+            if (useBounds
+                && (position.x < worldBounds.xMin
+                    || position.x > worldBounds.xMax
+                    || position.y < worldBounds.yMin
+                    || position.y > worldBounds.yMax))
+            {
+                continue;
+            }
+
+            results.Add(position);
         }
     }
 

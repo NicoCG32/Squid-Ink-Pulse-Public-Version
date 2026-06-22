@@ -15,8 +15,8 @@
 
 `ZonaAbisopelagica` debe tener:
 
-- `Enviroment/ZoneLightingController`
-- `Enviroment/ZoneLightingController/LayerBlack`
+- `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController`
+- `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController/LayerBlack`
 - `ZoneLightingController.layerBlack` apuntando al `SpriteRenderer` de `LayerBlack`
 - `ZoneLightingController.targetCamera` apuntando a `Main Camera`
 
@@ -32,6 +32,20 @@ Las entidades de mundo relevantes en `ZonaAbisopelagica` reciben `LightGrazeSour
 Los prefabs compartidos no deben depender de esta mecanica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaAbisopelagica`.
 
 En modo compuesto, `LightGrazeSource` no crea renderers visibles por entidad: solo participa en una lista runtime de posiciones. `ZoneLightingController` calcula una unica textura de oscuridad y, cuando dos luces se cruzan, toma la menor opacidad por pixel. Esto evita que dos halos se sumen y generen manchas negras o sobreposicion artificial. El radio, la suavidad y la resolucion del overlay se definen en `ZoneLightingController`, no en la entidad.
+
+## Rendimiento del modo compuesto
+
+El overlay compuesto esta optimizado para no escalar con objetos fuera de camara. El flujo esperado es:
+
+1. Calcular el area visible de camara con margen.
+2. Recolectar solo `LightGrazeSource` activos dentro de esa area ampliada por el radio de luz.
+3. Rellenar la textura con la opacidad negra base.
+4. Pintar solo el rectangulo de pixeles que puede afectar cada luz visible.
+5. Aplicar la textura a una frecuencia configurable mediante `compositeUpdatesPerSecond`.
+
+No debe volver al algoritmo de recorrer toda la textura y comparar cada pixel contra todas las fuentes activas. Ese enfoque cuesta `ancho * alto * fuentes` por actualizacion y degrada especialmente en `ZonaAbisopelagica`, donde camarones, enemigos, `DealerFish`, portales y jugador pueden declarar `LightGrazeSource`.
+
+La reduccion de frecuencia es intencional: la iluminacion es feedback ambiental, no una mecanica de precision. El contrato actual usa `60` recomposiciones por segundo para que el halo no se perciba entrecortado durante Ink-Pulse. Si el costo vuelve a ser alto, bajarlo o reducir `compositeTextureWidth`/`compositeTextureHeight`.
 
 ## Diferencia con GrazeDetector
 
@@ -66,6 +80,8 @@ Owner: `ZoneLightingController`.
 | `useCompositeLightOverlay` | Activa el overlay compuesto que evita acumulacion visual entre luces. |
 | `compositeTextureWidth` | Resolucion horizontal de la textura runtime de oscuridad. |
 | `compositeTextureHeight` | Resolucion vertical de la textura runtime de oscuridad. |
+| `compositeUpdatesPerSecond` | Frecuencia maxima a la que se recompone la textura. |
+| `lightSourceCullingPadding` | Margen extra, en unidades de mundo, para considerar fuentes cercanas al borde de camara. |
 
 ## Regla de mantenimiento
 

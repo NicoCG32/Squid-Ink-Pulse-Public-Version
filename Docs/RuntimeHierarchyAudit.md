@@ -183,9 +183,11 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
-| `Enviroment/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y componer las zonas locales de luz. |
-| `Enviroment/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y recibe la textura compuesta de oscuridad. |
-| `BossManager` / `SSCarnageManager` | ninguno | No debe existir en esta zona mientras SS Carnage no sea parte de su diseno. Si aparece con `BossEventDirector`, es legacy y debe retirarse. |
+| `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController` | `ZoneLightingController` | Oscurecer la zona y componer las zonas locales de luz. |
+| `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController/LayerBlack` | `SpriteRenderer` | Capa negra semitransparente que cubre camara y recibe la textura compuesta de oscuridad. |
+| `EnviromentRoot_ZonaAbisopelagica/Layer1..Layer5` | `ParallaxLayer` | Capas de fondo abisal con reciclaje, culling por camara y limite de tiles generados. |
+| `FlappyBossManager` | `BossEventDirector` | Disparar `UnknownBoss` / `FlappyBoss` como boss propio de la zona abisal. |
+| `SSCarnageManager`, `SSCarnage`, `BossNetWall` | ninguno | No deben existir en esta zona mientras SS Carnage no sea parte de su diseno. |
 
 `LayerBlack` debe quedar sobre fondos y bajo entidades de gameplay. En el modo actual usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`. El modo `VisibleOutsideMask` queda reservado para el fallback legacy con `SpriteMask`.
 
@@ -202,13 +204,17 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 | `ShellShield` | `GadgetShopItem` | `Untagged` | segun UI/prefab |
 | `InkBottle` | `GadgetShopItem` | `Untagged` | segun UI/prefab |
 | `DealerFish` | `DealerFish` | `Collectible` | `Collectible` |
+| `DealerFish_ZonaAbisopelagica` | `DealerFish` | `Collectible` | `Collectible` |
 | `ScenePortal` | `ScenePortal` | `Portal` | `Collectible` |
 | `SSCarnage` | `SSCarnageController`, `BoxCollider2D` trigger para cleanup | `SSCarnage` | `Boss` |
 | `BossNetWall` | `SSCarnageNetWall`, collider trigger activo para cleanup | `SSCarnage` | `Boss` |
+| `UnknownBoss` | `FlappyBossController` | `Boss` | `Boss` |
 | `CleanUp` | `DestroyOffscreen` en `DestroyZone/GarbageCollector` | root `Untagged`; hijo `DestroyZone` | root `Default`; hijos `DestroyZone` |
 | `Boundaries` | `HorizontalTracker` en root, colliders en `TopBoundary`/`BottomBoundary` | `Untagged` | `Boundary` |
 
 La mina no tiene script propio todavia porque su logica actual vive en el algoritmo de spawn. La cana ya tiene `FishingRodEnemy`; su temporizacion de aparicion pertenece a `LevelSpawner`, pero su caida vertical pertenece al prefab.
+
+`CanaPescar` puede tener `Rope` y `Visual` escalados para lectura visual. Ese tamano pertenece al prefab: la identidad jugable se conserva en el root (`EnemyCanaPescar` / `Enemy`) y los hijos visuales permanecen sin tag logico propio. El cleanup debe evaluar bounds agregados de colliders/renderers para no destruir la cana hasta que todo su volumen haya pasado la distancia segura.
 
 ## Prefabs UI
 
@@ -261,6 +267,8 @@ En `ZonaAbisopelagica`, `SpawnedObjectConfigurator` tambien garantiza `LightGraz
 - se ubica en la zona inferior configurable del rango definido por `PlayerBoundaries`;
 - agenda cada aparicion con intervalo base multiplicado por un factor aleatorio de tienda;
 - abre `InGameShopManager` al colisionar con el jugador.
+
+`ZonaAbisopelagica` usa `DealerFish_ZonaAbisopelagica.prefab` desde su `ZoneSpawnProfile`. Es una variante visual del dealer base: conserva tag, layer, collider y script, pero `Visual` y `VisualSupport` usan RGB `135,135,135` para integrarse con la oscuridad abisal. Las demas zonas siguen usando `DealerFish.prefab`.
 
 ## Spawn de portales
 
@@ -327,7 +335,7 @@ Reglas:
 - No vender gadgets desde `ShopMenu` ni desde la tienda out-of-game; fuera de la run solo se habilita su elegibilidad mediante `RunGadgetUnlockService`.
 - No permitir activacion manual de Ink-Pulse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
 - No usar `LightGrazeSource` para cargar Ink-Pulse; su unica consecuencia es visual y pertenece a `ZoneLightingController`.
-- No dejar `BossEventDirector` en `ZonaAbisopelagica`; esa zona no instancia SS Carnage ni `BossNetWall` en el contrato actual.
+- En `ZonaAbisopelagica`, `BossEventDirector` solo es valido si el nodo es `FlappyBossManager` y su prefab es `UnknownBoss`; no debe instanciar SS Carnage ni `BossNetWall`.
 - No dejar portales fijos `PortalTo...` en escena; los portales nacen desde `LevelSpawner`.
 - No usar tag `Shrimp` ni `Collectible` en portales; deben usar `Portal`.
 - No cargar zonas desde scripts de enemigo, tienda o HUD; el contacto pertenece a `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.

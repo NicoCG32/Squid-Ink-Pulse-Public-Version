@@ -35,7 +35,7 @@ Regla:
 - `Prefabs/Enemies/`: `PezGlobo`, `Mina`, `CanaPescar`.
 - `Prefabs/Bosses/SSCarnage/`: `SSCarnage`, `BossNetWall`.
 - `Prefabs/Gadgets/`: `ShellShield`, `InkBottle`.
-- `Prefabs/Shop/`: `DealerFish`.
+- `Prefabs/Shop/`: `DealerFish` y `DealerFish_ZonaAbisopelagica`.
 - `Prefabs/Portals/`: `ScenePortal`.
 
 Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanente se define por id en `Assets/StreamingAssets/db/unlockables-catalog.json/runGadgets`; su posesion durante una partida vive en `RuntimeGadgetInventory`.
@@ -83,6 +83,8 @@ Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanent
 - `EnviromentRoot_ZonaTutorial.prefab`
 
 `EnviromentRoot_*` agrupa fondos, capas de parallax, luz global y efectos visuales de zona. `ParallaxLayer` resuelve `Camera.main` como respaldo si `cameraTransform` no esta serializado, por lo que el prefab puede aplicarse sin depender de enlaces fragiles a una camara de escena.
+
+`EnviromentRoot_ZonaAbisopelagica` contiene cinco capas de parallax (`Layer1` a `Layer5`) y cada capa debe conservar sus parametros de reciclaje/culling serializados. `Layer5` pertenece al contrato visual actual de la zona y no debe tratarse como legacy.
 
 `Assets/Content/Prefabs/Core/Scenes/` contiene una instancia prefab de `GameRoot` por zona:
 

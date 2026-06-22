@@ -165,8 +165,9 @@ flowchart LR
 - debe tener la misma jerarquia obligatoria de boundaries;
 - usa portales con `PortalSpawnPolicy.AlwaysInterval`;
 - conserva gadgets e Ink-Pulse al entrar o salir;
-- tiene `Enviroment/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
+- tiene `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
 - revela localmente `LayerBlack` mediante el overlay compuesto de `ZoneLightingController` y las posiciones declaradas por `LightGrazeSource`;
+- usa `DealerFish_ZonaAbisopelagica.prefab` como variante visual oscurecida, sin cambiar la logica de tienda;
 - puede diferenciar arte, enemigos y parametros de spawner sin romper el contrato comun.
 
 ## Notas de mantenimiento

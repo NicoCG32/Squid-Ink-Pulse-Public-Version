@@ -193,7 +193,8 @@ public static class SpawnPositionResolver
         float dropDistance = Mathf.Max(0f, dropStartY - targetY);
         float dropDuration = dropDistance / tuning.DropSpeed;
         float playerSpeed = GetCurrentPlayerHorizontalSpeed(player, progression);
-        float dynamicLeadDistance = playerSpeed * (dropDuration + tuning.HorizontalLeadTimePaddingSeconds);
+        float readableDropDuration = dropDuration + tuning.DescentWindupSeconds + tuning.HorizontalLeadTimePaddingSeconds;
+        float dynamicLeadDistance = playerSpeed * readableDropDuration;
         float minimumDistance = Mathf.Max(zoneProfile.SpawnDistanceFromCameraRight, tuning.MinimumHorizontalLeadDistance);
         float spawnDistance = Mathf.Max(minimumDistance, dynamicLeadDistance);
 

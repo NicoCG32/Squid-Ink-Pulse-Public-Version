@@ -501,7 +501,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8246096476860499513}
   - component: {fileID: 7077938211330218277}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: InkShake
   m_TagString: Untagged
   m_Icon: {fileID: 0}

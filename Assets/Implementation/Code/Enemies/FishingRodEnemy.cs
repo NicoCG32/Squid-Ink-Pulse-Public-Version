@@ -3,12 +3,22 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 {
+    private enum DropState
+    {
+        WaitingForReadWindow,
+        Windup,
+        Dropping,
+        Arrived
+    }
+
     private FishingRodEnemyTuning tuning = new();
     private Transform player;
+    private Camera gameplayCamera;
     private Collider2D topBorder;
     private bool hasCapturedTarget;
-    private bool hasReachedTarget;
     private float targetY;
+    private float windupTimer;
+    private DropState dropState = DropState.WaitingForReadWindow;
 
     private void Start()
     {
@@ -16,29 +26,35 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 
         if (!hasCapturedTarget)
         {
-            CaptureTargetY();
-            PlaceAtDropStartY();
+            PrepareDrop();
         }
     }
 
     private void Update()
     {
-        if (!GameSessionController.IsGameplayActive || !hasCapturedTarget || hasReachedTarget)
+        if (!GameSessionController.IsGameplayActive || !hasCapturedTarget || dropState == DropState.Arrived)
         {
             return;
         }
 
-        MoveTowardCapturedTargetY();
+        UpdateDropState();
     }
 
     public void InitializeEnemySpawnContext(EnemySpawnContext context)
     {
+        gameplayCamera = context.CameraReference;
         player = context.PlayerReference;
         tuning = context.FishingRodTuning ?? new FishingRodEnemyTuning();
 
         ResolveSceneReferences();
+        PrepareDrop();
+    }
+
+    private void PrepareDrop()
+    {
         CaptureTargetY();
         PlaceAtDropStartY();
+        ResetDropState();
     }
 
     private void CaptureTargetY()
@@ -67,7 +83,59 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         }
 
         transform.position = new Vector3(transform.position.x, startY, transform.position.z);
-        hasReachedTarget = Mathf.Abs(transform.position.y - targetY) <= tuning.ArriveDistance;
+    }
+
+    private void ResetDropState()
+    {
+        windupTimer = 0f;
+        dropState = Mathf.Abs(transform.position.y - targetY) <= tuning.ArriveDistance
+            ? DropState.Arrived
+            : DropState.WaitingForReadWindow;
+    }
+
+    private void UpdateDropState()
+    {
+        switch (dropState)
+        {
+            case DropState.WaitingForReadWindow:
+                if (IsInsideDescentReadWindow())
+                {
+                    BeginWindupOrDrop();
+                }
+
+                break;
+            case DropState.Windup:
+                windupTimer += Time.deltaTime;
+                if (windupTimer >= tuning.DescentWindupSeconds)
+                {
+                    dropState = DropState.Dropping;
+                }
+
+                break;
+            case DropState.Dropping:
+                MoveTowardCapturedTargetY();
+                break;
+        }
+    }
+
+    private bool IsInsideDescentReadWindow()
+    {
+        ResolveCameraReference();
+        if (gameplayCamera == null)
+        {
+            return true;
+        }
+
+        Vector3 viewportPoint = gameplayCamera.WorldToViewportPoint(transform.position);
+        return viewportPoint.z >= 0f && viewportPoint.x <= tuning.DescentStartViewportX;
+    }
+
+    private void BeginWindupOrDrop()
+    {
+        windupTimer = 0f;
+        dropState = tuning.DescentWindupSeconds > 0f
+            ? DropState.Windup
+            : DropState.Dropping;
     }
 
     private void MoveTowardCapturedTargetY()
@@ -81,11 +149,13 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         }
 
         transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
-        hasReachedTarget = true;
+        dropState = DropState.Arrived;
     }
 
     private void ResolveSceneReferences()
     {
+        ResolveCameraReference();
+
         if (BoundaryReferenceResolver.TryResolve(BoundaryReferenceDomain.Player, out Collider2D resolvedTop, out _))
         {
             topBorder = resolvedTop;
@@ -98,6 +168,14 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
             {
                 player = playerObject.transform;
             }
+        }
+    }
+
+    private void ResolveCameraReference()
+    {
+        if (gameplayCamera == null)
+        {
+            gameplayCamera = Camera.main;
         }
     }
 }

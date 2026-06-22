@@ -50,8 +50,10 @@ MonoBehaviour:
     erraticDirectionChangeIntervalMax: 2.6
     erraticDirectionChangeChance: 0.45
   fishingRodTuning:
-    dropSpeed: 14
+    dropSpeed: 10
     startYOffsetBelowTopBoundary: 0.15
+    descentStartViewportX: 1.05
+    descentWindupSeconds: 0.15
     arriveDistance: 0.03
     horizontalLeadTimePaddingSeconds: 0.25
     minimumHorizontalLeadDistance: 2

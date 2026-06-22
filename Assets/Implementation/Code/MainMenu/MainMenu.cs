@@ -8,11 +8,11 @@ public class MainMenu : MonoBehaviour
     [Header("Scene Flow")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
     [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
+    [SerializeField] private string shopMenuSceneName = "Assets/Scenes/ShopMenu/ShopMenu.unity";
     [SerializeField] private float timeDelay = 0.6f;
-    
+
     [Header("UI Panels")]
     [SerializeField] private OptionsMenuManager optionsMenuPanel;
-    [SerializeField] private MainMenuStoreManager storeMenuPanel; // Added Store Reference
 
     private bool isLoading;
 
@@ -37,25 +37,16 @@ public class MainMenu : MonoBehaviour
 
         if (optionsMenuPanel == null)
         {
-            Debug.LogWarning("[MainMenu] El panel de opciones no está asignado.", this);
+            Debug.LogWarning("[MainMenu] El panel de opciones no esta asignado.", this);
             return;
         }
 
-        optionsMenuPanel.Open(); 
+        optionsMenuPanel.Open();
     }
 
-    // New method to open the store
     public void AbrirTienda()
     {
-        ResolveUiReferences();
-
-        if (storeMenuPanel == null)
-        {
-            Debug.LogWarning("[MainMenu] El panel de la tienda no está asignado.", this);
-            return;
-        }
-
-        storeMenuPanel.Open();
+        LoadConfiguredScene(shopMenuSceneName, "tienda");
     }
 
     public void VolverAlMenuPrincipal()
@@ -124,8 +115,6 @@ public class MainMenu : MonoBehaviour
     {
         optionsMenuPanel ??= GetComponentInChildren<OptionsMenuManager>(includeInactive: true);
         optionsMenuPanel ??= FindInScene<OptionsMenuManager>();
-        storeMenuPanel ??= GetComponentInChildren<MainMenuStoreManager>(includeInactive: true);
-        storeMenuPanel ??= FindInScene<MainMenuStoreManager>();
     }
 
     private T FindInScene<T>() where T : Component

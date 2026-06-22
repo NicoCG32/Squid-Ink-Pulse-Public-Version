@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinPrefab: {fileID: 3035727691093939351, guid: 187ed2f1610ba5a4dac5875bb15fe45a, type: 3}
   rareCoinPrefab: {fileID: 7402000000000000001, guid: e6aa67b7e44740b2af84358ae30f59ac, type: 3}
-  dealerFishPrefab: {fileID: 8302000000000000001, guid: ae5b0c496d6d4d72b1f303ca6f9e892f, type: 3}
+  dealerFishPrefab: {fileID: 8302000000000000001, guid: b9e083e55a634f7c87f784766f33e0c3, type: 3}
   portalPrefab: {fileID: 9101000000000000001, guid: d118cb2bfc0d40afba46931f1c275280, type: 3}
   enemyProfiles:
   - prefab: {fileID: 7102000000000000001, guid: 5c379b433a4f4a2f9d0bd93be236a1a1, type: 3}
@@ -50,8 +50,10 @@ MonoBehaviour:
     erraticDirectionChangeIntervalMax: 2.6
     erraticDirectionChangeChance: 0.45
   fishingRodTuning:
-    dropSpeed: 14
+    dropSpeed: 10
     startYOffsetBelowTopBoundary: 0.15
+    descentStartViewportX: 1.05
+    descentWindupSeconds: 0.15
     arriveDistance: 0.03
     horizontalLeadTimePaddingSeconds: 0.25
     minimumHorizontalLeadDistance: 2

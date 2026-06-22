@@ -94,6 +94,7 @@ Responsabilidad:
 - Oscurecer `ZonaAbisopelagica` mediante un overlay de escena.
 - Componer una unica textura de oscuridad que revela el entorno alrededor de entidades con `LightGrazeSource`.
 - Suavizar el borde de cada zona revelada sin acumular opacidad cuando dos luces se cruzan.
+- Filtrar fuentes fuera de camara y recomponer solo a una frecuencia configurable para evitar picos de FPS.
 - Mantenerse independiente del `GrazeDetector` y del `GrazeZone`.
 - No cargar Ink-Pulse ni modificar economia, dano o colisiones.
 
@@ -101,6 +102,7 @@ Reglas:
 - Los parametros visuales viven en `ZoneLightingController`.
 - En modo compuesto, `LayerBlack` usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`.
 - `SpriteRenderer.maskInteraction = VisibleOutsideMask` solo corresponde al fallback legacy con `SpriteMask`.
+- En modo compuesto, el algoritmo debe pintar solo el area de pixeles afectada por cada fuente visible, no comparar cada pixel contra todas las fuentes activas.
 - La instancia `Squid` de `BabySquid.prefab` en `ZonaAbisopelagica` declara `LightGrazeSource` como override de escena.
 - `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, agrega `LightGrazeSource` a camarones, enemigos, `DealerFish` y portales solo si la zona activa tiene `ZoneLightingController`.
 
@@ -152,7 +154,7 @@ Responsabilidad:
 - Persistir entre portales.
 - Conservar el valor acumulado al pasar de `ZonaEpipelagica` a `ZonaAbisopelagica`.
 - Pausar acumulacion desde el contacto con portal mientras la run esta en `RunEventState.Transitioning`.
-- Reiniciarse al entrar en Game Over.
+- Capturar el puntaje final al entrar en Game Over antes de reiniciar el contador runtime.
 - Reiniciarse al pulsar reintentar, porque se inicia una run nueva desde `ZonaEpipelagica`.
 - Alimentar sistemas de progresion como precios de tienda.
 - Separar score y velocidad del flujo de intensidad de spawns.
@@ -161,10 +163,17 @@ Reglas:
 - El score no es moneda y no se gasta.
 - `RunProgressionDirector` acumula el valor; `ScoreCounterDisplay` solo lo muestra.
 - El HUD puede tener un nodo `Score` con `TextMeshProUGUI`; la utilidad de escena le asigna `ScoreCounterDisplay`.
+- `RuntimeRunScore.LastCompletedScore` conserva el puntaje final de la ultima run terminada para que `GameOverMenuManager` lo muestre aunque `TotalScore` ya haya vuelto a cero.
 - `RuntimePlayerPace` acumula la progresion de velocidad del calamar y persiste entre portales.
 - La velocidad horizontal normal crece de forma asintotica desde `minScrollSpeed` hacia `maxScrollSpeed`.
 - La intensidad de spawn usa otra curva: baja a alta, boss, post-boss intenso; cruzar portal reinicia esa intensidad en la zona destino.
 - La mejora permanente `upgrade.score_multiplier` multiplica el score producido por `RunProgressionDirector`.
+
+Valores globales vigentes en `GameRoot_ZonaTutorial`, `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica`:
+- `secondsToMaxIntensity = 150`
+- `maxScrollSpeed = 15`
+- `speedGrowthTimeConstantSeconds = 120`
+- `scorePerSecond = 3200`
 
 ## Gadgets e inventario
 
@@ -229,6 +238,7 @@ Reglas:
 - `DealerFish` permanece visible tras abrir tienda; conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
 - `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
 - `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
+- `ZonaAbisopelagica` referencia `DealerFish_ZonaAbisopelagica.prefab`, que conserva la misma logica pero oscurece `Visual` y `VisualSupport` a RGB `135,135,135`.
 - La UI de tienda pertenece a la escena; el manager no autogenera canvas.
 
 ## Flujo de interaccion

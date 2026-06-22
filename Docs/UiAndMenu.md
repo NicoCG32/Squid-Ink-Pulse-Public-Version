@@ -36,7 +36,8 @@ Responsabilidad:
 - Gestionar navegacion del menu principal.
 - Conectar acciones de inicio, salida o navegacion a escenas.
 - Cargar la escena de juego mediante ruta estable del asset.
-- Cargar `Assets/Scenes/OptionsMenu/OptionsMenu.unity` desde el boton de opciones.
+- Abrir `OptionsMenu` como prefab/panel asignado en la escena, no como escena independiente.
+- Cargar `Assets/Scenes/ShopMenu/ShopMenu.unity` desde el boton de tienda.
 
 ## Pausa
 
@@ -75,6 +76,8 @@ Prefab de vista:
 - `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab`
 - Root esperado: `GameOverCanvas`.
 - `GameOverMenuManager` puede resolver automaticamente `GameOverCanvas`, `CanvasGroup`, botones y elementos animados si la vista existe como hija del manager.
+- Si existen los textos `PuntajeObtenido` y `MaximoPuntaje` / `MáximoPuntaje`, `GameOverMenuManager` los rellena con el puntaje final de la run y el mejor puntaje persistente actualizado.
+- El manager no calcula score ni modifica la estetica de esos textos; solo consume `RuntimeRunScore.LastCompletedScore` y `PersistentPlayerProfile.BestScore`.
 
 ## Tienda temporal
 

@@ -23,7 +23,7 @@ Regla de persistencia:
 - Cruzar un portal no cambia a `GameOver`; por tanto conserva gadgets e Ink-Pulse.
 - Entrar en `GameOver` limpia gadgets e Ink-Pulse para la siguiente partida.
 - La billetera de camarones persiste fuera del juego mediante `PersistentPlayerProfile`.
-- Al entrar en `GameOver`, `PersistentPlayerProfile` registra `bestScore` y `totalRuns` antes de limpiar score runtime.
+- Al entrar en `GameOver`, `RuntimeRunScore` captura `LastCompletedScore`, `PersistentPlayerProfile` registra `bestScore` y `totalRuns`, y luego se limpia el score runtime.
 
 ## PersistentPlayerProfile
 
@@ -107,7 +107,7 @@ Responsabilidad:
 - Reiniciar una run desde `primaryGameplaySceneName`.
 - Volver al menu principal.
 - Restaurar `Time.timeScale` antes de cambiar de escena.
-- Preparar rutas conocidas para `ZonaTutorial`, `ShopMenu` y `OptionsMenu`.
+- Preparar rutas conocidas para `ZonaTutorial` y `ShopMenu`; `OptionsMenu` es prefab/panel, no escena.
 
 Uso por portales:
 - `ScenePortal` usa `SceneFlowController` como fuente obligatoria de destino.
