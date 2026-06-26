@@ -7,7 +7,9 @@
 - `Assets/Content/Art/Characters/`: sprites/modelos de personajes.
 - `Assets/Content/Art/Enemies/`: sprites/modelos de enemigos.
 - `Assets/Content/Art/Environments/`: arte de escenarios.
+- `Assets/Content/Art/Environments/ShopMenu/Fondo.png`: fondo de escena de la tienda global; no pertenece al paquete de controles UI.
 - `Assets/Content/Art/UI/`: recursos visuales de interfaz.
+- `Assets/Content/Art/ComicLore/`: vinetas narrativas organizadas por dominio (`Inicio`, `Portales`, `Derrota/Epipelagica`, `Derrota/Abisopelagica`, `Tienda`).
 - `Assets/Content/Animations/Characters/`: animaciones de personajes.
 - `Assets/Content/Animations/Enemies/`: animaciones de enemigos.
 - `Assets/Content/Animations/Environment/`: animaciones de entorno.
@@ -46,7 +48,7 @@ Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanent
 - `Prefabs/Core/Scenes/`: `GameRoot_*` por zona jugable.
 - `Prefabs/World/`: `Boundaries`, `CleanUp`.
 - `Prefabs/UI/HUD/`: barras Ink-Pulse y piezas HUD reutilizables.
-- `Prefabs/UI/Menus/`: vistas de pausa, game over y tienda in-run.
+- `Prefabs/UI/Menus/`: vistas de pausa, game over, tienda in-run, `OptionsMenu` global y overlay `LoreComic`.
 
 ## Regla para prefabs
 
@@ -111,6 +113,10 @@ Vistas de menu disponibles:
 - `Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab`: vista `PauseCanvas`, sin referencias persistentes a `PauseMenuManager`.
 - `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab`: vista `GameOverCanvas`, sin referencias persistentes a `GameOverMenuManager`.
 - `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab`: vista `InGameCanvas`, sin referencias persistentes a `InGameShopManager`.
+- `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab`: vista narrativa `LoreComicRoot/Comic`, con referencias internas a `LoreComicPresenter`.
+- `Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab`: panel global de pantalla/volumen, instalado como root de escena separado para preservar su escala de Canvas.
+
+`ShopMenu` es una escena, no un prefab de tienda. El arte de sus vitrinas y decoraciones vive bajo `Panel`; los controles transparentes serializados viven bajo `Panel/ShopInteractionRoot` y apuntan desde Inspector a `OutOfGameShopManager`. La presentacion funcional del producto seleccionado vive en `Panel/ProductInfoBlock` con `NombreProducto`, `DescripcionProducto` y `PrecioProducto`; el manager escribe contenido, mientras que la posicion y el estilo de esos nodos se editan manualmente en Unity.
 
 Piezas HUD disponibles:
 
@@ -119,8 +125,10 @@ Piezas HUD disponibles:
 - `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab`
 
 Regla de eventos:
-- Los prefabs de vista no deben guardar `onClick` persistentes hacia managers de escena.
-- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` cablean listeners en runtime.
+- Los prefabs de vista no deben guardar `onClick` persistentes hacia managers externos de escena.
+- Si el listener apunta a un componente del mismo prefab, el `onClick` persistente es valido porque queda autocontenido y auditable.
+- `LoreComic.prefab` mantiene el listener persistente de su propio `ContinuarBoton` hacia `LoreComicPresenter.Continue()`, porque ambos viven dentro del mismo prefab.
+- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` pueden conservar cableado runtime como respaldo defensivo durante migracion, pero el contrato preferido es referencia visible/serializada y no dependencia oculta por busqueda.
 - La migracion/validacion de estas instancias vive en `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs`.
 
 ## World prefabs

@@ -33,7 +33,9 @@ public class DealerFish : MonoBehaviour
             return;
         }
 
-        consumed = true;
-        InGameShopManager.TryOpenShopFromWorld();
+        if (InGameShopManager.TryOpenShopFromWorld())
+        {
+            consumed = true;
+        }
     }
 }

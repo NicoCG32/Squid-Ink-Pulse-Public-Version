@@ -43,6 +43,7 @@ La regla de capas completa esta definida en [SoftwareArchitecture.md](SoftwareAr
 - UI de pausa: `PauseMenuManager`.
 - UI de game over: `GameOverMenuManager`.
 - Animacion de botones de menu: `MenuButtonAnimation`.
+- Comics de lore: `LoreComicPresenter` en `LoreComicRoot`, con nodo visual `Comic`.
 
 ## Contrato del prefab del jugador
 
@@ -150,6 +151,7 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
 | `GameSession` | `GameSessionController`, `RunProgressionDirector` | Estado de partida y progresion temporal. |
+| `GameSession` en `ZonaTutorial` | `TutorialDirector`, `TutorialPresentationController` | Progresion pedagogica y subsistema aislado de presentacion/freeze del tutorial. |
 | `SceneFlow` | `SceneFlowController` | Carga de escenas y retorno al menu. |
 | `LevelSpawner` | `LevelSpawner` con `zoneSpawnProfile` asignado | Autoridad de instanciacion de monedas, enemigos, tienda y portales. El asset `ZoneSpawnProfile` es la fuente autoritativa de balance; `EnemySpawnSelector`, `SpawnPositionResolver` y `SpawnedObjectConfigurator` son helpers internos sin nodo de escena. |
 | `Main Camera` | `CameraController` | Seguimiento y eventos de camara. |
@@ -165,14 +167,16 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 | `CleanUp` | Instancia de `Assets/Content/Prefabs/World/CleanUp.prefab` | Contenedor canonico de limpieza fuera de camara. No debe ser copia local de escena. |
 | `CleanUp/DestroyZone/GarbageCollector` | `DestroyOffscreen` | Seguir el borde izquierdo de camara, adaptar su alto a `CameraBoundaries` y destruir enemigos, camarones, collectibles y portales que ya salieron de pantalla. |
 | `SSCarnageManager` | `BossEventDirector` | Disparar y coordinar eventos de boss. |
-| `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. |
+| `PauseMenuManager` | `PauseMenuManager` | Abrir, cerrar y cablear pausa. No contiene boton `Salir`; salir del juego pertenece solo a `MainMenu`. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Abrir, cerrar y cablear derrota. |
 | `InGameShopManager` | `InGameShopManager` | Abrir tienda temporal y resolver compra. `ShopOfferSelector` y `ShopPriceCalculator` calculan oferta/precio sin nodo de escena. |
+| `LoreComicRoot` | `LoreComicPresenter` | Mostrar vinetas narrativas de inicio, portal y derrota usando el nodo visual `Comic` existente. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual fija del boton; no expone parametros por boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido. |
 | `InkBar` en `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter` con `RevealThroughFill` | Barra moderna horizontal/rotada. `Fill` funciona como mascara invisible y revela `InkBarEffectVisual`. |
 | `InkBar` en `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter` con `FollowFillTip` | Barra moderna vertical. `EffectAnchor` acompana la punta del relleno. |
 | `InkPulseBar` en `ZonaTutorial` | `ChargeBar`, `Slider` | Variante legacy conservada como prefab para tutorial. No debe mezclarse con los presenters modernos hasta redisenar esa escena. |
+| `TutorialPresentationOverlay` en `ZonaTutorial` | `Canvas`, `CanvasGroup`, `Dimmer` con `Image` | Oscurecimiento temporal durante `TutorialPhase.Presentation`; no bloquea raycasts ni crea prompts. |
 | `Score` | `ScoreCounterDisplay` | Puntaje runtime de la run. |
 | `ShrimpCounter` | `ShrimpCounterDisplay` | Saldo persistente de camarones del perfil. |
 | `GadgetSlots` | `GadgetInventoryHud` | Slots de inventario y teclas de gadgets activos. |
@@ -231,6 +235,7 @@ Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs
 | `Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab` | Overlay de pausa | `PauseCanvas`, `CanvasGroup`, botones y animaciones visuales; sin manager dentro del prefab |
 | `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab` | Overlay de derrota | `GameOverCanvas`, `CanvasGroup`, botones y animaciones visuales; sin manager dentro del prefab |
 | `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab` | Tienda temporal in-run | `InGameCanvas`, `CanvasGroup`, `Comprar`, `Gadget`, `Precio`, `B`, `SinSaldo`; sin manager dentro del prefab |
+| `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab` | Overlay narrativo | `LoreComicRoot`, `LoreComicPresenter`, `Comic`, `CanvasGroup`, `Dimmer`, `Vineta`, `ContinuarBoton` |
 
 Reglas:
 - La UI jugable debe colgar de `GameUIRoot`, no de un root generico `UI`.
@@ -239,10 +244,21 @@ Reglas:
 - `InkBarFillPresenter` no debe conocer gameplay; solo interpreta el valor recibido.
 - Los prefabs UI no deben serializar referencias a `Squid`, `InkPulseController`, sesion ni managers.
 - Las escenas asignan el `ChargeBar` al `InkPulseController` del jugador.
-- Los botones de prefabs UI no deben serializar eventos persistentes hacia managers. El manager de escena los cablea al despertar.
+- Los botones de prefabs UI no deben serializar eventos persistentes hacia managers externos de escena.
+- Los botones que llaman a un componente del mismo prefab pueden conservar `OnClick` persistente autocontenido.
+- Los managers de escena pueden cablear listeners en runtime solo como respaldo defensivo; el contrato preferido es que referencias y acciones relevantes sean visibles o serializadas para auditoria.
+- Los managers de escena no deben desactivar listeners persistentes del Inspector. No usar `SetPersistentListenerState` ni helpers tipo `DisablePersistentOnClick`.
 - `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquia.
 - `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs` permite reejecutar la migracion y validacion desde `Tools/Squid/Migrate Gameplay UI To Prefab Instances`.
 - `Tools/Squid/Validate Scene Contracts` tambien valida que cada zona tenga la variante de UI esperada: `InkBarHorizontal`, `InkBarVertical` o `InkPulseBarLegacy`.
+
+Contrato de `LoreComic`:
+- `MainMenu` debe contener una instancia `LoreComicRoot` para el comic de inicio.
+- `GameRoot_ZonaEpipelagica`, `GameRoot_ZonaAbisopelagica` y `GameRoot_ZonaTutorial` deben contener una instancia `LoreComicRoot` para portales y derrotas.
+- `LoreComicRoot` puede estar activo aunque `Comic` este oculto por `CanvasGroup`; el componente debe permanecer activo para ejecutar corrutinas.
+- Todo `LoreComic.prefab` debe estar en layer `UI`.
+- Las vinetas finales se asignan en `LoreComicPresenter.entries`; los sprites deben conservar `.meta` estable bajo `Assets/Content/Art/ComicLore/`.
+- Las entradas de tienda in-game esperadas son `ShopInGameFirst`, `ShopInGameLastPurchased` y `ShopInGameLastNoPurchase`.
 
 ## Spawn de enemigos
 
@@ -325,6 +341,7 @@ Reglas:
 - No fijar `W` o `Q` desde el prefab de gadget; el slot visual se asigna por orden de adquisicion.
 - Mantener `Gadget1 = Q` y `Gadget2 = W` tanto en HUD como en input.
 - No autogenerar nodos visuales de `GadgetSlots` desde `GadgetInventoryHud`; la UI pertenece al canvas de escena.
+- No autogenerar `LoreComicRoot`, Canvas `Comic` ni vinetas desde runtime; deben existir como prefab/instancia con referencias serializadas.
 - No stackear gadgets: cada `GadgetId` existe como posesion unica.
 - No comprar desde tienda sin pasar por `ShrimpRuntimeWallet.TrySpend`.
 - No modificar JSON de `Application.persistentDataPath/db` directamente desde sistemas de gameplay; usar `PersistentPlayerProfile`, `ShrimpRuntimeWallet` o `LocalLeaderboardRepository`.

@@ -445,6 +445,9 @@ Parametros ajustables:
 | `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La caña nace mas abajo si se sube. |
 | `descentStartViewportX` | Punto horizontal de viewport donde se permite iniciar la bajada. `1` es el borde derecho de camara. | Valores mayores inician la accion levemente antes de entrar a camara; valores menores la retrasan. |
 | `descentWindupSeconds` | Pausa breve entre entrar en ventana de lectura y empezar a caer. | Da mas lectura, pero debe mantenerse corta para no volver trivial la amenaza. |
+| `enableFastPaceHorizontalHold` | Habilita el anclaje horizontal cuando la partida ya va rapida. | Evita que la cana quede atras durante la bajada en late game. |
+| `horizontalHoldMinScrollSpeed` | Velocidad minima para activar el anclaje horizontal. | Si sube, el anclaje aparece mas tarde; si baja, aparece antes. |
+| `horizontalHoldViewportX` | X de viewport donde la cana se mantiene mientras espera, anticipa y baja a alta velocidad. | Valores mayores la mantienen mas a la derecha. |
 | `arriveDistance` | Tolerancia para considerar que llego a la Y objetivo. | Detiene el movimiento con menos precision si se sube. |
 | `horizontalLeadTimePaddingSeconds` | Margen temporal agregado al calculo de distancia horizontal del anzuelo. | El anzuelo aparece mas lejos cuando el jugador va rapido. |
 | `minimumHorizontalLeadDistance` | Distancia minima propia de la cana desde el borde derecho de camara. | Evita que aparezca demasiado cerca a velocidades bajas. |
@@ -457,6 +460,7 @@ Tambien depende de:
 Reglas vigentes:
 - La caña regular captura la altura Y del jugador al spawnear.
 - Luego espera a entrar en ventana de lectura, mantiene una pausa breve y baja verticalmente desde el top del rango jugable hasta esa Y.
+- Si la velocidad horizontal supera `horizontalHoldMinScrollSpeed`, puede mantener su X en `horizontalHoldViewportX` hasta terminar la bajada.
 - La distancia X de aparicion se calcula con la velocidad horizontal actual del jugador y el tiempo estimado de caida.
 - No persigue al jugador despues de capturar la Y.
 - La caña regular se fuerza solo fuera de `BossActive`.
@@ -597,6 +601,13 @@ Persistencia:
 - Settings no deben aparecer en estos JSON.
 
 Pruebas de tienda out-of-game:
+- `ShopMenu` contiene exactamente un `OutOfGameShopManager`, un `ShrimpCounter` prefab y un `OptionsMenu` prefab de escala independiente.
+- `ShopMenu/Panel/ProductInfoBlock` contiene `NombreProducto`, `DescripcionProducto` y `PrecioProducto`, y los tres campos equivalentes de `OutOfGameShopManager` los referencian desde Inspector.
+- Al seleccionar una mejora, el bloque actualiza nombre, nivel/descripcion y precio sin crear UI por codigo ni alterar el arte de las vitrinas.
+- Los cuatro hitboxes superiores seleccionan, en orden, duration, recharge rate, shrimp multiplier y score multiplier; no deben modificar sprites ni layout de las vitrinas.
+- `ComprarBoton` no compra sin una seleccion valida; con una mejora seleccionada debe delegar a `PermanentShopService` y refrescar el estado del boton.
+- `VolverBoton` vuelve a `MainMenu` mediante su listener persistente.
+- Con el catalogo actual, solo `skin.default` esta disponible. Las flechas de pagina deben quedar no interactuables; agregar skins al catalogo debe habilitar paginacion sin cambiar codigo.
 - `PermanentShopService.TryPurchaseSkin()` debe descontar camarones solo si la skin existe, esta desbloqueada por meta y no estaba comprada.
 - `PermanentShopService.TryPurchasePermanentUpgradeLevel()` debe respetar `maxLevel`, `basePrice` y `priceGrowthMultiplier`.
 - El resultado debe expresarse mediante `PermanentShopPurchaseResult`; la UI no debe inferir por su cuenta falta de saldo, item desconocido o nivel maximo.
@@ -608,9 +619,47 @@ Pruebas de efectos permanentes:
 - Subir `upgrade.shrimp_multiplier` aumenta la cantidad agregada por `ShrimpRuntimeWallet.Add`.
 - Subir `upgrade.score_multiplier` aumenta el score producido por `RunProgressionDirector`.
 
+## Lore comics
+
+Scripts: `LoreComicPresenter`
+
+Prefab: `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab`
+
+Instalaciones esperadas:
+- `MainMenu` para inicio de partida.
+- `GameRoot_ZonaEpipelagica` para portal y derrota de zona epi.
+- `GameRoot_ZonaAbisopelagica` para portal y derrota de zona abi.
+- `GameRoot_ZonaTutorial` para compatibilidad de flujo tutorial.
+
+Parametros ajustables:
+
+| Campo | Script | Que controla |
+| --- | --- | --- |
+| `entries` | `LoreComicPresenter` | Catalogo local de eventos, zona, sprites, duracion y boton. |
+| `displaySeconds` | `LoreComicEntry` | Duracion minima en tiempo real. |
+| `waitForContinue` | `LoreComicEntry` | Si el flujo espera confirmacion tras la duracion. |
+| `showContinueButton` | `LoreComicEntry` | Si se muestra el boton durante la espera. |
+| `pauseTimeWhileShowing` | `LoreComicPresenter` | Si el comic congela `Time.timeScale` mientras esta visible. |
+
+Pruebas:
+- En `MainMenu`, presionar Play debe mostrar el comic de inicio antes de cargar gameplay.
+- En portal `ZonaEpipelagica -> ZonaAbisopelagica`, debe mostrarse la vineta de direccion antes de la carga.
+- En portal `ZonaAbisopelagica -> ZonaEpipelagica`, debe mostrarse la vineta inversa antes de la carga.
+- Al entrar en Game Over, debe mostrarse una vineta de derrota de la zona actual antes del menu de derrota.
+- Al tocar el primer `DealerFish` de la run, debe mostrarse `ShopInGameFirst` antes de abrir la tienda.
+- Al salir de esa primera tienda tras comprar, debe mostrarse `ShopInGameLastPurchased`.
+- Al salir de esa primera tienda sin comprar, debe mostrarse `ShopInGameLastNoPurchase`.
+- Las siguientes tiendas de la misma run no deben repetir comics de primera entrada/salida.
+- Si una escena no tiene `LoreComicPresenter`, el flujo no debe bloquearse.
+- Si un evento no tiene entrada valida, no debe mostrarse un panel vacio.
+- `ContinuarBoton` debe tener un listener persistente hacia `LoreComicPresenter.Continue()` dentro del prefab.
+
+Regla visual:
+- Los sprites de `Assets/Content/Art/ComicLore/` deben permanecer en sus carpetas de dominio (`Inicio`, `Portales`, `Derrota/*`, `Tienda`) y con `.meta` estable. No se evalua arte final en QA tecnica, solo referencias y flujo.
+
 ## Tutorial
 
-Scripts: `TutorialDirector`, `TutorialStep`
+Scripts: `TutorialDirector`, `TutorialPresentationController`, `TutorialStep`
 
 Nodo esperado: `ZonaTutorial/GameRoot/Systems/GameSession`
 
@@ -619,14 +668,34 @@ Parametros ajustables:
 | Campo | Script | Que controla |
 | --- | --- | --- |
 | `initialStep` | `TutorialDirector` | Paso inicial de la secuencia pedagogica. |
+| `suppressScoreDuringTutorial` | `TutorialDirector` | Mantiene `RuntimeRunScore` en cero durante tutorial. |
 | `movementRequiredVerticalDelta` | `TutorialDirector` | Desplazamiento vertical requerido para validar movimiento. |
 | `grazeRequiredChargeRatio` | `TutorialDirector` | Porcentaje de Ink-Pulse requerido para validar graze. |
+| `requiredShrimpCount` | `TutorialDirector` | Camarones que deben recolectarse desde el baseline del paso. |
+| `firstShopInkBottlePrice` | `TutorialDirector` | Precio forzado de Ink Bottle en la primera tienda tutorial. |
+| `secondShopShellShieldPrice` | `TutorialDirector` | Precio forzado de Shell Shield en la segunda tienda tutorial. |
+| `forcedShopOpenFallbackSeconds` | `TutorialDirector` | Tiempo tras el cual la tienda tutorial se abre si el jugador no toca DealerFish. |
+| `inkPulseAssistDelaySeconds` | `TutorialDirector` | Retardo antes de dejar Ink-Pulse listo durante la asistencia de SS Carnage. |
+| `usePresentationPhase` | `TutorialDirector` | Si cada paso entra primero a fase de presentacion. |
+| `defaultPresentationSeconds` | `TutorialDirector` | Duracion base del comic/presentacion. Valor actual: `7`. |
+| `defaultPracticeSeconds` | `TutorialDirector` | Ventana base para probar la mecanica. Valor actual: `10`. |
+| `autoAdvanceWhenPracticeExpires` | `TutorialDirector` | Permite autoavance al expirar practica en pasos no bloqueantes. |
+| `stepTimingOverrides` | `TutorialDirector` | Overrides por paso para tiempos y autoavance. |
 | `controlLevelSpawner` | `TutorialDirector` | Si el director habilita/deshabilita el spawner durante tutorial. |
 | `levelSpawnerEnabledFromStep` | `TutorialDirector` | Paso desde el cual se habilita `LevelSpawner` si la compuerta esta activa. |
 | `controlBossDirector` | `TutorialDirector` | Si el director habilita/deshabilita el evento de boss durante tutorial. |
 | `bossDirectorEnabledFromStep` | `TutorialDirector` | Paso desde el cual se habilita `BossEventDirector` si la compuerta esta activa. |
+| `freezeGameplay` | `TutorialPresentationController` | Si `Presentation` congela el juego con `Time.timeScale = 0`. |
+| `suppressInkPulse` | `TutorialPresentationController` | Si Ink-Pulse queda bloqueado durante presentacion. |
+| `darkenDuringPresentation` | `TutorialPresentationController` | Si se muestra el overlay oscuro durante presentacion. |
+| `presentationAlpha` | `TutorialPresentationController` | Opacidad objetivo del dimmer; valor actual `0.35`. |
+| `fadeSeconds` | `TutorialPresentationController` | Duracion del fade visual usando tiempo real. |
 
-Regla de prueba: el tutorial debe avanzar por `Movement -> Graze -> InkPulse -> Shop -> Gadgets -> BossAndNet -> Portal -> Completed` sin modificar `RunProgressionDirector` ni `LevelSpawner` para casos pedagogicos puntuales.
+Regla de prueba: el tutorial debe avanzar por `Movement -> GrazeCharge -> InkPulseObstacle -> CollectShrimps10 -> FirstShopOpen -> BuyInkBottle -> InkBottleBarrier -> CarnageIntro -> CarnageInkPulseAssist -> CarnageInkPulseResolve -> SecondShopOpen -> BuyShellShield -> ProtectedHitSetup -> ProtectedHitResolved -> PortalSpawn -> PortalEnter -> VisualZoneShift -> FinalEnemy -> FinalDeath -> Completed` sin modificar `RunProgressionDirector` ni `LevelSpawner` para casos pedagogicos puntuales.
+
+Regla de puntaje: `GameRoot_ZonaTutorial.prefab` debe mantener `RunProgressionDirector.scorePerSecond = 0`; al terminar el tutorial, el score mostrado debe seguir en cero.
+
+Regla de presentacion: durante cada `TutorialPhase.Presentation`, la escena debe congelarse, Ink-Pulse no debe activarse y `TutorialPresentationOverlay/Dimmer` debe oscurecer la pantalla sin bloquear raycasts.
 
 ## Valores que no conviene tocar como balance
 

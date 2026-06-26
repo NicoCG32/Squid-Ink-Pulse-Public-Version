@@ -20,6 +20,7 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 | Tutorial | `TutorialStep` | Que mecanica pedagogica debe ensenarse o validarse ahora? |
 | Boss especifico | `SSCarnageAttackState` | En que fase interna esta el ataque del SS Carnage? |
 | Camara | `CameraEventMode` | Seguir, abrir vista amplia o volver al seguimiento? |
+| Narrativa | `LoreComicEvent` + `LoreComicZone` | Que vineta narrativa debe mostrarse antes de continuar un flujo? |
 | Feedback visual de zona | ciclo no formal de `ZoneLightingController` | La zona esta oscura, revelada o volviendo a oscuridad? |
 
 ## Estados implementados
@@ -32,6 +33,7 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 - `TutorialStep` (`Tutorial/TutorialStep.cs`)
 - `SSCarnageAttackState` (`Bosses/SSCarnage/SSCarnageAttackState.cs`)
 - `CameraEventMode` (`Core/Camera/CameraEventMode.cs`)
+- `LoreComicEvent` y `LoreComicZone` (`Lore/LoreComicPresenter.cs`)
 
 ### GameSessionState
 
@@ -103,15 +105,37 @@ El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCro
 | --- | --- |
 | `Inactive` | Director presente pero sin secuencia activa. |
 | `Movement` | Valida desplazamiento vertical dentro de `PlayerBoundaries`. |
-| `Graze` | Valida carga parcial de Ink-Pulse por riesgo controlado. |
-| `InkPulse` | Valida activacion real de Ink-Pulse. |
-| `Shop` | Espera que la tienda temporal se presente. |
-| `Gadgets` | Espera adquisicion o uso de un gadget. |
-| `BossAndNet` | Espera resolucion pedagogica del evento de SS Carnage y red. |
-| `Portal` | Espera entrada en transicion de portal. |
+| `GrazeCharge` | Valida carga de Ink-Pulse por graze controlado. |
+| `InkPulseObstacle` | Valida que Ink-Pulse permita superar una amenaza obligatoria. |
+| `CollectShrimps10` | Espera recoleccion de 10 camarones desde el baseline del paso. |
+| `FirstShopOpen` | Espera apertura de la primera tienda temporal. |
+| `BuyInkBottle` | Espera compra de Ink Bottle. |
+| `InkBottleBarrier` | Exige usar Ink Bottle para preparar Ink-Pulse y superar una barrera dirigida. |
+| `CarnageIntro` | Espera SS Carnage con red activa. |
+| `CarnageInkPulseAssist` | Da asistencia mecanica breve para dejar Ink-Pulse listo si hace falta. |
+| `CarnageInkPulseResolve` | Espera resolucion de la red de SS Carnage. |
+| `SecondShopOpen` | Espera apertura de la segunda tienda temporal. |
+| `BuyShellShield` | Espera compra de Shell Shield. |
+| `ProtectedHitSetup` | Instancia una amenaza para validar el golpe protegido. |
+| `ProtectedHitResolved` | Espera bloqueo/consumo de Shell Shield. |
+| `PortalSpawn` | Instancia portal local. |
+| `PortalEnter` | Espera entrada al portal sin cambio de escena. |
+| `VisualZoneShift` | Activa/desactiva roots visuales de zona si estan asignados. |
+| `FinalEnemy` | Instancia amenaza final. |
+| `FinalDeath` | Espera Game Over sin Shell Shield disponible. |
 | `Completed` | Tutorial completado. |
 
-El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`, pero esos flags viven en `TutorialDirector`; no son excepciones dispersas en los sistemas de gameplay.
+El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`, pero esos flags viven en `TutorialDirector`; no son excepciones dispersas en los sistemas de gameplay. En `ZonaTutorial`, ambos spawners normales permanecen bloqueados hasta `Completed`.
+
+### TutorialPhase
+
+`TutorialPhase` es la subfase pedagogica de cada `TutorialStep`. Sirve para separar presentacion y practica sin crear otro sistema de tutorial.
+
+| Estado | Efecto |
+| --- | --- |
+| `Inactive` | No hay paso activo o el tutorial termino. |
+| `Presentation` | El juego puede congelarse durante un tiempo configurable para mostrar comic o explicacion visual conectada por Inspector. |
+| `Practice` | El jugador prueba la mecanica; el paso evalua su condicion y puede usar un limite de tiempo configurable. |
 
 ### SSCarnageAttackState
 
@@ -133,6 +157,23 @@ El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`,
 | `Follow` | Seguimiento normal del jugador. |
 | `WideEvent` | Vista amplia temporal para eventos. |
 | `ReturningToFollow` | Interpolacion de vuelta al seguimiento; recupera el eje X mas rapido que el zoom para que el jugador no quede adelantado. |
+
+### LoreComicEvent y LoreComicZone
+
+Estos tipos no gobiernan gameplay ni reemplazan `GameSessionState`. Funcionan como claves formales para elegir una vineta dentro de `LoreComicPresenter.entries`.
+
+| Clave | Uso |
+| --- | --- |
+| `GameStart` | Comic mostrado despues de presionar Play y antes de cargar gameplay. |
+| `PortalEpipelagicToAbyssopelagic` | Comic fijo para portal desde `ZonaEpipelagica` hacia `ZonaAbisopelagica`. |
+| `PortalAbyssopelagicToEpipelagic` | Comic fijo para portal desde `ZonaAbisopelagica` hacia `ZonaEpipelagica`. |
+| `Defeat` | Comic de derrota, elegido aleatoriamente entre sprites validos de la zona activa. |
+| `ScoreMilestone` | Reservado para hitos futuros de puntaje. |
+| `ShopInGameFirst` | Comic de primera entrada a tienda in-game desde `DealerFish`. |
+| `ShopInGameLastPurchased` | Comic de primera salida de tienda in-game cuando hubo compra. |
+| `ShopInGameLastNoPurchase` | Comic de primera salida de tienda in-game cuando no hubo compra. |
+
+`LoreComicZone` separa `Epipelagic`, `Abyssopelagic` y `Unknown`. En derrota, la zona debe resolverse desde la escena activa; `Unknown` solo debe usarse como fallback.
 
 ### Ciclo visual de ZoneLightingController
 

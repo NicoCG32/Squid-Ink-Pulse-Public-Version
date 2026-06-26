@@ -34,6 +34,7 @@ Un dominio es una carpeta bajo `Assets/Implementation/Code/` con una responsabil
 | `Enemies` | Comportamiento propio de enemigos concretos. |
 | `Bosses` | Orquestacion de eventos de boss y especializaciones del SS Carnage. |
 | `UI` | HUD, menus, overlays, displays y animacion de botones. |
+| `Lore` | Presentacion narrativa por vinetas, seleccion de comics y espera de continuacion. |
 | `World` | Entidades del mundo como portales, DealerFish e iluminacion de zona. |
 | `Audio` | Adaptadores de musica y mezcla dinamica. |
 | `Background` | Parallax y comportamiento de fondo. |
@@ -84,6 +85,7 @@ Ejemplos actuales:
 - `InGameShopManager`
 - `PauseMenuManager`
 - `GameOverMenuManager`
+- `LoreComicPresenter`
 - `ZoneLightingController`
 
 `GameUIRoot` no se clasifica como manager porque no gobierna comportamiento. Es un contrato de composicion de escena: agrupa referencias hacia `EventSystem`, HUD, vistas prefab y managers UI para que la jerarquia jugable sea verificable.
@@ -167,6 +169,9 @@ Ejemplos:
 - `ZoneSpawnProfile`
 - `PortalSpawnPolicy`
 - `ShopGadgetOffer`
+- `LoreComicEntry`
+- `LoreComicEvent`
+- `LoreComicZone`
 - `UnlockablesCatalogSaveData`
 - `PlayerProfileSaveData`
 - `PlayerRecordsSaveData`
@@ -249,6 +254,14 @@ GameUIRoot -> EventSystem/HUD/vistas/managers UI
 
 Los HUD displays observan estado, no lo gobiernan. Los managers de UI no deben autogenerar canvas si la escena ya declara su UI.
 
+Regla de lore:
+
+```text
+Sistema de flujo -> LoreComicPresenter -> Comic existente en escena/prefab
+```
+
+`MainMenu`, `ScenePortal` y `GameOverMenuManager` pueden solicitar una vineta narrativa, pero no deben seleccionar sprites concretos ni crear UI. Esa seleccion vive en `LoreComicPresenter.entries`, y el arte/layout vive en el prefab o instancia preparada en Unity.
+
 Regla de composicion de escena:
 
 ```text
@@ -302,7 +315,7 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 - `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresion, pero no gobierna dificultad, input, spawn, score ni estado de sesion.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepcion visual deliberada para entidades spawneadas.
 - `InGameShopManager` sigue siendo grande porque administra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y calculo de precio ya viven en helpers puros; la siguiente separacion razonable seria una vista/presenter de tienda si el canvas crece.
-- `PermanentShopService` ya existe como servicio de dominio, pero la escena `ShopMenu` todavia requiere un manager/presenter de UI que lo consuma. Ese manager no debe reimplementar precios, metas ni descuentos.
+- `OutOfGameShopManager` es el presenter de `ShopMenu`. Solo coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, limites y persistencia. La aplicacion visual de skins sigue pendiente y debe vivir fuera de los controladores de gameplay.
 
 ### Refactor aplicado
 

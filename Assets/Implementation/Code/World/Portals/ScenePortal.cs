@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public class ScenePortal : MonoBehaviour, IOffscreenCleanupEligibility
     [SerializeField, Min(0f)] private float fallbackTransitionDelay = 0.75f;
 
     private bool isTransitioning;
+    private Action<Collider2D> localTransitionHandler;
     public bool CanBeCleanedUpOffscreen => !isTransitioning;
 
     private void Awake()
@@ -25,10 +27,23 @@ public class ScenePortal : MonoBehaviour, IOffscreenCleanupEligibility
         WarnIfMissingReferences();
     }
 
+    public void ConfigureLocalTransition(Action<Collider2D> transitionHandler)
+    {
+        localTransitionHandler = transitionHandler;
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (isTransitioning || !other.CompareTag(GameplayTagCatalog.Player))
         {
+            return;
+        }
+
+        if (localTransitionHandler != null)
+        {
+            isTransitioning = true;
+            SetCollidersEnabled(false);
+            localTransitionHandler.Invoke(other);
             return;
         }
 
@@ -62,6 +77,15 @@ public class ScenePortal : MonoBehaviour, IOffscreenCleanupEligibility
         if (transitionDelay > 0f)
         {
             yield return new WaitForSeconds(transitionDelay);
+        }
+
+        string targetScene = sceneFlow.TryResolvePortalDestinationFromActiveScene(out string resolvedTargetScene)
+            ? resolvedTargetScene
+            : null;
+
+        if (!string.IsNullOrWhiteSpace(targetScene))
+        {
+            yield return LoreComicPresenter.PlayPortalTransitionIfAvailable(targetScene);
         }
 
         if (sceneFlow.TryLoadPortalDestinationFromActiveScene())

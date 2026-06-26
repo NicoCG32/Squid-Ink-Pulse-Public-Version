@@ -36,8 +36,10 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
     [SerializeField, Min(0f)] private float maxRevealDuration = 0.75f;
     [SerializeField, Min(0f)] private float maxRevealStagger = 0.25f;
 
+    [Header("Scene References")]
+    [SerializeField] private LevelSpawner levelSpawner;
+
     private Camera mainCamera;
-    private GameObject levelSpawner;
     private float lastGapY = 0f; 
     private RunProgressionDirector progression;
     private Transform pillarParent;
@@ -57,8 +59,11 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         progression = progressionReference; 
         pillarParent = parentReference;
         
-        levelSpawner = GameObject.Find("LevelSpawner");
-        if (levelSpawner != null) levelSpawner.SetActive(false);
+        levelSpawner ??= FindFirstObjectByType<LevelSpawner>();
+        if (levelSpawner != null)
+        {
+            levelSpawner.gameObject.SetActive(false);
+        }
         lastGapY = TryResolvePillarVerticalRange(out Vector2 initialRange)
             ? (initialRange.x + initialRange.y) * 0.5f
             : 0f;
@@ -108,7 +113,10 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         }
 
         // The attack is over! Bring the normal enemies back before the boss even leaves.
-        if (levelSpawner != null) levelSpawner.SetActive(true);
+        if (levelSpawner != null)
+        {
+            levelSpawner.gameObject.SetActive(true);
+        }
 
 
         // --- PHASE 3: THE OUTRO (Run away to the left) ---

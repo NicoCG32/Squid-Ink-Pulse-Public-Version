@@ -29,11 +29,30 @@ public static class SceneContractValidator
     private const string GameOverMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab";
     private const string InGameShopMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab";
     private const string OptionsMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab";
+    private const string MainMenuScenePath = "Assets/Scenes/MainMenu/MainMenu.unity";
+    private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
 
     private static readonly string[] MenuScenePaths =
     {
-        "Assets/Scenes/MainMenu/MainMenu.unity",
-        "Assets/Scenes/ShopMenu/ShopMenu.unity"
+        MainMenuScenePath,
+        ShopMenuScenePath
+    };
+
+    private static readonly string[] GlobalOptionsMenuScenePaths =
+    {
+        MainMenuScenePath,
+        ShopMenuScenePath,
+        "Assets/Scenes/Game/ZonaTutorial.unity",
+        "Assets/Scenes/Game/ZonaEpipelagica.unity",
+        "Assets/Scenes/Game/ZonaAbisopelagica.unity"
+    };
+
+    private static readonly string[] ShopUpgradeIds =
+    {
+        PlayerUnlockableIds.InkPulseDurationUpgrade,
+        PlayerUnlockableIds.InkPulseRechargeRateUpgrade,
+        PlayerUnlockableIds.ShrimpMultiplierUpgrade,
+        PlayerUnlockableIds.ScoreMultiplierUpgrade
     };
 
     private static readonly string[] ButtonContractPrefabPaths =
@@ -102,6 +121,8 @@ public static class SceneContractValidator
         }
 
         ValidateMenuSceneButtonContracts(failures);
+        ValidateGlobalOptionsMenuPresence(failures);
+        ValidateOutOfGameShopMenu(failures);
 
         if (failures.Count > 0)
         {
@@ -365,6 +386,218 @@ public static class SceneContractValidator
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             ValidateButtonContracts(scene, Path.GetFileNameWithoutExtension(scenePath), failures);
         }
+    }
+
+    private static void ValidateGlobalOptionsMenuPresence(List<string> failures)
+    {
+        foreach (string scenePath in GlobalOptionsMenuScenePaths)
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
+            {
+                failures.Add($"Missing global-options scene asset: {scenePath}");
+                continue;
+            }
+
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            OptionsMenuManager[] managers = FindSceneComponents<OptionsMenuManager>(scene).ToArray();
+            if (managers.Length != 1)
+            {
+                failures.Add($"{Path.GetFileNameWithoutExtension(scenePath)} must have exactly one OptionsMenu prefab instance. Found {managers.Length} OptionsMenuManager.");
+            }
+        }
+    }
+
+    private static void ValidateOutOfGameShopMenu(List<string> failures)
+    {
+        Scene scene = EditorSceneManager.OpenScene(ShopMenuScenePath, OpenSceneMode.Single);
+        ValidateNoMissingScripts(scene, failures);
+
+        OutOfGameShopManager[] managers = FindSceneComponents<OutOfGameShopManager>(scene).ToArray();
+        if (managers.Length != 1)
+        {
+            failures.Add($"ShopMenu must have exactly one OutOfGameShopManager. Found {managers.Length}.");
+            return;
+        }
+
+        OutOfGameShopManager manager = managers[0];
+        SerializedObject serializedManager = new(manager);
+        ValidateShopUpgradeIds(serializedManager, failures);
+        ValidateShopButtonArray(serializedManager.FindProperty("upgradeSlotButtons"), manager, "upgradeSlotButtons", nameof(OutOfGameShopManager.SelectUpgradeSlot), failures);
+        ValidateShopButtonArray(serializedManager.FindProperty("skinSlotButtons"), manager, "skinSlotButtons", nameof(OutOfGameShopManager.SelectSkinSlot), failures);
+        ValidateShopButtonReference(serializedManager.FindProperty("previousSkinPageButton"), manager, "previousSkinPageButton", nameof(OutOfGameShopManager.PreviousSkinPage), failures);
+        ValidateShopButtonReference(serializedManager.FindProperty("nextSkinPageButton"), manager, "nextSkinPageButton", nameof(OutOfGameShopManager.NextSkinPage), failures);
+        ValidateShopButtonReference(serializedManager.FindProperty("purchaseButton"), manager, "purchaseButton", nameof(OutOfGameShopManager.PurchaseSelected), failures);
+        ValidateShopProductInfoBlock(manager, serializedManager, failures);
+
+        ShrimpCounterDisplay[] counters = FindSceneComponents<ShrimpCounterDisplay>(scene).ToArray();
+        if (counters.Length != 1)
+        {
+            failures.Add($"ShopMenu must have exactly one ShrimpCounterDisplay prefab instance. Found {counters.Length}.");
+        }
+        else
+        {
+            string counterPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(counters[0].gameObject);
+            if (counterPrefabPath != ShrimpCounterPrefabPath)
+            {
+                failures.Add($"ShopMenu/ShrimpCounter must be an instance of {ShrimpCounterPrefabPath}. Actual: {counterPrefabPath}");
+            }
+        }
+
+        Button backButton = scene.GetRootGameObjects()
+            .Select(root => UiButtonContract.FindButton(root.transform, "VolverBoton"))
+            .FirstOrDefault(button => button != null);
+        if (backButton == null || !HasPersistentListener(backButton, nameof(MainMenu.VolverAlMenuPrincipal)))
+        {
+            failures.Add("ShopMenu/VolverBoton/Button must have a persistent listener to MainMenu.VolverAlMenuPrincipal.");
+        }
+    }
+
+    private static void ValidateShopUpgradeIds(SerializedObject serializedManager, List<string> failures)
+    {
+        SerializedProperty property = serializedManager.FindProperty("upgradeIds");
+        if (property == null || !property.isArray || property.arraySize != ShopUpgradeIds.Length)
+        {
+            failures.Add("ShopMenu/OutOfGameShopManager must serialize the four canonical upgrade IDs.");
+            return;
+        }
+
+        for (int index = 0; index < ShopUpgradeIds.Length; index++)
+        {
+            if (property.GetArrayElementAtIndex(index).stringValue != ShopUpgradeIds[index])
+            {
+                failures.Add($"ShopMenu/OutOfGameShopManager upgradeIds[{index}] must be '{ShopUpgradeIds[index]}'.");
+            }
+        }
+    }
+
+    private static void ValidateShopButtonArray(
+        SerializedProperty property,
+        OutOfGameShopManager manager,
+        string propertyName,
+        string expectedMethod,
+        List<string> failures)
+    {
+        if (property == null || !property.isArray || property.arraySize != 4)
+        {
+            failures.Add($"ShopMenu/OutOfGameShopManager.{propertyName} must contain four serialized buttons.");
+            return;
+        }
+
+        for (int index = 0; index < property.arraySize; index++)
+        {
+            Button button = property.GetArrayElementAtIndex(index).objectReferenceValue as Button;
+            ValidateShopButton(button, manager, $"{propertyName}[{index}]", expectedMethod, failures);
+        }
+    }
+
+    private static void ValidateShopButtonReference(
+        SerializedProperty property,
+        OutOfGameShopManager manager,
+        string propertyName,
+        string expectedMethod,
+        List<string> failures)
+    {
+        Button button = property != null ? property.objectReferenceValue as Button : null;
+        ValidateShopButton(button, manager, propertyName, expectedMethod, failures);
+    }
+
+    private static void ValidateShopProductInfoBlock(
+        OutOfGameShopManager manager,
+        SerializedObject serializedManager,
+        List<string> failures)
+    {
+        Transform productInfoBlock = manager.transform.Find("Panel/ProductInfoBlock");
+        if (productInfoBlock == null)
+        {
+            failures.Add("ShopMenu requires Canvas/Panel/ProductInfoBlock for selected product presentation.");
+            return;
+        }
+
+        ValidateShopTextReference(
+            serializedManager.FindProperty("selectedItemNameText"),
+            productInfoBlock,
+            "NombreProducto",
+            "selectedItemNameText",
+            failures);
+        ValidateShopTextReference(
+            serializedManager.FindProperty("selectedItemDescriptionText"),
+            productInfoBlock,
+            "DescripcionProducto",
+            "selectedItemDescriptionText",
+            failures);
+        ValidateShopTextReference(
+            serializedManager.FindProperty("selectedItemPriceText"),
+            productInfoBlock,
+            "PrecioProducto",
+            "selectedItemPriceText",
+            failures);
+    }
+
+    private static void ValidateShopTextReference(
+        SerializedProperty property,
+        Transform productInfoBlock,
+        string expectedNodeName,
+        string propertyName,
+        List<string> failures)
+    {
+        TMP_Text text = property != null ? property.objectReferenceValue as TMP_Text : null;
+        if (text == null)
+        {
+            failures.Add($"ShopMenu/OutOfGameShopManager.{propertyName} must reference ProductInfoBlock/{expectedNodeName}.");
+            return;
+        }
+
+        if (text.transform.parent != productInfoBlock || text.gameObject.name != expectedNodeName)
+        {
+            failures.Add($"ShopMenu/OutOfGameShopManager.{propertyName} must reference ProductInfoBlock/{expectedNodeName}.");
+        }
+    }
+
+    private static void ValidateShopButton(
+        Button button,
+        OutOfGameShopManager manager,
+        string propertyName,
+        string expectedMethod,
+        List<string> failures)
+    {
+        if (!UiButtonContract.IsCompliantButton(button))
+        {
+            failures.Add($"ShopMenu/OutOfGameShopManager.{propertyName} must reference a compliant *Boton/Button control.");
+            return;
+        }
+
+        if (!HasPersistentListener(button, manager, expectedMethod))
+        {
+            failures.Add($"ShopMenu/{GetHierarchyPath(button.transform)} must have persistent listener OutOfGameShopManager.{expectedMethod}.");
+        }
+    }
+
+    private static bool HasPersistentListener(Button button, string methodName)
+    {
+        for (int index = 0; button != null && index < button.onClick.GetPersistentEventCount(); index++)
+        {
+            if (button.onClick.GetPersistentTarget(index) is MainMenu
+                && button.onClick.GetPersistentMethodName(index) == methodName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasPersistentListener(Button button, UnityEngine.Object target, string methodName)
+    {
+        for (int index = 0; button != null && index < button.onClick.GetPersistentEventCount(); index++)
+        {
+            if (button.onClick.GetPersistentTarget(index) == target
+                && button.onClick.GetPersistentMethodName(index) == methodName)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void ValidateSpawnProfiles(List<string> failures)

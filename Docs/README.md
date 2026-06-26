@@ -20,6 +20,7 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 - [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
 - [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos y SS Carnage.
 - [Portals.md](Portals.md) - portales entre zonas y reglas de carga.
+- [LoreComics.md](LoreComics.md) - vinetas narrativas de inicio, portales y derrota.
 - [ZoneLighting.md](ZoneLighting.md) - oscuridad de `ZonaAbisopelagica` y light graze visual independiente.
 - [WorldAndCamera.md](WorldAndCamera.md) - camara, boundaries, parallax y limpieza fuera de pantalla.
 - [UiAndMenu.md](UiAndMenu.md) - menus, pausa, game over, tienda y HUD.
@@ -39,4 +40,3 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 - Si algo describe flujo de produccion o contenido, debe quedar separado de la logica de codigo.
 - Si una seccion crece demasiado, se divide en otro `.md`.
 - Si una implementacion cambia el contrato de escena, actualizar `RuntimeHierarchyAudit.md`, `WorldAndCamera.md` y `QATester.md`.
-- El contexto operativo de trabajo con Codex vive en [`../CODEX/`](../CODEX/); `Docs/` conserva la documentacion tecnica del proyecto.

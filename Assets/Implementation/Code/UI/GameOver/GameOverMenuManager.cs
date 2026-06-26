@@ -37,6 +37,8 @@ public class GameOverMenuManager : MonoBehaviour
 
     private RectTransform[] animatedElements = new RectTransform[0];
     private Vector2[] originalPositions = new Vector2[0];
+    private Coroutine gameOverPresentationRoutine;
+    private bool gameOverMenuShownForCurrentState;
 
     private void Awake()
     {
@@ -98,11 +100,41 @@ public class GameOverMenuManager : MonoBehaviour
     {
         if (state == GameSessionState.GameOver)
         {
-            Show();
+            ShowAfterDefeatComic();
         }
         else
         {
+            gameOverMenuShownForCurrentState = false;
+            if (gameOverPresentationRoutine != null)
+            {
+                StopCoroutine(gameOverPresentationRoutine);
+                gameOverPresentationRoutine = null;
+            }
+
             HideImmediate();
+        }
+    }
+
+    private void ShowAfterDefeatComic()
+    {
+        if (gameOverMenuShownForCurrentState || gameOverPresentationRoutine != null)
+        {
+            return;
+        }
+
+        gameOverPresentationRoutine = StartCoroutine(ShowAfterDefeatComicRoutine());
+    }
+
+    private IEnumerator ShowAfterDefeatComicRoutine()
+    {
+        yield return LoreComicPresenter.PlayDefeatIfAvailable();
+
+        gameOverPresentationRoutine = null;
+        gameOverMenuShownForCurrentState = true;
+
+        if (session == null || session.IsGameOver)
+        {
+            Show();
         }
     }
 
@@ -275,18 +307,8 @@ public class GameOverMenuManager : MonoBehaviour
             return;
         }
 
-        DisablePersistentOnClick(button);
         button.onClick.RemoveListener(action);
         button.onClick.AddListener(action);
-    }
-
-    private void DisablePersistentOnClick(Button button)
-    {
-        int persistentEventCount = button.onClick.GetPersistentEventCount();
-        for (int i = 0; i < persistentEventCount; i++)
-        {
-            button.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
-        }
     }
 
     private T FindChildComponent<T>(Transform root, string childName) where T : Component

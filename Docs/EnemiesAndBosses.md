@@ -114,6 +114,9 @@ Parametros de balance:
 - `startYOffsetBelowTopBoundary`
 - `descentStartViewportX`
 - `descentWindupSeconds`
+- `enableFastPaceHorizontalHold`
+- `horizontalHoldMinScrollSpeed`
+- `horizontalHoldViewportX`
 - `arriveDistance`
 - `horizontalLeadTimePaddingSeconds`
 - `minimumHorizontalLeadDistance`
@@ -124,6 +127,9 @@ Contrato de legibilidad:
 - La bajada no debe consumirse completamente fuera de camara.
 - `descentStartViewportX` define en que posicion horizontal de viewport se permite iniciar la accion: `1` es el borde derecho de camara y valores mayores empiezan levemente antes de entrar.
 - `descentWindupSeconds` agrega una pausa corta antes de caer, sin recapturar la posicion del jugador.
+- `enableFastPaceHorizontalHold` corrige la X de la cana cuando la velocidad horizontal supera `horizontalHoldMinScrollSpeed`, manteniendola cerca de `horizontalHoldViewportX` mientras espera, anticipa y baja.
+- El anclaje rapido se libera al llegar a la Y capturada; desde ese punto la cana vuelve a comportarse como obstaculo normal del mundo.
+- El anclaje rapido no recaptura la Y del jugador y no debe convertirse en persecucion vertical.
 - `SpawnPositionResolver` incluye la duracion de bajada, la pausa y el margen horizontal al calcular la distancia de spawn, para que mejorar la lectura no vuelva injusta la amenaza.
 
 Contrato visual de `CanaPescar.prefab`:

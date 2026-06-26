@@ -76,7 +76,11 @@ public class PlayerGadgetInventory : MonoBehaviour
             return false;
         }
 
-        RuntimeGadgetInventory.TryConsume(gadget);
+        if (gadget != GadgetId.InkBottle)
+        {
+            RuntimeGadgetInventory.TryConsume(gadget);
+        }
+
         return true;
     }
 

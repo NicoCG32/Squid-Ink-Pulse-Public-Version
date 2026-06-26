@@ -151,15 +151,13 @@ public static class GameplayUiPrefabSceneMigration
         SetObjectReference(serializedObject, "resumeButton", FindChildComponent<Button>(pauseMenu, "BotonReanudar"));
         SetObjectReference(serializedObject, "optionsButton", FindChildComponent<Button>(pauseMenu, "BotonOpciones"));
         SetObjectReference(serializedObject, "menuButton", FindChildComponent<Button>(pauseMenu, "BotonMenu"));
-        SetObjectReference(serializedObject, "exitButton", FindChildComponent<Button>(pauseMenu, "BotonSalir"));
         SetObjectReferenceArray(serializedObject, "animatedDecorations", FindChildComponent<RectTransform>(pauseMenu, "PauseDecoration"));
         SetObjectReferenceArray(
             serializedObject,
             "animatedButtons",
             FindChildComponent<RectTransform>(pauseMenu, "BotonReanudar"),
             FindChildComponent<RectTransform>(pauseMenu, "BotonOpciones"),
-            FindChildComponent<RectTransform>(pauseMenu, "BotonMenu"),
-            FindChildComponent<RectTransform>(pauseMenu, "BotonSalir"));
+            FindChildComponent<RectTransform>(pauseMenu, "BotonMenu"));
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(manager);
     }

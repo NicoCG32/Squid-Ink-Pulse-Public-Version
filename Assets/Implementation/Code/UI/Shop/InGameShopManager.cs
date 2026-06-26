@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -55,6 +56,11 @@ public class InGameShopManager : MonoBehaviour
     private float previousTimeScale = 1f;
     private Vector3 priceTextBaseScale = Vector3.one;
     private Vector3 buyKeyTextBaseScale = Vector3.one;
+    private GadgetId queuedTutorialOffer = GadgetId.None;
+    private int queuedTutorialPriceOverride = -1;
+    private Coroutine pendingWorldShopRoutine;
+    private bool currentShopOpenedFromDealerFish;
+    private bool currentShopPurchased;
 
     public static InGameShopManager Instance => instance;
     public static bool HasInstance => instance != null;
@@ -119,10 +125,56 @@ public class InGameShopManager : MonoBehaviour
 
     public static bool TryOpenShopFromWorld()
     {
-        return instance != null && instance.TryOpenTimedShop();
+        return instance != null && instance.TryOpenShopFromWorldInternal();
+    }
+
+    private bool TryOpenShopFromWorldInternal()
+    {
+        if (pendingWorldShopRoutine != null)
+        {
+            return true;
+        }
+
+        if (!CanAttemptOpenTimedShop())
+        {
+            ClearQueuedTutorialOffer();
+            return false;
+        }
+
+        if (RuntimeInGameShopLoreState.TryMarkFirstDealerShopAccess())
+        {
+            pendingWorldShopRoutine = StartCoroutine(OpenWorldShopAfterFirstComicRoutine());
+            return true;
+        }
+
+        return TryOpenTimedShop(openedFromDealerFish: true);
+    }
+
+    private IEnumerator OpenWorldShopAfterFirstComicRoutine()
+    {
+        yield return LoreComicPresenter.PlayInGameShopFirstIfAvailable();
+        pendingWorldShopRoutine = null;
+        TryOpenTimedShop(openedFromDealerFish: true);
+    }
+
+    public void QueueTutorialOffer(GadgetId gadget, int priceOverride = -1)
+    {
+        queuedTutorialOffer = gadget;
+        queuedTutorialPriceOverride = priceOverride;
+    }
+
+    public bool TryOpenTutorialOffer(GadgetId gadget, int priceOverride = -1)
+    {
+        QueueTutorialOffer(gadget, priceOverride);
+        return TryOpenTimedShop();
     }
 
     public bool TryOpenTimedShop()
+    {
+        return TryOpenTimedShop(openedFromDealerFish: false);
+    }
+
+    private bool TryOpenTimedShop(bool openedFromDealerFish)
     {
         ResolveReferences();
         ResolveUiReferences();
@@ -130,24 +182,24 @@ public class InGameShopManager : MonoBehaviour
 
         if (isOpen || session == null || !session.IsPlaying)
         {
+            ClearQueuedTutorialOffer();
             return false;
         }
 
         RunGadgetUnlockService.RefreshUnlockedRunGadgets();
-        currentOffer = ShopOfferSelector.SelectOffer(offers, RunGadgetUnlockService.CanOfferAppearInRunShop);
+        currentOffer = SelectCurrentOffer();
         if (currentOffer == null)
         {
+            ClearQueuedTutorialOffer();
             return false;
         }
 
         currentRandomPriceMultiplier = RollRandomPriceMultiplier();
-        currentPrice = ShopPriceCalculator.CalculatePrice(
-            currentOffer,
-            RuntimeRunScore.TotalScore,
-            scorePriceStep,
-            globalPriceMultiplier,
-            currentRandomPriceMultiplier);
+        currentPrice = CalculateCurrentPrice();
         remainingSeconds = Mathf.Max(0.5f, offerDurationSeconds);
+        ClearQueuedTutorialOffer();
+        currentShopOpenedFromDealerFish = openedFromDealerFish;
+        currentShopPurchased = false;
 
         if (pauseGameplayWhileOpen)
         {
@@ -162,6 +214,75 @@ public class InGameShopManager : MonoBehaviour
         RefreshOfferUi();
         onShopOpened.Invoke();
         return true;
+    }
+
+    private bool CanAttemptOpenTimedShop()
+    {
+        ResolveReferences();
+        ResolveUiReferences();
+        WireButtons();
+
+        if (isOpen || session == null || !session.IsPlaying)
+        {
+            return false;
+        }
+
+        RunGadgetUnlockService.RefreshUnlockedRunGadgets();
+        if (queuedTutorialOffer != GadgetId.None)
+        {
+            return FindOfferByGadget(queuedTutorialOffer) != null;
+        }
+
+        return ShopOfferSelector.HasAnyOffer(offers, RunGadgetUnlockService.CanOfferAppearInRunShop);
+    }
+
+    private ShopGadgetOffer SelectCurrentOffer()
+    {
+        if (queuedTutorialOffer != GadgetId.None)
+        {
+            return FindOfferByGadget(queuedTutorialOffer);
+        }
+
+        return ShopOfferSelector.SelectOffer(offers, RunGadgetUnlockService.CanOfferAppearInRunShop);
+    }
+
+    private ShopGadgetOffer FindOfferByGadget(GadgetId gadget)
+    {
+        if (offers == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < offers.Length; i++)
+        {
+            if (offers[i] != null && offers[i].GadgetId == gadget)
+            {
+                return offers[i];
+            }
+        }
+
+        return null;
+    }
+
+    private int CalculateCurrentPrice()
+    {
+        if (queuedTutorialPriceOverride >= 0)
+        {
+            return queuedTutorialPriceOverride;
+        }
+
+        return ShopPriceCalculator.CalculatePrice(
+            currentOffer,
+            RuntimeRunScore.TotalScore,
+            scorePriceStep,
+            globalPriceMultiplier,
+            currentRandomPriceMultiplier);
+    }
+
+    private void ClearQueuedTutorialOffer()
+    {
+        queuedTutorialOffer = GadgetId.None;
+        queuedTutorialPriceOverride = -1;
     }
 
     public void BuyCurrentOffer()
@@ -191,6 +312,7 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
+        currentShopPurchased = true;
         onGadgetPurchased.Invoke(gadget);
         CloseShop();
     }
@@ -202,12 +324,29 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
+        bool shouldPlayFirstExitComic = currentShopOpenedFromDealerFish
+            && (session == null || !session.IsGameOver)
+            && RuntimeInGameShopLoreState.TryMarkFirstDealerShopExit();
+        bool purchasedDuringDealerShop = currentShopPurchased;
+
         isOpen = false;
         currentOffer = null;
+        currentShopOpenedFromDealerFish = false;
+        currentShopPurchased = false;
         RestoreTimeScaleIfNeeded();
         HideImmediate();
         ApplyState(ShopEventState.Closed);
         onShopClosed.Invoke();
+
+        if (shouldPlayFirstExitComic)
+        {
+            StartCoroutine(PlayFirstDealerShopExitComicRoutine(purchasedDuringDealerShop));
+        }
+    }
+
+    private IEnumerator PlayFirstDealerShopExitComicRoutine(bool purchased)
+    {
+        yield return LoreComicPresenter.PlayInGameShopLastIfAvailable(purchased);
     }
 
     private void ApplyState(ShopEventState nextState)
@@ -412,7 +551,6 @@ public class InGameShopManager : MonoBehaviour
             buyButton.targetGraphic.raycastTarget = true;
         }
 
-        DisablePersistentOnClick(buyButton);
         buyButton.onClick.RemoveListener(BuyCurrentOffer);
         buyButton.onClick.AddListener(BuyCurrentOffer);
     }
@@ -422,15 +560,6 @@ public class InGameShopManager : MonoBehaviour
         if (buyButton != null)
         {
             buyButton.interactable = interactable;
-        }
-    }
-
-    private void DisablePersistentOnClick(Button button)
-    {
-        int persistentEventCount = button.onClick.GetPersistentEventCount();
-        for (int i = 0; i < persistentEventCount; i++)
-        {
-            button.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
         }
     }
 
@@ -481,6 +610,7 @@ public class InGameShopManager : MonoBehaviour
         if (instance == this)
         {
             RestoreTimeScaleIfNeeded();
+            pendingWorldShopRoutine = null;
             instance = null;
         }
     }

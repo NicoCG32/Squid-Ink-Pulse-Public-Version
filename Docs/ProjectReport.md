@@ -20,6 +20,7 @@ La implementacion actual ya incluye:
 - tienda temporal mediante `DealerFish`;
 - gadgets `Shell Shield` e `Ink-Bottle`;
 - portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`;
+- comics de lore para inicio, transiciones de portal y derrota;
 - persistencia runtime de gadgets e Ink-Pulse entre portales;
 - base JSON local para catalogo de desbloqueables, perfil, records y leaderboard;
 - desbloqueo permanente de elegibilidad de gadgets por hitos;

@@ -16,9 +16,15 @@
 - `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`: herramienta para centrar las escenas jugables alrededor del origen.
 - `Assets/Implementation/Editor/CleanupPrefabMigration.cs`: herramienta para crear y conectar el prefab canonico `CleanUp` en escenas jugables.
 - `Assets/Implementation/Editor/SceneContractValidator.cs`: herramienta `Tools/Squid/Validate Scene Contracts` para auditar zonas jugables, prefabs criticos, perfiles de spawn, tags y layers.
+- `Assets/Implementation/Editor/Shop/ShopMenuSetupUtility.cs`: serializa el contrato funcional de `ShopMenu` sin modificar su arte y asegura las instancias faltantes de `OptionsMenu` global antes de abrir la tienda.
+- `Assets/Implementation/Editor/Shop/ShopProductInfoSetupUtility.cs`: crea y conecta el bloque funcional de nombre, descripcion y precio del producto seleccionado sin añadir arte a `ShopMenu`.
+- `Assets/Implementation/Editor/Lore/LoreComicSetupUtility.cs`: instala o repara el contrato de lore comics; su reparacion de visibilidad normaliza la escala del canvas `Comic` sin alterar vinetas ni layout.
+- `Assets/Implementation/Editor/UI/OptionsMenuPresenceUtility.cs`: instala solo instancias faltantes de `OptionsMenu` como roots de escena; no normaliza layout ni overrides visuales.
 - `Assets/Content/Prefabs/`: prefabs runtime.
 - `Assets/Content/Audio/`: soundtrack y SFX.
 - `Assets/Content/Art/`: arte runtime.
+- `Assets/Content/Art/ComicLore/`: vinetas narrativas separadas por dominio (`Inicio`, `Portales`, `Derrota`, `Tienda`).
+- `Assets/Content/Art/Environments/ShopMenu/Fondo.png`: fondo ambiental de la escena `ShopMenu`; los botones y decoraciones de tienda permanecen en `Assets/Content/Art/UI/ShopMenu/`.
 - `Assets/Content/Animations/`: animaciones runtime.
 - `Assets/Scenes/`: escenas del juego.
 - `Assets/StreamingAssets/db/`: semillas JSON incluidas en build para catalogo, perfil, records y leaderboard local.
@@ -34,6 +40,8 @@
 - `Assets/Implementation/Code/Enemies/`: comportamientos propios de enemigos.
 - `Assets/Implementation/Code/Bosses/`: directores y comportamientos de boss.
 - `Assets/Implementation/Code/UI/`: `GameUIRoot`, HUD, menus, tienda y animacion UI.
+- `Assets/Implementation/Code/UI/Shop/OutOfGameShopManager.cs`: coordinador de la tienda permanente de `ShopMenu`.
+- `Assets/Implementation/Code/Lore/`: presentacion narrativa por vinetas y seleccion de comics.
 - `Assets/Implementation/Code/Tutorial/`: director y pasos formales del tutorial.
 - `Assets/Implementation/Code/World/`: entidades de mundo como tienda y portales.
 - `Assets/Implementation/Code/World/Lighting/`: iluminacion de zona y light graze visual.
@@ -56,7 +64,7 @@ La arquitectura formal esta definida en [SoftwareArchitecture.md](SoftwareArchit
 - `Assets/Content/Prefabs/Core/Environment/`: `EnviromentRoot_*` por zona, con fondos, parallax y efectos ambientales.
 - `Assets/Content/Prefabs/Core/Scenes/`: `GameRoot_*` por zona, como raiz de composicion jugable.
 - `Assets/Content/Prefabs/World/`: `Boundaries.prefab` como contrato fisico de limites y `CleanUp.prefab` como limpieza fuera de camara adaptada a `CameraBoundaries`.
-- `Assets/Content/Prefabs/UI/`: vistas de HUD y menus consumidas por `GameUIRoot` en escenas jugables.
+- `Assets/Content/Prefabs/UI/`: vistas de HUD, menus y overlays narrativos consumidas por escenas o `GameUIRoot`.
 
 ## UI MainMenu
 

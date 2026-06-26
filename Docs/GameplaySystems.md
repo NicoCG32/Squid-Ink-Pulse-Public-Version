@@ -169,11 +169,15 @@ Reglas:
 - La intensidad de spawn usa otra curva: baja a alta, boss, post-boss intenso; cruzar portal reinicia esa intensidad en la zona destino.
 - La mejora permanente `upgrade.score_multiplier` multiplica el score producido por `RunProgressionDirector`.
 
-Valores globales vigentes en `GameRoot_ZonaTutorial`, `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica`:
+Valores globales vigentes en `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica`:
 - `secondsToMaxIntensity = 150`
 - `maxScrollSpeed = 15`
 - `speedGrowthTimeConstantSeconds = 120`
 - `scorePerSecond = 3200`
+
+Excepcion de tutorial:
+- `GameRoot_ZonaTutorial` conserva los mismos parametros globales de intensidad/movimiento, pero `scorePerSecond = 0`.
+- `TutorialDirector.suppressScoreDuringTutorial = true` mantiene `RuntimeRunScore` en cero mientras el tutorial esta activo.
 
 ## Gadgets e inventario
 
@@ -200,7 +204,7 @@ Responsabilidad:
 
 Gadgets implementados:
 - `Shell Shield`: pasivo, se consume automaticamente para cancelar un Game Over.
-- `Ink-Bottle`: activo, se consume si logra llevar Ink-Pulse a `Ready`.
+- `Ink-Bottle`: activo de run, fuerza Ink-Pulse a `Ready` si puede y no se consume al usarse.
 
 Reglas de slot:
 - El prefab no define si un gadget va en `Q` o `W`.
@@ -221,11 +225,13 @@ Responsabilidad:
 - Ubicar `DealerFish` dentro de una zona normalizada configurable de la mitad inferior del rango entre `PlayerBoundaries`.
 - Separar intervalo base de aparicion y variacion aleatoria de cadencia.
 - Abrir un overlay temporal al colisionar con `DealerFish`.
+- Mostrar el comic `ShopInGameFirst` antes de la primera apertura por `DealerFish`.
 - Seleccionar un gadget aleatorio desde ofertas configuradas.
 - Filtrar ofertas mediante `RunGadgetUnlockService`, de modo que solo aparezcan gadgets habilitados por defecto o por hitos de perfil.
 - Mostrar icono, precio, tecla `B`, boton `Comprar`, contador y mensaje de saldo.
 - Consumir camarones solo si la compra se concreta.
 - Registrar el gadget comprado en `RuntimeGadgetInventory`.
+- Al cerrar la primera tienda abierta por `DealerFish`, mostrar el comic de salida con compra o sin compra.
 
 Reglas:
 - La tienda tiene duracion ajustable por `offerDurationSeconds`.
@@ -235,7 +241,8 @@ Reglas:
 - El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parametros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
-- `DealerFish` permanece visible tras abrir tienda; conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
+- `DealerFish` se consume solo si `InGameShopManager` acepta la apertura. Tras abrir tienda, conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
+- `RuntimeInGameShopLoreState` limita los comics de primera entrada y primera salida a una vez por run.
 - `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
 - `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
 - `ZonaAbisopelagica` referencia `DealerFish_ZonaAbisopelagica.prefab`, que conserva la misma logica pero oscurece `Visual` y `VisualSupport` a RGB `135,135,135`.

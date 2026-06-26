@@ -95,6 +95,8 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
 
     private void UpdateDropState()
     {
+        ApplyFastPaceHorizontalHold();
+
         switch (dropState)
         {
             case DropState.WaitingForReadWindow:
@@ -118,6 +120,50 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         }
     }
 
+    private void ApplyFastPaceHorizontalHold()
+    {
+        if (!ShouldApplyFastPaceHorizontalHold())
+        {
+            return;
+        }
+
+        float depth = Mathf.Abs(gameplayCamera.transform.position.z - transform.position.z);
+        Vector3 holdPosition = gameplayCamera.ViewportToWorldPoint(new Vector3(tuning.HorizontalHoldViewportX, 0.5f, depth));
+        transform.position = new Vector3(holdPosition.x, transform.position.y, transform.position.z);
+    }
+
+    private bool ShouldApplyFastPaceHorizontalHold()
+    {
+        if (!tuning.EnableFastPaceHorizontalHold || dropState == DropState.Arrived)
+        {
+            return false;
+        }
+
+        ResolveCameraReference();
+        if (gameplayCamera == null)
+        {
+            return false;
+        }
+
+        return GetCurrentHorizontalSpeed() >= tuning.HorizontalHoldMinScrollSpeed;
+    }
+
+    private float GetCurrentHorizontalSpeed()
+    {
+        float speed = 0f;
+        if (player != null && player.TryGetComponent(out PlayerMovement movement))
+        {
+            speed = Mathf.Max(speed, movement.CurrentHorizontalSpeed);
+        }
+
+        if (RunProgressionDirector.HasInstance)
+        {
+            speed = Mathf.Max(speed, RunProgressionDirector.Instance.Current.TargetScrollSpeed);
+        }
+
+        return speed;
+    }
+
     private bool IsInsideDescentReadWindow()
     {
         ResolveCameraReference();
@@ -127,7 +173,11 @@ public class FishingRodEnemy : MonoBehaviour, IEnemySpawnContextReceiver
         }
 
         Vector3 viewportPoint = gameplayCamera.WorldToViewportPoint(transform.position);
-        return viewportPoint.z >= 0f && viewportPoint.x <= tuning.DescentStartViewportX;
+        float startViewportX = ShouldApplyFastPaceHorizontalHold()
+            ? Mathf.Max(tuning.DescentStartViewportX, tuning.HorizontalHoldViewportX)
+            : tuning.DescentStartViewportX;
+
+        return viewportPoint.z >= 0f && viewportPoint.x <= startViewportX;
     }
 
     private void BeginWindupOrDrop()

@@ -20,7 +20,7 @@ Application.persistentDataPath/db/
 | `unlockables-catalog.json` | Catalogo de contenido | Define skins, gadgets de run desbloqueables por hitos y mejoras permanentes, junto a precio base, efecto y meta de desbloqueo. |
 | `player-profile.json` | Perfil del jugador | Guarda mejoras permanentes compradas, skins desbloqueadas/equipada y gadgets de run habilitados para aparecer en la tienda in-game. |
 | `player-records.json` | Economia y records | Guarda camarones, mejor puntaje, runs, portales cruzados y camarones recolectados historicamente. |
-| `local-leaderboard.json` | Feria/local | Guarda ranking local ordenado por puntaje para sesiones de prueba presenciales. |
+| `local-leaderboard.json` | Local por dispositivo | Guarda ranking local ordenado por puntaje. Es historico/fallback y no es la fuente compartida para una feria multi-PC. |
 
 ## Scripts
 
@@ -39,6 +39,7 @@ Application.persistentDataPath/db/
 - `Assets/Implementation/Code/Player/Profile/PermanentShopService.cs`
 - `Assets/Implementation/Code/Player/Profile/PermanentShopPurchaseResult.cs`
 - `Assets/Implementation/Code/Player/Profile/PermanentUpgradeEffectResolver.cs`
+- `Assets/Implementation/Code/UI/Shop/OutOfGameShopManager.cs`
 
 ## Contratos JSON
 
@@ -140,7 +141,7 @@ Application.persistentDataPath/db/
 - `unlockables-catalog.json` guarda definiciones y metas; no guarda si el jugador compro algo.
 - `player-profile.json` guarda decisiones del jugador: mejoras permanentes, skins y gadgets de run ya habilitados por hitos.
 - `player-records.json` guarda valores numericos acumulados: camarones, mejor puntaje y estadisticas.
-- `local-leaderboard.json` es local por dispositivo; para feria debe poder limpiarse entre sesiones si se requiere.
+- `local-leaderboard.json` es local por dispositivo. El futuro modo feria multi-PC requiere un servidor LAN y SQLite; su diseño privado vive en `CODEX/planFeria.md`, no en esta base local.
 - La skin default siempre debe existir como `skin.default`.
 - Los gadgets son exclusivos de la tienda in-game. La persistencia no guarda compras de una run; solo guarda si un gadget ya puede aparecer en la aleatoriedad de `InGameShopManager`.
 - La tienda out-of-game no vende gadgets. Vende skins y mejoras permanentes.
@@ -166,6 +167,8 @@ Application.persistentDataPath/db/
 - `PermanentUpgradeEffectResolver`: traduce niveles persistidos en multiplicadores usados por gameplay.
 
 La UI no debe duplicar estas reglas. Un boton de tienda permanente debe llamar a `PermanentShopService`; una tienda in-game debe seguir pasando por `InGameShopManager`.
+
+`OutOfGameShopManager` es la fachada de `ShopMenu`: serializa botones de seleccion y compra, consulta el catalogo para poblar estados y delega la transaccion a `PermanentShopService`. No escribe JSON, no mantiene una wallet propia, no recalcula precios y no crea elementos visuales en runtime.
 
 ## Migracion
 
@@ -197,3 +200,5 @@ Mapeo desde `player-profile.json` version 2:
 - `Assets/StreamingAssets/db/local-leaderboard.json`
 
 Tambien valida que el catalogo contenga `skin.default`, `gadget.shell_shield`, `gadget.ink_bottle`, `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
+
+Tambien valida que `ShopMenu` tenga un `OutOfGameShopManager`, una instancia del prefab `ShrimpCounter`, los cuatro ids de upgrade canonicos y los listeners persistentes de compra, seleccion y paginacion.

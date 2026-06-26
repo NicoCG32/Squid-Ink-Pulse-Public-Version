@@ -818,12 +818,11 @@ public static class PlayerPrefabContractUtility
         SetObjectReference(pause, "resumeButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonReanudar", "Reanudar"));
         SetObjectReference(pause, "optionsButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonOpciones", "Opciones"));
         SetObjectReference(pause, "menuButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonMenu", "Menu"));
-        SetObjectReference(pause, "exitButton", FindComponentInChildrenByName<Button>(menuRoot, "BotonSalir", "Salir"));
         SetObjectArray(pause, "animatedDecorations", FindRectTransformsByName(menuRoot, "PauseDecoration"));
         SetObjectArray(
             pause,
             "animatedButtons",
-            FindRectTransformsByName(menuRoot, "BotonReanudar", "BotonOpciones", "BotonMenu", "BotonSalir"));
+            FindRectTransformsByName(menuRoot, "BotonReanudar", "BotonOpciones", "BotonMenu"));
     }
 
     private static void ConfigureGameOverMenuUiReferences(Scene scene, GameOverMenuManager gameOver)

@@ -19,7 +19,6 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private Button optionsButton;
     [SerializeField] private OptionsMenuManager optionsMenu;
     [SerializeField] private Button menuButton;
-    [SerializeField] private Button exitButton;
 
     [Header("Animated Elements")]
     [SerializeField] private RectTransform[] animatedDecorations;
@@ -150,15 +149,6 @@ public class PauseMenuManager : MonoBehaviour
         sceneFlow.LoadMainMenu();
     }
 
-    public void Salir()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
-    }
-
     private void HandleSessionStateChanged(GameSessionState previousState, GameSessionState nextState)
     {
         if (menuRoot == null)
@@ -261,7 +251,6 @@ public class PauseMenuManager : MonoBehaviour
         WireButton(resumeButton, Reanudar);
         WireButton(optionsButton, Opciones);
         WireButton(menuButton, IrAlMenu);
-        WireButton(exitButton, Salir);
     }
 
     private void ResolveUiReferences()
@@ -280,7 +269,6 @@ public class PauseMenuManager : MonoBehaviour
         resumeButton ??= UiButtonContract.FindButton(uiRoot, "ReanudarBoton", "BotonReanudar");
         optionsButton ??= UiButtonContract.FindButton(uiRoot, "OpcionesBoton", "BotonOpciones");
         menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
-        exitButton ??= UiButtonContract.FindButton(uiRoot, "SalirBoton", "BotonSalir");
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
@@ -293,8 +281,7 @@ public class PauseMenuManager : MonoBehaviour
                 uiRoot,
                 "ReanudarBoton",
                 "OpcionesBoton",
-                "MenuBoton",
-                "SalirBoton");
+                "MenuBoton");
 
             if (animatedButtons.Length == 0)
             {
@@ -302,8 +289,7 @@ public class PauseMenuManager : MonoBehaviour
                     uiRoot,
                     "BotonReanudar",
                     "BotonOpciones",
-                    "BotonMenu",
-                    "BotonSalir");
+                    "BotonMenu");
             }
         }
     }
@@ -385,18 +371,8 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        DisablePersistentOnClick(button);
         button.onClick.RemoveListener(action);
         button.onClick.AddListener(action);
-    }
-
-    private void DisablePersistentOnClick(Button button)
-    {
-        int persistentEventCount = button.onClick.GetPersistentEventCount();
-        for (int i = 0; i < persistentEventCount; i++)
-        {
-            button.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
-        }
     }
 
     private T FindChildComponent<T>(Transform root, string childName) where T : Component

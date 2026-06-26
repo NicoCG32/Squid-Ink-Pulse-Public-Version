@@ -4,13 +4,205 @@
 
 Este documento registra lo que falta para llevar Squid Ink-Pulse desde el estado actual hacia una estructura mas mantenible y preparada para expansion. No reemplaza a `StateMachines.md`, `RuntimeHierarchyAudit.md` ni `QATester.md`; los coordina desde una perspectiva de prioridades.
 
-El salto de diseno actual tiene cinco frentes:
+Para la semana final antes de feria, el enfoque cambia: no conviene priorizar expansion general, sino una version presencial estable, entendible, recuperable y presentable en varios PCs.
+
+Objetivo de entrega de feria:
+
+```text
+3 PCs ejecutan el juego
+|-- 1 PC puede actuar como host de leaderboard LAN
+|-- los visitantes pueden jugar varios intentos
+|-- su progreso de feria puede recuperarse
+|-- al salir se sincroniza su mejor estado
+|-- el ranking se puede visualizar en pantalla
+```
+
+Regla de alcance: cualquier refactor que no mejore directamente estabilidad, onboarding, tienda, comics, boss visible o leaderboard de feria queda fuera de la semana final.
+
+## Roadmap de feria: semana final
+
+Fecha de planificacion: 2026-06-25. Ventana estimada: 7 dias.
+
+### P0: imprescindible para presentar
+
+Estas tareas definen si el juego puede mostrarse con confianza en feria.
+
+1. Build estable de demo.
+   - Todas las escenas principales cargan sin referencias faltantes criticas.
+   - Bloqueo de auditoria actual: `ZonaAbisopelagica` no contiene el `BossEventDirector` requerido por su contrato de escena. Resolverlo antes de declarar la build estable.
+   - MainMenu, gameplay, pausa, Game Over, opciones, ShopMenu y vuelta a menu funcionan.
+   - No hay bloqueos por `Time.timeScale`, pausa, comics, tienda o Game Over.
+   - `ZonaEpipelagica` y `ZonaAbisopelagica` pueden jugarse durante varios minutos sin acumulacion evidente de objetos.
+   - Criterio de cierre: build Windows probado fuera del Editor.
+
+2. Tienda out-of-game funcional.
+   - `ShopMenu` ya serializa seleccion y compra de las cuatro mejoras permanentes mediante `OutOfGameShopManager` y `PermanentShopService`.
+   - Pendiente de cierre: Play Mode de transacciones, feedback visual/sonoro elegido por el usuario y aplicacion visual real de skins.
+   - Debe cubrir como minimo:
+     - `upgrade.ink_pulse_bonus`;
+     - `upgrade.charge_rate_bonus`;
+     - `upgrade.shrimp_multiplier`;
+     - `upgrade.points_multiplier`.
+   - Debe mostrar saldo persistente con `ShrimpCounter`.
+   - Debe persistir compras en `player-profile.json`/`player-records.json`.
+   - Skins quedan P1 si no hay tiempo o arte final, salvo que ya esten casi listas.
+   - Criterio de cierre: comprar una mejora altera gameplay o economia observable sin editar codigo.
+
+3. Servidor de feria MVP.
+   - Implementar como subsistema externo, no como reemplazo de la DB normal.
+   - Recomendacion: Python/FastAPI + SQLite por velocidad y claridad.
+   - MVP obligatorio:
+     - crear participante con seudonimo;
+     - generar codigo de recuperacion;
+     - recuperar participante;
+     - sincronizar snapshot;
+     - checkout al salir;
+     - consultar leaderboard;
+     - pantalla web simple de ranking.
+   - Integracion Unity minima:
+     - exportar mejor puntaje, intentos, skills y desbloqueos relevantes;
+     - importar snapshot recuperado;
+     - mostrar puesto al salir.
+   - Criterio de cierre: dos PCs pueden crear/recuperar/sincronizar contra el host en LAN.
+
+4. Comics de lore criticos.
+   - Validar que los comics ya conectados se muestran y no bloquean:
+     - inicio al presionar Play;
+     - portal Epi -> Abi;
+     - portal Abi -> Epi;
+     - derrota por zona;
+     - primera entrada a tienda in-game;
+     - salida de tienda in-game con compra y sin compra.
+   - No implementar todavia comics por hitos de puntaje.
+   - No crear UI visual por runtime; solo corregir referencias si falta algo.
+   - Criterio de cierre: cada flujo se prueba en Play Mode y puede continuar despues del comic.
+
+5. Visual minimo del segundo boss.
+   - `UnknownBoss` / `FlappyBoss` no puede sentirse invisible o placeholder roto si aparece en la feria.
+   - Debe tener un root visual claro, activado por el prefab/controlador existente.
+   - Los pilares deben seguir funcionando con boundaries de camara y pared final continua.
+   - La prioridad es legibilidad, no animacion final.
+   - Criterio de cierre: el boss se entiende visualmente en `ZonaAbisopelagica` y no rompe FPS.
+
+6. Tutorial o onboarding corto.
+   - Si el tutorial completo no llega a estar pulido, preparar un modo de entrada breve o instrucciones externas para feria.
+   - Prioridad tecnica: validar al menos movimiento, graze, Ink-Pulse, camarones, tienda y Game Over.
+   - El tutorial completo sigue siendo importante, pero no debe bloquear el build de feria si el loop principal ya es entendible por monitoria presencial.
+   - Criterio de cierre: un visitante nuevo entiende movimiento, Ink-Pulse y objetivo en menos de un minuto.
+
+7. QA de estabilidad y performance.
+   - Medir `ZonaAbisopelagica` porque ya fue el punto mas riesgoso.
+   - Revisar:
+     - cleanup de fondos/parallax;
+     - cantidad de enemigos/minas/anzuelos/dealer;
+     - `ZoneLightingController`;
+     - boss abisal y pilares;
+     - audio/Ink-Pulse;
+     - pausa y Game Over.
+   - Criterio de cierre: prueba de 20-30 minutos sin degradacion evidente ni jerarquia creciendo sin control.
+
+### P1: alto valor si P0 esta cerrado
+
+1. UI final de feria dentro de Unity.
+   - Pantalla "Nuevo jugador".
+   - Pantalla "Recuperar".
+   - Pantalla "Tu puesto".
+   - Mensajes de error si no hay servidor.
+
+2. Skins en ShopMenu.
+   - Solo si la infraestructura de compra permanente ya esta cerrada.
+   - Debe cambiar visual, no mecanica.
+
+3. Pulido de comics.
+   - Ajuste de duracion por evento.
+   - Verificar arte final y encuadre.
+   - Causas de derrota solo si ya existe forma fiable de detectar causa.
+
+4. Pulido del segundo boss.
+   - Animacion de entrada/salida.
+   - Feedback sonoro o VFX si no impacta performance.
+   - Ajuste fino de ritmo de pilares.
+
+5. OptionsMenu y botones.
+   - Revisar escala en MainMenu y escenas jugables.
+   - Confirmar volumen/resolucion global.
+   - Confirmar botones con contrato `Button` + `Visual`.
+
+### P2: cortar si compite con la feria
+
+Estas tareas pueden esperar aunque sean buenas para el proyecto.
+
+- Comics por hitos de puntaje.
+- Causas especificas de derrota con variantes narrativas.
+- Refactor amplio de sistemas de persistencia.
+- Nuevas zonas.
+- Nuevos enemigos no necesarios para el recorrido de feria.
+- Transiciones de portal asincronicas complejas.
+- Editor tooling nuevo salvo validaciones muy concretas.
+- Rebalance fino de largo plazo.
+
+### Plan por dias
+
+El orden propuesto reduce riesgo: primero cerrar jugabilidad y datos, luego presentacion, luego feria LAN, luego polish.
+
+| Dia | Foco | Resultado esperado |
+| --- | --- | --- |
+| D-7 | Auditoria corta + ShopMenu | Lista final de faltantes, compra permanente minima funcionando. |
+| D-6 | ShopMenu + comics | Mejoras impactan gameplay; comics criticos no bloquean. |
+| D-5 | Servidor feria MVP | API SQLite + pantalla web leaderboard funcionando en local. |
+| D-4 | Integracion Unity feria | Crear/recuperar/sync/checkout desde build o escena de prueba. |
+| D-3 | Segundo boss + QA abisal | Boss visible y zona abisal estable durante prueba larga. |
+| D-2 | Prueba 3 PCs | LAN real, host fijo, firewall, recuperacion, leaderboard. |
+| D-1 | Freeze de build | Solo bugs criticos; preparar ejecutables, instrucciones y backup. |
+| D-0 | Feria | No cambiar codigo salvo emergencia. |
+
+### Criterios de aceptacion de feria
+
+La version de feria se considera lista si:
+
+- el juego arranca desde build en los PCs definidos;
+- MainMenu permite jugar, opciones, tienda y salida sin errores visibles;
+- `ShopMenu` permite comprar mejoras permanentes reales;
+- los comics criticos aparecen sin cortar el flujo;
+- el segundo boss tiene presencia visual comprensible;
+- el host LAN recibe participantes y snapshots;
+- el ranking se ve en pantalla externa o web local;
+- un participante puede recuperar su progreso con seudonimo + codigo;
+- si el servidor falla, el juego no se rompe;
+- existe backup de la base SQLite antes de abrir la feria;
+- se documenta la IP/puerto del host y el procedimiento de arranque.
+
+### Corte de emergencia
+
+Si faltan menos de 48 horas y algo sigue inestable, aplicar este recorte:
+
+1. Mantener gameplay principal estable por sobre todo.
+2. Mantener ShopMenu solo con mejoras, sin skins.
+3. Mantener servidor de feria con crear/sync/leaderboard; recuperacion manual puede quedar simplificada si existe fallback local.
+4. Mantener comics de inicio, portal y derrota; comics de tienda pueden quedar desactivados si bloquean.
+5. Mantener segundo boss visible aunque sea con visual simple.
+6. Congelar balance; solo corregir bugs que impidan jugar.
+
+## Backlog estructural post-feria
+
+El salto de diseno general sigue teniendo estos frentes, pero quedan subordinados al roadmap de feria:
 
 1. Consolidar al jugador como prefab reutilizable.
 2. Implementar el nivel tutorial.
 3. Implementar menu de opciones global.
 4. Implementar tienda out-of-game de mejoras.
 5. Implementar menu de opciones in-game reducido.
+
+## Prioridad maxima estructural
+
+Fuera del recorte de feria, las siguientes dos piezas siguen bloqueando la prueba completa del juego y deben tratarse como P0 hasta quedar terminadas:
+
+1. `ZonaTutorial` con `TutorialDirector`.
+2. `ShopMenu` como tienda out-of-game de progreso permanente.
+
+El tutorial no es solo onboarding: debe funcionar como prueba integrada del loop principal. Debe validar movimiento, graze, Ink-Pulse, tienda temporal, gadgets, SS Carnage/red, Shell Shield, portal, cambio visual de zona y Game Over dentro de un flujo dirigido y repetible.
+
+La tienda out-of-game no es una version grande de la tienda temporal: debe consumir la base persistente y los servicios permanentes para skins, upgrades, precios, niveles, saldo y efectos reales sobre gameplay.
 
 ## Estado implementado
 
@@ -59,6 +251,24 @@ Pendiente:
 - Evaluar una maquina `PortalTransitionState` separada solo si se agregan fases internas como fundido, carga asincronica o salida.
 - Diferenciar UX visual y sonora por zona.
 - Definir reglas de retorno segun progresion, no solo por escena activa.
+
+### Lore comics
+
+Implementado:
+- `LoreComicPresenter` como orquestador runtime.
+- `LoreComic.prefab` como overlay narrativo canonico.
+- Comic de inicio solicitado desde `MainMenu.Jugar`.
+- Comic de portal solicitado desde `ScenePortal` antes de cargar destino.
+- Comic de derrota solicitado desde `GameOverMenuManager` antes de mostrar Game Over.
+- Comics de primera entrada y primera salida de tienda in-game solicitados desde `InGameShopManager`.
+- Vinetas reemplazables organizadas por dominio para inicio, portales, derrotas por zona y tienda in-game.
+- Instancias `LoreComicRoot` en `MainMenu` y en `GameRoot_ZonaEpipelagica`, `GameRoot_ZonaAbisopelagica` y `GameRoot_ZonaTutorial`.
+
+Pendiente:
+- Validar arte final y referencias de vinetas.
+- Validar inicio, ambos sentidos de portal y derrotas en Play Mode.
+- Agregar causa de derrota si el diseno necesita comics distintos por forma de perder.
+- Agregar comics por hitos de puntaje cuando el contrato de hitos este definido.
 
 ### Tienda in-game
 
@@ -142,19 +352,30 @@ BabySquid
 
 ## Prioridad P0: Nivel tutorial
 
-Estado: base formal implementada. `ZonaTutorial` ya usa el jugador canonico y contiene `TutorialDirector` sobre `GameSession` para gobernar la progresion pedagogica por `TutorialStep`.
+Estado: flujo mecanico implementado. `ZonaTutorial` usa el jugador canonico y contiene `TutorialDirector` sobre `GameSession` para gobernar la progresion pedagogica por `TutorialStep`.
 
 ### Objetivo
 
-Implementar `ZonaTutorial` como secuencia guiada:
+Implementar `ZonaTutorial` como secuencia guiada y prueba integrada:
 
 1. Movimiento.
-2. Graze.
-3. Carga y activacion de Ink-Pulse.
-4. Tienda temporal.
-5. Compra y uso de gadgets.
-6. Boss/pared.
-7. Portal hacia zona principal.
+2. Graze para cargar Ink-Pulse.
+3. Uso obligatorio de Ink-Pulse.
+4. Recoleccion de 10 camarones.
+5. Apertura de tienda temporal.
+6. Compra de Ink Bottle como Gadget #1.
+7. Ink Bottle activo dentro de la run, sin temporizador limitado.
+8. SS Carnage y red.
+9. Uso de Ink-Pulse para superar SS Carnage.
+10. Segunda tienda.
+11. Compra de Shell Shield.
+12. Aparicion de enemigo.
+13. Hit bloqueado por Shell Shield.
+14. Portal.
+15. Cambio visual/capa hacia segunda zona dentro de la misma escena.
+16. Enemigo final.
+17. Hit sin Shell Shield disponible.
+18. Game Over.
 
 ### Controlador implementado
 
@@ -162,20 +383,32 @@ Implementar `ZonaTutorial` como secuencia guiada:
 
 Responsabilidades:
 - Activar pasos en orden.
-- Bloquear o habilitar mecanicas segun el paso activo.
+- Bloquear `LevelSpawner` y `BossEventDirector` durante la secuencia dirigida.
 - Solicitar spawns tutorializados.
 - Medir criterios de avance.
-- Mostrar UI de tutorial si se requiere.
-- Terminar cargando `ZonaEpipelagica` mediante `SceneFlowController`.
+- Coordinar tienda temporal, gadgets, SS Carnage, portal local y Game Over.
+- Exponer eventos para UI de tutorial futura, sin crear textos/prompts todavia.
 
 Pasos actuales:
 - `Movement`
-- `Graze`
-- `InkPulse`
-- `Shop`
-- `Gadgets`
-- `BossAndNet`
-- `Portal`
+- `GrazeCharge`
+- `InkPulseObstacle`
+- `CollectShrimps10`
+- `FirstShopOpen`
+- `BuyInkBottle`
+- `InkBottleBarrier`
+- `CarnageIntro`
+- `CarnageInkPulseAssist`
+- `CarnageInkPulseResolve`
+- `SecondShopOpen`
+- `BuyShellShield`
+- `ProtectedHitSetup`
+- `ProtectedHitResolved`
+- `PortalSpawn`
+- `PortalEnter`
+- `VisualZoneShift`
+- `FinalEnemy`
+- `FinalDeath`
 - `Completed`
 
 Reglas:
@@ -185,9 +418,9 @@ Reglas:
 - No usar enemigos reales de progresion si el paso requiere una version controlada.
 
 Pendiente:
-- Crear UI de instrucciones tutorial.
-- Crear spawns dirigidos por paso.
-- Definir salida final hacia `ZonaEpipelagica` con una transicion clara de fin de tutorial.
+- Validar el recorrido completo en Play Mode.
+- Ajustar `firstZoneVisualRoots` y `secondZoneVisualRoots` cuando exista el arte/capa de segunda zona dentro de la escena.
+- Mantener postergada la UI de instrucciones, textos y senalizacion visual hasta que el flujo mecanico sea aprobado.
 
 ## Prioridad P1: Menu de opciones global
 
@@ -217,7 +450,7 @@ Reglas:
 - Settings debe tener almacenamiento propio; no pertenece a la base `db` de progreso.
 - `OptionsMenu` no debe duplicar logica con el menu de pausa.
 
-## Prioridad P1: Tienda out-of-game
+## Prioridad P0: Tienda out-of-game
 
 `ShopMenu` debe ser una tienda global de mejoras permanentes, no una version grande de la tienda temporal.
 
@@ -235,12 +468,18 @@ Base ya disponible:
 1. Player prefab, para que skins tengan una base clara.
 2. Base JSON local `db` con `unlockables-catalog.json`, `player-profile.json`, `player-records.json` y `local-leaderboard.json`.
 
-Dependencias pendientes:
+Estado actual:
 
-1. UI de `ShopMenu`.
-2. Presenter para listar skins, niveles, precios, metas y estados de compra.
-3. Aplicacion visual de la skin equipada sobre el prefab del jugador.
-4. Un modelo de settings separado.
+1. `OutOfGameShopManager` conecta cuatro slots de upgrades, cuatro slots paginados de skins, navegacion y compra con datos reales.
+2. `ShrimpCounter` es una instancia del prefab en `ShopMenu`.
+3. El catalogo actual contiene una sola skin default; la pagina de skins es extensible, pero no hay inventario visual de skins final.
+4. Los textos de precio, nivel y estado son referencias opcionales de UI: se conectan cuando el usuario defina su presentacion visual.
+
+Pendiente:
+
+1. Probar en Play Mode todas las transacciones y la persistencia entre reinicios.
+2. Aplicacion visual de la skin equipada sobre el prefab del jugador.
+3. Feedback visual/sonoro de compra fallida, compra exitosa, nivel maximo y desbloqueo pendiente.
 
 ### Arquitectura recomendada
 
@@ -258,6 +497,9 @@ Reglas:
 - No vender gadgets aqui. Los gadgets pertenecen a la run; fuera de la run solo se desbloquea su elegibilidad por hitos automaticos.
 - No aplicar upgrades directamente desde botones sin pasar por un modelo de perfil.
 - Las skins deben cambiar prefab variant, visual o override, no el controlador de gameplay.
+- `ShopMenu` debe consumir `PermanentShopService`; no debe recalcular precios, metas, saldo ni nivel maximo.
+- La compra debe persistir en `player-profile.json`/`player-records.json` segun corresponda.
+- Las mejoras permanentes deben impactar sistemas ya conectados: Ink-Pulse, charge rate, camarones y score.
 
 ## Prioridad P1: Menu de opciones in-game
 
@@ -296,16 +538,25 @@ Despues de los bloques anteriores, quedan estas mejoras de continuidad:
 
 ## Orden recomendado
 
-1. Player como prefab.
-2. Reemplazo del jugador en todas las zonas.
-3. Tutorial con UI y spawns dirigidos sobre `TutorialDirector`.
-4. Modelo compartido de settings.
-5. `OptionsMenu` global.
-6. Opciones in-game reducidas desde pausa.
-7. `ShopMenu` out-of-game de mejoras y skins.
-8. Aplicacion visual de skins sobre `BabySquid`.
-9. Portales con transicion formal.
-10. Expansion de enemigos, bosses y zonas.
+Para la semana de feria, el orden recomendado es:
+
+1. Auditoria corta de build, escenas, referencias y errores visibles.
+2. `ShopMenu` out-of-game con mejoras permanentes reales.
+3. Validacion de comics criticos ya conectados.
+4. Servidor feria MVP externo con SQLite y leaderboard web.
+5. Adaptador Unity minimo para crear/recuperar/sincronizar/checkout.
+6. Visual minimo del segundo boss y prueba de `ZonaAbisopelagica`.
+7. QA de 3 PCs en LAN real.
+8. Freeze de build.
+
+Para post-feria, el orden estructural vuelve a ser:
+
+1. Tutorial completo con UI y spawns dirigidos sobre `TutorialDirector`.
+2. Aplicacion visual de skins sobre `BabySquid`.
+3. Modelo compartido de settings si aun quedan inconsistencias.
+4. Opciones in-game reducidas desde pausa si no quedaron cerradas.
+5. Portales con transicion formal.
+6. Expansion de enemigos, bosses y zonas.
 
 ## Invariante de boundaries
 

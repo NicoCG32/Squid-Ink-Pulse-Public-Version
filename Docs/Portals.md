@@ -9,8 +9,10 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 ## Archivos
 
 - `Assets/Implementation/Code/World/Portals/ScenePortal.cs`
+- `Assets/Implementation/Code/Lore/LoreComicPresenter.cs`
 - `Assets/Implementation/Code/Spawning/LevelSpawner.cs`
 - `Assets/Content/Prefabs/Portals/ScenePortal.prefab`
+- `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab`
 - `Assets/Scenes/Game/ZonaEpipelagica.unity`
 - `Assets/Scenes/Game/ZonaAbisopelagica.unity`
 - `ProjectSettings/EditorBuildSettings.asset`
@@ -23,7 +25,8 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 - Deshabilita sus colliders al activarse para evitar doble carga.
 - Solicita a `PlayerStateController` entrar en `PlayerRuntimeState.PortalTransition`.
 - Espera la duracion de `PlayerVisualStateController.PortalTransitionDuration`.
-- Solicita a `SceneFlowController` cargar el destino correspondiente al terminar `PortalEffect`.
+- Solicita a `LoreComicPresenter` mostrar la vineta de direccion si existe una entrada configurada.
+- Solicita a `SceneFlowController` cargar el destino correspondiente despues de `PortalEffect` y del comic de lore si corresponde.
 
 `PlayerVisualStateController`:
 - Vive en el root de `BabySquid`.
@@ -35,6 +38,7 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 - Conserva las rutas de zona configurables.
 - Decide la escena destino segun la escena activa.
 - Resuelve rutas `.unity` a nombres disponibles en Build Settings.
+- Expone el destino de portal antes de cargar mediante `TryResolvePortalDestinationFromActiveScene` para que sistemas previos a la carga, como lore comics, puedan elegir contenido sin duplicar rutas.
 
 `LevelSpawner`:
 - Instancia `ScenePortal.prefab` como evento temporal de mundo.
@@ -75,6 +79,23 @@ Regla actual:
 - Si la escena activa no coincide con `secondaryGameplaySceneName`, el portal entra a `secondaryGameplaySceneName`.
 
 Esto permite usar el mismo prefab como portal de ida y portal inverso.
+
+## Lore antes del cambio
+
+La transicion narrativa de portal pertenece al sistema de lore, no al prefab visual del portal.
+
+Secuencia esperada:
+1. El jugador toca `ScenePortal`.
+2. `ScenePortal` bloquea doble activacion y solicita `PlayerRuntimeState.PortalTransition`.
+3. `PortalVisual` reproduce `PortalEffect`.
+4. `SceneFlowController` resuelve el destino real.
+5. `LoreComicPresenter.PlayPortalTransitionIfAvailable(targetScene)` muestra la vineta si hay `LoreComicRoot` activo y una entrada configurada.
+6. `SceneFlowController` carga la escena destino.
+
+Reglas:
+- Si no existe `LoreComicPresenter`, el portal continua sin bloquearse.
+- Si no hay entrada configurada para la direccion, no se muestra panel vacio.
+- Las rutas siguen perteneciendo a `SceneFlowController`; `LoreComicPresenter` solo recibe el destino resuelto para elegir evento.
 
 ## Persistencia entre portales
 

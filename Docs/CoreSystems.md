@@ -108,6 +108,7 @@ Responsabilidad:
 - Volver al menu principal.
 - Restaurar `Time.timeScale` antes de cambiar de escena.
 - Preparar rutas conocidas para `ZonaTutorial` y `ShopMenu`; `OptionsMenu` es prefab/panel, no escena.
+- Exponer el destino de portal antes de cargar para transiciones narrativas mediante `TryResolvePortalDestinationFromActiveScene`.
 
 Uso por portales:
 - `ScenePortal` usa `SceneFlowController` como fuente obligatoria de destino.
@@ -115,6 +116,7 @@ Uso por portales:
 - Las escenas destino deben estar registradas en Build Settings.
 - La carga por portal no reinicia gadgets ni Ink-Pulse.
 - La carga por portal tampoco reinicia score ni pace runtime.
+- Antes de cargar por portal, `ScenePortal` puede solicitar a `LoreComicPresenter` una vineta de direccion usando el destino resuelto. La seleccion visual no pertenece a `SceneFlowController`.
 
 Uso por Game Over:
 - `GameOverMenuManager.Retry()` no recarga la escena activa.

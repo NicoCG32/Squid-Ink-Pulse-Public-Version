@@ -11,6 +11,9 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private string shopMenuSceneName = "Assets/Scenes/ShopMenu/ShopMenu.unity";
     [SerializeField] private float timeDelay = 0.6f;
 
+    [Header("Lore Comics")]
+    [SerializeField] private bool showStartLoreComicBeforePlay = true;
+
     [Header("UI Panels")]
     [SerializeField] private OptionsMenuManager optionsMenuPanel;
 
@@ -28,7 +31,7 @@ public class MainMenu : MonoBehaviour
 
     public void Jugar()
     {
-        LoadConfiguredScene(playSceneName, "juego");
+        LoadConfiguredScene(playSceneName, "juego", showStartLoreComicBeforePlay);
     }
 
     public void Opciones()
@@ -54,7 +57,7 @@ public class MainMenu : MonoBehaviour
         LoadConfiguredScene(mainMenuSceneName, "menu principal");
     }
 
-    private void LoadConfiguredScene(string sceneName, string sceneLabel)
+    private void LoadConfiguredScene(string sceneName, string sceneLabel, bool showStartLoreComic = false)
     {
         if (isLoading)
         {
@@ -74,7 +77,7 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        StartCoroutine(LoadSceneAfterDelay(resolvedSceneName));
+        StartCoroutine(LoadSceneAfterDelay(resolvedSceneName, showStartLoreComic));
     }
 
     private string ResolveLoadableSceneName(string sceneName)
@@ -103,9 +106,15 @@ public class MainMenu : MonoBehaviour
         return Application.CanStreamedLevelBeLoaded(shortSceneName) ? shortSceneName : null;
     }
 
-    private IEnumerator LoadSceneAfterDelay(string sceneName)
+    private IEnumerator LoadSceneAfterDelay(string sceneName, bool showStartLoreComic)
     {
         isLoading = true;
+
+        if (showStartLoreComic)
+        {
+            yield return LoreComicPresenter.PlayGameStartIfAvailable();
+        }
+
         yield return new WaitForSecondsRealtime(timeDelay);
         Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);

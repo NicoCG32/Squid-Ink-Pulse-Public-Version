@@ -54,6 +54,9 @@ MonoBehaviour:
     startYOffsetBelowTopBoundary: 0.15
     descentStartViewportX: 1.05
     descentWindupSeconds: 0.15
+    enableFastPaceHorizontalHold: 1
+    horizontalHoldMinScrollSpeed: 10
+    horizontalHoldViewportX: 1.05
     arriveDistance: 0.03
     horizontalLeadTimePaddingSeconds: 0.25
     minimumHorizontalLeadDistance: 2

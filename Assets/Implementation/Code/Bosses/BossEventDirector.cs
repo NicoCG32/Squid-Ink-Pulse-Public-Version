@@ -66,6 +66,19 @@ public class BossEventDirector : MonoBehaviour
         hasTriggered = false;
     }
 
+    public GameObject TriggerBossEventManually()
+    {
+        ResolveSceneReferences();
+
+        if (bossPrefab == null || spawnCamera == null)
+        {
+            return null;
+        }
+
+        progression?.TryStartBossEvent();
+        return TriggerBossEvent(resetLocalTimer: false);
+    }
+
     private bool CanTick()
     {
         if (session == null || !session.IsPlaying)
@@ -81,7 +94,7 @@ public class BossEventDirector : MonoBehaviour
         return !triggerOnce || !hasTriggered;
     }
 
-    private void TriggerBossEvent(bool resetLocalTimer)
+    private GameObject TriggerBossEvent(bool resetLocalTimer)
     {
         hasTriggered = true;
         eventCameraController?.RequestFullVerticalView(
@@ -97,6 +110,8 @@ public class BossEventDirector : MonoBehaviour
         {
             elapsedGameplaySeconds = 0f;
         }
+
+        return bossInstance;
     }
 
     private Vector3 CalculateSpawnPosition()

@@ -3,6 +3,11 @@ using UnityEngine;
 
 public static class ShopOfferSelector
 {
+    public static bool HasAnyOffer(ShopGadgetOffer[] offers, Func<ShopGadgetOffer, bool> offerFilter = null)
+    {
+        return CountConfiguredOffers(offers, offerFilter) > 0;
+    }
+
     public static ShopGadgetOffer SelectOffer(ShopGadgetOffer[] offers, Func<ShopGadgetOffer, bool> offerFilter = null)
     {
         int configuredCount = CountConfiguredOffers(offers, offerFilter);

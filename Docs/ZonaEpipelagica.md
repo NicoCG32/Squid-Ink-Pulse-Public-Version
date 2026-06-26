@@ -20,6 +20,7 @@ flowchart TD
     GameRoot --> Gameplay[Gameplay]
     GameRoot --> Player[Player]
     GameRoot --> GameUIRoot[GameUIRoot]
+    GameRoot --> LoreComicRoot[LoreComicRoot]
 
     Systems --> GameSession[GameSession]
     Systems --> SceneFlow[SceneFlow]
@@ -50,6 +51,7 @@ flowchart TD
     GameUIRoot --> GameOverMenu[GameOverMenuManager]
     GameUIRoot --> ShopMenu[InGameShopManager]
     GameUIRoot --> EventSystem[EventSystem]
+    LoreComicRoot --> Comic[Comic]
 ```
 
 ## Nodos y scripts
@@ -77,6 +79,8 @@ flowchart TD
 | `PortalVisual` | `SpriteRenderer`, `Animator` con `PortalEffect.controller` | Transicion visual previa al cambio de escena por portal. |
 | `Main Camera` | `CameraController`, `Camera`, `AudioListener`, URP | Seguimiento, eventos de camara y render. |
 | `GameUIRoot` | `GameUIRoot` | Contrato de composicion de UI jugable. |
+| `LoreComicRoot` | `LoreComicPresenter` | Overlay narrativo para portales y derrota usando el nodo visual `Comic`. |
+| `Comic` | `Canvas`, `CanvasGroup` | Canvas ocultable para vineta, dimmer y boton de continuar. |
 | `HUD` | `ChargeBar`, `ShrimpCounterDisplay`, `GadgetInventoryHud` | Ink-Pulse, camarones y gadgets. |
 | `PauseMenuManager` | `PauseMenuManager` | Pausa. |
 | `GameOverMenuManager` | `GameOverMenuManager` | Derrota. |
@@ -127,6 +131,7 @@ La utilidad de mantenimiento es `Tools/Squid/Normalize Gameplay Scene Coordinate
 - `SceneFlowController` resuelve retorno al menu y cambios de escena.
 - `LevelSpawner` genera enemigos, camarones, tienda y portales usando el `ZoneSpawnProfile` de la zona, sin mezclar progresion global.
 - `ScenePortal` gobierna el cambio entre `ZonaEpipelagica` y `ZonaAbisopelagica`, pero nace desde `LevelSpawner`.
+- `LoreComicPresenter` muestra vinetas de portal y derrota si hay entradas configuradas; no decide rutas ni crea UI.
 - `BossEventDirector` coordina el momento del SS Carnage y solicita el cue de camara.
 - `InGameShopManager` gobierna la oferta temporal de gadgets sin mezclarse con pausa ni game over.
 - `GadgetInventoryHud` muestra `Q` en `Gadget1` y `W` en `Gadget2` cuando el gadget del slot es activo.
@@ -155,8 +160,10 @@ flowchart LR
     LevelSpawner --> ScenePortal[ScenePortal]
     DealerFish --> InGameShopManager
     ScenePortal --> SceneFlowController
+    ScenePortal --> LoreComicPresenter
     PauseMenuManager --> GameSessionController
     GameOverMenuManager --> SceneFlowController
+    GameOverMenuManager --> LoreComicPresenter
 ```
 
 ## ZonaAbisopelagica

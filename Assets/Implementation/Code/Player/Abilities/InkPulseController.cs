@@ -122,6 +122,22 @@ public class InkPulseController : MonoBehaviour
         return CurrentState == InkPulseState.Ready;
     }
 
+    public void ForceEmptyCharge()
+    {
+        bool wasPulseActive = IsPulseActive;
+        IsPulseActive = false;
+        pulseTimer = 0f;
+        currentCharge = 0f;
+        UpdateChargeBar();
+        ApplyState(ResolveState(), force: wasPulseActive);
+        PersistRuntimeState();
+
+        if (wasPulseActive)
+        {
+            PulseEnded?.Invoke();
+        }
+    }
+
     public void SetActivationSuppressed(bool suppressed)
     {
         activationSuppressed = suppressed;

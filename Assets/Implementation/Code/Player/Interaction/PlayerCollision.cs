@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -9,6 +10,10 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private ShrimpCollector shrimpCollector;
     [SerializeField] private PlayerGadgetInventory gadgetInventory;
     [SerializeField] private Collider2D damageCollider;
+
+    public event Action<Collider2D> HazardIgnoredByInkPulse;
+    public event Action<Collider2D> HazardBlockedByShellShield;
+    public event Action<Collider2D> HazardCausedGameOver;
 
     private void Awake()
     {
@@ -46,11 +51,13 @@ public class PlayerCollision : MonoBehaviour
     {
         if (inkPulseController != null && inkPulseController.IsPulseActive)
         {
+            HazardIgnoredByInkPulse?.Invoke(hazard);
             return;
         }
 
         if (gadgetInventory != null && gadgetInventory.TryConsumeShellShield())
         {
+            HazardBlockedByShellShield?.Invoke(hazard);
             if (hazard != null)
             {
                 Destroy(hazard.gameObject);
@@ -65,6 +72,7 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
+        HazardCausedGameOver?.Invoke(hazard);
         session.RequestGameOver();
     }
 

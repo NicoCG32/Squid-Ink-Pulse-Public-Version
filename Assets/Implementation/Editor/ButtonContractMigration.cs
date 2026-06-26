@@ -543,8 +543,7 @@ public static class ButtonContractMigration
             changed |= SetObjectReference(serializedObject, "resumeButton", UiButtonContract.FindButton(menuRoot, "ReanudarBoton", "BotonReanudar"));
             changed |= SetObjectReference(serializedObject, "optionsButton", UiButtonContract.FindButton(menuRoot, "OpcionesBoton", "BotonOpciones"));
             changed |= SetObjectReference(serializedObject, "menuButton", UiButtonContract.FindButton(menuRoot, "MenuBoton", "BotonMenu"));
-            changed |= SetObjectReference(serializedObject, "exitButton", UiButtonContract.FindButton(menuRoot, "SalirBoton", "BotonSalir"));
-            changed |= SetObjectArray(serializedObject, "animatedButtons", UiButtonContract.FindButtonRootRects(menuRoot, "ReanudarBoton", "OpcionesBoton", "MenuBoton", "SalirBoton"));
+            changed |= SetObjectArray(serializedObject, "animatedButtons", UiButtonContract.FindButtonRootRects(menuRoot, "ReanudarBoton", "OpcionesBoton", "MenuBoton"));
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 

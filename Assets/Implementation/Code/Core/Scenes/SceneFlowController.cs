@@ -55,11 +55,6 @@ public class SceneFlowController : MonoBehaviour
         LoadSceneByName(shopMenuSceneName);
     }
 
-    public void LoadOptionsMenu()
-    {
-        Debug.LogWarning("[SceneFlowController] OptionsMenu ya no es una escena. Debe abrirse mediante el prefab OptionsMenuManager asignado en la escena.", this);
-    }
-
     public void LoadSceneByName(string sceneName)
     {
         TryLoadSceneByName(sceneName);
@@ -114,6 +109,12 @@ public class SceneFlowController : MonoBehaviour
         }
 
         return TryLoadSceneByName(targetScene);
+    }
+
+    public bool TryResolvePortalDestinationFromActiveScene(out string targetScene)
+    {
+        targetScene = ResolvePortalDestinationFromActiveScene();
+        return !string.IsNullOrWhiteSpace(targetScene);
     }
 
     private string ResolvePortalDestinationFromActiveScene()
@@ -173,5 +174,6 @@ public class SceneFlowController : MonoBehaviour
         RuntimeInkPulseState.ResetForRuntime();
         RuntimeRunScore.ResetForRuntime();
         RuntimePlayerPace.ResetForRuntime();
+        RuntimeInGameShopLoreState.ResetForRuntime();
     }
 }

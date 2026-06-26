@@ -21,8 +21,9 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 - Tienda temporal mediante `DealerFish` e `InGameShopManager`.
 - Gadgets comprables con inventario runtime no stackable.
 - Desbloqueos permanentes de elegibilidad de gadgets por hitos de score/records.
-- Base de tienda out-of-game preparada para skins y mejoras permanentes mediante JSON y `PermanentShopService`.
+- Tienda out-of-game `ShopMenu` con seleccion y compra funcional de cuatro mejoras permanentes, preparada para skins paginadas mediante JSON, `OutOfGameShopManager` y `PermanentShopService`.
 - Portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
+- Comics de lore para inicio, portales y derrota mediante `LoreComicPresenter`.
 - Gadgets e Ink-Pulse persisten entre portales y se reinician al entrar en Game Over.
 - `ZonaAbisopelagica` tiene oscuridad ambiental por overlay y `LightGraze` visual independiente del graze de Ink-Pulse.
 - Soundtrack dinamico: `ZonaEpipelagica` cruza entre pista normal e `INK`, y `ZonaEpipelagica`/`ZonaAbisopelagica` aumentan pitch segun la progresion efectiva de la run.
@@ -46,7 +47,8 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 8. [GameplaySystems.md](GameplaySystems.md)
 9. [EnemiesAndBosses.md](EnemiesAndBosses.md)
 10. [Portals.md](Portals.md)
-11. [ZoneLighting.md](ZoneLighting.md)
-12. [UiAndMenu.md](UiAndMenu.md)
-13. [QATester.md](QATester.md)
-14. [ROADMAP.md](ROADMAP.md)
+11. [LoreComics.md](LoreComics.md)
+12. [ZoneLighting.md](ZoneLighting.md)
+13. [UiAndMenu.md](UiAndMenu.md)
+14. [QATester.md](QATester.md)
+15. [ROADMAP.md](ROADMAP.md)
