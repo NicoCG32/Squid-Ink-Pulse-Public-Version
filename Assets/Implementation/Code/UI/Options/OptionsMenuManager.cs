@@ -41,11 +41,13 @@ public class OptionsMenuManager : MonoBehaviour
     private void Awake()
     {
         ResolveUiReferences();
+        NormalizeRenderableScale();
     }
 
     private void Start()
     {
         ResolveUiReferences();
+        NormalizeRenderableScale();
 
         if (backButton != null)
         {
@@ -70,6 +72,7 @@ public class OptionsMenuManager : MonoBehaviour
     public void Open(Action onClosed = null)
     {
         ResolveUiReferences();
+        NormalizeRenderableScale();
         onClosedCallback = onClosed;
         isOpen = true;
         SetVisible(true);
@@ -335,6 +338,11 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void SetVisible(bool visible)
     {
+        if (visible)
+        {
+            NormalizeRenderableScale();
+        }
+
         bool menuRootIsManagerObject = menuRoot == gameObject;
         if (visible && menuRootIsManagerObject && !gameObject.activeSelf)
         {
@@ -372,5 +380,32 @@ public class OptionsMenuManager : MonoBehaviour
             "VolverBoton",
             "BackBoton",
             "BackButton");
+    }
+
+    private void NormalizeRenderableScale()
+    {
+        Transform rootTransform = menuRoot != null ? menuRoot.transform : transform;
+        Canvas ownerCanvas = rootTransform != null
+            ? rootTransform.GetComponentInParent<Canvas>(true)
+            : GetComponentInParent<Canvas>(true);
+
+        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
+        RestoreScaleIfCollapsed(rootTransform);
+    }
+
+    private static void RestoreScaleIfCollapsed(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 localScale = target.localScale;
+        if (Mathf.Approximately(localScale.x, 0f)
+            || Mathf.Approximately(localScale.y, 0f)
+            || Mathf.Approximately(localScale.z, 0f))
+        {
+            target.localScale = Vector3.one;
+        }
     }
 }

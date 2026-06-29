@@ -10,6 +10,8 @@ public static class UiButtonContract
     public const string NormalStateName = "Normal";
     public const string HighlightedStateName = "Destacado";
     public const string PressedStateName = "Presionado";
+    public const string BuyedStateName = "Buyed";
+    public const string SelectedStateName = "Selected";
 
     public static Button FindButton(Transform root, params string[] contractNames)
     {

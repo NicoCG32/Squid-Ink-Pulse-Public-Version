@@ -20,6 +20,11 @@ public static class UnlockablesCatalogQuery
         return catalog.skins.FirstOrDefault(skin => skin.id == skinId);
     }
 
+    public static UnlockableSkinDefinition GetEquippedSkin()
+    {
+        return FindSkin(PersistentPlayerProfile.EquippedSkinId);
+    }
+
     public static PermanentUpgradeDefinition FindPermanentUpgrade(string upgradeId)
     {
         UnlockablesCatalogSaveData catalog = PersistentPlayerProfile.UnlockablesCatalog;

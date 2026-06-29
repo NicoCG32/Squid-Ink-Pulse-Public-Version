@@ -21,6 +21,7 @@ public sealed class ButtonVisualState : MonoBehaviour,
     [SerializeField] private GameObject normalState;
     [SerializeField] private GameObject highlightedState;
     [SerializeField] private GameObject pressedState;
+    [SerializeField] private bool usePressedStateWhenSelected;
 
     [Header("Pressed SFX")]
     [SerializeField] private AudioSource pressedAudioSource;
@@ -44,6 +45,17 @@ public sealed class ButtonVisualState : MonoBehaviour,
     public GameObject PressedState => pressedState;
     public AudioSource PressedAudioSource => pressedAudioSource;
     public AudioClip PressedSfx => pressedSfx;
+
+    public void SetUsePressedStateWhenSelected(bool value)
+    {
+        if (usePressedStateWhenSelected == value)
+        {
+            return;
+        }
+
+        usePressedStateWhenSelected = value;
+        UpdateVisualState();
+    }
 
     private void Reset()
     {
@@ -188,6 +200,12 @@ public sealed class ButtonVisualState : MonoBehaviour,
         }
 
         if (isPointerDown)
+        {
+            ApplyState(ButtonVisualStateKind.Presionado);
+            return;
+        }
+
+        if (isSelected && usePressedStateWhenSelected)
         {
             ApplyState(ButtonVisualStateKind.Presionado);
             return;

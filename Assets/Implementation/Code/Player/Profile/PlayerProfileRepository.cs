@@ -7,13 +7,14 @@ public static class PlayerProfileRepository
 {
     public const int CurrentVersion = 3;
     public const int RecordsVersion = 1;
-    public const int UnlockablesCatalogVersion = 2;
+    public const int UnlockablesCatalogVersion = 5;
     public const int LeaderboardVersion = 1;
 
     public static string ProfilePath => PersistentDbPaths.PlayerProfilePath;
     public static string RecordsPath => PersistentDbPaths.PlayerRecordsPath;
     public static string UnlockablesCatalogPath => PersistentDbPaths.UnlockablesCatalogPath;
     public static string LocalLeaderboardPath => PersistentDbPaths.LocalLeaderboardPath;
+    public static bool UsesTransientEditorPlayModeProfileSaves => ShouldUseTransientEditorPlayModeProfileSaves();
 
     public static PlayerProfileSaveData Load()
     {
@@ -111,6 +112,12 @@ public static class PlayerProfileRepository
         }
 
         data.version = CurrentVersion;
+        if (ShouldUseTransientEditorPlayModeProfileSaves())
+        {
+            NormalizeProfile(data);
+            return;
+        }
+
         JsonSaveFile.Save(PersistentDbPaths.PlayerProfilePath, data, NormalizeProfile, "player profile");
     }
 
@@ -122,6 +129,12 @@ public static class PlayerProfileRepository
         }
 
         data.version = RecordsVersion;
+        if (ShouldUseTransientEditorPlayModeProfileSaves())
+        {
+            NormalizeRecords(data);
+            return;
+        }
+
         JsonSaveFile.Save(PersistentDbPaths.PlayerRecordsPath, data, NormalizeRecords, "player records");
     }
 
@@ -157,6 +170,15 @@ public static class PlayerProfileRepository
         }
 
         return runtimeCatalog ?? seedCatalog;
+    }
+
+    private static bool ShouldUseTransientEditorPlayModeProfileSaves()
+    {
+#if UNITY_EDITOR
+        return Application.isPlaying;
+#else
+        return false;
+#endif
     }
 
     private static void EnsureMigratedFromLegacyProfile()

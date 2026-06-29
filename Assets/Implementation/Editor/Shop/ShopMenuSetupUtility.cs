@@ -66,7 +66,8 @@ public static class ShopMenuSetupUtility
                 interactionRoot,
                 $"Skin{index + 1:00}Boton",
                 SkinSlotPositions[index],
-                new Vector2(108f, 112f));
+                new Vector2(108f, 112f),
+                includeSkinOwnershipStates: true);
             EnsureIntPersistentListener(button, manager, manager.SelectSkinSlot, index);
             skinButtons[index] = button;
         }
@@ -117,7 +118,12 @@ public static class ShopMenuSetupUtility
         return rectTransform;
     }
 
-    private static Button EnsureTransparentButton(Transform parent, string ownerName, Vector2 position, Vector2 size)
+    private static Button EnsureTransparentButton(
+        Transform parent,
+        string ownerName,
+        Vector2 position,
+        Vector2 size,
+        bool includeSkinOwnershipStates = false)
     {
         Transform ownerTransform = parent.Find(ownerName);
         bool ownerCreated = ownerTransform == null;
@@ -165,6 +171,11 @@ public static class ShopMenuSetupUtility
         EnsureVisualState(visualTransform, UiButtonContract.NormalStateName);
         EnsureVisualState(visualTransform, UiButtonContract.HighlightedStateName);
         EnsureVisualState(visualTransform, UiButtonContract.PressedStateName);
+        if (includeSkinOwnershipStates)
+        {
+            EnsureVisualState(visualTransform, UiButtonContract.BuyedStateName);
+            EnsureVisualState(visualTransform, UiButtonContract.SelectedStateName);
+        }
 
         Button button = buttonTransform.GetComponent<Button>();
         Image targetGraphic = buttonTransform.GetComponent<Image>();

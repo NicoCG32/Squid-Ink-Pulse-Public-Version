@@ -17,6 +17,14 @@ public static class ShrimpRuntimeWallet
 
     public static event Action<int> TotalChanged;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        totalShrimp = 0;
+        initialized = false;
+        TotalChanged = null;
+    }
+
     public static void Add(int amount)
     {
         if (amount <= 0)

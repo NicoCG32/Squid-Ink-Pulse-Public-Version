@@ -12,6 +12,17 @@ public static class PersistentPlayerProfile
     public static event Action<PlayerProfileSaveData> ProfileChanged;
     public static event Action<PlayerRecordsSaveData> RecordsChanged;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        currentProfile = null;
+        currentRecords = null;
+        currentCatalog = null;
+        loaded = false;
+        ProfileChanged = null;
+        RecordsChanged = null;
+    }
+
     public static PlayerProfileSaveData Current
     {
         get

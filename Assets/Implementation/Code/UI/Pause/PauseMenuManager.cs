@@ -38,6 +38,7 @@ public class PauseMenuManager : MonoBehaviour
     private void Awake()
     {
         ResolveUiReferences();
+        NormalizeRenderableScale();
         WireButtons();
         CacheAnimatedElementPositions();
         WarnIfMissingReferences();
@@ -58,6 +59,7 @@ public class PauseMenuManager : MonoBehaviour
 
         session.StateChanged += HandleSessionStateChanged;
         isPaused = session.IsPaused;
+        NormalizeRenderableScale();
         SetVisible(isPaused);
     }
 
@@ -117,6 +119,8 @@ public class PauseMenuManager : MonoBehaviour
 
     public void Opciones()
     {
+        ResolveUiReferences();
+
         if (optionsMenu == null)
         {
             Debug.LogError("[PauseMenuManager] Faltó asignar el OptionsMenuManager.");
@@ -173,6 +177,7 @@ public class PauseMenuManager : MonoBehaviour
         if (nextState == GameSessionState.Paused && !isPaused)
         {
             isPaused = true;
+            NormalizeRenderableScale();
             SetMenuRootActive(true);
             StartCoroutine(AnimateIn());
             return;
@@ -269,6 +274,7 @@ public class PauseMenuManager : MonoBehaviour
         resumeButton ??= UiButtonContract.FindButton(uiRoot, "ReanudarBoton", "BotonReanudar");
         optionsButton ??= UiButtonContract.FindButton(uiRoot, "OpcionesBoton", "BotonOpciones");
         menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
+        optionsMenu ??= FindInScene<OptionsMenuManager>();
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
@@ -312,6 +318,11 @@ public class PauseMenuManager : MonoBehaviour
 
     private void SetVisible(bool visible)
     {
+        if (visible)
+        {
+            NormalizeRenderableScale();
+        }
+
         SetMenuRootActive(visible);
 
         SetCanvasAlpha(visible ? 1f : 0f);
@@ -341,10 +352,10 @@ public class PauseMenuManager : MonoBehaviour
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || sceneFlow == null || menuRoot == null || canvasGroup == null || resumeButton == null || optionsButton == null || menuButton == null)
+        if (session == null || sceneFlow == null || menuRoot == null || canvasGroup == null || resumeButton == null || optionsButton == null || optionsMenu == null || menuButton == null)
         {
             Debug.LogWarning(
-                "[PauseMenuManager] Faltan referencias. Asigna Session, SceneFlow, MenuRoot, CanvasGroup, ResumeButton, OptionsButton y MenuButton en este componente.",
+                "[PauseMenuManager] Faltan referencias. Asigna Session, SceneFlow, MenuRoot, CanvasGroup, ResumeButton, OptionsButton, OptionsMenu y MenuButton en este componente.",
                 this);
         }
 
@@ -425,5 +436,53 @@ public class PauseMenuManager : MonoBehaviour
         }
 
         return compact;
+    }
+
+    private T FindInScene<T>() where T : Component
+    {
+        UnityEngine.SceneManagement.Scene scene = gameObject.scene;
+        if (!scene.IsValid() || !scene.isLoaded)
+        {
+            return null;
+        }
+
+        GameObject[] roots = scene.GetRootGameObjects();
+        for (int i = 0; i < roots.Length; i++)
+        {
+            T component = roots[i].GetComponentInChildren<T>(includeInactive: true);
+            if (component != null)
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    private void NormalizeRenderableScale()
+    {
+        Transform rootTransform = menuRoot != null ? menuRoot.transform : transform;
+        Canvas ownerCanvas = rootTransform != null
+            ? rootTransform.GetComponentInParent<Canvas>(true)
+            : GetComponentInParent<Canvas>(true);
+
+        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
+        RestoreScaleIfCollapsed(rootTransform);
+    }
+
+    private static void RestoreScaleIfCollapsed(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 localScale = target.localScale;
+        if (Mathf.Approximately(localScale.x, 0f)
+            || Mathf.Approximately(localScale.y, 0f)
+            || Mathf.Approximately(localScale.z, 0f))
+        {
+            target.localScale = Vector3.one;
+        }
     }
 }

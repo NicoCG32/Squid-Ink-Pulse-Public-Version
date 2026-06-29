@@ -212,8 +212,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -461,6 +461,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8350311543087993875, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8554497912881070406, guid: a51c5e1d92991e44ab71f987f66adf8b, type: 3}
       propertyPath: m_Name
       value: OptionsMenu
@@ -680,8 +692,8 @@ RectTransform:
   m_GameObject: {fileID: 123789253}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1250290115}
   - {fileID: 1094485656}
@@ -839,8 +851,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 60, y: 15}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 56.7566, y: 26.1169}
+  m_SizeDelta: {x: 127.4607, y: 145.7661}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &233480733
 GameObject:
@@ -867,8 +879,8 @@ RectTransform:
   m_GameObject: {fileID: 233480733}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1997808965}
   - {fileID: 1520730388}
@@ -877,8 +889,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.00018692017, y: 0.000015258789}
+  m_SizeDelta: {x: 0.0005, y: -0.000015259}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &240141667
 GameObject:
@@ -973,6 +985,7 @@ MonoBehaviour:
   normalState: {fileID: 430985903}
   highlightedState: {fileID: 479530217}
   pressedState: {fileID: 1152885800}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 243762845}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -1389,8 +1402,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 54.000023, y: 206}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 60.244, y: 212.2355}
+  m_SizeDelta: {x: 120.49, y: 157.5289}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &323904529
 GameObject:
@@ -2232,8 +2245,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 40
-  m_fontSizeBase: 40
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2371,6 +2384,7 @@ MonoBehaviour:
   normalState: {fileID: 481982436}
   highlightedState: {fileID: 132505459}
   pressedState: {fileID: 1807420257}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 597599020}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -2725,8 +2739,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 428, y: 155}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 419.3421, y: 152.81}
+  m_SizeDelta: {x: 147.3546, y: 163.61}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &669837029
 GameObject:
@@ -2762,8 +2776,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -119, y: 43}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: -115.035835, y: 52.454628}
+  m_SizeDelta: {x: 143.3176, y: 151.0908}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &703873391
 GameObject:
@@ -3050,8 +3064,8 @@ RectTransform:
   m_GameObject: {fileID: 738779828}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1763136274}
   - {fileID: 1069957213}
@@ -3434,8 +3448,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 237, y: 184}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 234.66, y: 185.9678}
+  m_SizeDelta: {x: 139.53, y: 163.1612}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &880482354
 GameObject:
@@ -3953,8 +3967,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -109, y: 235}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: -117.308075, y: 242.87096}
+  m_SizeDelta: {x: 138.7738, y: 159.2256}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1001715898
 GameObject:
@@ -4272,6 +4286,7 @@ MonoBehaviour:
   normalState: {fileID: 1967262089}
   highlightedState: {fileID: 1506629977}
   pressedState: {fileID: 114622435}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1038402589}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -5159,6 +5174,7 @@ MonoBehaviour:
   normalState: {fileID: 437521438}
   highlightedState: {fileID: 880482354}
   pressedState: {fileID: 1450766084}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1260310275}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -5499,6 +5515,7 @@ MonoBehaviour:
   normalState: {fileID: 36461694}
   highlightedState: {fileID: 1064830026}
   pressedState: {fileID: 486963519}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1288448551}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -6592,8 +6609,8 @@ RectTransform:
   m_GameObject: {fileID: 1510939255}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 437521439}
   - {fileID: 880482355}
@@ -6602,8 +6619,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.0002975464, y: -0.0002746582}
+  m_SizeDelta: {x: 0.00048828, y: 0.0005}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1520730387
 GameObject:
@@ -6674,8 +6691,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 237, y: -14}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 236.7345, y: -2.1288}
+  m_SizeDelta: {x: 135.379, y: 146.26}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1596999295
 GameObject:
@@ -6813,8 +6830,8 @@ RectTransform:
   m_GameObject: {fileID: 1647143130}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 36461695}
   - {fileID: 1064830027}
@@ -6823,8 +6840,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.000030517578, y: 0.0002670288}
+  m_SizeDelta: {x: -0.000045776, y: -0.0005188}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1666319223
 GameObject:
@@ -7267,6 +7284,7 @@ MonoBehaviour:
   normalState: {fileID: 2115789350}
   highlightedState: {fileID: 975931134}
   pressedState: {fileID: 1001715898}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1793682218}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -7569,7 +7587,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 316640563}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -7594,6 +7612,7 @@ MonoBehaviour:
   normalState: {fileID: 1997808964}
   highlightedState: {fileID: 1520730387}
   pressedState: {fileID: 1405503497}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1821193647}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -8018,6 +8037,7 @@ MonoBehaviour:
   normalState: {fileID: 746008266}
   highlightedState: {fileID: 1009049365}
   pressedState: {fileID: 857367826}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1847044893}
   pressedSfx: {fileID: 0}
   pressedSfxVolume: 1
@@ -8217,8 +8237,8 @@ RectTransform:
   m_GameObject: {fileID: 1933714549}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1730336997}
   - {fileID: 1186147166}
@@ -8227,8 +8247,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.0002593994, y: -0.00022888184}
+  m_SizeDelta: {x: 0.00050354, y: 0.0005}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1960832423
 GameObject:
@@ -8267,8 +8287,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.00017547607, y: -0.00025177002}
+  m_SizeDelta: {x: 0.00062561, y: -0.00048828}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1960832425
 MonoBehaviour:
@@ -8286,6 +8306,7 @@ MonoBehaviour:
   normalState: {fileID: 1763136273}
   highlightedState: {fileID: 1069957212}
   pressedState: {fileID: 1172553111}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 1960832429}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -8582,8 +8603,8 @@ RectTransform:
   m_GameObject: {fileID: 1988377702}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2115789351}
   - {fileID: 975931135}
@@ -8592,8 +8613,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.00022888184, y: 0.00023651123}
+  m_SizeDelta: {x: 0.0004, y: -0.0005188}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1997808964
 GameObject:
@@ -8655,8 +8676,8 @@ RectTransform:
   m_GameObject: {fileID: 2003368630}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 430985904}
   - {fileID: 479530218}
@@ -8665,8 +8686,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.0000076293945, y: -0.0000076293945}
+  m_SizeDelta: {x: -0.000030518, y: 0.000045776}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2018434043
 GameObject:
@@ -8821,6 +8842,7 @@ MonoBehaviour:
   normalState: {fileID: 323904529}
   highlightedState: {fileID: 1478500569}
   pressedState: {fileID: 906664052}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 2018434045}
   pressedSfx: {fileID: 0}
   pressedSfxVolume: 1
@@ -8908,7 +8930,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1248894015}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: Opciones
         m_Mode: 1
@@ -8976,6 +8998,7 @@ MonoBehaviour:
   normalState: {fileID: 1730336996}
   highlightedState: {fileID: 1186147165}
   pressedState: {fileID: 293814791}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 2027602790}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -9206,8 +9229,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 427.99994, y: -40.000008}
-  m_SizeDelta: {x: 108, y: 112}
+  m_AnchoredPosition: {x: 419.34, y: -26.2858}
+  m_SizeDelta: {x: 147.35, y: 157.1557}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2045666132
 GameObject:
@@ -9518,8 +9541,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.000015258789, y: 0.000030517578}
+  m_SizeDelta: {x: -0.000045776, y: 0.000045776}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2075650207
 MonoBehaviour:
@@ -9537,6 +9560,7 @@ MonoBehaviour:
   normalState: {fileID: 1250290114}
   highlightedState: {fileID: 1094485655}
   pressedState: {fileID: 709549096}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 2075650211}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1
@@ -9824,6 +9848,7 @@ MonoBehaviour:
   normalState: {fileID: 2045666132}
   highlightedState: {fileID: 422107529}
   pressedState: {fileID: 1231400115}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 2124853243}
   pressedSfx: {fileID: 0}
   pressedSfxVolume: 1
