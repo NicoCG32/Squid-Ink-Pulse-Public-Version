@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -13,10 +14,15 @@ public class PillarObstacle : MonoBehaviour
     private Vector3 topPillarBaseScale = Vector3.one;
     private Vector3 bottomPillarBaseScale = Vector3.one;
     private bool hasCapturedBaseScales;
+    private bool isFinalContinuousWall;
+    private bool isResolved;
+    private Coroutine lifetimeCoroutine;
+
+    public event Action<PillarObstacle> Resolved;
 
     private void Start()
     {
-        Destroy(gameObject, lifetime);
+        RefreshLifetime();
     }
 
     public void Setup(
@@ -26,8 +32,12 @@ public class PillarObstacle : MonoBehaviour
         float boundaryBottomY,
         float revealDuration,
         float topRevealDelay,
-        float bottomRevealDelay)
+        float bottomRevealDelay,
+        bool finalContinuousWall = false)
     {
+        isFinalContinuousWall = finalContinuousWall;
+        RefreshLifetime();
+
         if (topPillar == null || bottomPillar == null) return;
 
         CaptureBaseScales();
@@ -68,6 +78,57 @@ public class PillarObstacle : MonoBehaviour
             bottomHeight,
             safeRevealDuration,
             Mathf.Max(0f, bottomRevealDelay)));
+    }
+
+    public bool TryBreakFinalWall()
+    {
+        if (!isFinalContinuousWall || isResolved)
+        {
+            return false;
+        }
+
+        ResolveFinalWall();
+        Destroy(gameObject);
+        return true;
+    }
+
+    private void ResolveFinalWall()
+    {
+        if (isResolved)
+        {
+            return;
+        }
+
+        isResolved = true;
+        Resolved?.Invoke(this);
+    }
+
+    private void OnDestroy()
+    {
+        if (isFinalContinuousWall)
+        {
+            ResolveFinalWall();
+        }
+    }
+
+    private void RefreshLifetime()
+    {
+        if (lifetimeCoroutine != null)
+        {
+            StopCoroutine(lifetimeCoroutine);
+            lifetimeCoroutine = null;
+        }
+
+        if (!isFinalContinuousWall && isActiveAndEnabled)
+        {
+            lifetimeCoroutine = StartCoroutine(DestroyAfterLifetime());
+        }
+    }
+
+    private IEnumerator DestroyAfterLifetime()
+    {
+        yield return new WaitForSeconds(Mathf.Max(0f, lifetime));
+        Destroy(gameObject);
     }
 
     private IEnumerator RevealPillar(

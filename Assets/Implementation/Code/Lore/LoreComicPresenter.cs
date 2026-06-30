@@ -65,6 +65,8 @@ public sealed class LoreComicEntry
 [DisallowMultipleComponent]
 public sealed class LoreComicPresenter : MonoBehaviour
 {
+    private const int MinimumComicSortingOrder = 5000;
+
     [Header("References")]
     [SerializeField] private GameObject comicRoot;
     [SerializeField] private CanvasGroup canvasGroup;
@@ -93,6 +95,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+        NormalizeRenderableScale();
         WireContinueButton();
 
         if (hideOnAwake)
@@ -129,6 +132,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
     public bool TryPlay(LoreComicRequest request, Action onCompleted)
     {
         ResolveReferences();
+        NormalizeRenderableScale();
 
         if (comicRoot == null)
         {
@@ -137,7 +141,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
         }
 
         LoreComicEntry entry = FindEntry(request);
-        if (entry == null && request.ComicEvent != LoreComicEvent.GameStart)
+        if (!HasDisplayableSprite(entry))
         {
             return false;
         }
@@ -368,6 +372,24 @@ public sealed class LoreComicPresenter : MonoBehaviour
         return null;
     }
 
+    private static bool HasDisplayableSprite(LoreComicEntry entry)
+    {
+        if (entry?.sprites == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < entry.sprites.Length; i++)
+        {
+            if (entry.sprites[i] != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private float ResolveDisplaySeconds(LoreComicEntry entry, LoreComicRequest request)
     {
         if (entry != null)
@@ -402,10 +424,13 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     private void ApplySprite(Sprite sprite)
     {
-        if (sprite != null && comicImage != null)
+        if (comicImage == null)
         {
-            comicImage.sprite = sprite;
+            return;
         }
+
+        comicImage.sprite = sprite;
+        comicImage.enabled = sprite != null;
     }
 
     private void ApplyTimeScaleIfNeeded()
@@ -433,6 +458,11 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     private void SetVisible(bool visible, bool showContinue)
     {
+        if (visible)
+        {
+            NormalizeRenderableScale();
+        }
+
         if (comicRoot != null && visible && !comicRoot.activeSelf)
         {
             comicRoot.SetActive(true);
@@ -470,6 +500,46 @@ public sealed class LoreComicPresenter : MonoBehaviour
     {
         SetVisible(false, false);
         continueRequested = false;
+    }
+
+    private void NormalizeRenderableScale()
+    {
+        Transform rootTransform = comicRoot != null ? comicRoot.transform : transform;
+        Canvas ownerCanvas = rootTransform != null
+            ? rootTransform.GetComponentInParent<Canvas>(true)
+            : GetComponentInParent<Canvas>(true);
+
+        RestoreScaleIfCollapsed(transform);
+        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
+        RestoreScaleIfCollapsed(rootTransform);
+        NormalizeCanvasLayer(ownerCanvas);
+    }
+
+    private static void NormalizeCanvasLayer(Canvas canvas)
+    {
+        if (canvas == null)
+        {
+            return;
+        }
+
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = Mathf.Max(canvas.sortingOrder, MinimumComicSortingOrder);
+    }
+
+    private static void RestoreScaleIfCollapsed(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 localScale = target.localScale;
+        if (Mathf.Approximately(localScale.x, 0f)
+            || Mathf.Approximately(localScale.y, 0f)
+            || Mathf.Approximately(localScale.z, 0f))
+        {
+            target.localScale = Vector3.one;
+        }
     }
 
     private void ResolveReferences()

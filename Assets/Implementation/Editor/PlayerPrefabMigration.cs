@@ -577,10 +577,9 @@ public static class PlayerPrefabContractUtility
 
         if (scene.path.Equals(SecondaryScenePath, StringComparison.OrdinalIgnoreCase))
         {
-            SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.AlwaysInterval);
-            SetFloat(levelSpawner, "firstPortalSpawnDelay", 20f);
+            SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.PostBossWindow);
+            SetFloat(levelSpawner, "firstPortalSpawnDelay", 3f);
             SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
-            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
             return;
         }
 
@@ -589,7 +588,6 @@ public static class PlayerPrefabContractUtility
             SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.PostBossWindow);
             SetFloat(levelSpawner, "firstPortalSpawnDelay", 3f);
             SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
-            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
             return;
         }
 
@@ -598,7 +596,6 @@ public static class PlayerPrefabContractUtility
             SetInt(levelSpawner, "portalSpawnPolicy", (int)PortalSpawnPolicy.Disabled);
             SetFloat(levelSpawner, "firstPortalSpawnDelay", 3f);
             SetFloat(levelSpawner, "postBossPortalSpawnChance", 1f);
-            SetFloat(levelSpawner, "portalSpawnInterval", 20f);
         }
     }
 

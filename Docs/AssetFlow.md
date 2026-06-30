@@ -9,8 +9,11 @@
 - `Assets/Content/Art/Environments/`: arte de escenarios.
 - `Assets/Content/Art/Environments/ShopMenu/Fondo.png`: fondo de escena de la tienda global; no pertenece al paquete de controles UI.
 - `Assets/Content/Art/UI/`: recursos visuales de interfaz.
+- `Assets/Content/Art/UI/ShopMenu/Resources/ShopMenu/`: sprites cargados por `OutOfGameShopManager` para mejoras y skins; las rutas del catalogo parten bajo `ShopMenu/`.
 - `Assets/Content/Art/ComicLore/`: vinetas narrativas organizadas por dominio (`Inicio`, `Portales`, `Derrota/Epipelagica`, `Derrota/Abisopelagica`, `Tienda`).
 - `Assets/Content/Animations/Characters/`: animaciones de personajes.
+- `Assets/Content/Animations/Characters/BabySquid/default/`: fuentes de movimiento, Ink-Pulse y portal de la skin base.
+- `Assets/Content/Animations/Characters/BabySquid/<Skin>/`: fuentes y salidas generadas de cada skin jugable implementada.
 - `Assets/Content/Animations/Enemies/`: animaciones de enemigos.
 - `Assets/Content/Animations/Environment/`: animaciones de entorno.
 - `Assets/Content/Animations/UI/`: animaciones de interfaz.
@@ -36,6 +39,7 @@ Regla:
 - `Prefabs/Player/`: `BabySquid`.
 - `Prefabs/Enemies/`: `PezGlobo`, `Mina`, `CanaPescar`.
 - `Prefabs/Bosses/SSCarnage/`: `SSCarnage`, `BossNetWall`.
+- `Prefabs/Bosses/UnknownBoss/`: `UnknownBoss`, `BossPillars`.
 - `Prefabs/Gadgets/`: `ShellShield`, `InkBottle`.
 - `Prefabs/Shop/`: `DealerFish` y `DealerFish_ZonaAbisopelagica`.
 - `Prefabs/Portals/`: `ScenePortal`.
@@ -100,13 +104,9 @@ Estos prefabs son raices de composicion por zona, no prefabs globales compartido
 
 ## UI/HUD
 
-Las barras Ink-Pulse se separan en tres prefabs para conservar variantes por zona sin mezclar responsabilidades:
+La barra Ink-Pulse tiene una sola fuente canonica: `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`. El prefab conserva `ChargeBar` e `InkBarFillPresenter`; la orientacion visual se autoriza en el asset, no mediante variantes por zona.
 
-- `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab`: `ZonaEpipelagica`, barra horizontal/rotada, con `InkBarFillPresenter` en modo `RevealThroughFill`.
-- `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: `ZonaAbisopelagica`, barra vertical, con `InkBarFillPresenter` en modo `FollowFillTip`.
-- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: `ZonaTutorial`, barra legacy con `Slider`.
-
-La escena puede conservar overrides de posicion, rotacion, escala y referencias hacia managers/controladores. La jerarquia interna, mascara, animador y componentes de presentacion deben mantenerse en el prefab. En `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial`, estas piezas deben existir como instancias prefab.
+La escena puede conservar overrides de posicion y referencias hacia managers/controladores. La jerarquia interna, mascara, animador y componentes de presentacion deben mantenerse en el prefab. `FillViewport` usa una mascara visible con grafico blanco translucido; si se apaga `Show Mask Graphic`, se oculta ese fondo. En `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial`, `GameRoot/GameUIRoot/HUD/InkBar` debe existir como instancia de ese unico prefab.
 
 Vistas de menu disponibles:
 
@@ -117,6 +117,15 @@ Vistas de menu disponibles:
 - `Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab`: panel global de pantalla/volumen, instalado como root de escena separado para preservar su escala de Canvas.
 
 `ShopMenu` es una escena, no un prefab de tienda. El arte de sus vitrinas y decoraciones vive bajo `Panel`; los controles transparentes serializados viven bajo `Panel/ShopInteractionRoot` y apuntan desde Inspector a `OutOfGameShopManager`. La presentacion funcional del producto seleccionado vive en `Panel/ProductInfoBlock` con `NombreProducto`, `DescripcionProducto` y `PrecioProducto`; el manager escribe contenido, mientras que la posicion y el estilo de esos nodos se editan manualmente en Unity.
+
+Los sprites de productos permanentes no viven en carpetas temporales. Deben importarse bajo `Assets/Content/Art/UI/ShopMenu/Resources/ShopMenu/`:
+- Mejoras: `Skills/Upgrades/Nombre` y, para seleccion, `Skills/Upgrades/NombreInk`.
+- Skins: `Skins/Nombre`.
+- Estados de skins compradas/equipadas usan, cuando existan, las rutas `shopBuyedSpriteResourcePath` y `shopSelectedSpriteResourcePath` del catalogo. Si faltan, la tienda conserva fallback hacia el sprite base sin cambiar el arte por codigo.
+
+`OutOfGameShopManager` no mueve assets ni crea sprites en runtime. Solo carga rutas de `Resources` declaradas en `unlockables-catalog.json`.
+
+Una skin aparece en el catalogo runtime solo cuando tiene prefab visual bajo `Assets/Content/Prefabs/Player/Resources/PlayerSkins/` y carpeta de animaciones jugables bajo `Assets/Content/Animations/Characters/BabySquid/<Skin>/`. Las skins preparadas como concepto pero sin prefab/animacion quedan en fuentes de diseno, no en `unlockables-catalog.json`.
 
 Piezas HUD disponibles:
 
@@ -185,9 +194,11 @@ Incluye:
 - root `BabySquid` con tag `Player` y layer `Player`;
 - collider y rigidbody de gameplay;
 - scripts de movimiento, Ink-Pulse, colision, camarones, gadgets y estado runtime;
+- `SkinMount` como punto de montaje de skins visuales cargadas desde `Resources`;
 - `GrazeZone`;
 - `SquidVisual` para movimiento base;
-- `InkPulseVisual` para el impulso largo de tinta.
+- `InkPulseVisual` para el impulso largo de tinta;
+- `PortalVisual` para la transicion visual de portal.
 
 Reglas:
 - `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben usar instancias del prefab, aunque el nodo de escena se llame `Squid`.
@@ -196,6 +207,9 @@ Reglas:
 - La resolucion runtime existe como respaldo, no como sustituto del cableado de escena.
 - Las capacidades especificas de zona, como `LightGrazeSource` en `ZonaAbisopelagica`, deben ser overrides de instancia o agregarse por managers de zona, no incorporarse al prefab base.
 - Las skins deben cambiar visuales o variants, no duplicar controladores de gameplay.
+- Un prefab de skin debe vivir bajo alguna carpeta `Resources` y exponerse en el catalogo con `playerSkinPrefabResourcePath` sin extension.
+- El prefab de skin debe contener `MovementVisual` o `SquidVisual`, `InkPulseVisual` y `PortalVisual`; cada raiz puede tener su propio `Animator`.
+- Los prefabs de skin no deben incluir `Rigidbody2D`, colliders de gameplay ni scripts del jugador canonico.
 
 ## Runtime en UI MainMenu
 

@@ -35,18 +35,19 @@ Prefab canonico:
 - `Assets/Content/Prefabs/Player/BabySquid.prefab`
 
 Animator Controllers:
-- Cuerpo: `Assets/Content/Animations/Characters/BabySquid/Movement/Squid.controller`
-- Efecto Ink-Pulse: `Assets/Content/Animations/Characters/BabySquid/InkPulse/InkPulseVisual.controller`
-- Efecto portal: `Assets/Content/Animations/Environment/Portal/PortalEffect/PortalEffect.controller`
+- Cuerpo: `Assets/Content/Animations/Characters/BabySquid/default/Movement/Squid.controller`
+- Efecto Ink-Pulse: `Assets/Content/Animations/Characters/BabySquid/default/InkPulse/InkPulseVisual.controller`
+- Efecto portal: `Assets/Content/Animations/Characters/BabySquid/default/PortalEffect/PortalEffect.controller`
 
 Clips:
-- `Movement/Movement.anim`: animacion base de movimiento.
-- `InkPulse/InkPulse.anim`: impulso visual de tinta.
-- `Environment/Portal/PortalEffect/PortalEffect.anim`: transicion visual previa al cambio de escena.
+- `default/Movement/Movement.anim`: animacion base de movimiento.
+- `default/InkPulse/InkPulse.anim`: impulso visual de tinta.
+- `default/PortalEffect/PortalEffect.anim`: transicion visual previa al cambio de escena.
 
 Reglas:
 - El root de prefab `BabySquid` gobierna estado y gameplay; en escena su instancia puede llamarse `Squid`.
 - El root no debe usar animaciones para modificar colliders, posicion de gameplay ni input.
+- `SkinMount` es el punto runtime donde se instancia la skin equipada, cuando el catalogo define `playerSkinPrefabResourcePath`.
 - `SquidVisual` contiene el `SpriteRenderer` y `Animator` del cuerpo. Su controller reproduce `Movement.anim`.
 - `InkPulseVisual` contiene el `SpriteRenderer` y `Animator` del efecto largo de tinta.
 - `PortalVisual` contiene el `SpriteRenderer` y `Animator` de `PortalEffect`.
@@ -63,6 +64,60 @@ Reglas:
 - La escala y posicion de `SquidVisual` dimensionan el calamar; la escala y posicion de `InkPulseVisual` y `PortalVisual` dimensionan exclusivamente sus efectos.
 - Los clips que animan el `SpriteRenderer` del mismo objeto donde vive su `Animator` deben tener binding path vacio.
 - `Squid.controller` no debe contener transiciones hacia Ink-Pulse; ese efecto pertenece al controller separado `InkPulseVisual.controller`.
+
+## Skins de BabySquid
+
+Cada skin jugable es un prefab visual, no un prefab alternativo de jugador. Debe cargarse desde una carpeta `Resources` mediante `playerSkinPrefabResourcePath` en `unlockables-catalog.json`.
+
+Contrato minimo del prefab de skin:
+
+```text
+SkinNombre
+|- MovementVisual o SquidVisual
+|- InkPulseVisual
+`- PortalVisual
+```
+
+Reglas:
+- Las animaciones jugables de skins viven bajo `Assets/Content/Animations/Characters/BabySquid/<Skin>/`.
+- La skin base vive en `Assets/Content/Animations/Characters/BabySquid/default/`.
+- Cada carpeta de skin contiene `Movement/` como fuente visual y `Generated/` como salida tecnica regenerable.
+- `default` tambien contiene fuentes separadas `InkPulse/` y `PortalEffect/`, porque la skin base ya tiene animaciones propias para esos estados.
+- El prefab de skin puede tener `PlayerSkinVisualSet` en el root. Si no lo tiene, `PlayerSkinApplier` lo agrega en runtime y resuelve hijos por nombre.
+- `MovementVisual` o `SquidVisual` representa la animacion normal de movimiento de esa skin.
+- `InkPulseVisual` representa la animacion propia de Ink-Pulse de esa skin.
+- `PortalVisual` representa la animacion propia de portal de esa skin.
+- Cada raiz visual puede tener su propio `Animator` y su propio `Animator Controller`.
+- Si una skin usa nombres de estado o clip distintos a `InkPulse`, `Portal` y `PortalEffect`, esos nombres deben declararse en `PlayerSkinVisualSet`.
+- El prefab de skin no debe tener `Rigidbody2D`, colliders de gameplay, `PlayerMovement`, `InkPulseController`, `PlayerCollision`, `ShrimpCollector` ni scripts de economia.
+- La compra y eleccion de skin viven en el perfil; la aplicacion visual runtime la hace `PlayerSkinApplier` sobre `SkinMount`.
+- Si la ruta del catalogo esta vacia, el prefab no existe o falta alguna de las tres raices visuales, se mantiene el visual base de `BabySquid`.
+
+Prefabs jugables actuales:
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Default.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Chile.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Formal.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Huaso.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Marley.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Nemo.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Rock.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Sonic.prefab`
+- `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Travis.prefab`
+
+`Tools/Squid/Player/Build Skin Prefabs` ejecuta `PlayerSkinAssetBuilder` y regenera esos prefabs desde `Assets/Content/Animations/Characters/BabySquid/`. La skin base usa `Assets/Content/Animations/Characters/BabySquid/default/Generated` como carpeta generada y toma sus sprites fuente desde `default/Movement`, `default/InkPulse` y `default/PortalEffect`. Mientras una skin alternativa no tenga secuencias separadas para `InkPulse` y `Portal`, la utilidad usa la secuencia disponible de la skin como placeholder tecnico para las tres raices visuales.
+
+Skins activas en catalogo runtime:
+- `skin.default` -> `PlayerSkins/Default`
+- `skin.bob_marley` -> `PlayerSkins/Marley`
+- `skin.rockstar` -> `PlayerSkins/Rock`
+- `skin.formal` -> `PlayerSkins/Formal`
+- `skin.sonic` -> `PlayerSkins/Sonic`
+- `skin.huaso` -> `PlayerSkins/Huaso`
+- `skin.chile` -> `PlayerSkins/Chile`
+- `skin.nemo` -> `PlayerSkins/Nemo`
+- `skin.travis` -> `PlayerSkins/Travis`
+
+Las skins definidas en fuentes de tienda pero sin carpeta jugable bajo `BabySquid/<Skin>` quedan fuera de `unlockables-catalog.json` hasta que tengan prefab y animacion runtime completos.
 
 ## Reglas de separacion
 

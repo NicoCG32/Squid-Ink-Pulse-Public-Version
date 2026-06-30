@@ -39,10 +39,20 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
     [Header("Scene References")]
     [SerializeField] private LevelSpawner levelSpawner;
 
+    [Header("Camera Hold")]
+    [SerializeField] private bool holdWideCameraUntilFinalWallResolved = true;
+    [SerializeField, Min(0.01f)] private float wideCameraHoldTransitionSmoothTime = 1f;
+    [SerializeField, Min(0f)] private float wideCameraHoldExtraTopSpace = 4f;
+
     private Camera mainCamera;
+    private CameraController eventCameraController;
     private float lastGapY = 0f; 
     private RunProgressionDirector progression;
     private Transform pillarParent;
+    private PillarObstacle finalWall;
+    private bool finalWallResolved;
+    private bool bossEventCompleted;
+    private bool wideCameraHoldActive;
     
     // This variable tells the Update method where the boss should be on the screen right now
     private Vector2 currentViewportTarget = new Vector2(1.2f, 0.5f); 
@@ -54,6 +64,8 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         Transform parentReference)
     {
         mainCamera = cameraReference;
+        eventCameraController = ResolveCameraController(mainCamera);
+        BeginWideCameraHold();
         
         // 2. Save the progression reference!
         progression = progressionReference; 
@@ -107,17 +119,15 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
         while (elapsed < attackDuration)
         {
             bool isFinalPillar = spawnFinalContinuousWall && elapsed + safeSpawnInterval >= attackDuration;
-            SpawnPillarObstacle(isFinalPillar);
+            PillarObstacle spawnedPillar = SpawnPillarObstacle(isFinalPillar);
+            if (isFinalPillar && spawnedPillar != null)
+            {
+                TrackFinalWall(spawnedPillar);
+            }
+
             yield return new WaitForSeconds(safeSpawnInterval);
             elapsed += safeSpawnInterval;
         }
-
-        // The attack is over! Bring the normal enemies back before the boss even leaves.
-        if (levelSpawner != null)
-        {
-            levelSpawner.gameObject.SetActive(true);
-        }
-
 
         // --- PHASE 3: THE OUTRO (Run away to the left) ---
         elapsed = 0f;
@@ -130,17 +140,19 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
             yield return null;
         }
 
-        // 3. TELL THE GAME MASTER THE BOSS IS DONE!
-        if (progression != null)
+        if (finalWall != null && !finalWallResolved)
         {
-            progression.NotifyBossResolved();
+            while (finalWall != null && !finalWallResolved)
+            {
+                yield return null;
+            }
         }
 
-        Destroy(gameObject);
+        CompleteBossEvent();
     }
-    private void SpawnPillarObstacle(bool continuousWall)
+    private PillarObstacle SpawnPillarObstacle(bool continuousWall)
     {
-        if (pillarObstaclePrefab == null || mainCamera == null) return;
+        if (pillarObstaclePrefab == null || mainCamera == null) return null;
 
         float depth = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 rightEdge = mainCamera.ViewportToWorldPoint(new Vector3(1f, 0.5f, depth));
@@ -148,7 +160,7 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
 
         if (!TryResolvePillarVerticalRange(out Vector2 verticalRange))
         {
-            return;
+            return null;
         }
 
         float availableHeight = Mathf.Max(0.1f, verticalRange.y - verticalRange.x);
@@ -180,8 +192,103 @@ public class FlappyBossController : MonoBehaviour, IBossSpawnContextReceiver
                 verticalRange.x,
                 Random.Range(minReveal, maxReveal),
                 topRevealDelay,
-                bottomRevealDelay);
+                bottomRevealDelay,
+                continuousWall);
+
+            return obstacle;
         }
+
+        return null;
+    }
+
+    private void TrackFinalWall(PillarObstacle wall)
+    {
+        if (finalWall != null)
+        {
+            finalWall.Resolved -= HandleFinalWallResolved;
+        }
+
+        finalWall = wall;
+        finalWallResolved = false;
+        finalWall.Resolved += HandleFinalWallResolved;
+    }
+
+    private void HandleFinalWallResolved(PillarObstacle wall)
+    {
+        if (wall != finalWall)
+        {
+            return;
+        }
+
+        finalWall.Resolved -= HandleFinalWallResolved;
+        finalWallResolved = true;
+        finalWall = null;
+    }
+
+    private void CompleteBossEvent()
+    {
+        if (bossEventCompleted)
+        {
+            return;
+        }
+
+        bossEventCompleted = true;
+
+        if (levelSpawner != null)
+        {
+            levelSpawner.gameObject.SetActive(true);
+        }
+
+        EndWideCameraHold();
+        progression?.NotifyBossResolved();
+        Destroy(gameObject);
+    }
+
+    private void BeginWideCameraHold()
+    {
+        if (!holdWideCameraUntilFinalWallResolved || eventCameraController == null || wideCameraHoldActive)
+        {
+            return;
+        }
+
+        wideCameraHoldActive = eventCameraController.BeginFullVerticalViewHold(
+            wideCameraHoldTransitionSmoothTime,
+            wideCameraHoldExtraTopSpace);
+    }
+
+    private static CameraController ResolveCameraController(Camera cameraReference)
+    {
+        if (cameraReference == null)
+        {
+            return null;
+        }
+
+        return cameraReference.GetComponent<CameraController>()
+            ?? cameraReference.GetComponentInParent<CameraController>()
+            ?? cameraReference.GetComponentInChildren<CameraController>();
+    }
+
+    private void EndWideCameraHold()
+    {
+        if (!wideCameraHoldActive || eventCameraController == null)
+        {
+            wideCameraHoldActive = false;
+            return;
+        }
+
+        eventCameraController.EndFullVerticalViewHold();
+        wideCameraHoldActive = false;
+    }
+
+    private void OnDestroy()
+    {
+        if (finalWall != null)
+        {
+            finalWall.Resolved -= HandleFinalWallResolved;
+            finalWall = null;
+        }
+
+        EndWideCameraHold();
     }
 
     private bool TryResolvePillarVerticalRange(out Vector2 verticalRange)

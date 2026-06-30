@@ -27,6 +27,7 @@ public class CameraController : MonoBehaviour
     private float orthographicVelocity;
     private float normalOrthographicSize;
     private float wideViewRemainingSeconds;
+    private int wideViewHoldCount;
     private float wideViewTransitionSmoothTime = 1f;
     private InkPulseController subscribedInkPulse;
     private float inkPulseFeedbackRemainingSeconds;
@@ -111,6 +112,30 @@ public class CameraController : MonoBehaviour
         wideViewRemainingSeconds = Mathf.Max(wideViewRemainingSeconds, holdSeconds);
         wideViewTransitionSmoothTime = Mathf.Max(0.01f, transitionSmoothTime);
         ApplyMode(CameraEventMode.WideEvent);
+    }
+
+    public bool BeginFullVerticalViewHold(float transitionSmoothTime, float extraTopSpace)
+    {
+        _ = extraTopSpace;
+        ResolveSceneReferences();
+
+        if (currentCamera == null || topBorder == null || bottomBorder == null)
+        {
+            Debug.LogWarning(
+                $"[CameraController] No se puede mantener vista amplia sin CurrentCamera y la jerarquia {BoundaryReferenceResolver.GetRequiredHierarchyDescription(BoundaryReferenceDomain.Camera)}.",
+                this);
+            return false;
+        }
+
+        wideViewHoldCount++;
+        wideViewTransitionSmoothTime = Mathf.Max(0.01f, transitionSmoothTime);
+        ApplyMode(CameraEventMode.WideEvent);
+        return true;
+    }
+
+    public void EndFullVerticalViewHold()
+    {
+        wideViewHoldCount = Mathf.Max(0, wideViewHoldCount - 1);
     }
 
     private Vector3 CalculateNormalViewPosition()
@@ -285,7 +310,7 @@ public class CameraController : MonoBehaviour
 
     private CameraEventMode ResolveMode()
     {
-        if (wideViewRemainingSeconds > 0f)
+        if (wideViewRemainingSeconds > 0f || wideViewHoldCount > 0)
         {
             return CameraEventMode.WideEvent;
         }

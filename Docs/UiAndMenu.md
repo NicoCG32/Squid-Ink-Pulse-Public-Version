@@ -42,6 +42,31 @@ Responsabilidad:
 - Abrir `OptionsMenu` como prefab/panel asignado en la escena, no como escena independiente.
 - Cargar `Assets/Scenes/ShopMenu/ShopMenu.unity` desde el boton de tienda.
 - Mostrar el comic de inicio mediante `LoreComicPresenter.PlayGameStartIfAvailable()` antes de cargar gameplay cuando exista `LoreComicRoot` activo.
+- Escuchar el codigo de muestra `SONICYNOTA7` sin campo de texto y acreditar camarones de prueba para validar tienda. El codigo no se consume: cada ingreso completo suma otros `676700` camarones.
+
+## OptionsMenu global
+
+Archivo: `Assets/Implementation/Code/UI/Options/OptionsMenuManager.cs`
+
+Prefab de vista:
+- `Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab`
+- Root esperado: `OptionsMenu`.
+- Canvas interno esperado: hijo `Canvas`.
+- Panel funcional esperado: `OptionsPanel`.
+- Fondo oscuro esperado: `Background` o `Fondo`.
+
+Responsabilidad:
+- Mostrar y ocultar opciones de volumen, resolucion y pantalla completa.
+- Guardar configuracion general en `PlayerPrefs`, no en la base persistente `db`.
+- Mantener el Canvas con sorting alto para que se vea sobre MainMenu, ShopMenu y escenas jugables.
+- Activar o desactivar el fondo visual existente junto con el menu.
+
+Reglas:
+- El fondo oscuro es autoria visual del prefab. El script no crea `Image`, Canvas ni jerarquia de fondo.
+- `OptionsMenuManager` solo busca un hijo directo llamado `Background` o `Fondo` bajo `OptionsPanel` o bajo el Canvas propietario si la referencia no esta serializada.
+- El fondo debe quedar detras del contenido interactivo. Si vive bajo `OptionsPanel`, el manager lo mantiene como primer hermano.
+- El prefab se instancia como root de escena separado. No debe quedar dentro del Canvas del mueble de ShopMenu ni dentro de paneles decorativos.
+- Si algun Canvas o root fue guardado accidentalmente con escala local `0`, el manager restaura escala `(1,1,1)` en runtime como defensa tecnica; esto no sustituye la correccion visual en prefab.
 
 ## Pausa
 
@@ -86,7 +111,7 @@ Prefab de vista:
 - `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab`
 - Root esperado: `GameOverCanvas`.
 - `GameOverMenuManager` puede resolver automaticamente `GameOverCanvas`, `CanvasGroup`, botones y elementos animados si la vista existe como hija del manager.
-- Si existen los textos `PuntajeObtenido` y `MaximoPuntaje` / `MáximoPuntaje`, `GameOverMenuManager` los rellena con el puntaje final de la run y el mejor puntaje persistente actualizado.
+- Si existen los textos `PuntajeObtenido` y `MaximoPuntaje`, `GameOverMenuManager` los rellena con el puntaje final de la run y el mejor puntaje persistente actualizado.
 - El manager no calcula score ni modifica la estetica de esos textos; solo consume `RuntimeRunScore.LastCompletedScore` y `PersistentPlayerProfile.BestScore`.
 
 ## Lore comics
@@ -156,7 +181,9 @@ Responsabilidad:
 - Mostrar subtienda de skins.
 - Mostrar subtienda de mejoras permanentes.
 - Consumir camarones persistentes mediante transacciones de `PermanentShopService`.
-- Mostrar estados derivados: bloqueado por meta, sin saldo, ya comprado, nivel maximo o compra exitosa.
+- Mostrar estados derivados: bloqueado por meta, sin saldo, ya adquirido, equipado, nivel maximo o compra exitosa.
+- Poblar nombre, descripcion y precio del producto seleccionado desde el catalogo.
+- Mostrar precios compactos mediante la misma nomenclatura de `ShrimpCounterDisplay`: `1000` se muestra como `1K`, `1500` como `1.5K`, `1000000` como `1M`.
 
 Contrato de interaccion actual:
 
@@ -179,8 +206,12 @@ ShopMenu
 - Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este es un contrato funcional temporal: puede reemplazarse por un SFX de tienda aprobado sin tocar la jerarquia ni los sprites.
 - El usuario ajusta la posicion y el tamano de cada owner `*Boton` para coincidir con las vitrinas o flechas del mueble. El codigo no modifica sus sprites, layout, escala, color ni jerarquia visual.
 - Los cuatro slots superiores estan reservados, en este orden, para `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
-- Los cuatro slots inferiores muestran una pagina de skins. El catalogo actual contiene solo `skin.default`; la paginacion queda preparada para futuras skins sin duplicar la tienda.
-- Los campos TMP de detalle del manager son opcionales y aun no estan asignados, porque su presentacion visual pertenece al trabajo de UI. La compra y seleccion funcionan aunque esos campos sigan vacios.
+- Los cuatro slots inferiores muestran una pagina de skins tomada desde `unlockables-catalog.json`.
+- Las imagenes de tienda se cargan con `Resources.Load<Sprite>()` desde rutas sin extension declaradas en el catalogo. La raiz actual es `Assets/Content/Art/UI/ShopMenu/Resources/ShopMenu/`.
+- Las mejoras usan `shopSpriteResourcePath` para estado normal y `shopHighlightedSpriteResourcePath` para el estado visual seleccionado. En el arte actual, los sprites seleccionados terminan en `Ink`.
+- Las skins usan `shopSpriteResourcePath` para su imagen base, `shopBuyedSpriteResourcePath` para el estado comprado no equipado y `shopSelectedSpriteResourcePath` para la skin equipada. Si faltan sprites de comprado o equipado, el manager conserva fallback hacia la imagen base.
+- Los campos TMP de detalle `NombreProducto`, `DescripcionProducto` y `PrecioProducto` son referencias funcionales del manager. Su posicion y estilo pertenecen a la escena; el manager solo escribe contenido.
+- El indicador de nivel de mejoras vive en el nodo visual `Mejorable/Gota1..Gota5`. Cada gota debe exponer estados `Visual/Vacia`, `Visual/Media` y `Visual/Llena`. Cinco gotas representan diez segmentos de mejora.
 
 Eventos persistentes requeridos:
 
@@ -189,7 +220,7 @@ Eventos persistentes requeridos:
 - `SkinAnteriorBoton` llama `PreviousSkinPage()` y `SkinSiguienteBoton` llama `NextSkinPage()`.
 - `ComprarBoton/Button` llama `PurchaseSelected()`.
 - `VolverBoton/Button` llama `MainMenu.VolverAlMenuPrincipal()`.
-- El prefab `OptionsMenu` existe como root separado de escena para no heredar escala de `Canvas` ni del mueble. No se agrega ni se corrige por codigo runtime.
+- El prefab `OptionsMenu` existe como root separado de escena para no heredar escala de `Canvas` ni del mueble. El fondo oscuro pertenece al propio prefab y se muestra u oculta por `OptionsMenuManager`.
 
 Reglas:
 - No vende gadgets. Los gadgets son compras de run mediante `DealerFish`.
@@ -197,7 +228,11 @@ Reglas:
 - No modifica `player-profile.json` de forma directa.
 - No calcula precios por su cuenta; usa `PermanentShopService.GetPermanentUpgradePrice()` o datos del catalogo cuando corresponda.
 - La aplicacion visual de skins debe modificar visuales del jugador, no movimiento, colision ni reglas de Ink-Pulse.
-- Comprar una skin la desbloquea; una segunda accion sobre una skin ya poseida la equipa. El cambio visual efectivo de la skin es una fase posterior y no debe alterar controladores de gameplay.
+- Comprar una skin la desbloquea. Una segunda accion sobre una skin ya poseida la equipa y escribe `equippedSkinId` en el perfil.
+- Si la skin ya esta equipada y no es `skin.default`, accionar `Comprar` la deselecciona y vuelve a equipar `skin.default`.
+- El cambio visual efectivo del jugador usa `playerSkinPrefabResourcePath`: al entrar a gameplay, `PlayerSkinApplier` instancia ese prefab bajo `BabySquid/SkinMount` y `PlayerVisualStateController` alterna sus raices `MovementVisual`/`SquidVisual`, `InkPulseVisual` y `PortalVisual`.
+- El catalogo runtime solo debe incluir skins con prefab visual completo y ruta valida. Las skins conceptuales o no implementadas quedan fuera de `unlockables-catalog.json` hasta que tengan animacion/prefab jugable.
+- Para pruebas en Editor, las compras se guardan en `Application.persistentDataPath/db/`. Si se necesita una sesion limpia, hay que borrar o reemplazar esa carpeta de persistencia antes de iniciar Play Mode. La sesion limpia actual esperada tiene mejoras en `0`, camarones `0`, best `0`, leaderboard vacio y solo `skin.default` desbloqueada/equipada.
 
 ## HUD
 
@@ -245,24 +280,17 @@ Responsabilidad:
 - Mostrar tecla solo si el gadget del hueco es activo: `Q` en `Gadget1`, `W` en `Gadget2`.
 
 Contrato de barra Ink-Pulse:
-- `ChargeBar` es la fachada consumida por `InkPulseController`. Solo recibe un valor normalizado y lo replica al presenter visual o al slider legacy.
-- `InkBarFillPresenter` es la especializacion visual de barras modernas. No conoce sesion, jugador, Ink-Pulse ni progresion; solo traduce un valor normalizado a layout.
-- `EffectPresentationMode.FollowFillTip` mueve `EffectAnchor` hacia la punta del relleno. Es la variante vertical usada en `ZonaAbisopelagica`.
-- `EffectPresentationMode.RevealThroughFill` deja `InkBarEffectVisual` espacialmente fijo y usa `Fill` como mascara invisible. Es la variante horizontal/rotada usada en `ZonaEpipelagica`.
-- `ZonaTutorial` conserva `InkPulseBar` legacy con `Slider` y `ChargeBar` sin presenter. Esto se mantiene deliberadamente hasta redisenar el tutorial.
+- `ChargeBar` es la fachada consumida por `InkPulseController`. Solo recibe un valor normalizado y lo replica al presenter visual de `InkBar`.
+- `InkBarFillPresenter` es la especializacion visual de la barra actual. No conoce sesion, jugador, Ink-Pulse ni progresion; solo traduce un valor normalizado a layout.
+- `EffectPresentationMode` pertenece al prefab `InkBar`; las escenas no deben elegir variantes distintas de prefab para cambiar la presentacion.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan `GameRoot/GameUIRoot/HUD/InkBar`.
 
 Prefabs disponibles:
-- `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab`: fuente para `ZonaEpipelagica`.
-- `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab`: fuente para `ZonaAbisopelagica`.
-- `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab`: fuente legacy para `ZonaTutorial`.
+- `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`: barra Ink-Pulse canonica para todas las zonas.
 - `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab`: slots de gadgets activos/pasivos.
 - `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab`: contador de camarones persistentes.
 - `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab`: puntaje runtime.
-- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan estas piezas como instancias prefab. Las escenas pueden conservar overrides de posicion, rotacion y escala. El prefab debe conservar jerarquia interna, imagenes, animador, mascara y componentes `ChargeBar`/`InkBarFillPresenter` cuando corresponda.
-
-Nota sobre Tutorial:
-- La estructura es igual, salvo que el HUD contiene `InkPulseBar` en vez de `InkBar`.
-- Esta diferencia esta validada explicitamente por `SceneContractValidator`; no debe resolverse renombrando nodos sin actualizar el contrato.
+- `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` usan estas piezas como instancias prefab. Las escenas pueden conservar overrides de posicion y referencias; el prefab debe conservar jerarquia interna, imagenes, animador, mascara y componentes `ChargeBar`/`InkBarFillPresenter`.
 
 Regla visual de inventario:
 - Los slots no tienen gadget fijo en escena; se llenan por orden de adquisicion.

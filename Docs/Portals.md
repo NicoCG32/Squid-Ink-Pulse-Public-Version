@@ -56,14 +56,13 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 | --- | --- |
 | `Disabled` | No instancia portales. |
 | `PostBossWindow` | Evalua un portal solo mientras `RunProgressionDirector.EventState` sea `PostBossWindow`, despues de un delay y con probabilidad configurable. |
-| `AlwaysInterval` | Instancia portales por intervalo, sin depender del boss. |
 
 Configuracion actual:
 
-| Escena | Politica | Delay | Probabilidad | Intervalo |
+| Escena | Politica | Delay | Probabilidad | Reintento |
 | --- | --- | --- | --- | --- |
-| `ZonaEpipelagica` | `PostBossWindow` | `3s` tras resolver boss | `1.0` por defecto | no reintenta en la misma ventana |
-| `ZonaAbisopelagica` | `AlwaysInterval` | `20s` | no aplica | `20s` |
+| `ZonaEpipelagica` | `PostBossWindow` | `3s` tras resolver boss | `postBossPortalSpawnChance` | no reintenta en la misma ventana |
+| `ZonaAbisopelagica` | `PostBossWindow` | `3s` tras resolver boss | `postBossPortalSpawnChance` | no reintenta en la misma ventana |
 
 ## Regla de ida y vuelta
 

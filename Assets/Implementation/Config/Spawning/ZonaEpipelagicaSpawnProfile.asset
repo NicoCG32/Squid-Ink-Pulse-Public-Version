@@ -71,5 +71,4 @@ MonoBehaviour:
   portalSpawnPolicy: 1
   firstPortalSpawnDelay: 3
   postBossPortalSpawnChance: 1
-  portalSpawnInterval: 20
   requireNoActivePortal: 1

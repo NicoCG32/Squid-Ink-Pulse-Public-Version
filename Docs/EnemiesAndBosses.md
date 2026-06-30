@@ -173,6 +173,9 @@ Contrato:
 - `UnknownBoss` usa tag `Boss` y layer `Boss`.
 - `BossPillars` usan layer `Enemy` y tag de enemigo para que colision, graze y cleanup los traten como obstaculos jugables.
 - El ultimo pilar puede actuar como pared continua cuando `spawnFinalContinuousWall` esta activo.
+- En `ZonaAbisopelagica`, `GameRoot_ZonaAbisopelagica` instala `BossEventDirector` en `FlappyBossManager` para instanciar `UnknownBoss`.
+- `UnknownBoss` declara `LightGrazeSource` propio para ser legible dentro de `LayerBlack`.
+- La luz del boss puede ser eliptica y titilante; esto pertenece a su identidad visual de anguila electrica y no modifica dano, colision ni graze mecanico.
 
 ## SSCarnage
 

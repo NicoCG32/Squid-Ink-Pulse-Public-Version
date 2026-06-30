@@ -103,7 +103,7 @@ Reglas vigentes:
 - Al entrar en `GameSessionState.GameOver`, `RuntimeRunScore` captura `LastCompletedScore`, `PersistentPlayerProfile` actualiza `bestScore` y luego el score runtime se reinicia.
 - Al pulsar `Reintentar`, la escena cargada debe ser `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 - `ScoreCounterDisplay` solo presenta el numero; no calcula progresion.
-- `GameOverMenuManager` muestra `LastCompletedScore` en `PuntajeObtenido` y `PersistentPlayerProfile.BestScore` en `MaximoPuntaje` / `MáximoPuntaje`.
+- `GameOverMenuManager` muestra `LastCompletedScore` en `PuntajeObtenido` y `PersistentPlayerProfile.BestScore` en `MaximoPuntaje`.
 - La tienda temporal usa `RuntimeRunScore.TotalScore` para calcular precios.
 
 ## Velocidad del calamar
@@ -216,11 +216,10 @@ Parametros ajustables:
 | Campo | Que controla | Nota de test |
 | --- | --- | --- |
 | `portalPrefab` | Prefab de portal que se instancia en runtime. | Vive en `ZoneSpawnProfile`. |
-| `portalSpawnPolicy` | Regla de aparicion del portal. | `ZonaEpipelagica` usa `PostBossWindow`; `ZonaAbisopelagica` usa `AlwaysInterval`. Vive en `ZoneSpawnProfile`. |
+| `portalSpawnPolicy` | Regla de aparicion del portal. | Las zonas jugables usan `PostBossWindow`; `ZonaTutorial` usa `Disabled` porque su portal es dirigido por `TutorialDirector`. Vive en `ZoneSpawnProfile`. |
 | `portalSpawnedParent` | Contenedor donde se agrupan los portales instanciados. | Debe apuntar al nodo `Portals`. |
-| `firstPortalSpawnDelay` | Espera antes del primer portal o de la tirada post-boss. | Vive en `ZoneSpawnProfile`; `ZonaEpipelagica` usa `3s`; `ZonaAbisopelagica` usa `20s`. |
-| `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Vive en `ZoneSpawnProfile`; solo aplica a `PostBossWindow`; `1` significa garantizado. |
-| `portalSpawnInterval` | Intervalo entre portales posteriores. | Vive en `ZoneSpawnProfile`; `ZonaAbisopelagica` usa `20s`. |
+| `firstPortalSpawnDelay` | Espera antes de la tirada post-boss. | Vive en `ZoneSpawnProfile`; las zonas jugables usan `3s`. |
+| `postBossPortalSpawnChance` | Probabilidad de que aparezca portal tras el delay post-boss. | Vive en `ZoneSpawnProfile`; `1` significa garantizado y valores menores introducen probabilidad real. |
 | `requireNoActivePortal` | Evita crear otro portal si uno anterior sigue vivo. | Vive en `ZoneSpawnProfile`; debe estar activo por defecto. |
 | `fallbackTransitionDelay` | Espera de respaldo si el jugador no tiene `PlayerVisualStateController`. | Vive en `ScenePortal`; normalmente debe ganar la duracion de `PortalEffect`. |
 | `primaryGameplaySceneName` | Zona base o retorno. | Vive en `SceneFlowController`; por defecto `ZonaEpipelagica`. |
@@ -264,6 +263,8 @@ Reglas vigentes:
 - `VisibleOutsideMask` solo corresponde al modo fallback con `SpriteMask`.
 - La instancia `Squid` de `BabySquid.prefab` tiene `LightGrazeSource` en `ZonaAbisopelagica`.
 - `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, agrega `LightGrazeSource` a entidades runtime solo si existe `ZoneLightingController`.
+- `LightGrazeSource` puede declarar ancla, escala X/Y de luz y titileo; esos campos son lectura visual, no dificultad mecanica.
+- `DealerFish_ZonaAbisopelagica` debe revelar su soporte visual/roca y `UnknownBoss` debe tener luz propia titilante.
 - `SSCarnage` y `BossNetWall` no participan porque no aparecen en `ZonaAbisopelagica`.
 - `ZonaAbisopelagicaSpawnProfile` debe usar `DealerFish_ZonaAbisopelagica.prefab`; tutorial y zona epipelagica deben conservar `DealerFish.prefab`.
 
@@ -548,13 +549,14 @@ Contrato de `Boundaries`:
 
 ## UI y menus
 
-Scripts: `PauseMenuManager`, `GameOverMenuManager`, `MenuButtonAnimation`, `MenuBubbles`
+Scripts: `PauseMenuManager`, `GameOverMenuManager`, `OptionsMenuManager`, `MenuButtonAnimation`, `MenuBubbles`
 
 Parametros ajustables:
 
 | Campo | Script | Que controla |
 | --- | --- | --- |
 | `fadeDuration` | `PauseMenuManager` / `GameOverMenuManager` | Duracion del fundido. |
+| `fadeDuration` | `OptionsMenuManager` | Duracion del fundido de opciones. |
 | `zigzagOffset` | `PauseMenuManager` / `GameOverMenuManager` | Distancia inicial/final de entrada visual. |
 | `zigzagDuration` | `PauseMenuManager` / `GameOverMenuManager` | Duracion de movimiento de cada elemento. |
 | `zigzagDelay` | `PauseMenuManager` / `GameOverMenuManager` | Separacion temporal entre elementos animados. |
@@ -567,6 +569,9 @@ Parametros ajustables:
 
 Reglas vigentes:
 - La pausa se alterna con `P` o `Esc`.
+- `OptionsMenu` debe abrirse desde MainMenu, ShopMenu y escenas jugables como prefab/panel, no como escena.
+- El fondo `Background`/`Fondo` del prefab debe verse detras del panel y bloquear visualmente el contenido anterior sin cubrir los controles del menu.
+- Cambiar volumen, resolucion o fullscreen debe persistir en `PlayerPrefs`; no debe escribir en `Application.persistentDataPath/db/`.
 
 ## Economia de camarones y perfil persistente
 
@@ -601,13 +606,18 @@ Persistencia:
 - Settings no deben aparecer en estos JSON.
 
 Pruebas de tienda out-of-game:
+- En `MainMenu`, escribir `SONICYNOTA7` de forma sucesiva, sin campo de input, debe acreditar `676700` camarones de muestra por cada ingreso completo. El atajo no tiene limite de usos: 10 ingresos suman `6767000` camarones. Usa credito directo de saldo: no aplica multiplicador de camarones y no aumenta `totalShrimpsCollected`.
 - `ShopMenu` contiene exactamente un `OutOfGameShopManager`, un `ShrimpCounter` prefab y un `OptionsMenu` prefab de escala independiente.
 - `ShopMenu/Panel/ProductInfoBlock` contiene `NombreProducto`, `DescripcionProducto` y `PrecioProducto`, y los tres campos equivalentes de `OutOfGameShopManager` los referencian desde Inspector.
 - Al seleccionar una mejora, el bloque actualiza nombre, nivel/descripcion y precio sin crear UI por codigo ni alterar el arte de las vitrinas.
 - Los cuatro hitboxes superiores seleccionan, en orden, duration, recharge rate, shrimp multiplier y score multiplier; no deben modificar sprites ni layout de las vitrinas.
 - `ComprarBoton` no compra sin una seleccion valida; con una mejora seleccionada debe delegar a `PermanentShopService` y refrescar el estado del boton.
 - `VolverBoton` vuelve a `MainMenu` mediante su listener persistente.
-- Con el catalogo actual, solo `skin.default` esta disponible. Las flechas de pagina deben quedar no interactuables; agregar skins al catalogo debe habilitar paginacion sin cambiar codigo.
+- Con el catalogo actual, las skins visibles se filtran por `shopSpriteResourcePath`; las flechas de pagina deben habilitarse solo si hay mas skins visibles que slots.
+- Seleccionar una skin no poseida debe mostrar precio compacto y permitir compra si hay saldo.
+- Seleccionar una skin poseida debe permitir equiparla si no esta equipada; una skin equipada debe mostrar estado de equipada y no volver a gastar camarones.
+- Los estados visuales de skins son `Buyed` para comprada no equipada y `Selected` para equipada.
+- Los precios de ShopMenu deben usar el mismo formato compacto que `ShrimpCounterDisplay`.
 - `PermanentShopService.TryPurchaseSkin()` debe descontar camarones solo si la skin existe, esta desbloqueada por meta y no estaba comprada.
 - `PermanentShopService.TryPurchasePermanentUpgradeLevel()` debe respetar `maxLevel`, `basePrice` y `priceGrowthMultiplier`.
 - El resultado debe expresarse mediante `PermanentShopPurchaseResult`; la UI no debe inferir por su cuenta falta de saldo, item desconocido o nivel maximo.

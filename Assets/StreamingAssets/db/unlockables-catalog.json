@@ -1,5 +1,5 @@
 {
-    "version": 5,
+    "version": 8,
     "skins": [
         {
             "id": "skin.default",
@@ -11,23 +11,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.king",
-            "displayName": "Rey Abisal",
-            "description": "Avanza entre corrientes y peligros como si el oceano le debiera respeto.",
-            "defaultUnlocked": false,
-            "basePrice": 250000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/King",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Default",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -43,39 +27,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.german",
-            "displayName": "Calamar Aleman",
-            "description": "Esquiva con precision quirurgica, incluso cuando el mar decide improvisar.",
-            "defaultUnlocked": false,
-            "basePrice": 180000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/German",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.vikingo",
-            "displayName": "Vikingo",
-            "description": "Las olas rugen, los obstaculos tiemblan y el sigue conquistando profundidad.",
-            "defaultUnlocked": false,
-            "basePrice": 350000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/Vikingo",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Marley",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -91,7 +43,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Rock",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -107,39 +59,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.china",
-            "displayName": "Tradicion Marina",
-            "description": "Enfrenta las corrientes con serenidad, tecnica y una paciencia legendaria.",
-            "defaultUnlocked": false,
-            "basePrice": 275000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/China",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.fantasma",
-            "displayName": "Fantasma",
-            "description": "Atraviesa el peligro tan suave que hasta las amenazas dudan si lo vieron.",
-            "defaultUnlocked": false,
-            "basePrice": 666666,
-            "shopSpriteResourcePath": "ShopMenu/Skins/Fantasma",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Formal",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -155,23 +75,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.raya",
-            "displayName": "Raya Marina",
-            "description": "Se desliza entre obstaculos como sombra elegante en plena tormenta submarina.",
-            "defaultUnlocked": false,
-            "basePrice": 95000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/Raya",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Sonic",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -187,23 +91,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.zombie",
-            "displayName": "Zombie",
-            "description": "El oceano insiste en detenerlo, pero su determinacion sigue flotando.",
-            "defaultUnlocked": false,
-            "basePrice": 333333,
-            "shopSpriteResourcePath": "ShopMenu/Skins/Zombie",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Huaso",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -219,7 +107,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Chile",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -235,39 +123,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.clown",
-            "displayName": "Payaso Abisal",
-            "description": "Hace reir al peligro justo antes de esquivarlo con un dash impecable.",
-            "defaultUnlocked": false,
-            "basePrice": 222222,
-            "shopSpriteResourcePath": "ShopMenu/Skins/Clown",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
-            "unlockGoal": {
-                "goalType": "None",
-                "targetValue": 0
-            }
-        },
-        {
-            "id": "skin.black_metal",
-            "displayName": "Black Metal",
-            "description": "Oscuro, intenso y perfecto para sobrevivir cuando el oceano se pone brutal.",
-            "defaultUnlocked": false,
-            "basePrice": 1500000,
-            "shopSpriteResourcePath": "ShopMenu/Skins/BlackMetal",
-            "shopHighlightedSpriteResourcePath": "",
-            "shopBuyedSpriteResourcePath": "",
-            "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Nemo",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -283,7 +139,7 @@
             "shopHighlightedSpriteResourcePath": "",
             "shopBuyedSpriteResourcePath": "",
             "shopSelectedSpriteResourcePath": "",
-            "playerSkinPrefabResourcePath": "",
+            "playerSkinPrefabResourcePath": "PlayerSkins/Travis",
             "unlockGoal": {
                 "goalType": "None",
                 "targetValue": 0
@@ -326,7 +182,7 @@
             "displayName": "Tinta Persistente",
             "description": "La tinta permanece activa por mas tiempo, extendiendo la duracion del impulso.",
             "defaultUnlocked": true,
-            "basePrice": 100,
+            "basePrice": 350,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/InkPulsePersistence",
             "shopHighlightedSpriteResourcePath": "ShopMenu/Skills/Upgrades/InkPulsePersistenceInk",
             "unlockGoal": {
@@ -334,7 +190,7 @@
                 "targetValue": 0
             },
             "maxLevel": 10,
-            "priceGrowthMultiplier": 1.5,
+            "priceGrowthMultiplier": 1.7,
             "effectMode": "Multiplier",
             "baseEffectValue": 1,
             "effectPerLevel": 0.075
@@ -344,7 +200,7 @@
             "displayName": "Pulso Recargado",
             "description": "El pulso de tinta se regenera mas rapido, permitiendo impulsarte con mayor frecuencia.",
             "defaultUnlocked": true,
-            "basePrice": 120,
+            "basePrice": 500,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/ChargeRate",
             "shopHighlightedSpriteResourcePath": "ShopMenu/Skills/Upgrades/ChargeRateInk",
             "unlockGoal": {
@@ -352,17 +208,17 @@
                 "targetValue": 0
             },
             "maxLevel": 10,
-            "priceGrowthMultiplier": 1.5,
+            "priceGrowthMultiplier": 1.7,
             "effectMode": "Additive",
             "baseEffectValue": 0,
-            "effectPerLevel": 11.25
+            "effectPerLevel": 4.5
         },
         {
             "id": "upgrade.shrimp_multiplier",
             "displayName": "Botin de Camarones",
             "description": "Aumenta la cantidad de camarones recolectados, mejorando las recompensas de cada partida.",
             "defaultUnlocked": true,
-            "basePrice": 200,
+            "basePrice": 100,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/MoneyMultiplier",
             "shopHighlightedSpriteResourcePath": "ShopMenu/Skills/Upgrades/MoneyMultiplierInk",
             "unlockGoal": {
@@ -370,10 +226,10 @@
                 "targetValue": 0
             },
             "maxLevel": 10,
-            "priceGrowthMultiplier": 1.6,
+            "priceGrowthMultiplier": 1.5,
             "effectMode": "Multiplier",
             "baseEffectValue": 1,
-            "effectPerLevel": 0.05
+            "effectPerLevel": 0.5
         },
         {
             "id": "upgrade.score_multiplier",
@@ -391,7 +247,7 @@
             "priceGrowthMultiplier": 1.6,
             "effectMode": "Multiplier",
             "baseEffectValue": 1,
-            "effectPerLevel": 0.05
+            "effectPerLevel": 0.5
         }
     ]
 }

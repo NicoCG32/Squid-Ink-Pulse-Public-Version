@@ -1,10 +1,28 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public class MainMenu : MonoBehaviour
 {
+    private const string DemoShrimpSecretCode = "SONICYNOTA7";
+    private const int DemoShrimpGrantAmount = 676700;
+    private static readonly Key[] DemoShrimpSecretKeys =
+    {
+        Key.S,
+        Key.O,
+        Key.N,
+        Key.I,
+        Key.C,
+        Key.Y,
+        Key.N,
+        Key.O,
+        Key.T,
+        Key.A,
+        Key.Digit7
+    };
+
     [Header("Scene Flow")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
     [SerializeField] private string playSceneName = "Assets/Scenes/Game/ZonaEpipelagica.unity";
@@ -18,10 +36,34 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private OptionsMenuManager optionsMenuPanel;
 
     private bool isLoading;
+    private int demoShrimpSecretProgress;
+    private Keyboard demoShrimpTextInputKeyboard;
+    private int lastDemoShrimpTextInputFrame = -1;
 
     private void Awake()
     {
         ResolveUiReferences();
+    }
+
+    private void OnEnable()
+    {
+        SyncDemoShrimpTextInputKeyboard();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeDemoShrimpTextInputKeyboard();
+    }
+
+    private void Update()
+    {
+        SyncDemoShrimpTextInputKeyboard();
+        if (lastDemoShrimpTextInputFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        ListenForDemoShrimpSecretCode();
     }
 
     private void OnValidate()
@@ -124,6 +166,129 @@ public class MainMenu : MonoBehaviour
     {
         optionsMenuPanel ??= GetComponentInChildren<OptionsMenuManager>(includeInactive: true);
         optionsMenuPanel ??= FindInScene<OptionsMenuManager>();
+    }
+
+    private void ListenForDemoShrimpSecretCode()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || !keyboard.anyKey.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (WasDemoShrimpSecretKeyPressed(keyboard, demoShrimpSecretProgress))
+        {
+            AdvanceDemoShrimpSecretCode(DemoShrimpSecretCode[demoShrimpSecretProgress]);
+        }
+        else if (WasDemoShrimpSecretKeyPressed(keyboard, 0))
+        {
+            AdvanceDemoShrimpSecretCode(DemoShrimpSecretCode[0]);
+        }
+        else if (WasIgnoredDemoShrimpSecretKeyPressed(keyboard))
+        {
+            return;
+        }
+        else
+        {
+            demoShrimpSecretProgress = 0;
+        }
+    }
+
+    private void HandleDemoShrimpTextInput(char input)
+    {
+        if (!TryNormalizeDemoShrimpInput(input, out char normalizedInput))
+        {
+            return;
+        }
+
+        lastDemoShrimpTextInputFrame = Time.frameCount;
+        AdvanceDemoShrimpSecretCode(normalizedInput);
+    }
+
+    private void AdvanceDemoShrimpSecretCode(char input)
+    {
+        if (demoShrimpSecretProgress >= 0
+            && demoShrimpSecretProgress < DemoShrimpSecretCode.Length
+            && input == DemoShrimpSecretCode[demoShrimpSecretProgress])
+        {
+            demoShrimpSecretProgress++;
+        }
+        else if (input == DemoShrimpSecretCode[0])
+        {
+            demoShrimpSecretProgress = 1;
+        }
+        else
+        {
+            demoShrimpSecretProgress = 0;
+        }
+
+        if (demoShrimpSecretProgress < DemoShrimpSecretCode.Length)
+        {
+            return;
+        }
+
+        demoShrimpSecretProgress = 0;
+        ShrimpRuntimeWallet.Refund(DemoShrimpGrantAmount);
+        Debug.Log($"[MainMenu] Codigo secreto de muestra '{DemoShrimpSecretCode}' aplicado: +{ShrimpCounterDisplay.FormatShrimpAmount(DemoShrimpGrantAmount)} camarones. Saldo actual: {ShrimpCounterDisplay.FormatShrimpAmount(ShrimpRuntimeWallet.TotalShrimp)}.", this);
+    }
+
+    private static bool WasDemoShrimpSecretKeyPressed(Keyboard keyboard, int keyIndex)
+    {
+        if (keyboard == null || keyIndex < 0 || keyIndex >= DemoShrimpSecretKeys.Length)
+        {
+            return false;
+        }
+
+        if (keyboard[DemoShrimpSecretKeys[keyIndex]]?.wasPressedThisFrame == true)
+        {
+            return true;
+        }
+
+        return keyIndex == DemoShrimpSecretKeys.Length - 1
+            && keyboard[Key.Numpad7]?.wasPressedThisFrame == true;
+    }
+
+    private static bool WasIgnoredDemoShrimpSecretKeyPressed(Keyboard keyboard)
+    {
+        return keyboard[Key.LeftShift]?.wasPressedThisFrame == true
+            || keyboard[Key.RightShift]?.wasPressedThisFrame == true
+            || keyboard[Key.LeftCtrl]?.wasPressedThisFrame == true
+            || keyboard[Key.RightCtrl]?.wasPressedThisFrame == true
+            || keyboard[Key.LeftAlt]?.wasPressedThisFrame == true
+            || keyboard[Key.RightAlt]?.wasPressedThisFrame == true
+            || keyboard[Key.CapsLock]?.wasPressedThisFrame == true;
+    }
+
+    private static bool TryNormalizeDemoShrimpInput(char input, out char normalizedInput)
+    {
+        normalizedInput = char.ToUpperInvariant(input);
+        return char.IsLetterOrDigit(normalizedInput);
+    }
+
+    private void SyncDemoShrimpTextInputKeyboard()
+    {
+        Keyboard currentKeyboard = Keyboard.current;
+        if (demoShrimpTextInputKeyboard == currentKeyboard)
+        {
+            return;
+        }
+
+        UnsubscribeDemoShrimpTextInputKeyboard();
+        demoShrimpTextInputKeyboard = currentKeyboard;
+
+        if (demoShrimpTextInputKeyboard != null)
+        {
+            demoShrimpTextInputKeyboard.onTextInput += HandleDemoShrimpTextInput;
+        }
+    }
+
+    private void UnsubscribeDemoShrimpTextInputKeyboard()
+    {
+        if (demoShrimpTextInputKeyboard != null)
+        {
+            demoShrimpTextInputKeyboard.onTextInput -= HandleDemoShrimpTextInput;
+            demoShrimpTextInputKeyboard = null;
+        }
     }
 
     private T FindInScene<T>() where T : Component

@@ -37,7 +37,7 @@ La regla de capas completa esta definida en [SoftwareArchitecture.md](SoftwareAr
 - Mercancia comprable: `GadgetShopItem`.
 - Tienda temporal: `DealerFish` e `InGameShopManager`.
 - Portales: `ScenePortal` detecta contacto; `SceneFlowController` decide destino.
-- Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` declara posiciones de luz visual.
+- Iluminacion de zona: `ZoneLightingController` gobierna `LayerBlack`; `LightGrazeSource` declara muestras de luz visual con posicion, forma y titileo opcional.
 - Economia persistente: `ShrimpRuntimeWallet` como API runtime y `PersistentPlayerProfile` como almacenamiento JSON.
 - Boss SS Carnage: `BossEventDirector`, `SSCarnageController` y `SSCarnageNetWall`.
 - UI de pausa: `PauseMenuManager`.
@@ -173,9 +173,7 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 | `LoreComicRoot` | `LoreComicPresenter` | Mostrar vinetas narrativas de inicio, portal y derrota usando el nodo visual `Comic` existente. |
 | Botones de pausa/game over | `MenuButtonAnimation` | Animacion interactiva visual fija del boton; no expone parametros por boton. |
 | Fondo burbujas UI | `MenuBubbles` | Movimiento decorativo compartido. |
-| `InkBar` en `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter` con `RevealThroughFill` | Barra moderna horizontal/rotada. `Fill` funciona como mascara invisible y revela `InkBarEffectVisual`. |
-| `InkBar` en `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter` con `FollowFillTip` | Barra moderna vertical. `EffectAnchor` acompana la punta del relleno. |
-| `InkPulseBar` en `ZonaTutorial` | `ChargeBar`, `Slider` | Variante legacy conservada como prefab para tutorial. No debe mezclarse con los presenters modernos hasta redisenar esa escena. |
+| `InkBar` en zonas jugables | `ChargeBar`, `InkBarFillPresenter` | Barra Ink-Pulse canonica para `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial`. La orientacion y presentacion visual pertenecen al prefab `InkBar`. |
 | `TutorialPresentationOverlay` en `ZonaTutorial` | `Canvas`, `CanvasGroup`, `Dimmer` con `Image` | Oscurecimiento temporal durante `TutorialPhase.Presentation`; no bloquea raycasts ni crea prompts. |
 | `Score` | `ScoreCounterDisplay` | Puntaje runtime de la run. |
 | `ShrimpCounter` | `ShrimpCounterDisplay` | Saldo persistente de camarones del perfil. |
@@ -222,13 +220,11 @@ La mina no tiene script propio todavia porque su logica actual vive en el algori
 
 ## Prefabs UI
 
-Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs separados por variante. `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben consumir estos assets como instancias de prefab, no como copias locales desempaquetadas.
+La barra de Ink-Pulse y el resto de HUD/menus principales existen como prefabs de UI. `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben consumir estos assets como instancias de prefab, no como copias locales desempaquetadas.
 
 | Prefab | Uso | Componentes esperados |
 | --- | --- | --- |
-| `Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab` | `ZonaEpipelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` invisible en `Fill`, `Animator` en `InkBarEffectVisual` |
-| `Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab` | `ZonaAbisopelagica` | `ChargeBar`, `InkBarFillPresenter`, `Mask` en `FillViewport`, `Animator` en `InkBarEffectVisual` |
-| `Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab` | `ZonaTutorial` legacy | `ChargeBar`, `Slider` |
+| `Assets/Content/Prefabs/UI/HUD/InkBar.prefab` | Todas las zonas jugables | `ChargeBar`, `InkBarFillPresenter`, `Mask`/relleno visual, `Animator` en `InkBarEffectVisual` |
 | `Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab` | HUD comun | `GadgetInventoryHud`, slots `Gadget1`/`Gadget2`, textos `Q`/`W` |
 | `Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab` | HUD comun | `ShrimpCounterDisplay`, icono y texto de cantidad |
 | `Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab` | HUD comun | `ScoreCounterDisplay` |
@@ -236,6 +232,7 @@ Las barras de Ink-Pulse y el resto de HUD/menus principales existen como prefabs
 | `Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab` | Overlay de derrota | `GameOverCanvas`, `CanvasGroup`, botones y animaciones visuales; sin manager dentro del prefab |
 | `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab` | Tienda temporal in-run | `InGameCanvas`, `CanvasGroup`, `Comprar`, `Gadget`, `Precio`, `B`, `SinSaldo`; sin manager dentro del prefab |
 | `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab` | Overlay narrativo | `LoreComicRoot`, `LoreComicPresenter`, `Comic`, `CanvasGroup`, `Dimmer`, `Vineta`, `ContinuarBoton` |
+| `Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab` | Opciones globales | `OptionsMenu`, Canvas propio, `OptionsPanel`, fondo `Background`/`Fondo`, `OptionsMenuManager`; instancia como root separado de escena |
 
 Reglas:
 - La UI jugable debe colgar de `GameUIRoot`, no de un root generico `UI`.
@@ -250,7 +247,7 @@ Reglas:
 - Los managers de escena no deben desactivar listeners persistentes del Inspector. No usar `SetPersistentListenerState` ni helpers tipo `DisablePersistentOnClick`.
 - `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquia.
 - `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs` permite reejecutar la migracion y validacion desde `Tools/Squid/Migrate Gameplay UI To Prefab Instances`.
-- `Tools/Squid/Validate Scene Contracts` tambien valida que cada zona tenga la variante de UI esperada: `InkBarHorizontal`, `InkBarVertical` o `InkPulseBarLegacy`.
+- `Tools/Squid/Validate Scene Contracts` tambien valida que cada zona tenga `GameRoot/GameUIRoot/HUD/InkBar` como instancia de `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`.
 
 Contrato de `LoreComic`:
 - `MainMenu` debe contener una instancia `LoreComicRoot` para el comic de inicio.
@@ -297,17 +294,18 @@ En `ZonaAbisopelagica`, `SpawnedObjectConfigurator` tambien garantiza `LightGraz
 
 Configuracion actual:
 - `ZonaEpipelagica`: `PortalSpawnPolicy.PostBossWindow`, primer portal inmediato durante post-boss.
-- `ZonaAbisopelagica`: `PortalSpawnPolicy.AlwaysInterval`, primer portal a los `20s` y repeticion cada `20s`.
+- `ZonaAbisopelagica`: `PortalSpawnPolicy.PostBossWindow`, tirada unica tras el boss usando `firstPortalSpawnDelay` y `postBossPortalSpawnChance`.
 
 ## Light graze visual
 
-`LightGrazeSource` no es un manager y no tiene parametros de balance. Es una declaracion runtime de capacidad visual.
+`LightGrazeSource` no es un manager y no tiene parametros de balance mecanico. Es una declaracion runtime de capacidad visual.
 
 Reglas:
 - El balance visual vive solo en `ZoneLightingController`.
 - La instancia `Squid` de `BabySquid.prefab` debe tener `LightGrazeSource` solo en `ZonaAbisopelagica`.
 - Las entidades spawneadas reciben `LightGrazeSource` por `SpawnedObjectConfigurator` solo en zonas con `ZoneLightingController`.
 - En modo compuesto, `LightGrazeSource` no crea renderers visibles: solo registra su posicion para que `ZoneLightingController` regenere una unica textura de oscuridad.
+- Cada fuente puede declarar `grazeAnchor`, `lightShapeScale` y titileo para ajustar lectura local de una entidad concreta.
 - El fallback legacy puede crear `LightGrazeMask` y `LightGrazeFeather` como hijos runtime si se desactiva `useCompositeLightOverlay`.
 - `GrazeDetector` y `LightGrazeSource` no deben compartir estado ni cargar el mismo recurso.
 

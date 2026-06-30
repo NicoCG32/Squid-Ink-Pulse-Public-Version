@@ -99,47 +99,16 @@ public static class LoreComicSetupUtility
 
     private static Dictionary<string, Sprite> EnsureComicSprites()
     {
-        Dictionary<string, Color32> colors = new()
-        {
-            { "Comic_Inicio", new Color32(233, 238, 245, 255) },
-            { "Comic_Portal_Epi_Abi", new Color32(78, 174, 204, 255) },
-            { "Comic_Portal_Abi_Epi", new Color32(48, 92, 144, 255) },
-            { "Comic_Derrota_Epi_01", new Color32(199, 95, 111, 255) },
-            { "Comic_Derrota_Epi_02", new Color32(214, 128, 102, 255) },
-            { "Comic_Derrota_Epi_03", new Color32(184, 83, 127, 255) },
-            { "Comic_Derrota_Abi_01", new Color32(54, 72, 129, 255) },
-            { "Comic_Derrota_Abi_02", new Color32(84, 65, 137, 255) },
-            { "Comic_Derrota_Abi_03", new Color32(40, 104, 118, 255) },
-            { "Comic_ShopInGameFirst", new Color32(71, 128, 120, 255) },
-            { "Comic_ShopInGameLastPurchased", new Color32(101, 92, 154, 255) },
-            { "Comic_ShopInGameLastNoPurchase", new Color32(118, 123, 139, 255) }
-        };
-
-        Dictionary<string, string> paths = new()
-        {
-            { "Comic_Inicio", $"{StartFolder}/Comic_Inicio.png" },
-            { "Comic_Portal_Epi_Abi", $"{PortalsFolder}/Comic_Portal_Epi_Abi.png" },
-            { "Comic_Portal_Abi_Epi", $"{PortalsFolder}/Comic_Portal_Abi_Epi.png" },
-            { "Comic_Derrota_Epi_01", $"{EpipelagicDefeatFolder}/Comic_Derrota_Epi_01.png" },
-            { "Comic_Derrota_Epi_02", $"{EpipelagicDefeatFolder}/Comic_Derrota_Epi_02.png" },
-            { "Comic_Derrota_Epi_03", $"{EpipelagicDefeatFolder}/Comic_Derrota_Epi_03.png" },
-            { "Comic_Derrota_Abi_01", $"{AbyssopelagicDefeatFolder}/Comic_Derrota_Abi_01.png" },
-            { "Comic_Derrota_Abi_02", $"{AbyssopelagicDefeatFolder}/Comic_Derrota_Abi_02.png" },
-            { "Comic_Derrota_Abi_03", $"{AbyssopelagicDefeatFolder}/Comic_Derrota_Abi_03.png" },
-            { "Comic_ShopInGameFirst", $"{ShopFolder}/Comic_ShopInGameFirst.png" },
-            { "Comic_ShopInGameLastPurchased", $"{ShopFolder}/Comic_ShopInGameLastPurchased.png" },
-            { "Comic_ShopInGameLastNoPurchase", $"{ShopFolder}/Comic_ShopInGameLastNoPurchase.png" }
-        };
-
         Dictionary<string, Sprite> sprites = new();
-        foreach (KeyValuePair<string, string> comic in paths)
+        if (!Directory.Exists(ComicArtRoot))
         {
-            string assetPath = comic.Value;
-            if (!File.Exists(assetPath))
-            {
-                CreatePlaceholderPng(assetPath, colors[comic.Key]);
-            }
+            return sprites;
+        }
 
+        string[] assetPaths = Directory.GetFiles(ComicArtRoot, "*.png", SearchOption.AllDirectories);
+        for (int i = 0; i < assetPaths.Length; i++)
+        {
+            string assetPath = assetPaths[i].Replace('\\', '/');
             TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             if (importer != null && importer.textureType != TextureImporterType.Sprite)
             {
@@ -151,39 +120,11 @@ public static class LoreComicSetupUtility
             Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
             if (sprite != null)
             {
-                sprites[comic.Key] = sprite;
+                sprites[Path.GetFileNameWithoutExtension(assetPath)] = sprite;
             }
         }
 
         return sprites;
-    }
-
-    private static void CreatePlaceholderPng(string assetPath, Color32 baseColor)
-    {
-        const int width = 160;
-        const int height = 90;
-        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        Color32 borderColor = new Color32(255, 255, 255, 255);
-        Color32 shadowColor = new Color32(
-            (byte)Mathf.RoundToInt(baseColor.r * 0.55f),
-            (byte)Mathf.RoundToInt(baseColor.g * 0.55f),
-            (byte)Mathf.RoundToInt(baseColor.b * 0.55f),
-            255);
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                bool border = x < 4 || x >= width - 4 || y < 4 || y >= height - 4;
-                bool innerPanel = x > 16 && x < width - 16 && y > 14 && y < height - 14;
-                texture.SetPixel(x, y, border ? borderColor : innerPanel ? baseColor : shadowColor);
-            }
-        }
-
-        texture.Apply();
-        File.WriteAllBytes(assetPath, texture.EncodeToPNG());
-        UnityEngine.Object.DestroyImmediate(texture);
-        AssetDatabase.ImportAsset(assetPath);
     }
 
     private static GameObject EnsureLoreComicPrefab(Dictionary<string, Sprite> sprites)
@@ -369,8 +310,8 @@ public static class LoreComicSetupUtility
         SetEntry(entries.GetArrayElementAtIndex(0), LoreComicEvent.GameStart, LoreComicZone.Unknown, 0f, true, true, SpriteArray(sprites, "Comic_Inicio"));
         SetEntry(entries.GetArrayElementAtIndex(1), LoreComicEvent.PortalEpipelagicToAbyssopelagic, LoreComicZone.Abyssopelagic, 3f, false, false, SpriteArray(sprites, "Comic_Portal_Epi_Abi"));
         SetEntry(entries.GetArrayElementAtIndex(2), LoreComicEvent.PortalAbyssopelagicToEpipelagic, LoreComicZone.Epipelagic, 3f, false, false, SpriteArray(sprites, "Comic_Portal_Abi_Epi"));
-        SetEntry(entries.GetArrayElementAtIndex(3), LoreComicEvent.Defeat, LoreComicZone.Epipelagic, 3f, false, false, SpriteArray(sprites, "Comic_Derrota_Epi_01", "Comic_Derrota_Epi_02", "Comic_Derrota_Epi_03"));
-        SetEntry(entries.GetArrayElementAtIndex(4), LoreComicEvent.Defeat, LoreComicZone.Abyssopelagic, 3f, false, false, SpriteArray(sprites, "Comic_Derrota_Abi_01", "Comic_Derrota_Abi_02", "Comic_Derrota_Abi_03"));
+        SetEntry(entries.GetArrayElementAtIndex(3), LoreComicEvent.Defeat, LoreComicZone.Epipelagic, 3f, false, false, SpriteArrayByPrefix(sprites, "Comic_Derrota_Epi_"));
+        SetEntry(entries.GetArrayElementAtIndex(4), LoreComicEvent.Defeat, LoreComicZone.Abyssopelagic, 3f, false, false, SpriteArrayByPrefix(sprites, "Comic_Derrota_Abi_"));
         SetEntry(entries.GetArrayElementAtIndex(5), LoreComicEvent.ShopInGameFirst, LoreComicZone.Unknown, 3f, false, false, SpriteArray(sprites, "Comic_ShopInGameFirst"));
         SetEntry(entries.GetArrayElementAtIndex(6), LoreComicEvent.ShopInGameLastPurchased, LoreComicZone.Unknown, 3f, false, false, SpriteArray(sprites, "Comic_ShopInGameLastPurchased"));
         SetEntry(entries.GetArrayElementAtIndex(7), LoreComicEvent.ShopInGameLastNoPurchase, LoreComicZone.Unknown, 3f, false, false, SpriteArray(sprites, "Comic_ShopInGameLastNoPurchase"));
@@ -378,13 +319,31 @@ public static class LoreComicSetupUtility
 
     private static Sprite[] SpriteArray(Dictionary<string, Sprite> sprites, params string[] keys)
     {
-        Sprite[] result = new Sprite[keys.Length];
+        List<Sprite> result = new();
         for (int i = 0; i < keys.Length; i++)
         {
-            sprites.TryGetValue(keys[i], out result[i]);
+            if (sprites.TryGetValue(keys[i], out Sprite sprite) && sprite != null)
+            {
+                result.Add(sprite);
+            }
         }
 
-        return result;
+        return result.ToArray();
+    }
+
+    private static Sprite[] SpriteArrayByPrefix(Dictionary<string, Sprite> sprites, string prefix)
+    {
+        List<string> keys = new();
+        foreach (string key in sprites.Keys)
+        {
+            if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                keys.Add(key);
+            }
+        }
+
+        keys.Sort(StringComparer.OrdinalIgnoreCase);
+        return SpriteArray(sprites, keys.ToArray());
     }
 
     private static void SetEntry(SerializedProperty entry, LoreComicEvent comicEvent, LoreComicZone zone, float displaySeconds, bool waitForContinue, bool showContinueButton, Sprite[] sprites)

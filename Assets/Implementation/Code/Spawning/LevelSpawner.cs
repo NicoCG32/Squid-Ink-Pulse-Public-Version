@@ -102,13 +102,7 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
-        if (zoneSpawnProfile.PortalSpawnPolicy == PortalSpawnPolicy.PostBossWindow)
-        {
-            UpdatePostBossPortalSpawnTimer();
-            return;
-        }
-
-        UpdateIntervalPortalSpawnTimer();
+        UpdatePostBossPortalSpawnTimer();
     }
 
     private bool CanTickPortalSpawns()
@@ -137,26 +131,6 @@ public class LevelSpawner : MonoBehaviour
         {
             hasSpawnedPortalInCurrentWindow = true;
         }
-    }
-
-    private void UpdateIntervalPortalSpawnTimer()
-    {
-        float targetInterval = hasSpawnedPortalInCurrentWindow
-            ? zoneSpawnProfile.PortalSpawnInterval
-            : zoneSpawnProfile.FirstPortalSpawnDelay;
-
-        portalTimer += Time.deltaTime;
-        if (portalTimer < targetInterval)
-        {
-            return;
-        }
-
-        if (TrySpawnPortal())
-        {
-            hasSpawnedPortalInCurrentWindow = true;
-        }
-
-        portalTimer = 0f;
     }
 
     private void SpawnRegularObject()
@@ -261,7 +235,6 @@ public class LevelSpawner : MonoBehaviour
         return zoneSpawnProfile.PortalSpawnPolicy switch
         {
             PortalSpawnPolicy.PostBossWindow => progression != null && progression.EventState == RunEventState.PostBossWindow,
-            PortalSpawnPolicy.AlwaysInterval => progression == null || !progression.IsEventBlockingRegularSpawns,
             _ => false
         };
     }

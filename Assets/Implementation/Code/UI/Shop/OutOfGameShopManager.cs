@@ -227,9 +227,15 @@ public sealed class OutOfGameShopManager : MonoBehaviour
             return PermanentShopPurchaseResult.UnknownItem;
         }
 
-        return PersistentPlayerProfile.HasUnlockedSkin(skin.id)
-            ? PermanentShopService.TryEquipSkin(skin.id)
-            : PermanentShopService.TryPurchaseSkin(skin.id);
+        if (!PersistentPlayerProfile.HasUnlockedSkin(skin.id))
+        {
+            return PermanentShopService.TryPurchaseSkin(skin.id);
+        }
+
+        bool isEquipped = string.Equals(PersistentPlayerProfile.EquippedSkinId, skin.id, StringComparison.Ordinal);
+        return isEquipped
+            ? PermanentShopService.TryEquipSkin(PlayerSkinIds.Default)
+            : PermanentShopService.TryEquipSkin(skin.id);
     }
 
     private void RefreshSlotInteractivity()
@@ -346,12 +352,15 @@ public sealed class OutOfGameShopManager : MonoBehaviour
                 bool isOwned = PersistentPlayerProfile.HasUnlockedSkin(skin.id);
                 bool isEquipped = string.Equals(PersistentPlayerProfile.EquippedSkinId, skin.id, StringComparison.Ordinal);
                 bool isGoalMet = skin.defaultUnlocked || UnlockablesCatalogQuery.IsGoalMet(skin.unlockGoal);
+                bool canUnequipToDefault = isOwned
+                    && isEquipped
+                    && !string.Equals(skin.id, PlayerSkinIds.Default, StringComparison.Ordinal);
 
                 name = skin.displayName;
                 description = skin.description;
-                price = isOwned ? (isEquipped ? "EQUIPADA" : "USAR") : FormatShopPrice(skin.basePrice);
+                price = isOwned ? (isEquipped ? (canUnequipToDefault ? "QUITAR" : "EQUIPADA") : "USAR") : FormatShopPrice(skin.basePrice);
                 state = !isGoalMet ? "BLOQUEADO" : isEquipped ? "EQUIPADA" : string.Empty;
-                canPurchase = isGoalMet && !isEquipped;
+                canPurchase = isGoalMet && (!isOwned || !isEquipped || canUnequipToDefault);
             }
         }
 
@@ -488,10 +497,10 @@ public sealed class OutOfGameShopManager : MonoBehaviour
             skin?.shopSpriteResourcePath,
             pressedSpritePath: null,
             usePressedSpriteWhenSelected: false);
-        ApplySkinOwnershipVisuals(button, skin, isOwned, isEquipped);
+        ApplySkinOwnershipVisuals(button, isOwned, isEquipped);
     }
 
-    private void ApplySkinOwnershipVisuals(Button button, UnlockableSkinDefinition skin, bool isOwned, bool isEquipped)
+    private void ApplySkinOwnershipVisuals(Button button, bool isOwned, bool isEquipped)
     {
         Transform visualRoot = button != null && button.transform.parent != null
             ? button.transform.parent.Find(UiButtonContract.VisualChildName)
@@ -501,14 +510,16 @@ public sealed class OutOfGameShopManager : MonoBehaviour
             return;
         }
 
-        Sprite normalSprite = LoadShopSprite(skin?.shopSpriteResourcePath);
-        Sprite buyedSprite = LoadShopSprite(skin?.shopBuyedSpriteResourcePath) ?? normalSprite;
-        Sprite selectedSprite = LoadShopSprite(skin?.shopSelectedSpriteResourcePath) ?? buyedSprite;
-
-        ApplyStateSprite(visualRoot, UiButtonContract.BuyedStateName, buyedSprite);
-        ApplyStateSprite(visualRoot, UiButtonContract.SelectedStateName, selectedSprite);
-        SetVisualStateActive(visualRoot, UiButtonContract.BuyedStateName, isOwned && !isEquipped);
-        SetVisualStateActive(visualRoot, UiButtonContract.SelectedStateName, isEquipped);
+        SetSkinStatusVisualActive(
+            visualRoot,
+            UiButtonContract.PurchasedStateName,
+            UiButtonContract.LegacyBuyedStateName,
+            isOwned && !isEquipped);
+        SetSkinStatusVisualActive(
+            visualRoot,
+            UiButtonContract.EquippedStateName,
+            UiButtonContract.LegacySelectedStateName,
+            isEquipped);
     }
 
     private static string FormatShopPrice(int amount)
@@ -576,6 +587,19 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     {
         Transform state = visualRoot != null ? visualRoot.Find(stateName) : null;
         SetActive(state != null ? state.gameObject : null, active);
+    }
+
+    private static void SetSkinStatusVisualActive(
+        Transform visualRoot,
+        string primaryStateName,
+        string legacyStateName,
+        bool active)
+    {
+        SetVisualStateActive(visualRoot, primaryStateName, active);
+        if (!string.Equals(primaryStateName, legacyStateName, StringComparison.Ordinal))
+        {
+            SetVisualStateActive(visualRoot, legacyStateName, active);
+        }
     }
 
     private static void ApplyFallbackButtonSprite(Button button, Sprite sprite)

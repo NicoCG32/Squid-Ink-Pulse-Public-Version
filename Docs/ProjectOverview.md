@@ -21,11 +21,11 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 - Tienda temporal mediante `DealerFish` e `InGameShopManager`.
 - Gadgets comprables con inventario runtime no stackable.
 - Desbloqueos permanentes de elegibilidad de gadgets por hitos de score/records.
-- Tienda out-of-game `ShopMenu` con seleccion y compra funcional de cuatro mejoras permanentes, preparada para skins paginadas mediante JSON, `OutOfGameShopManager` y `PermanentShopService`.
+- Tienda out-of-game `ShopMenu` con seleccion, compra de mejoras permanentes, compra/equipado de skins, precios compactos y paginacion mediante JSON, `OutOfGameShopManager` y `PermanentShopService`.
 - Portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - Comics de lore para inicio, portales y derrota mediante `LoreComicPresenter`.
 - Gadgets e Ink-Pulse persisten entre portales y se reinician al entrar en Game Over.
-- `ZonaAbisopelagica` tiene oscuridad ambiental por overlay y `LightGraze` visual independiente del graze de Ink-Pulse.
+- `ZonaAbisopelagica` tiene oscuridad ambiental por overlay, `LightGraze` visual independiente del graze de Ink-Pulse y boss abisal conectado mediante `BossEventDirector`.
 - Soundtrack dinamico: `ZonaEpipelagica` cruza entre pista normal e `INK`, y `ZonaEpipelagica`/`ZonaAbisopelagica` aumentan pitch segun la progresion efectiva de la run.
 
 ## Estructura general

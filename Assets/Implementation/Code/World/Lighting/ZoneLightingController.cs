@@ -39,7 +39,7 @@ public class ZoneLightingController : MonoBehaviour
     [SerializeField, Min(1f)] private float compositeUpdatesPerSecond = 60f;
     [SerializeField, Min(0f)] private float lightSourceCullingPadding = 0.5f;
 
-    private readonly List<Vector3> activeLightPositions = new();
+    private readonly List<LightGrazeSample> activeLightSamples = new();
     private Sprite originalLayerBlackSprite;
     private Texture2D compositeTexture;
     private Sprite compositeSprite;
@@ -204,23 +204,21 @@ public class ZoneLightingController : MonoBehaviour
         float worldMinY = cameraPosition.y - worldHeight * 0.5f;
         float radius = LightHoleRadius;
         float innerRadius = radius * (1f - Mathf.Clamp01(lightEdgeSoftness));
-        float featherWidth = Mathf.Max(0.0001f, radius - innerRadius);
 
         Rect lightCollectionBounds = CreateLightCollectionBounds(worldMinX, worldMinY, worldWidth, worldHeight, radius);
-        LightGrazeSource.CollectActiveWorldPositions(activeLightPositions, lightCollectionBounds);
+        LightGrazeSource.CollectActiveSamples(activeLightSamples, lightCollectionBounds, radius);
         FillCompositeOverlay(width, height, alphaOutsideLight);
 
-        for (int i = 0; i < activeLightPositions.Count; i++)
+        for (int i = 0; i < activeLightSamples.Count; i++)
         {
             PaintCompositeLight(
-                activeLightPositions[i],
+                activeLightSamples[i],
                 worldMinX,
                 worldMinY,
                 worldWidth,
                 worldHeight,
                 radius,
                 innerRadius,
-                featherWidth,
                 alphaOutsideLight,
                 width,
                 height);
@@ -271,22 +269,26 @@ public class ZoneLightingController : MonoBehaviour
     }
 
     private void PaintCompositeLight(
-        Vector3 lightPosition,
+        LightGrazeSample lightSample,
         float worldMinX,
         float worldMinY,
         float worldWidth,
         float worldHeight,
         float radius,
         float innerRadius,
-        float featherWidth,
         float alphaOutsideLight,
         int width,
         int height)
     {
-        int minPixelX = Mathf.FloorToInt((lightPosition.x - radius - worldMinX) / worldWidth * width);
-        int maxPixelX = Mathf.CeilToInt((lightPosition.x + radius - worldMinX) / worldWidth * width);
-        int minPixelY = Mathf.FloorToInt((lightPosition.y - radius - worldMinY) / worldHeight * height);
-        int maxPixelY = Mathf.CeilToInt((lightPosition.y + radius - worldMinY) / worldHeight * height);
+        Vector3 lightPosition = lightSample.Position;
+        Vector2 radiusScale = lightSample.RadiusScale;
+        float radiusX = Mathf.Max(0.0001f, radius * Mathf.Abs(radiusScale.x));
+        float radiusY = Mathf.Max(0.0001f, radius * Mathf.Abs(radiusScale.y));
+
+        int minPixelX = Mathf.FloorToInt((lightPosition.x - radiusX - worldMinX) / worldWidth * width);
+        int maxPixelX = Mathf.CeilToInt((lightPosition.x + radiusX - worldMinX) / worldWidth * width);
+        int minPixelY = Mathf.FloorToInt((lightPosition.y - radiusY - worldMinY) / worldHeight * height);
+        int maxPixelY = Mathf.CeilToInt((lightPosition.y + radiusY - worldMinY) / worldHeight * height);
 
         if (maxPixelX < 0 || minPixelX >= width || maxPixelY < 0 || minPixelY >= height)
         {
@@ -298,31 +300,32 @@ public class ZoneLightingController : MonoBehaviour
         minPixelY = Mathf.Clamp(minPixelY, 0, height - 1);
         maxPixelY = Mathf.Clamp(maxPixelY, 0, height - 1);
 
-        float radiusSqr = radius * radius;
-        float innerRadiusSqr = innerRadius * innerRadius;
+        float innerRadiusRatio = Mathf.Clamp01(innerRadius / Mathf.Max(0.0001f, radius));
+        float featherWidthRatio = Mathf.Max(0.0001f, 1f - innerRadiusRatio);
 
         for (int y = minPixelY; y <= maxPixelY; y++)
         {
             float normalizedY = (y + 0.5f) / height;
             float worldY = worldMinY + normalizedY * worldHeight;
-            float deltaY = worldY - lightPosition.y;
-            float deltaYSqr = deltaY * deltaY;
+            float normalizedDeltaY = (worldY - lightPosition.y) / radiusY;
+            float normalizedDeltaYSqr = normalizedDeltaY * normalizedDeltaY;
 
             for (int x = minPixelX; x <= maxPixelX; x++)
             {
                 float normalizedX = (x + 0.5f) / width;
                 float worldX = worldMinX + normalizedX * worldWidth;
-                float deltaX = worldX - lightPosition.x;
-                float distanceSqr = deltaX * deltaX + deltaYSqr;
+                float normalizedDeltaX = (worldX - lightPosition.x) / radiusX;
+                float normalizedDistanceSqr = normalizedDeltaX * normalizedDeltaX + normalizedDeltaYSqr;
 
-                if (distanceSqr > radiusSqr)
+                if (normalizedDistanceSqr > 1f)
                 {
                     continue;
                 }
 
-                float lightAlpha = distanceSqr <= innerRadiusSqr
+                float normalizedDistance = Mathf.Sqrt(normalizedDistanceSqr);
+                float lightAlpha = normalizedDistance <= innerRadiusRatio
                     ? 0f
-                    : CalculateCompositeLightAlpha(Mathf.Sqrt(distanceSqr), innerRadius, featherWidth, alphaOutsideLight);
+                    : CalculateCompositeLightAlpha(normalizedDistance, innerRadiusRatio, featherWidthRatio, alphaOutsideLight);
                 byte lightAlphaByte = (byte)Mathf.RoundToInt(lightAlpha * byte.MaxValue);
                 int pixelIndex = y * width + x;
 

@@ -37,7 +37,7 @@ El prefab `LoreComic` contiene:
 - `Vineta`: `Image` donde se muestra el sprite.
 - `ContinuarBoton`: boton con contrato `Button` + `Visual`, cableado a `LoreComicPresenter.Continue()`.
 
-El `RectTransform` de `Comic` debe conservar escala local `(1,1,1)`. La visibilidad se controla exclusivamente con `CanvasGroup` y activacion del nodo, nunca reduciendo la escala a cero.
+El `RectTransform` de `Comic` debe conservar escala local `(1,1,1)`. La visibilidad se controla exclusivamente con `CanvasGroup` y activacion del nodo, nunca reduciendo la escala a cero. Como defensa runtime, `LoreComicPresenter` restaura escala colapsada en el root visual, en su Canvas propietario y en la imagen de vineta; esto protege el flujo, pero no reemplaza la correccion visual del prefab o escena.
 
 ## Catalogo local
 

@@ -51,6 +51,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (inkPulseController != null && inkPulseController.IsPulseActive)
         {
+            TryBreakFinalBossWall(hazard);
             HazardIgnoredByInkPulse?.Invoke(hazard);
             return;
         }
@@ -58,7 +59,7 @@ public class PlayerCollision : MonoBehaviour
         if (gadgetInventory != null && gadgetInventory.TryConsumeShellShield())
         {
             HazardBlockedByShellShield?.Invoke(hazard);
-            if (hazard != null)
+            if (hazard != null && !TryBreakFinalBossWall(hazard))
             {
                 Destroy(hazard.gameObject);
             }
@@ -74,6 +75,15 @@ public class PlayerCollision : MonoBehaviour
 
         HazardCausedGameOver?.Invoke(hazard);
         session.RequestGameOver();
+    }
+
+    private static bool TryBreakFinalBossWall(Collider2D hazard)
+    {
+        PillarObstacle obstacle = hazard != null
+            ? hazard.GetComponentInParent<PillarObstacle>()
+            : null;
+
+        return obstacle != null && obstacle.TryBreakFinalWall();
     }
 
     private bool IsDamageColliderTouching(Collider2D other)

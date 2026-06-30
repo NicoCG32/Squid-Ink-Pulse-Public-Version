@@ -14,6 +14,8 @@ public static class ShopMenuSetupUtility
     private const string PanelName = "Panel";
     private const string InteractionRootName = "ShopInteractionRoot";
     private const string DefaultPressedSfxPath = "Assets/Content/Audio/SFX/MainMenu/Splat.mp3";
+    private const string PurchasedSkinStatusSpritePath = "Assets/Content/Art/UI/ShopMenu/Comprado.png";
+    private const string EquippedSkinStatusSpritePath = "Assets/Content/Art/UI/ShopMenu/Seleccionado.png";
     private const int UiLayer = 5;
 
     private static readonly Vector2[] UpgradeSlotPositions =
@@ -102,6 +104,42 @@ public static class ShopMenuSetupUtility
         Debug.Log("[ShopMenuSetupUtility] Controles transparentes y referencias de ShopMenu serializados.");
     }
 
+    [MenuItem("Tools/Squid/Shop/Setup Skin Status Visuals")]
+    public static void SetupSkinStatusVisuals()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ShopMenuScenePath, OpenSceneMode.Single);
+        for (int index = 0; index < SkinSlotPositions.Length; index++)
+        {
+            GameObject skinSlot = FindSceneObjectByName(scene, $"Skin{index + 1:00}Boton");
+            if (skinSlot == null)
+            {
+                throw new InvalidOperationException($"[ShopMenuSetupUtility] No se encontro Skin{index + 1:00}Boton.");
+            }
+
+            Transform visualTransform = skinSlot.transform.Find(UiButtonContract.VisualChildName);
+            if (visualTransform == null)
+            {
+                throw new InvalidOperationException($"[ShopMenuSetupUtility] Skin{index + 1:00}Boton no contiene Visual.");
+            }
+
+            EnsureSkinStatusVisual(
+                visualTransform,
+                UiButtonContract.PurchasedStateName,
+                UiButtonContract.LegacyBuyedStateName,
+                PurchasedSkinStatusSpritePath);
+            EnsureSkinStatusVisual(
+                visualTransform,
+                UiButtonContract.EquippedStateName,
+                UiButtonContract.LegacySelectedStateName,
+                EquippedSkinStatusSpritePath);
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[ShopMenuSetupUtility] Skin status visuals serialized.");
+    }
+
     private static RectTransform EnsureInteractionRoot(Transform panel)
     {
         Transform existing = panel.Find(InteractionRootName);
@@ -173,8 +211,16 @@ public static class ShopMenuSetupUtility
         EnsureVisualState(visualTransform, UiButtonContract.PressedStateName);
         if (includeSkinOwnershipStates)
         {
-            EnsureVisualState(visualTransform, UiButtonContract.BuyedStateName);
-            EnsureVisualState(visualTransform, UiButtonContract.SelectedStateName);
+            EnsureSkinStatusVisual(
+                visualTransform,
+                UiButtonContract.PurchasedStateName,
+                UiButtonContract.LegacyBuyedStateName,
+                PurchasedSkinStatusSpritePath);
+            EnsureSkinStatusVisual(
+                visualTransform,
+                UiButtonContract.EquippedStateName,
+                UiButtonContract.LegacySelectedStateName,
+                EquippedSkinStatusSpritePath);
         }
 
         Button button = buttonTransform.GetComponent<Button>();
@@ -233,6 +279,60 @@ public static class ShopMenuSetupUtility
         state.layer = UiLayer;
         state.transform.SetParent(visualRoot, false);
         Stretch(state.GetComponent<RectTransform>());
+    }
+
+    private static void EnsureSkinStatusVisual(
+        Transform visualRoot,
+        string stateName,
+        string legacyStateName,
+        string spritePath)
+    {
+        Transform stateTransform = visualRoot.Find(stateName);
+        if (stateTransform == null)
+        {
+            stateTransform = visualRoot.Find(legacyStateName);
+            if (stateTransform != null)
+            {
+                stateTransform.name = stateName;
+            }
+        }
+
+        if (stateTransform == null)
+        {
+            GameObject state = new GameObject(
+                stateName,
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            state.layer = UiLayer;
+            state.transform.SetParent(visualRoot, false);
+            RectTransform rectTransform = state.GetComponent<RectTransform>();
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = new Vector2(108f, 36f);
+            stateTransform = state.transform;
+        }
+
+        Image image = stateTransform.GetComponent<Image>();
+        if (image == null)
+        {
+            image = stateTransform.gameObject.AddComponent<Image>();
+        }
+
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+        if (sprite == null)
+        {
+            throw new InvalidOperationException($"[ShopMenuSetupUtility] No se encontro el sprite de estado de skin en {spritePath}.");
+        }
+
+        image.sprite = sprite;
+        image.preserveAspect = true;
+        image.raycastTarget = false;
+        stateTransform.SetAsLastSibling();
+        stateTransform.gameObject.SetActive(false);
+        EditorUtility.SetDirty(stateTransform.gameObject);
     }
 
     private static void ConfigureManager(

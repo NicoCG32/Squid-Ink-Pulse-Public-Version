@@ -68,8 +68,7 @@ MonoBehaviour:
   dealerFishSpawnDistanceFromCameraRight: 5
   dealerFishSpawnZoneMin: 0
   dealerFishSpawnZoneMax: 0.25
-  portalSpawnPolicy: 2
-  firstPortalSpawnDelay: 20
+  portalSpawnPolicy: 1
+  firstPortalSpawnDelay: 3
   postBossPortalSpawnChance: 1
-  portalSpawnInterval: 20
   requireNoActivePortal: 1

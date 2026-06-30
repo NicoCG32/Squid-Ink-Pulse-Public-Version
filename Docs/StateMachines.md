@@ -193,7 +193,7 @@ Debe formalizarse como estado propio solo si en el futuro modifica reglas de spa
 
 Nota sobre portales:
 - `ScenePortal` ya implementa el cambio directo entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
-- `LevelSpawner` gobierna aparicion: `PostBossWindow` en zona principal y `AlwaysInterval` en `ZonaAbisopelagica`.
+- `LevelSpawner` gobierna aparicion de portales solo durante `PostBossWindow`; tanto `ZonaEpipelagica` como `ZonaAbisopelagica` usan delay y probabilidad configurables despues del boss.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - Entrar en `GameSessionState.GameOver` reinicia ambos.
 - La transicion visual actual se modela dentro de `PlayerRuntimeState.PortalTransition`. Solo debe escalar a una maquina `PortalTransitionState` separada si aparecen fases internas como entrada, fundido, carga asincronica o salida.

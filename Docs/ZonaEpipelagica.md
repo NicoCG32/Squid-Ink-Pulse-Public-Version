@@ -170,7 +170,7 @@ flowchart LR
 
 `ZonaAbisopelagica` comparte la base estructural mientras sea una zona referencial:
 - debe tener la misma jerarquia obligatoria de boundaries;
-- usa portales con `PortalSpawnPolicy.AlwaysInterval`;
+- usa portales con `PortalSpawnPolicy.PostBossWindow`, igual que la zona base;
 - conserva gadgets e Ink-Pulse al entrar o salir;
 - tiene `EnviromentRoot_ZonaAbisopelagica/ZoneLightingController` y `LayerBlack` para oscuridad ambiental;
 - revela localmente `LayerBlack` mediante el overlay compuesto de `ZoneLightingController` y las posiciones declaradas por `LightGrazeSource`;

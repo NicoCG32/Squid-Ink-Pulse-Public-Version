@@ -18,24 +18,15 @@ public class UnlockablesCatalogSaveData
             version = PlayerProfileRepository.UnlockablesCatalogVersion,
             skins = new[]
             {
-                Skin(PlayerSkinIds.Default, "Default", string.Empty, 0, string.Empty, defaultUnlocked: true),
-                Skin("skin.king", "Rey Abisal", "Avanza entre corrientes y peligros como si el oceano le debiera respeto.", 250000, "ShopMenu/Skins/King"),
-                Skin("skin.bob_marley", "Rasta Marino", "Cuando el oceano se pone pesado, responde con ritmo, calma y tinta.", 420000, "ShopMenu/Skins/BobMarley"),
-                Skin("skin.german", "Calamar Aleman", "Esquiva con precision quirurgica, incluso cuando el mar decide improvisar.", 180000, "ShopMenu/Skins/German"),
-                Skin("skin.vikingo", "Vikingo", "Las olas rugen, los obstaculos tiemblan y el sigue conquistando profundidad.", 350000, "ShopMenu/Skins/Vikingo"),
-                Skin("skin.rockstar", "Rockstar", "Convierte cada dash peligroso en un solo epico bajo presion marina.", 500000, "ShopMenu/Skins/Rockstar"),
-                Skin("skin.formal", "Formal", "Porque escapar del caos oceanico tambien puede hacerse con elegancia.", 75000, "ShopMenu/Skins/Formal"),
-                Skin("skin.china", "Tradicion Marina", "Enfrenta las corrientes con serenidad, tecnica y una paciencia legendaria.", 275000, "ShopMenu/Skins/China"),
-                Skin("skin.fantasma", "Fantasma", "Atraviesa el peligro tan suave que hasta las amenazas dudan si lo vieron.", 666666, "ShopMenu/Skins/Fantasma"),
-                Skin("skin.sonic", "Erizo Veloz", "Cuando el oceano acelera el caos, el acelera todavia mas.", 1200000, "ShopMenu/Skins/Sonic"),
-                Skin("skin.raya", "Raya Marina", "Se desliza entre obstaculos como sombra elegante en plena tormenta submarina.", 95000, "ShopMenu/Skins/Raya"),
-                Skin("skin.huaso", "Huaso Submarino", "Con coraje de sobra, zapatea entre corrientes como si fueran cueca brava.", 181000, "ShopMenu/Skins/Huaso"),
-                Skin("skin.zombie", "Zombie", "El oceano insiste en detenerlo, pero su determinacion sigue flotando.", 333333, "ShopMenu/Skins/Zombie"),
-                Skin("skin.chile", "Chile Marino", "Cuando el mar se pone dificil, responde con orgullo, tinta y aguante.", 180920, "ShopMenu/Skins/Chile"),
-                Skin("skin.nemo", "Pez Aventurero", "Puede dar vueltas de mas, pero siempre encuentra una salida con estilo.", 700000, "ShopMenu/Skins/Nemo"),
-                Skin("skin.clown", "Payaso Abisal", "Hace reir al peligro justo antes de esquivarlo con un dash impecable.", 222222, "ShopMenu/Skins/Clown"),
-                Skin("skin.black_metal", "Black Metal", "Oscuro, intenso y perfecto para sobrevivir cuando el oceano se pone brutal.", 1500000, "ShopMenu/Skins/BlackMetal"),
-                Skin("skin.travis", "Travis", "Brilla entre el caos submarino como si cada obstaculo fuera parte del show.", 10000000, "ShopMenu/Skins/Travis")
+                Skin(PlayerSkinIds.Default, "Default", string.Empty, 0, string.Empty, defaultUnlocked: true, playerSkinPrefabResourcePath: "PlayerSkins/Default"),
+                Skin("skin.bob_marley", "Rasta Marino", "Cuando el oceano se pone pesado, responde con ritmo, calma y tinta.", 420000, "ShopMenu/Skins/BobMarley", playerSkinPrefabResourcePath: "PlayerSkins/Marley"),
+                Skin("skin.rockstar", "Rockstar", "Convierte cada dash peligroso en un solo epico bajo presion marina.", 500000, "ShopMenu/Skins/Rockstar", playerSkinPrefabResourcePath: "PlayerSkins/Rock"),
+                Skin("skin.formal", "Formal", "Porque escapar del caos oceanico tambien puede hacerse con elegancia.", 75000, "ShopMenu/Skins/Formal", playerSkinPrefabResourcePath: "PlayerSkins/Formal"),
+                Skin("skin.sonic", "Erizo Veloz", "Cuando el oceano acelera el caos, el acelera todavia mas.", 1200000, "ShopMenu/Skins/Sonic", playerSkinPrefabResourcePath: "PlayerSkins/Sonic"),
+                Skin("skin.huaso", "Huaso Submarino", "Con coraje de sobra, zapatea entre corrientes como si fueran cueca brava.", 181000, "ShopMenu/Skins/Huaso", playerSkinPrefabResourcePath: "PlayerSkins/Huaso"),
+                Skin("skin.chile", "Chile Marino", "Cuando el mar se pone dificil, responde con orgullo, tinta y aguante.", 180920, "ShopMenu/Skins/Chile", playerSkinPrefabResourcePath: "PlayerSkins/Chile"),
+                Skin("skin.nemo", "Pez Aventurero", "Puede dar vueltas de mas, pero siempre encuentra una salida con estilo.", 700000, "ShopMenu/Skins/Nemo", playerSkinPrefabResourcePath: "PlayerSkins/Nemo"),
+                Skin("skin.travis", "Travis", "Brilla entre el caos submarino como si cada obstaculo fuera parte del show.", 10000000, "ShopMenu/Skins/Travis", playerSkinPrefabResourcePath: "PlayerSkins/Travis")
             },
             runGadgets = new[]
             {
@@ -117,7 +108,8 @@ public class UnlockablesCatalogSaveData
         string description,
         int basePrice,
         string shopSpriteResourcePath,
-        bool defaultUnlocked = false)
+        bool defaultUnlocked = false,
+        string playerSkinPrefabResourcePath = "")
     {
         return new UnlockableSkinDefinition
         {
@@ -127,6 +119,7 @@ public class UnlockablesCatalogSaveData
             defaultUnlocked = defaultUnlocked,
             basePrice = basePrice,
             shopSpriteResourcePath = shopSpriteResourcePath,
+            playerSkinPrefabResourcePath = playerSkinPrefabResourcePath,
             unlockGoal = UnlockGoalDefinition.None()
         };
     }

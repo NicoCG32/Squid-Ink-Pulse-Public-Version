@@ -140,53 +140,49 @@ MonoBehaviour:
   - comicEvent: 20
     zone: 20
     sprites:
-    - {fileID: 4522235004093249779, guid: 755988cfe3caa694d9fe3ee407cd19ee, type: 3}
+    - {fileID: 21300000, guid: 755988cfe3caa694d9fe3ee407cd19ee, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 30
     zone: 10
     sprites:
-    - {fileID: 7462416065547454082, guid: c6abba2d66578214795620a2d825e85d, type: 3}
+    - {fileID: 21300000, guid: c6abba2d66578214795620a2d825e85d, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 40
     zone: 10
     sprites:
-    - {fileID: 698290536348985883, guid: 6faf59b509325ee4e9821079c791824e, type: 3}
-    - {fileID: 4566055463575693763, guid: 62ab466436e1a7a4d885390b817b5709, type: 3}
-    - {fileID: 5465655709913434233, guid: 9b474131b5c441744ba97e422b4b0dd1, type: 3}
+    - {fileID: 21300000, guid: 6faf59b509325ee4e9821079c791824e, type: 3}
+    - {fileID: 21300000, guid: 62ab466436e1a7a4d885390b817b5709, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 40
     zone: 20
     sprites:
-    - {fileID: 3984248817241713899, guid: 527013e4e84f4cf4fb577353952f8b38, type: 3}
-    - {fileID: -7234597369374473253, guid: 07c36f60354cc5946a7d4c8466e50eb4, type: 3}
-    - {fileID: -5748052710986814011, guid: 3b9943f84ffbba44d8d028dab015682d, type: 3}
+    - {fileID: 21300000, guid: 527013e4e84f4cf4fb577353952f8b38, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 60
     zone: 0
     sprites:
-    - {fileID: 5109478321844392011, guid: 0b92e1094daa42afa2e01e7ddb421193, type: 3}
+    - {fileID: 21300000, guid: 0b92e1094daa42afa2e01e7ddb421193, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 70
     zone: 0
     sprites:
-    - {fileID: 6124839201746635522, guid: 705693a133cb4640a2a9c8c7a6afcd2f, type: 3}
+    - {fileID: 21300000, guid: 705693a133cb4640a2a9c8c7a6afcd2f, type: 3}
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
   - comicEvent: 80
     zone: 0
-    sprites:
-    - {fileID: 4875692145309276431, guid: 9e32b2a07191468baf5aa4b6462ed0d7, type: 3}
+    sprites: []
     displaySeconds: 3
     waitForContinue: 0
     showContinueButton: 0
@@ -652,6 +648,7 @@ MonoBehaviour:
   normalState: {fileID: 7363633094924858120}
   highlightedState: {fileID: 9051051949667252296}
   pressedState: {fileID: 1290479576808053980}
+  usePressedStateWhenSelected: 0
   pressedAudioSource: {fileID: 4515252514041291671}
   pressedSfx: {fileID: 8300000, guid: 60335f2af19d9c84cb3328e800f96cdb, type: 3}
   pressedSfxVolume: 1

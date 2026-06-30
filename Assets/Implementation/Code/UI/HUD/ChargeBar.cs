@@ -1,3 +1,5 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,12 +12,18 @@ public class ChargeBar : MonoBehaviour
     [Header("Presentation")]
     [SerializeField] private InkBarFillPresenter fillPresenter;
 
+    [Header("Full Prompt")]
+    [SerializeField] private TMP_Text fullPromptText;
+    [SerializeField, Range(0f, 1f)] private float fullPromptThreshold = 0.999f;
+    [SerializeField, Min(0f)] private float fullPromptPulseAmplitude = 0.12f;
+    [SerializeField, Min(0.01f)] private float fullPromptPulseFrequency = 2.5f;
+
     [Header("Error Feedback")]
     [Tooltip("The UI element to physically shake. Drag the main parent of the Charge Bar here.")]
-    [SerializeField] private RectTransform shakeTarget; 
+    [SerializeField] private RectTransform shakeTarget;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorClip;
-    
+
     [Space]
     [SerializeField] private float shakeSpeed = 50f;
     [SerializeField] private float maxShakeAmount = 15f;
@@ -26,11 +34,17 @@ public class ChargeBar : MonoBehaviour
     private float fillRatio;
     private float currentShakeIntensity;
     private Vector2 originalPosition;
+    private RectTransform fullPromptTransform;
+    private Vector3 fullPromptBaseScale = Vector3.one;
+    private bool fullPromptVisible;
+    private float fullPromptPulseTimer;
 
     private void Awake()
     {
         ResolveReferences(syncFromSlider: true);
+        CacheFullPromptScale();
         ApplyFill();
+        ApplyFullPromptVisibility(immediate: true);
 
         if (shakeTarget != null)
         {
@@ -41,12 +55,15 @@ public class ChargeBar : MonoBehaviour
     private void OnEnable()
     {
         ResolveReferences(syncFromSlider: true);
+        CacheFullPromptScale();
         ApplyFill();
+        ApplyFullPromptVisibility(immediate: true);
     }
 
     private void Update()
     {
         HandleShakeEffect();
+        HandleFullPromptAnimation();
     }
 
     public void UpdateBar(float fillPercentage)
@@ -64,6 +81,7 @@ public class ChargeBar : MonoBehaviour
         fillRatio = Mathf.Clamp01(normalizedValue);
         ResolveReferences(syncFromSlider: false);
         ApplyFill();
+        ApplyFullPromptVisibility(immediate: false);
     }
 
     public void TriggerErrorFeedback()
@@ -87,7 +105,7 @@ public class ChargeBar : MonoBehaviour
             currentShakeIntensity = Mathf.Max(0, currentShakeIntensity);
 
             float offsetX = Mathf.Sin(Time.time * shakeSpeed) * currentShakeIntensity;
-           
+
             float offsetY = Mathf.Cos(Time.time * shakeSpeed * 1.3f) * (currentShakeIntensity * verticalShakeMultiplier);
 
             shakeTarget.anchoredPosition = originalPosition + new Vector2(offsetX, offsetY);
@@ -110,6 +128,16 @@ public class ChargeBar : MonoBehaviour
             fillPresenter = GetComponentInChildren<InkBarFillPresenter>(includeInactive: true);
         }
 
+        if (fullPromptText == null)
+        {
+            fullPromptText = FindFullPromptText();
+        }
+
+        if (fullPromptText != null)
+        {
+            fullPromptTransform = fullPromptText.rectTransform;
+        }
+
         if (syncFromSlider && slider != null)
         {
             fillRatio = Mathf.Clamp01(slider.normalizedValue);
@@ -127,5 +155,63 @@ public class ChargeBar : MonoBehaviour
         {
             fillPresenter.SetFill(fillRatio);
         }
+    }
+
+    private void CacheFullPromptScale()
+    {
+        if (fullPromptTransform != null)
+        {
+            fullPromptBaseScale = fullPromptTransform.localScale;
+        }
+    }
+
+    private void ApplyFullPromptVisibility(bool immediate)
+    {
+        if (fullPromptText == null || fullPromptTransform == null)
+        {
+            return;
+        }
+
+        bool shouldShow = fillRatio >= fullPromptThreshold;
+        if (fullPromptVisible == shouldShow && !immediate)
+        {
+            return;
+        }
+
+        fullPromptVisible = shouldShow;
+        fullPromptPulseTimer = 0f;
+        fullPromptText.gameObject.SetActive(shouldShow);
+        fullPromptTransform.localScale = fullPromptBaseScale;
+    }
+
+    private void HandleFullPromptAnimation()
+    {
+        if (!fullPromptVisible || fullPromptTransform == null)
+        {
+            return;
+        }
+
+        fullPromptPulseTimer += Time.unscaledDeltaTime;
+        float pulse = 1f + Mathf.Sin(fullPromptPulseTimer * Mathf.PI * 2f * fullPromptPulseFrequency) * fullPromptPulseAmplitude;
+        fullPromptTransform.localScale = fullPromptBaseScale * pulse;
+    }
+
+    private TMP_Text FindFullPromptText()
+    {
+        TMP_Text[] texts = GetComponentsInChildren<TMP_Text>(includeInactive: true);
+        foreach (TMP_Text text in texts)
+        {
+            if (text == null)
+            {
+                continue;
+            }
+
+            if (text.name == "ClickSign" || string.Equals(text.text?.Trim(), "CLICK", StringComparison.OrdinalIgnoreCase))
+            {
+                return text;
+            }
+        }
+
+        return null;
     }
 }

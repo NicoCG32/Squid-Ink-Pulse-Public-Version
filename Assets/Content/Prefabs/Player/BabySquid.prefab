@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &732636166607689624
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4390847179059948387}
+  m_Layer: 6
+  m_Name: SkinMount
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4390847179059948387
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 732636166607689624}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2029474209125323509}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1359294933100634562
 GameObject:
   m_ObjectHideFlags: 0
@@ -20,6 +51,7 @@ GameObject:
   - component: {fileID: 348927828511026446}
   - component: {fileID: 91848125989527962}
   - component: {fileID: 2064638859687598346}
+  - component: {fileID: 9205342505854168325}
   m_Layer: 6
   m_Name: BabySquid
   m_TagString: Player
@@ -44,6 +76,7 @@ Transform:
   - {fileID: 2620098693129110293}
   - {fileID: 2716707053705501600}
   - {fileID: 3154489085247277913}
+  - {fileID: 4390847179059948387}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!58 &1756826581288963848
@@ -119,7 +152,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7a2bd72ea384d1ab692e1e6e2a78f9a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   session: {fileID: 0}
   progression: {fileID: 0}
@@ -144,7 +177,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 96c191d202014f82bf6969589ba3d58a, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::InkPulseController
   session: {fileID: 0}
   chargeRate: 150
@@ -356,6 +389,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InkPulseAudio
   pulseClip: {fileID: 8300000, guid: f0d28259bb9bcd04f91c3b73ba166209, type: 3}
   fadeOutDuration: 0.5
+--- !u!114 &9205342505854168325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359294933100634562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac86616f3cf7bb34380c83404cc4b37b, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSkinApplier
+  visualStateController: {fileID: 348927828511026446}
+  skinMount: {fileID: 4390847179059948387}
+  applyOnEnable: 1
+  listenToProfileChanges: 1
 --- !u!1 &1747949237223044179
 GameObject:
   m_ObjectHideFlags: 0

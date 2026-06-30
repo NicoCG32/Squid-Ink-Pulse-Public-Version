@@ -19,9 +19,7 @@ public static class SceneContractValidator
     private const string EpipelagicaSpawnProfilePath = "Assets/Implementation/Config/Spawning/ZonaEpipelagicaSpawnProfile.asset";
     private const string AbisopelagicaSpawnProfilePath = "Assets/Implementation/Config/Spawning/ZonaAbisopelagicaSpawnProfile.asset";
     private const string TutorialSpawnProfilePath = "Assets/Implementation/Config/Spawning/ZonaTutorialSpawnProfile.asset";
-    private const string InkBarHorizontalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab";
-    private const string InkBarVerticalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab";
-    private const string InkPulseBarLegacyPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab";
+    private const string InkBarPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBar.prefab";
     private const string GadgetSlotsPrefabPath = "Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab";
     private const string ShrimpCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab";
     private const string ScoreCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab";
@@ -74,7 +72,7 @@ public static class SceneContractValidator
         new(
             "Assets/Scenes/Game/ZonaAbisopelagica.unity",
             AbisopelagicaSpawnProfilePath,
-            PortalSpawnPolicy.AlwaysInterval,
+            PortalSpawnPolicy.PostBossWindow,
             BossContract.Required,
             LightingContract.Required),
         new(
@@ -111,6 +109,7 @@ public static class SceneContractValidator
         ValidateRequiredAssets(failures);
         ValidatePersistentDbSeeds(failures);
         ValidatePrefabContracts(failures);
+        ValidatePlayerSkinVisualContract(failures);
         ValidateButtonContractPrefabs(failures);
         ValidateGameOverMenuContract(failures);
         ValidateSpawnProfiles(failures);
@@ -145,9 +144,7 @@ public static class SceneContractValidator
             }
         }
 
-        RequireAsset<GameObject>(InkBarHorizontalPrefabPath, failures);
-        RequireAsset<GameObject>(InkBarVerticalPrefabPath, failures);
-        RequireAsset<GameObject>(InkPulseBarLegacyPrefabPath, failures);
+        RequireAsset<GameObject>(InkBarPrefabPath, failures);
         RequireAsset<GameObject>(GadgetSlotsPrefabPath, failures);
         RequireAsset<GameObject>(ShrimpCounterPrefabPath, failures);
         RequireAsset<GameObject>(ScoreCounterPrefabPath, failures);
@@ -217,6 +214,8 @@ public static class SceneContractValidator
                 {
                     failures.Add("unlockables-catalog.json must contain upgrade.score_multiplier.");
                 }
+
+                ValidateCatalogSkinPrefabResources(catalog, failures);
 
                 RequirePermanentUpgradeEffect(
                     catalog,
@@ -295,6 +294,65 @@ public static class SceneContractValidator
         }
     }
 
+    private static void ValidateCatalogSkinPrefabResources(
+        UnlockablesCatalogSaveData catalog,
+        List<string> failures)
+    {
+        foreach (UnlockableSkinDefinition skin in catalog.skins)
+        {
+            if (skin == null || string.IsNullOrWhiteSpace(skin.playerSkinPrefabResourcePath))
+            {
+                continue;
+            }
+
+            GameObject skinPrefab = LoadResourcesPrefab(skin.playerSkinPrefabResourcePath);
+            if (skinPrefab == null)
+            {
+                failures.Add($"unlockables-catalog.json skin '{skin.id}' playerSkinPrefabResourcePath '{skin.playerSkinPrefabResourcePath}' does not resolve to a Resources prefab.");
+                continue;
+            }
+
+            if (FindChildByName(skinPrefab.transform, "SquidVisual") == null
+                && FindChildByName(skinPrefab.transform, "MovementVisual") == null)
+            {
+                failures.Add($"Skin prefab '{skin.playerSkinPrefabResourcePath}' must contain SquidVisual or MovementVisual.");
+            }
+
+            if (FindChildByName(skinPrefab.transform, "InkPulseVisual") == null)
+            {
+                failures.Add($"Skin prefab '{skin.playerSkinPrefabResourcePath}' must contain InkPulseVisual.");
+            }
+
+            if (FindChildByName(skinPrefab.transform, "PortalVisual") == null)
+            {
+                failures.Add($"Skin prefab '{skin.playerSkinPrefabResourcePath}' must contain PortalVisual.");
+            }
+        }
+    }
+
+    private static GameObject LoadResourcesPrefab(string resourcePath)
+    {
+        string normalizedPath = resourcePath.Trim().Replace('\\', '/');
+        if (normalizedPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedPath = normalizedPath.Substring(0, normalizedPath.Length - 7);
+        }
+
+        string expectedSuffix = $"/Resources/{normalizedPath}.prefab";
+        string prefabName = Path.GetFileName(normalizedPath);
+        string[] guids = AssetDatabase.FindAssets($"{prefabName} t:Prefab");
+        foreach (string guid in guids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid).Replace('\\', '/');
+            if (assetPath.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            }
+        }
+
+        return null;
+    }
+
     private static void ValidateJsonSeed<T>(
         string path,
         string context,
@@ -344,6 +402,42 @@ public static class SceneContractValidator
 
             ValidateTag(target.gameObject, contract.ExpectedTag, $"{contract.PrefabPath}/{contract.ObjectName}", failures);
             ValidateLayer(target.gameObject, contract.ExpectedLayerName, $"{contract.PrefabPath}/{contract.ObjectName}", failures);
+        }
+    }
+
+    private static void ValidatePlayerSkinVisualContract(List<string> failures)
+    {
+        GameObject playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+        if (playerPrefab == null)
+        {
+            return;
+        }
+
+        if (playerPrefab.GetComponent<PlayerVisualStateController>() == null)
+        {
+            failures.Add($"{PlayerPrefabPath} must have PlayerVisualStateController on the root.");
+        }
+
+        if (playerPrefab.GetComponent<PlayerSkinApplier>() == null)
+        {
+            failures.Add($"{PlayerPrefabPath} must have PlayerSkinApplier on the root.");
+        }
+
+        RequireDirectChild(playerPrefab.transform, "SkinMount", PlayerPrefabPath, failures);
+        RequireDirectChild(playerPrefab.transform, "SquidVisual", PlayerPrefabPath, failures);
+        RequireDirectChild(playerPrefab.transform, "InkPulseVisual", PlayerPrefabPath, failures);
+        RequireDirectChild(playerPrefab.transform, "PortalVisual", PlayerPrefabPath, failures);
+    }
+
+    private static void RequireDirectChild(
+        Transform root,
+        string childName,
+        string context,
+        List<string> failures)
+    {
+        if (root.Find(childName) == null)
+        {
+            failures.Add($"{context} must contain direct child '{childName}'.");
         }
     }
 
@@ -547,7 +641,8 @@ public static class SceneContractValidator
             return;
         }
 
-        if (text.transform.parent != productInfoBlock || text.gameObject.name != expectedNodeName)
+        Transform expectedNode = productInfoBlock.Find(expectedNodeName);
+        if (expectedNode == null || (text.transform != expectedNode && !text.transform.IsChildOf(expectedNode)))
         {
             failures.Add($"ShopMenu/OutOfGameShopManager.{propertyName} must reference ProductInfoBlock/{expectedNodeName}.");
         }
@@ -1055,18 +1150,7 @@ public static class SceneContractValidator
 
     private static void ValidateGameUiPrefabInstances(Scene scene, string sceneName, List<string> failures)
     {
-        if (sceneName == "ZonaTutorial")
-        {
-            ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/InkPulseBar", InkPulseBarLegacyPrefabPath, sceneName, failures);
-        }
-        else if (sceneName == "ZonaAbisopelagica")
-        {
-            ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/InkBar", InkBarVerticalPrefabPath, sceneName, failures);
-        }
-        else
-        {
-            ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/InkBar", InkBarHorizontalPrefabPath, sceneName, failures);
-        }
+        ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/InkBar", InkBarPrefabPath, sceneName, failures);
 
         ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/GadgetSlots", GadgetSlotsPrefabPath, sceneName, failures);
         ValidateScenePrefabInstance(scene, "GameRoot/GameUIRoot/HUD/ShrimpCounter", ShrimpCounterPrefabPath, sceneName, failures);

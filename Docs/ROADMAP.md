@@ -29,23 +29,23 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
 
 1. Build estable de demo.
    - Todas las escenas principales cargan sin referencias faltantes criticas.
-   - Bloqueo de auditoria actual: `ZonaAbisopelagica` no contiene el `BossEventDirector` requerido por su contrato de escena. Resolverlo antes de declarar la build estable.
+   - `ZonaAbisopelagica` ya contiene `BossEventDirector` para `UnknownBoss` / `FlappyBoss`; el cierre pendiente es validarlo en Play Mode y en build.
    - MainMenu, gameplay, pausa, Game Over, opciones, ShopMenu y vuelta a menu funcionan.
    - No hay bloqueos por `Time.timeScale`, pausa, comics, tienda o Game Over.
    - `ZonaEpipelagica` y `ZonaAbisopelagica` pueden jugarse durante varios minutos sin acumulacion evidente de objetos.
    - Criterio de cierre: build Windows probado fuera del Editor.
 
 2. Tienda out-of-game funcional.
-   - `ShopMenu` ya serializa seleccion y compra de las cuatro mejoras permanentes mediante `OutOfGameShopManager` y `PermanentShopService`.
-   - Pendiente de cierre: Play Mode de transacciones, feedback visual/sonoro elegido por el usuario y aplicacion visual real de skins.
+   - `ShopMenu` ya serializa seleccion, compra de mejoras, compra/equipado de skins, paginacion, precios compactos y estados visuales mediante `OutOfGameShopManager` y `PermanentShopService`.
+   - Pendiente de cierre: Play Mode de transacciones, feedback visual/sonoro elegido por el usuario y aplicacion visual real de skins sobre `BabySquid`.
    - Debe cubrir como minimo:
-     - `upgrade.ink_pulse_bonus`;
-     - `upgrade.charge_rate_bonus`;
+     - `upgrade.ink_pulse_duration`;
+     - `upgrade.ink_pulse_recharge_rate`;
      - `upgrade.shrimp_multiplier`;
-     - `upgrade.points_multiplier`.
+     - `upgrade.score_multiplier`.
    - Debe mostrar saldo persistente con `ShrimpCounter`.
    - Debe persistir compras en `player-profile.json`/`player-records.json`.
-   - Skins quedan P1 si no hay tiempo o arte final, salvo que ya esten casi listas.
+   - Skins ya pueden comprarse y equiparse a nivel de perfil; el cambio visual del jugador queda P1 si no hay tiempo.
    - Criterio de cierre: comprar una mejora altera gameplay o economia observable sin editar codigo.
 
 3. Servidor de feria MVP.
@@ -60,7 +60,7 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
      - consultar leaderboard;
      - pantalla web simple de ranking.
    - Integracion Unity minima:
-     - exportar mejor puntaje, intentos, skills y desbloqueos relevantes;
+     - exportar mejor puntaje, intentos, mejoras permanentes y desbloqueos relevantes;
      - importar snapshot recuperado;
      - mostrar puesto al salir.
    - Criterio de cierre: dos PCs pueden crear/recuperar/sincronizar contra el host en LAN.
@@ -79,7 +79,7 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
 
 5. Visual minimo del segundo boss.
    - `UnknownBoss` / `FlappyBoss` no puede sentirse invisible o placeholder roto si aparece en la feria.
-   - Debe tener un root visual claro, activado por el prefab/controlador existente.
+   - Ya esta conectado en `ZonaAbisopelagica` y declara `LightGrazeSource` propio; falta validar lectura visual, ritmo y estabilidad en Play Mode.
    - Los pilares deben seguir funcionando con boundaries de camara y pared final continua.
    - La prioridad es legibilidad, no animacion final.
    - Criterio de cierre: el boss se entiende visualmente en `ZonaAbisopelagica` y no rompe FPS.
@@ -124,7 +124,7 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
    - Ajuste fino de ritmo de pilares.
 
 5. OptionsMenu y botones.
-   - Revisar escala en MainMenu y escenas jugables.
+   - Revisar escala y fondo oscuro en MainMenu, ShopMenu y escenas jugables.
    - Confirmar volumen/resolucion global.
    - Confirmar botones con contrato `Button` + `Visual`.
 
@@ -177,7 +177,7 @@ La version de feria se considera lista si:
 Si faltan menos de 48 horas y algo sigue inestable, aplicar este recorte:
 
 1. Mantener gameplay principal estable por sobre todo.
-2. Mantener ShopMenu solo con mejoras, sin skins.
+2. Mantener ShopMenu con mejoras y skins ya implementadas; desactivar compra/equipamiento de skins solo si el flujo visual introduce un bug critico de ultima hora.
 3. Mantener servidor de feria con crear/sync/leaderboard; recuperacion manual puede quedar simplificada si existe fallback local.
 4. Mantener comics de inicio, portal y derrota; comics de tienda pueden quedar desactivados si bloquean.
 5. Mantener segundo boss visible aunque sea con visual simple.
@@ -243,7 +243,7 @@ Implementado:
 - `ScenePortal` cambia entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 - `LevelSpawner` instancia portales como evento de mundo.
 - `ZonaEpipelagica` usa `PortalSpawnPolicy.PostBossWindow`.
-- `ZonaAbisopelagica` usa `PortalSpawnPolicy.AlwaysInterval`, con aparicion cada `20s`.
+- `ZonaAbisopelagica` usa `PortalSpawnPolicy.PostBossWindow`; el portal solo puede aparecer despues del boss y se decide con `postBossPortalSpawnChance`.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - `PlayerRuntimeState.PortalTransition` reproduce `PortalEffect` antes de cargar la escena y da prioridad visual a `PortalVisual`.
 
@@ -284,19 +284,37 @@ Pendiente:
 - Balancear precios con avance real de la run.
 - Mantenerla separada de la futura tienda out-of-game.
 
+### Tienda out-of-game
+
+Implementado:
+- `OutOfGameShopManager` conecta seleccion, compra y paginacion de la tienda permanente.
+- Las cuatro mejoras permanentes tienen nivel maximo 10, precio creciente y visual de gotas de tinta.
+- Las mejoras cargan sprite normal y sprite seleccionado `Ink` desde `Resources`.
+- Las skins cargan imagen desde el catalogo, pueden comprarse y pueden equiparse en `player-profile.json`.
+- El precio mostrado usa el formato compacto de `ShrimpCounterDisplay`.
+- `ComprarBoton` ejecuta la transaccion real mediante `PermanentShopService`.
+
+Pendiente:
+- Validar en Play Mode que las compras sobreviven a reinicio cuando se desea persistencia.
+- Validar el flujo de prueba limpia borrando `Application.persistentDataPath/db/`.
+- Aplicar la skin equipada sobre el visual del jugador.
+- Agregar feedback final de compra exitosa/fallida si el diseno visual lo requiere.
+
 ### Enemigos, boss y zonas
 
 Implementado:
 - Perfiles de spawn por enemigo.
 - Tags formales para `EnemyPezGlobo`, `EnemyMina` y `EnemyCanaPescar`.
 - SS Carnage y red como evento de boss integrado con progresion.
+- `UnknownBoss` / `FlappyBoss` conectado como boss propio de `ZonaAbisopelagica`.
 - Spawn regular aumenta durante `BossActive`; `PostBossWindow` mantiene presion alta salvo que el jugador cruce portal y reinicie la intensidad en otra zona.
 - `ZonaAbisopelagica` tiene oscuridad ambiental mediante `ZoneLightingController` y `LightGrazeSource`.
+- `LightGrazeSource` soporta ancla, forma eliptica y titileo para lectura visual de entidades abisales.
 
 Pendiente:
 - Completar comportamiento propio de mina y cana.
 - Expandir variantes de enemigos y bosses segun el informe.
-- Definir enemigos o patrones propios de `ZonaAbisopelagica`.
+- Validar y balancear patrones propios de `ZonaAbisopelagica`, especialmente boss abisal y pilares.
 - Balancear pesos, intensidades y multiplicadores por zona.
 
 ## Prioridad P0: Player como prefab
@@ -426,11 +444,15 @@ Pendiente:
 
 `OptionsMenu` es un menu out-of-game. Debe afectar configuracion general del juego, no una run puntual.
 
-### Opciones previstas
+Estado actual:
+- `OptionsMenuManager` controla volumen master, resolucion y pantalla completa.
+- Las preferencias se guardan en `PlayerPrefs`, separadas de la base persistente `db`.
+- El prefab `OptionsMenu` tiene fondo visual propio y se instancia como root separado de escena.
 
-- Pantalla: modo ventana, fullscreen, resolucion si aplica.
+### Opciones previstas fuera del alcance actual
+
 - Brillo: ajuste visual global o multiplicador de postproceso/overlay.
-- Volumen: master, musica y efectos.
+- Volumen separado: master, musica y efectos.
 - Dificultad: perfil de dificultad inicial o escalado base.
 
 ### Arquitectura recomendada
@@ -472,14 +494,17 @@ Estado actual:
 
 1. `OutOfGameShopManager` conecta cuatro slots de upgrades, cuatro slots paginados de skins, navegacion y compra con datos reales.
 2. `ShrimpCounter` es una instancia del prefab en `ShopMenu`.
-3. El catalogo actual contiene una sola skin default; la pagina de skins es extensible, pero no hay inventario visual de skins final.
-4. Los textos de precio, nivel y estado son referencias opcionales de UI: se conectan cuando el usuario defina su presentacion visual.
+3. El catalogo actual contiene varias skins con sprites de tienda bajo `Assets/Content/Art/UI/ShopMenu/Resources/ShopMenu/Skins/`.
+4. Los textos de nombre, descripcion y precio ya son parte del contrato funcional de `ProductInfoBlock`; su layout sigue siendo autoria visual de escena.
+5. Las mejoras tienen sprites normales y seleccionados `Ink`, nivel maximo 10 y precio creciente.
+6. Las skins pueden comprarse y equiparse en perfil; el estado visual `Buyed`/`Selected` queda preparado en la UI.
 
 Pendiente:
 
 1. Probar en Play Mode todas las transacciones y la persistencia entre reinicios.
 2. Aplicacion visual de la skin equipada sobre el prefab del jugador.
 3. Feedback visual/sonoro de compra fallida, compra exitosa, nivel maximo y desbloqueo pendiente.
+4. Definir sprites especificos para `shopBuyedSpriteResourcePath` y `shopSelectedSpriteResourcePath` si se requiere diferenciacion visual mas fuerte que el fallback actual.
 
 ### Arquitectura recomendada
 

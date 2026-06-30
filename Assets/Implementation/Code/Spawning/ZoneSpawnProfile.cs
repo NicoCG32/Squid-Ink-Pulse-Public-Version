@@ -45,7 +45,6 @@ public class ZoneSpawnProfile : ScriptableObject
     [SerializeField] private PortalSpawnPolicy portalSpawnPolicy = PortalSpawnPolicy.PostBossWindow;
     [SerializeField, Min(0f)] private float firstPortalSpawnDelay = 0f;
     [SerializeField, Range(0f, 1f)] private float postBossPortalSpawnChance = 1f;
-    [SerializeField, Min(1f)] private float portalSpawnInterval = 20f;
     [SerializeField] private bool requireNoActivePortal = true;
 
     public GameObject CoinPrefab => coinPrefab;
@@ -78,6 +77,5 @@ public class ZoneSpawnProfile : ScriptableObject
     public PortalSpawnPolicy PortalSpawnPolicy => portalSpawnPolicy;
     public float FirstPortalSpawnDelay => Mathf.Max(0f, firstPortalSpawnDelay);
     public float PostBossPortalSpawnChance => Mathf.Clamp01(postBossPortalSpawnChance);
-    public float PortalSpawnInterval => Mathf.Max(1f, portalSpawnInterval);
     public bool RequireNoActivePortal => requireNoActivePortal;
 }

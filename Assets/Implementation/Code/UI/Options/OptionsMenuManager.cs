@@ -9,6 +9,8 @@ using TMPro;
 [DisallowMultipleComponent]
 public class OptionsMenuManager : MonoBehaviour
 {
+    private const int MinimumOptionsSortingOrder = 100;
+    private static readonly string[] BackgroundNames = { "Background", "Fondo" };
     private const string VolumePrefsKey = "MasterVolume";
     private const string FullscreenPrefsKey = "Fullscreen";
     private const string ResolutionIndexPrefsKey = "ResolutionIndex";
@@ -19,6 +21,7 @@ public class OptionsMenuManager : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private GameObject menuRoot;
+    [SerializeField] private GameObject background;
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private Button backButton;
 
@@ -354,6 +357,11 @@ public class OptionsMenuManager : MonoBehaviour
             menuRoot.SetActive(visible);
         }
 
+        if (background != null)
+        {
+            background.SetActive(visible);
+        }
+
         if (canvasGroup != null)
         {
             canvasGroup.alpha = visible ? 1f : 0f;
@@ -380,6 +388,8 @@ public class OptionsMenuManager : MonoBehaviour
             "VolverBoton",
             "BackBoton",
             "BackButton");
+
+        ResolveBackgroundReference();
     }
 
     private void NormalizeRenderableScale()
@@ -391,6 +401,72 @@ public class OptionsMenuManager : MonoBehaviour
 
         RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
         RestoreScaleIfCollapsed(rootTransform);
+        NormalizeCanvasLayer(ownerCanvas);
+        NormalizeBackground(ownerCanvas);
+    }
+
+    private static void NormalizeCanvasLayer(Canvas canvas)
+    {
+        if (canvas == null)
+        {
+            return;
+        }
+
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = Mathf.Max(canvas.sortingOrder, MinimumOptionsSortingOrder);
+    }
+
+    private void NormalizeBackground(Canvas ownerCanvas)
+    {
+        ResolveBackgroundReference(ownerCanvas);
+        if (background == null)
+        {
+            return;
+        }
+
+        RestoreScaleIfCollapsed(background.transform);
+
+        if (menuRoot != null && background.transform.parent == menuRoot.transform)
+        {
+            background.transform.SetAsFirstSibling();
+            return;
+        }
+
+        if (ownerCanvas != null && background.transform.parent == ownerCanvas.transform)
+        {
+            background.transform.SetAsFirstSibling();
+        }
+    }
+
+    private void ResolveBackgroundReference(Canvas ownerCanvas = null)
+    {
+        if (background != null)
+        {
+            return;
+        }
+
+        Transform menuRootTransform = menuRoot != null ? menuRoot.transform : null;
+        Transform menuBackground = FindDirectChildTransform(menuRootTransform, BackgroundNames);
+        if (menuBackground != null)
+        {
+            background = menuBackground.gameObject;
+            return;
+        }
+
+        Canvas canvas = ownerCanvas != null
+            ? ownerCanvas
+            : menuRoot != null
+                ? menuRoot.GetComponentInParent<Canvas>(includeInactive: true)
+                : GetComponentInChildren<Canvas>(includeInactive: true);
+
+        Transform canvasTransform = canvas != null ? canvas.transform : null;
+        if (canvasTransform == null)
+        {
+            return;
+        }
+
+        Transform existingLayer = FindDirectChildTransform(canvasTransform, BackgroundNames);
+        background = existingLayer != null ? existingLayer.gameObject : null;
     }
 
     private static void RestoreScaleIfCollapsed(Transform target)
@@ -407,5 +483,27 @@ public class OptionsMenuManager : MonoBehaviour
         {
             target.localScale = Vector3.one;
         }
+    }
+
+    private static Transform FindDirectChildTransform(Transform root, params string[] names)
+    {
+        if (root == null || names == null || names.Length == 0)
+        {
+            return null;
+        }
+
+        for (int childIndex = 0; childIndex < root.childCount; childIndex++)
+        {
+            Transform child = root.GetChild(childIndex);
+            for (int nameIndex = 0; nameIndex < names.Length; nameIndex++)
+            {
+                if (child.name == names[nameIndex])
+                {
+                    return child;
+                }
+            }
+        }
+
+        return null;
     }
 }

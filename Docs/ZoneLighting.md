@@ -9,7 +9,7 @@
 | Script | Ubicacion | Responsabilidad |
 | --- | --- | --- |
 | `ZoneLightingController` | `Assets/Implementation/Code/World/Lighting/ZoneLightingController.cs` | Controla `LayerBlack`, su opacidad y el overlay compuesto de luz. |
-| `LightGrazeSource` | `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs` | Registra la posicion de una entidad como fuente visual de luz. |
+| `LightGrazeSource` | `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs` | Registra la muestra visual de luz de una entidad: posicion, forma local y titileo opcional. |
 
 ## Contrato de escena
 
@@ -32,6 +32,16 @@ Las entidades de mundo relevantes en `ZonaAbisopelagica` reciben `LightGrazeSour
 Los prefabs compartidos no deben depender de esta mecanica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaAbisopelagica`.
 
 En modo compuesto, `LightGrazeSource` no crea renderers visibles por entidad: solo participa en una lista runtime de posiciones. `ZoneLightingController` calcula una unica textura de oscuridad y, cuando dos luces se cruzan, toma la menor opacidad por pixel. Esto evita que dos halos se sumen y generen manchas negras o sobreposicion artificial. El radio, la suavidad y la resolucion del overlay se definen en `ZoneLightingController`, no en la entidad.
+
+`LightGrazeSource` puede especializar la lectura visual de una entidad sin cambiar gameplay:
+- `grazeAnchor` permite mover el centro de la luz a un hijo concreto del prefab.
+- Si `grazeAnchor` no esta asignado, el componente busca en este orden: `GrazeLightAnchor`, `VisualSupport`, `Roca`, `Rock`, `Visual`; si no encuentra ninguno, usa el root.
+- `lightShapeScale` permite luces elipticas. El radio base sigue viniendo de `ZoneLightingController`, pero cada entidad puede escalar X/Y.
+- `flickerEnabled` alterna la emision visual de la fuente usando rangos de encendido/apagado en tiempo de juego.
+
+Casos actuales:
+- `DealerFish_ZonaAbisopelagica` debe iluminar desde su soporte visual/roca, no desde el fondo del prefab.
+- `UnknownBoss` / boss abisal usa luz propia adaptada a su forma y titilante, porque su lectura visual corresponde a una anguila electrica.
 
 ## Rendimiento del modo compuesto
 
@@ -83,6 +93,17 @@ Owner: `ZoneLightingController`.
 | `compositeUpdatesPerSecond` | Frecuencia maxima a la que se recompone la textura. |
 | `lightSourceCullingPadding` | Margen extra, en unidades de mundo, para considerar fuentes cercanas al borde de camara. |
 
+Owner: `LightGrazeSource`.
+
+| Campo | Que controla |
+| --- | --- |
+| `grazeAnchor` | Transform usado como centro de la luz. |
+| `lightShapeScale` | Escala relativa X/Y del radio base, util para formas elipticas. |
+| `flickerEnabled` | Activa titileo de la fuente. |
+| `flickerOnDurationRange` | Rango de duracion de encendido. |
+| `flickerOffDurationRange` | Rango de duracion de apagado. |
+| `randomizeInitialFlicker` | Evita que todas las luces titilantes arranquen sincronizadas. |
+
 ## Regla de mantenimiento
 
-No agregar parametros de luz a enemigos, camarones, portales o tienda. Las entidades solo pueden recibir `LightGrazeSource`; el balance visual pertenece al `ZoneLightingController`.
+No agregar parametros globales de balance de luz a enemigos, camarones, portales o tienda. Las entidades pueden declarar `LightGrazeSource` con ancla, forma y titileo local; el radio base, opacidad, suavidad, resolucion y frecuencia de recomposicion pertenecen al `ZoneLightingController`.

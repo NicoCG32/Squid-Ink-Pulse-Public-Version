@@ -21,6 +21,19 @@ public class PlayerVisualStateController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float fallbackInkPulseClipLength = 1f;
     [SerializeField, Min(0.01f)] private float fallbackPortalClipLength = 1f;
 
+    private GameObject defaultMovementVisualRoot;
+    private GameObject defaultInkPulseVisualRoot;
+    private GameObject defaultPortalVisualRoot;
+    private Animator defaultMovementAnimator;
+    private Animator defaultInkPulseAnimator;
+    private Animator defaultPortalAnimator;
+    private string defaultInkPulseStateName;
+    private string defaultInkPulseClipName;
+    private string defaultPortalStateName;
+    private string defaultPortalClipName;
+    private float defaultFallbackInkPulseClipLength;
+    private float defaultFallbackPortalClipLength;
+    private bool defaultVisualSetCaptured;
     private Renderer[] movementRenderers;
     private Renderer[] inkPulseRenderers;
     private Renderer[] portalRenderers;
@@ -36,6 +49,7 @@ public class PlayerVisualStateController : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+        CaptureDefaultVisualSet();
         ResolveRendererCaches();
         ResolveClipLengths();
         ApplyCurrentState();
@@ -44,6 +58,7 @@ public class PlayerVisualStateController : MonoBehaviour
     private void OnEnable()
     {
         ResolveReferences();
+        CaptureDefaultVisualSet();
         SubscribeToState();
         ApplyCurrentState();
     }
@@ -51,6 +66,7 @@ public class PlayerVisualStateController : MonoBehaviour
     private void Start()
     {
         ResolveReferences();
+        CaptureDefaultVisualSet();
         ResolveRendererCaches();
         ResolveClipLengths();
         SubscribeToState();
@@ -64,6 +80,82 @@ public class PlayerVisualStateController : MonoBehaviour
         {
             playerState.StateChanged -= HandlePlayerStateChanged;
         }
+    }
+
+    public bool ApplySkinVisualSet(PlayerSkinVisualSet visualSet)
+    {
+        if (visualSet == null)
+        {
+            UseDefaultVisualSet();
+            return false;
+        }
+
+        ResolveReferences();
+        CaptureDefaultVisualSet();
+        visualSet.ResolveReferences();
+        if (!visualSet.IsConfigured)
+        {
+            UseDefaultVisualSet();
+            return false;
+        }
+
+        HideCurrentVisualSet();
+        movementVisualRoot = visualSet.MovementVisualRoot;
+        inkPulseVisualRoot = visualSet.InkPulseVisualRoot;
+        portalVisualRoot = visualSet.PortalVisualRoot;
+        movementAnimator = visualSet.MovementAnimator;
+        inkPulseAnimator = visualSet.InkPulseAnimator;
+        portalAnimator = visualSet.PortalAnimator;
+        inkPulseStateName = string.IsNullOrWhiteSpace(visualSet.InkPulseStateName)
+            ? defaultInkPulseStateName
+            : visualSet.InkPulseStateName;
+        inkPulseClipName = string.IsNullOrWhiteSpace(visualSet.InkPulseClipName)
+            ? defaultInkPulseClipName
+            : visualSet.InkPulseClipName;
+        portalStateName = string.IsNullOrWhiteSpace(visualSet.PortalStateName)
+            ? defaultPortalStateName
+            : visualSet.PortalStateName;
+        portalClipName = string.IsNullOrWhiteSpace(visualSet.PortalClipName)
+            ? defaultPortalClipName
+            : visualSet.PortalClipName;
+        fallbackInkPulseClipLength = visualSet.FallbackInkPulseClipLength;
+        fallbackPortalClipLength = visualSet.FallbackPortalClipLength;
+
+        RefreshVisualSet();
+        return true;
+    }
+
+    public void UseDefaultVisualSet()
+    {
+        ResolveReferences();
+        CaptureDefaultVisualSet();
+        if (!defaultVisualSetCaptured)
+        {
+            return;
+        }
+
+        HideCurrentVisualSet();
+        movementVisualRoot = defaultMovementVisualRoot;
+        inkPulseVisualRoot = defaultInkPulseVisualRoot;
+        portalVisualRoot = defaultPortalVisualRoot;
+        movementAnimator = defaultMovementAnimator;
+        inkPulseAnimator = defaultInkPulseAnimator;
+        portalAnimator = defaultPortalAnimator;
+        inkPulseStateName = defaultInkPulseStateName;
+        inkPulseClipName = defaultInkPulseClipName;
+        portalStateName = defaultPortalStateName;
+        portalClipName = defaultPortalClipName;
+        fallbackInkPulseClipLength = defaultFallbackInkPulseClipLength;
+        fallbackPortalClipLength = defaultFallbackPortalClipLength;
+
+        RefreshVisualSet();
+    }
+
+    public void RefreshVisualSet()
+    {
+        ResolveRendererCaches();
+        ResolveClipLengths();
+        ApplyCurrentState();
     }
 
     private void HandlePlayerStateChanged(PlayerRuntimeState previousState, PlayerRuntimeState nextState)
@@ -221,6 +313,43 @@ public class PlayerVisualStateController : MonoBehaviour
             fallbackPortalClipLength);
 
         lastPortalTransitionDuration = resolvedPortalClipLength;
+    }
+
+    private void CaptureDefaultVisualSet()
+    {
+        if (defaultVisualSetCaptured)
+        {
+            return;
+        }
+
+        defaultMovementVisualRoot = movementVisualRoot;
+        defaultInkPulseVisualRoot = inkPulseVisualRoot;
+        defaultPortalVisualRoot = portalVisualRoot;
+        defaultMovementAnimator = movementAnimator;
+        defaultInkPulseAnimator = inkPulseAnimator;
+        defaultPortalAnimator = portalAnimator;
+        defaultInkPulseStateName = inkPulseStateName;
+        defaultInkPulseClipName = inkPulseClipName;
+        defaultPortalStateName = portalStateName;
+        defaultPortalClipName = portalClipName;
+        defaultFallbackInkPulseClipLength = fallbackInkPulseClipLength;
+        defaultFallbackPortalClipLength = fallbackPortalClipLength;
+        defaultVisualSetCaptured = true;
+    }
+
+    private void HideCurrentVisualSet()
+    {
+        if (movementRenderers == null || inkPulseRenderers == null || portalRenderers == null)
+        {
+            ResolveRendererCaches();
+        }
+
+        SetRenderersVisible(movementRenderers, false);
+        SetRenderersVisible(inkPulseRenderers, false);
+        SetRenderersVisible(portalRenderers, false);
+        SetAnimatorSpeed(movementAnimator, 0f);
+        SetAnimatorSpeed(inkPulseAnimator, 0f);
+        SetAnimatorSpeed(portalAnimator, 0f);
     }
 
     private static float ResolveClipLength(Animator animator, string clipName, float fallbackLength)

@@ -14,9 +14,7 @@ public static class GameplayUiPrefabSceneMigration
     private const string SecondaryScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
     private const string TutorialScenePath = "Assets/Scenes/Game/ZonaTutorial.unity";
 
-    private const string InkBarHorizontalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarHorizontal.prefab";
-    private const string InkBarVerticalPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBarVertical.prefab";
-    private const string InkBarLegacyPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkPulseBarLegacy.prefab";
+    private const string InkBarPrefabPath = "Assets/Content/Prefabs/UI/HUD/InkBar.prefab";
     private const string GadgetSlotsPrefabPath = "Assets/Content/Prefabs/UI/HUD/GadgetSlots.prefab";
     private const string ShrimpCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ShrimpCounter.prefab";
     private const string ScoreCounterPrefabPath = "Assets/Content/Prefabs/UI/HUD/ScoreCounter.prefab";
@@ -26,9 +24,9 @@ public static class GameplayUiPrefabSceneMigration
 
     private static readonly SceneUiPrefabContract[] SceneContracts =
     {
-        new(PrimaryScenePath, "InkBar", InkBarHorizontalPrefabPath),
-        new(SecondaryScenePath, "InkBar", InkBarVerticalPrefabPath),
-        new(TutorialScenePath, "InkPulseBar", InkBarLegacyPrefabPath)
+        new(PrimaryScenePath, "InkBar", InkBarPrefabPath),
+        new(SecondaryScenePath, "InkBar", InkBarPrefabPath),
+        new(TutorialScenePath, "InkBar", InkBarPrefabPath)
     };
 
     [MenuItem("Tools/Squid/Migrate Gameplay UI To Prefab Instances")]
