@@ -219,6 +219,12 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     private static IEnumerator PlayIfAvailable(LoreComicRequest request)
     {
+        string persistentEventId = BuildPersistentComicEventId(request);
+        if (!string.IsNullOrEmpty(persistentEventId) && PersistentPlayerProfile.HasSeenLoreComic(persistentEventId))
+        {
+            yield break;
+        }
+
         LoreComicPresenter presenter = FindActivePresenter();
         if (presenter == null)
         {
@@ -231,10 +237,28 @@ public sealed class LoreComicPresenter : MonoBehaviour
             yield break;
         }
 
+        if (!string.IsNullOrEmpty(persistentEventId))
+        {
+            PersistentPlayerProfile.TryMarkLoreComicSeen(persistentEventId);
+        }
+
         while (!completed)
         {
             yield return null;
         }
+    }
+
+    private static string BuildPersistentComicEventId(LoreComicRequest request)
+    {
+        return request.ComicEvent switch
+        {
+            LoreComicEvent.PortalEpipelagicToAbyssopelagic => request.ComicEvent.ToString(),
+            LoreComicEvent.PortalAbyssopelagicToEpipelagic => request.ComicEvent.ToString(),
+            LoreComicEvent.ShopInGameFirst => request.ComicEvent.ToString(),
+            LoreComicEvent.ShopInGameLastPurchased => request.ComicEvent.ToString(),
+            LoreComicEvent.ShopInGameLastNoPurchase => request.ComicEvent.ToString(),
+            _ => null
+        };
     }
 
     private static LoreComicPresenter FindActivePresenter()

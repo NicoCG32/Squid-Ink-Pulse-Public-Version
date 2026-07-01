@@ -3,25 +3,25 @@
     {
       "id": "dash_duration",
       "title": "Tinta Persistente",
-      "description": "La tinta permanece activa por mas tiempo, extendiendo la duracion del impulso.",
+      "description": "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo.",
       "price": 100
     },
     {
       "id": "dash_recharge",
       "title": "Pulso Recargado",
-      "description": "El pulso de tinta se regenera mas rapido, permitiendo impulsarte con mayor frecuencia.",
+      "description": "Menos espera entre pulsos; mas escapes al limite.",
       "price": 120
     },
     {
       "id": "score_multiplier",
       "title": "Gloria Marina",
-      "description": "Cada maniobra arriesgada vale mas, aumentando el puntaje obtenido durante la partida.",
+      "description": "Cada maniobra peligrosa deja una historia mas grande.",
       "price": 150
     },
     {
       "id": "shrimp_multiplier",
       "title": "Botin de Camarones",
-      "description": "Aumenta la cantidad de camarones recolectados, mejorando las recompensas de cada partida.",
+      "description": "Cada camaron rinde mas cuando el oceano se pone pesado.",
       "price": 200
     }
   ]

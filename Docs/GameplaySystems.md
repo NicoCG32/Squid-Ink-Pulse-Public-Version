@@ -242,7 +242,9 @@ Reglas:
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
 - `DealerFish` se consume solo si `InGameShopManager` acepta la apertura. Tras abrir tienda, conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
-- `RuntimeInGameShopLoreState` limita los comics de primera entrada y primera salida a una vez por run.
+- `RuntimeInGameShopLoreState` limita los intentos de comic de entrada/salida a una vez por run, y `player-profile.json/lore.viewedComicEventIds` impide repetir comics de tienda ya vistos en partidas futuras.
+- Al comprar correctamente, la tienda entrega el gadget y se cierra. El feedback visual permanente del vendedor no pertenece a esta tienda, sino a `ShopMenu`.
+- Mientras la tienda o su comic previo estan activos, `InkPulseController` y `PlayerGadgetInventory` bloquean activacion de Ink-Pulse e InkBottle.
 - `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
 - `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
 - `ZonaAbisopelagica` referencia `DealerFish_ZonaAbisopelagica.prefab`, que conserva la misma logica pero oscurece `Visual` y `VisualSupport` a RGB `135,135,135`.

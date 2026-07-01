@@ -15,6 +15,8 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     private const string EmptyDropStateName = "Vacia";
     private const string HalfDropStateName = "Media";
     private const string FullDropStateName = "Llena";
+    private static readonly string[] DefaultShopVisualNames = { "Default", "DealerDefault", "OctoDealerDefault", "ShopDefault" };
+    private static readonly string[] HappyShopVisualNames = { "AfterBuy", "Happy", "DealerHappy", "OctoDealerHappy", "Feliz" };
 
     [Header("Fixed Upgrade Slots")]
     [SerializeField] private string[] upgradeIds =
@@ -41,6 +43,10 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     [SerializeField] private TMP_Text selectedItemStateText;
     [SerializeField] private TMP_Text skinPageText;
 
+    [Header("Dealer Visual State")]
+    [SerializeField] private GameObject defaultShopVisualState;
+    [SerializeField] private GameObject happyShopVisualState;
+
     [Header("Events")]
     [SerializeField] private UnityEvent onPurchaseSucceeded = new UnityEvent();
     [SerializeField] private UnityEvent onSelectionChanged = new UnityEvent();
@@ -56,6 +62,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     private GameObject levelIndicatorRoot;
     private bool levelDropVisualsResolved;
     private string purchaseResultMessage = string.Empty;
+    private bool hasPurchasedInCurrentMenu;
 
     private enum ShopSelectionKind
     {
@@ -106,6 +113,9 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         EnsureSlotArrays();
         NormalizeRenderableScale();
         ConfigureRaycastTargets();
+        ResolveShopVisualStates();
+        hasPurchasedInCurrentMenu = false;
+        ApplyShopVisualState(happy: false);
         Refresh();
         WarnIfMissingReferences();
     }
@@ -116,11 +126,15 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         PersistentPlayerProfile.RecordsChanged += HandleRecordsChanged;
         NormalizeRenderableScale();
         ConfigureRaycastTargets();
+        ResolveShopVisualStates();
+        hasPurchasedInCurrentMenu = false;
+        ApplyShopVisualState(happy: false);
         Refresh();
     }
 
     private void OnDisable()
     {
+        ApplyShopVisualState(happy: false);
         PersistentPlayerProfile.ProfileChanged -= HandleProfileChanged;
         PersistentPlayerProfile.RecordsChanged -= HandleRecordsChanged;
     }
@@ -185,6 +199,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
     public void PurchaseSelected()
     {
+        bool isRealPurchase = IsSelectedActionRealPurchase();
         PermanentShopPurchaseResult result = selectionKind switch
         {
             ShopSelectionKind.Upgrade => PurchaseSelectedUpgrade(),
@@ -196,6 +211,12 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         if (result == PermanentShopPurchaseResult.Success)
         {
             purchaseResultMessage = string.Empty;
+            if (isRealPurchase)
+            {
+                hasPurchasedInCurrentMenu = true;
+                ApplyShopVisualState(happy: true);
+            }
+
             onPurchaseSucceeded.Invoke();
         }
 
@@ -210,6 +231,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         RefreshSlotVisuals();
         RefreshNavigation();
         RefreshSelectionPresentation();
+        ApplyShopVisualState(hasPurchasedInCurrentMenu);
     }
 
     private PermanentShopPurchaseResult PurchaseSelectedUpgrade()
@@ -236,6 +258,29 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         return isEquipped
             ? PermanentShopService.TryEquipSkin(PlayerSkinIds.Default)
             : PermanentShopService.TryEquipSkin(skin.id);
+    }
+
+    private bool IsSelectedActionRealPurchase()
+    {
+        if (selectionKind == ShopSelectionKind.Upgrade)
+        {
+            PermanentUpgradeDefinition upgrade = UnlockablesCatalogQuery.FindPermanentUpgrade(selectedUpgradeId);
+            if (upgrade == null)
+            {
+                return false;
+            }
+
+            int currentLevel = PersistentPlayerProfile.GetPermanentUpgradeLevel(upgrade.id);
+            return currentLevel < upgrade.maxLevel;
+        }
+
+        if (selectionKind == ShopSelectionKind.Skin)
+        {
+            UnlockableSkinDefinition skin = GetSelectedSkin();
+            return skin != null && !PersistentPlayerProfile.HasUnlockedSkin(skin.id);
+        }
+
+        return false;
     }
 
     private void RefreshSlotInteractivity()
@@ -700,6 +745,104 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void ResolveShopVisualStates()
+    {
+        if (defaultShopVisualState != null && happyShopVisualState != null)
+        {
+            return;
+        }
+
+        Transform searchRoot = GetComponentInParent<Canvas>(includeInactive: true)?.transform ?? transform.root ?? transform;
+        if (happyShopVisualState == null)
+        {
+            happyShopVisualState = FindStateWithSibling(searchRoot, HappyShopVisualNames, DefaultShopVisualNames);
+        }
+
+        if (defaultShopVisualState == null)
+        {
+            defaultShopVisualState = FindStateWithSibling(searchRoot, DefaultShopVisualNames, HappyShopVisualNames);
+        }
+
+        if (happyShopVisualState != null && defaultShopVisualState == null)
+        {
+            defaultShopVisualState = FindDirectChild(happyShopVisualState.transform.parent, DefaultShopVisualNames);
+        }
+
+        if (defaultShopVisualState != null && happyShopVisualState == null)
+        {
+            happyShopVisualState = FindDirectChild(defaultShopVisualState.transform.parent, HappyShopVisualNames);
+        }
+    }
+
+    private void ApplyShopVisualState(bool happy)
+    {
+        ResolveShopVisualStates();
+        SetActive(defaultShopVisualState, !happy || happyShopVisualState == null);
+        SetActive(happyShopVisualState, happy);
+    }
+
+    private static GameObject FindStateWithSibling(Transform root, string[] targetNames, string[] siblingNames)
+    {
+        if (root == null || targetNames == null || siblingNames == null)
+        {
+            return null;
+        }
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        for (int index = 0; index < children.Length; index++)
+        {
+            Transform candidate = children[index];
+            if (!NameMatches(candidate.name, targetNames) || candidate.parent == null)
+            {
+                continue;
+            }
+
+            if (FindDirectChild(candidate.parent, siblingNames) != null)
+            {
+                return candidate.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static GameObject FindDirectChild(Transform parent, string[] childNames)
+    {
+        if (parent == null || childNames == null)
+        {
+            return null;
+        }
+
+        for (int index = 0; index < parent.childCount; index++)
+        {
+            Transform child = parent.GetChild(index);
+            if (NameMatches(child.name, childNames))
+            {
+                return child.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool NameMatches(string candidate, string[] names)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) || names == null)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < names.Length; index++)
+        {
+            if (string.Equals(candidate, names[index], StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void EnsureSlotArrays()

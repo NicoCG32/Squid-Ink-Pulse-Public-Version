@@ -8,6 +8,7 @@ public class PlayerProfileSaveData
     public PlayerProfilePermanentUpgradesSaveData permanentUpgrades = new();
     public PlayerProfileSkinsSaveData skins = PlayerProfileSkinsSaveData.CreateDefault();
     public PlayerProfileRunGadgetUnlocksSaveData runGadgetUnlocks = PlayerProfileRunGadgetUnlocksSaveData.CreateDefault();
+    public PlayerProfileLoreSaveData lore = PlayerProfileLoreSaveData.CreateDefault();
 
     public static PlayerProfileSaveData CreateDefault()
     {
@@ -22,10 +23,12 @@ public class PlayerProfileSaveData
         permanentUpgrades ??= new PlayerProfilePermanentUpgradesSaveData();
         skins ??= PlayerProfileSkinsSaveData.CreateDefault();
         runGadgetUnlocks ??= PlayerProfileRunGadgetUnlocksSaveData.CreateDefault();
+        lore ??= PlayerProfileLoreSaveData.CreateDefault();
 
         permanentUpgrades.Normalize();
         skins.Normalize();
         runGadgetUnlocks.Normalize();
+        lore.Normalize();
     }
 }
 
@@ -158,5 +161,28 @@ public class PlayerProfileSkinsSaveData
         {
             equippedSkinId = PlayerSkinIds.Default;
         }
+    }
+}
+
+[Serializable]
+public class PlayerProfileLoreSaveData
+{
+    public string[] viewedComicEventIds = Array.Empty<string>();
+
+    public static PlayerProfileLoreSaveData CreateDefault()
+    {
+        return new PlayerProfileLoreSaveData
+        {
+            viewedComicEventIds = Array.Empty<string>()
+        };
+    }
+
+    public void Normalize()
+    {
+        viewedComicEventIds = viewedComicEventIds?
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct()
+            .ToArray() ?? Array.Empty<string>();
     }
 }

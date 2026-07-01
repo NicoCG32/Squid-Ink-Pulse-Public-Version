@@ -54,7 +54,7 @@ public class UnlockablesCatalogSaveData
                 Upgrade(
                     PlayerUnlockableIds.InkPulseDurationUpgrade,
                     "Tinta Persistente",
-                    "La tinta permanece activa por mas tiempo, extendiendo la duracion del impulso.",
+                    "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo.",
                     100,
                     1.5f,
                     PermanentUpgradeEffectModes.Multiplier,
@@ -65,7 +65,7 @@ public class UnlockablesCatalogSaveData
                 Upgrade(
                     PlayerUnlockableIds.InkPulseRechargeRateUpgrade,
                     "Pulso Recargado",
-                    "El pulso de tinta se regenera mas rapido, permitiendo impulsarte con mayor frecuencia.",
+                    "Menos espera entre pulsos; mas escapes al limite.",
                     120,
                     1.5f,
                     PermanentUpgradeEffectModes.Additive,
@@ -76,7 +76,7 @@ public class UnlockablesCatalogSaveData
                 Upgrade(
                     PlayerUnlockableIds.ShrimpMultiplierUpgrade,
                     "Botin de Camarones",
-                    "Aumenta la cantidad de camarones recolectados, mejorando las recompensas de cada partida.",
+                    "Cada camaron rinde mas cuando el oceano se pone pesado.",
                     200,
                     1.6f,
                     PermanentUpgradeEffectModes.Multiplier,
@@ -87,7 +87,7 @@ public class UnlockablesCatalogSaveData
                 Upgrade(
                     PlayerUnlockableIds.ScoreMultiplierUpgrade,
                     "Gloria Marina",
-                    "Cada maniobra arriesgada vale mas, aumentando el puntaje obtenido durante la partida.",
+                    "Cada maniobra peligrosa deja una historia mas grande.",
                     150,
                     1.6f,
                     PermanentUpgradeEffectModes.Multiplier,

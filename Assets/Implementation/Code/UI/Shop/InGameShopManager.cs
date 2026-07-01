@@ -47,6 +47,8 @@ public class InGameShopManager : MonoBehaviour
     public UnityEvent<GadgetId> onGadgetPurchased = new UnityEvent<GadgetId>();
     public UnityEvent<ShopEventState> onStateChanged = new UnityEvent<ShopEventState>();
 
+    private static int inkPulseActivationBlockedUntilFrame = -1;
+
     private ShopGadgetOffer currentOffer;
     private float remainingSeconds;
     private int currentPrice;
@@ -65,6 +67,11 @@ public class InGameShopManager : MonoBehaviour
     public static InGameShopManager Instance => instance;
     public static bool HasInstance => instance != null;
     public static bool IsShopOpen => instance != null && instance.CurrentState == ShopEventState.Offering;
+    public static bool BlocksInkPulseActivation => Time.frameCount <= inkPulseActivationBlockedUntilFrame
+        || (instance != null
+            && (instance.isOpen
+                || instance.CurrentState == ShopEventState.Offering
+                || instance.pendingWorldShopRoutine != null));
     public ShopEventState CurrentState { get; private set; } = ShopEventState.Closed;
     public event Action<ShopEventState, ShopEventState> StateChanged;
 
@@ -143,6 +150,7 @@ public class InGameShopManager : MonoBehaviour
 
         if (RuntimeInGameShopLoreState.TryMarkFirstDealerShopAccess())
         {
+            BlockInkPulseActivationBriefly();
             pendingWorldShopRoutine = StartCoroutine(OpenWorldShopAfterFirstComicRoutine());
             return true;
         }
@@ -153,6 +161,7 @@ public class InGameShopManager : MonoBehaviour
     private IEnumerator OpenWorldShopAfterFirstComicRoutine()
     {
         yield return LoreComicPresenter.PlayInGameShopFirstIfAvailable();
+        BlockInkPulseActivationBriefly();
         pendingWorldShopRoutine = null;
         TryOpenTimedShop(openedFromDealerFish: true);
     }
@@ -208,6 +217,7 @@ public class InGameShopManager : MonoBehaviour
             isHoldingTimeScale = true;
         }
 
+        BlockInkPulseActivationBriefly();
         isOpen = true;
         ApplyState(ShopEventState.Offering);
         SetVisible(true);
@@ -293,9 +303,10 @@ public class InGameShopManager : MonoBehaviour
         }
 
         GadgetId gadget = currentOffer.GadgetId;
-        if (RuntimeGadgetInventory.HasGadget(gadget))
+        if (RuntimeGadgetInventory.HasGadget(gadget) || currentShopPurchased)
         {
             SetInsufficientFundsVisible(false);
+            SetBuyButtonInteractable(false);
             return;
         }
 
@@ -333,6 +344,7 @@ public class InGameShopManager : MonoBehaviour
         currentOffer = null;
         currentShopOpenedFromDealerFish = false;
         currentShopPurchased = false;
+        BlockInkPulseActivationBriefly();
         RestoreTimeScaleIfNeeded();
         HideImmediate();
         ApplyState(ShopEventState.Closed);
@@ -391,7 +403,7 @@ public class InGameShopManager : MonoBehaviour
         SetText(priceText, currentPrice.ToString());
         RefreshTimer();
         SetInsufficientFundsVisible(false);
-        SetBuyButtonInteractable(true);
+        SetBuyButtonInteractable(!currentShopPurchased && !RuntimeGadgetInventory.HasGadget(currentOffer.GadgetId));
     }
 
     private void RefreshTimer()
@@ -613,5 +625,10 @@ public class InGameShopManager : MonoBehaviour
             pendingWorldShopRoutine = null;
             instance = null;
         }
+    }
+
+    private static void BlockInkPulseActivationBriefly()
+    {
+        inkPulseActivationBlockedUntilFrame = Mathf.Max(inkPulseActivationBlockedUntilFrame, Time.frameCount + 1);
     }
 }

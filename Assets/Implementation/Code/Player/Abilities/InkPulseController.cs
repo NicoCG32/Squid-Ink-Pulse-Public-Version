@@ -94,7 +94,7 @@ public class InkPulseController : MonoBehaviour
         if (!CanActivatePulse())
         {
 
-            if (IsGameplayActive() && !activationSuppressed && !InGameShopManager.IsShopOpen && !IsPulseActive && !IsCharged)
+            if (IsGameplayActive() && !activationSuppressed && !InGameShopManager.BlocksInkPulseActivation && !IsPulseActive && !IsCharged)
             {
                 if (chargeBar != null)
                 {
@@ -158,7 +158,7 @@ public class InkPulseController : MonoBehaviour
     {
         return IsGameplayActive()
             && !activationSuppressed
-            && !InGameShopManager.IsShopOpen
+            && !InGameShopManager.BlocksInkPulseActivation
             && !IsPulseActive
             && IsCharged;
     }

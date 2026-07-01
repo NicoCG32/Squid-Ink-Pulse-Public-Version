@@ -31,7 +31,7 @@ public class PlayerGadgetInventory : MonoBehaviour
 
     private void Update()
     {
-        if (session == null || !session.IsPlaying || Keyboard.current == null)
+        if (session == null || !session.IsPlaying || Keyboard.current == null || InGameShopManager.BlocksInkPulseActivation)
         {
             return;
         }
@@ -76,12 +76,7 @@ public class PlayerGadgetInventory : MonoBehaviour
             return false;
         }
 
-        if (gadget != GadgetId.InkBottle)
-        {
-            RuntimeGadgetInventory.TryConsume(gadget);
-        }
-
-        return true;
+        return RuntimeGadgetInventory.TryConsume(gadget);
     }
 
     private void GrantStartingInventoryIfNeeded()

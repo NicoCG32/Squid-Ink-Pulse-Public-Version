@@ -73,7 +73,7 @@ public class MainMenu : MonoBehaviour
 
     public void Jugar()
     {
-        LoadConfiguredScene(playSceneName, "juego", showStartLoreComicBeforePlay);
+        LoadConfiguredScene(playSceneName, "juego", showStartLoreComicBeforePlay, resetRunStateBeforeLoad: true);
     }
 
     public void Opciones()
@@ -99,7 +99,11 @@ public class MainMenu : MonoBehaviour
         LoadConfiguredScene(mainMenuSceneName, "menu principal");
     }
 
-    private void LoadConfiguredScene(string sceneName, string sceneLabel, bool showStartLoreComic = false)
+    private void LoadConfiguredScene(
+        string sceneName,
+        string sceneLabel,
+        bool showStartLoreComic = false,
+        bool resetRunStateBeforeLoad = false)
     {
         if (isLoading)
         {
@@ -119,7 +123,7 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        StartCoroutine(LoadSceneAfterDelay(resolvedSceneName, showStartLoreComic));
+        StartCoroutine(LoadSceneAfterDelay(resolvedSceneName, showStartLoreComic, resetRunStateBeforeLoad));
     }
 
     private string ResolveLoadableSceneName(string sceneName)
@@ -148,7 +152,7 @@ public class MainMenu : MonoBehaviour
         return Application.CanStreamedLevelBeLoaded(shortSceneName) ? shortSceneName : null;
     }
 
-    private IEnumerator LoadSceneAfterDelay(string sceneName, bool showStartLoreComic)
+    private IEnumerator LoadSceneAfterDelay(string sceneName, bool showStartLoreComic, bool resetRunStateBeforeLoad)
     {
         isLoading = true;
 
@@ -158,6 +162,11 @@ public class MainMenu : MonoBehaviour
         }
 
         yield return new WaitForSecondsRealtime(timeDelay);
+        if (resetRunStateBeforeLoad)
+        {
+            SceneFlowController.ResetRunScopedRuntimeState();
+        }
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);
     }

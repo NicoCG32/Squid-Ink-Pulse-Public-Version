@@ -30,14 +30,14 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
 1. Build estable de demo.
    - Todas las escenas principales cargan sin referencias faltantes criticas.
    - `ZonaAbisopelagica` ya contiene `BossEventDirector` para `UnknownBoss` / `FlappyBoss`; el cierre pendiente es validarlo en Play Mode y en build.
-   - MainMenu, gameplay, pausa, Game Over, opciones, ShopMenu y vuelta a menu funcionan.
+   - MainMenu, gameplay, pausa, Game Over, opciones, ShopMenu y vuelta a menu funcionan; el usuario ya reporto correctamente gameplay, botones, pausa, Game Over, skins, tienda in-run y tienda out-of-run en Editor.
    - No hay bloqueos por `Time.timeScale`, pausa, comics, tienda o Game Over.
    - `ZonaEpipelagica` y `ZonaAbisopelagica` pueden jugarse durante varios minutos sin acumulacion evidente de objetos.
    - Criterio de cierre: build Windows probado fuera del Editor.
 
 2. Tienda out-of-game funcional.
    - `ShopMenu` ya serializa seleccion, compra de mejoras, compra/equipado de skins, paginacion, precios compactos y estados visuales mediante `OutOfGameShopManager` y `PermanentShopService`.
-   - Pendiente de cierre: Play Mode de transacciones, feedback visual/sonoro elegido por el usuario y aplicacion visual real de skins sobre `BabySquid`.
+   - Estado de prueba actual: compra, seleccion, deseleccion, skins y mejoras fueron reportadas como funcionales en gameplay. Mantener como pendiente solo build fuera del Editor y QA de regresion.
    - Debe cubrir como minimo:
      - `upgrade.ink_pulse_duration`;
      - `upgrade.ink_pulse_recharge_rate`;
@@ -49,21 +49,22 @@ Estas tareas definen si el juego puede mostrarse con confianza en feria.
    - Criterio de cierre: comprar una mejora altera gameplay o economia observable sin editar codigo.
 
 3. Servidor de feria MVP.
-   - Implementar como subsistema externo, no como reemplazo de la DB normal.
-   - Recomendacion: Python/FastAPI + SQLite por velocidad y claridad.
+   - Implementado como subsistema externo en `Tools/FairServer/`, no como reemplazo de la DB normal.
+   - Siguiente prioridad recomendada cuando el loop local ya esta estable.
+   - Implementacion actual: Python estandar + SQLite, sin dependencias externas, para ejecucion simple en Windows.
    - MVP obligatorio:
-     - crear participante con seudonimo;
-     - generar codigo de recuperacion;
-     - recuperar participante;
-     - sincronizar snapshot;
-     - checkout al salir;
-     - consultar leaderboard;
-     - pantalla web simple de ranking.
+     - crear participante con seudonimo: implementado;
+     - generar codigo de recuperacion: implementado;
+     - recuperar participante: implementado;
+     - sincronizar snapshot: implementado;
+     - checkout al salir: implementado;
+     - consultar leaderboard: implementado;
+     - pantalla web simple de ranking: implementado.
    - Integracion Unity minima:
      - exportar mejor puntaje, intentos, mejoras permanentes y desbloqueos relevantes;
      - importar snapshot recuperado;
      - mostrar puesto al salir.
-   - Criterio de cierre: dos PCs pueden crear/recuperar/sincronizar contra el host en LAN.
+   - Criterio pendiente de cierre: dos PCs pueden crear/recuperar/sincronizar contra el host en LAN desde build Unity.
 
 4. Comics de lore criticos.
    - Validar que los comics ya conectados se muestran y no bloquean:

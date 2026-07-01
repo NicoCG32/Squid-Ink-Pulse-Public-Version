@@ -180,7 +180,7 @@
         {
             "id": "upgrade.ink_pulse_duration",
             "displayName": "Tinta Persistente",
-            "description": "La tinta permanece activa por mas tiempo, extendiendo la duracion del impulso.",
+            "description": "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo.",
             "defaultUnlocked": true,
             "basePrice": 350,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/InkPulsePersistence",
@@ -198,7 +198,7 @@
         {
             "id": "upgrade.ink_pulse_recharge_rate",
             "displayName": "Pulso Recargado",
-            "description": "El pulso de tinta se regenera mas rapido, permitiendo impulsarte con mayor frecuencia.",
+            "description": "Menos espera entre pulsos; mas escapes al limite.",
             "defaultUnlocked": true,
             "basePrice": 500,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/ChargeRate",
@@ -216,7 +216,7 @@
         {
             "id": "upgrade.shrimp_multiplier",
             "displayName": "Botin de Camarones",
-            "description": "Aumenta la cantidad de camarones recolectados, mejorando las recompensas de cada partida.",
+            "description": "Cada camaron rinde mas cuando el oceano se pone pesado.",
             "defaultUnlocked": true,
             "basePrice": 100,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/MoneyMultiplier",
@@ -234,7 +234,7 @@
         {
             "id": "upgrade.score_multiplier",
             "displayName": "Gloria Marina",
-            "description": "Cada maniobra arriesgada vale mas, aumentando el puntaje obtenido durante la partida.",
+            "description": "Cada maniobra peligrosa deja una historia mas grande.",
             "defaultUnlocked": true,
             "basePrice": 150,
             "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/PointMultiplier",

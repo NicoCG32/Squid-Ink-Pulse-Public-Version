@@ -25,6 +25,10 @@ Tools/Squid/Validate Scene Contracts
 
 Esta validacion no modifica escenas. Revisa perfiles de spawn, prefabs obligatorios, tags, layers, boundaries, `CleanUp`, `GameUIRoot` y reglas por zona. Si falla, primero se corrige contrato; despues se balancean parametros.
 
+## Estado de QA local
+
+El loop principal fue probado en Editor y reportado como correcto para gameplay, botones, pausa, Game Over, skins, tienda in-run y tienda out-of-run. Desde este punto, el siguiente nivel de QA no debe buscar cambios de gameplay por defecto: debe confirmar build Windows fuera del Editor, prueba larga de `ZonaAbisopelagica` y estabilidad de persistencia.
+
 ## Contrato no balanceable: boundaries
 
 Los limites verticales no son parametros de QA. Son infraestructura de escena.

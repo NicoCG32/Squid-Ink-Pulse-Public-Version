@@ -17,5 +17,8 @@
             "gadget.shell_shield",
             "gadget.ink_bottle"
         ]
+    },
+    "lore": {
+        "viewedComicEventIds": []
     }
 }

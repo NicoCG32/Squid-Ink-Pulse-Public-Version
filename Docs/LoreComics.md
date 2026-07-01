@@ -59,7 +59,8 @@ Reglas:
 - Derrota usa `LoreComicEvent.Defeat` y la zona activa.
 - La primera entrada a tienda in-game desde `DealerFish` usa `LoreComicEvent.ShopInGameFirst` antes de abrir la tienda.
 - La primera salida de esa tienda usa `LoreComicEvent.ShopInGameLastPurchased` si hubo compra, o `LoreComicEvent.ShopInGameLastNoPurchase` si no hubo compra.
-- Los comics de tienda in-game se consumen una vez por run mediante `RuntimeInGameShopLoreState`.
+- Los comics de portal y tienda in-game se consumen una vez por evento visto mediante `player-profile.json/lore.viewedComicEventIds`.
+- `RuntimeInGameShopLoreState` sigue evitando repetir la entrada/salida de tienda dentro de una misma run, pero la decision persistente pertenece al perfil.
 - Para derrota, cada zona debe tener al menos 3 sprites asignados.
 
 Los sprites de comics viven organizados por dominio:
@@ -82,6 +83,8 @@ La carpeta legacy `ComicLore/Placeholders` no debe recrearse ni usarse para arte
 `InGameShopManager` coordina los comics de tienda cuando la apertura viene desde `DealerFish`: muestra `ShopInGameFirst` antes de la primera apertura y, al cerrar esa primera tienda, elige entre `ShopInGameLastPurchased` y `ShopInGameLastNoPurchase`.
 
 Si no hay `LoreComicPresenter` activo en la escena, el flujo continua sin bloquearse. Portal y derrota tambien se omiten si no existe una entrada configurada para ese evento; esto evita mostrar un panel vacio durante gameplay.
+
+Si un comic de portal o tienda in-game se muestra con una vineta valida, `LoreComicPresenter` marca su evento como visto en `PersistentPlayerProfile`. Las siguientes partidas lo omiten. Si no existe vineta valida, no se marca como visto.
 
 Instalacion actual:
 - `Assets/Scenes/MainMenu/MainMenu.unity`

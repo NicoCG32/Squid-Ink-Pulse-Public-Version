@@ -267,6 +267,35 @@ public static class PersistentPlayerProfile
         UnlockRunGadget(GadgetCatalog.GetUnlockId(gadget));
     }
 
+    public static bool HasSeenLoreComic(string comicEventId)
+    {
+        EnsureLoaded();
+        return !string.IsNullOrWhiteSpace(comicEventId)
+            && currentProfile.lore.viewedComicEventIds.Contains(comicEventId.Trim());
+    }
+
+    public static bool TryMarkLoreComicSeen(string comicEventId)
+    {
+        if (string.IsNullOrWhiteSpace(comicEventId))
+        {
+            return false;
+        }
+
+        EnsureLoaded();
+        string normalizedComicEventId = comicEventId.Trim();
+        if (currentProfile.lore.viewedComicEventIds.Contains(normalizedComicEventId))
+        {
+            return false;
+        }
+
+        currentProfile.lore.viewedComicEventIds = currentProfile.lore.viewedComicEventIds
+            .Concat(new[] { normalizedComicEventId })
+            .Distinct()
+            .ToArray();
+        SaveProfileAndNotify();
+        return true;
+    }
+
     public static bool HasUnlockedGadget(string gadgetId)
     {
         return HasUnlockedRunGadget(gadgetId);

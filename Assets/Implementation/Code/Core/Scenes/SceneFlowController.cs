@@ -28,6 +28,7 @@ public class SceneFlowController : MonoBehaviour
 
     public void LoadMainMenu()
     {
+        ResetRunScopedRuntimeState();
         Time.timeScale = 1f;
 
         if (!string.IsNullOrWhiteSpace(mainMenuSceneName) && Application.CanStreamedLevelBeLoaded(mainMenuSceneName))
@@ -47,6 +48,7 @@ public class SceneFlowController : MonoBehaviour
 
     public void LoadTutorial()
     {
+        ResetRunScopedRuntimeState();
         LoadSceneByName(tutorialSceneName);
     }
 
@@ -168,7 +170,7 @@ public class SceneFlowController : MonoBehaviour
         return sceneWithoutExtension.Substring(lastSlashIndex + 1);
     }
 
-    private void ResetRunScopedRuntimeState()
+    public static void ResetRunScopedRuntimeState()
     {
         RuntimeGadgetInventory.ResetForRuntime();
         RuntimeInkPulseState.ResetForRuntime();

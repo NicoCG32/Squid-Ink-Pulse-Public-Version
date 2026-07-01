@@ -206,12 +206,18 @@ ShopMenu
 - Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este es un contrato funcional temporal: puede reemplazarse por un SFX de tienda aprobado sin tocar la jerarquia ni los sprites.
 - El usuario ajusta la posicion y el tamano de cada owner `*Boton` para coincidir con las vitrinas o flechas del mueble. El codigo no modifica sus sprites, layout, escala, color ni jerarquia visual.
 - Los cuatro slots superiores estan reservados, en este orden, para `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
+- Las descripciones de mejoras deben ser cortas y con tono de tienda del juego, sin tildes ni caracteres especiales:
+  - Tinta Persistente: "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo."
+  - Pulso Recargado: "Menos espera entre pulsos; mas escapes al limite."
+  - Botin de Camarones: "Cada camaron rinde mas cuando el oceano se pone pesado."
+  - Gloria Marina: "Cada maniobra peligrosa deja una historia mas grande."
 - Los cuatro slots inferiores muestran una pagina de skins tomada desde `unlockables-catalog.json`.
 - Las imagenes de tienda se cargan con `Resources.Load<Sprite>()` desde rutas sin extension declaradas en el catalogo. La raiz actual es `Assets/Content/Art/UI/ShopMenu/Resources/ShopMenu/`.
 - Las mejoras usan `shopSpriteResourcePath` para estado normal y `shopHighlightedSpriteResourcePath` para el estado visual seleccionado. En el arte actual, los sprites seleccionados terminan en `Ink`.
 - Las skins usan `shopSpriteResourcePath` para su imagen base, `shopBuyedSpriteResourcePath` para el estado comprado no equipado y `shopSelectedSpriteResourcePath` para la skin equipada. Si faltan sprites de comprado o equipado, el manager conserva fallback hacia la imagen base.
 - Los campos TMP de detalle `NombreProducto`, `DescripcionProducto` y `PrecioProducto` son referencias funcionales del manager. Su posicion y estilo pertenecen a la escena; el manager solo escribe contenido.
 - El indicador de nivel de mejoras vive en el nodo visual `Mejorable/Gota1..Gota5`. Cada gota debe exponer estados `Visual/Vacia`, `Visual/Media` y `Visual/Llena`. Cinco gotas representan diez segmentos de mejora.
+- El vendedor de `ShopMenu` puede exponer dos estados hermanos: `Default` y `AfterBuy`/`Happy`. `OutOfGameShopManager` vuelve a `Default` al entrar o salir del menu, y cambia a `AfterBuy`/`Happy` solo despues de una compra real exitosa, conservando ese estado durante la visita actual. Equipar o desequipar una skin ya comprada no cuenta como compra nueva.
 
 Eventos persistentes requeridos:
 

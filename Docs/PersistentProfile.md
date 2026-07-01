@@ -18,7 +18,7 @@ Application.persistentDataPath/db/
 | Archivo | Tipo | Responsabilidad |
 | --- | --- | --- |
 | `unlockables-catalog.json` | Catalogo de contenido | Define skins, gadgets de run desbloqueables por hitos y mejoras permanentes, junto a precio base, efecto y meta de desbloqueo. |
-| `player-profile.json` | Perfil del jugador | Guarda mejoras permanentes compradas, skins desbloqueadas/equipada y gadgets de run habilitados para aparecer en la tienda in-game. |
+| `player-profile.json` | Perfil del jugador | Guarda mejoras permanentes compradas, skins desbloqueadas/equipada, gadgets de run habilitados para aparecer en la tienda in-game y comics de lore ya vistos. |
 | `player-records.json` | Economia y records | Guarda camarones, mejor puntaje, runs, portales cruzados y camarones recolectados historicamente. |
 | `local-leaderboard.json` | Local por dispositivo | Guarda ranking local ordenado por puntaje. Es historico/fallback y no es la fuente compartida para una feria multi-PC. |
 
@@ -81,8 +81,8 @@ Application.persistentDataPath/db/
   "permanentUpgrades": [
     {
       "id": "upgrade.ink_pulse_duration",
-      "displayName": "Ink Pulse Duration",
-      "description": "",
+      "displayName": "Tinta Persistente",
+      "description": "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo.",
       "defaultUnlocked": true,
       "basePrice": 100,
       "shopSpriteResourcePath": "ShopMenu/Skills/Upgrades/InkPulsePersistence",
@@ -115,6 +115,9 @@ Application.persistentDataPath/db/
   },
   "runGadgetUnlocks": {
     "unlockedRunGadgetIds": ["gadget.shell_shield", "gadget.ink_bottle"]
+  },
+  "lore": {
+    "viewedComicEventIds": []
   }
 }
 ```
@@ -166,6 +169,7 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 - `PlayerProfileRepository` es el unico punto que conoce rutas, semillas y reemplazo atomico.
 - `unlockables-catalog.json` guarda definiciones y metas; no guarda si el jugador compro algo.
 - `player-profile.json` guarda decisiones del jugador: mejoras permanentes, skins y gadgets de run ya habilitados por hitos.
+- `player-profile.json/lore.viewedComicEventIds` guarda comics de portal y tienda in-game ya vistos para no repetirlos en partidas futuras.
 - `player-records.json` guarda valores numericos acumulados: camarones, mejor puntaje y estadisticas.
 - `local-leaderboard.json` es local por dispositivo. El futuro modo feria multi-PC requiere un servidor LAN y SQLite; su diseño privado vive en `CODEX/planFeria.md`, no en esta base local.
 - La skin default siempre debe existir como `skin.default`.
@@ -173,6 +177,11 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 - Los gadgets son exclusivos de la tienda in-game. La persistencia no guarda compras de una run; solo guarda si un gadget ya puede aparecer en la aleatoriedad de `InGameShopManager`.
 - La tienda out-of-game no vende gadgets. Vende skins y mejoras permanentes.
 - Las mejoras permanentes actuales son `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
+- El copy de mejoras debe ser breve, legible en el mueble de tienda y sin tildes ni caracteres especiales. Textos actuales:
+  - `upgrade.ink_pulse_duration`: "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo."
+  - `upgrade.ink_pulse_recharge_rate`: "Menos espera entre pulsos; mas escapes al limite."
+  - `upgrade.shrimp_multiplier`: "Cada camaron rinde mas cuando el oceano se pone pesado."
+  - `upgrade.score_multiplier`: "Cada maniobra peligrosa deja una historia mas grande."
 - Las mejoras permanentes tienen tope de nivel definido por `maxLevel`; el catalogo actual usa `10`.
 - `priceGrowthMultiplier` hace que el precio de cada siguiente nivel crezca a partir del precio base y del nivel actual.
 - `effectMode` define como se aplica el efecto: `Multiplier` para multiplicadores y `Additive` para incrementos absolutos.
@@ -192,6 +201,7 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 | Compras de gadgets durante la run | `RuntimeGadgetInventory` | Inventario temporal, se conserva entre portales y se reinicia en Game Over. |
 | Skins | `skins` en catalogo y perfil | Compra y eleccion del visual activo del jugador, sin modificar reglas mecanicas. |
 | Mejoras permanentes | `permanentUpgrades` en catalogo y perfil | Multiplicadores permanentes de Ink-Pulse, camarones y score. |
+| Comics vistos | `lore.viewedComicEventIds` en perfil | Omision persistente de comics de portal y tienda in-game ya presentados. |
 | Camarones y records | `player-records.json` | Economia total, mejor puntaje y estadisticas historicas. |
 
 ## Servicios de dominio
