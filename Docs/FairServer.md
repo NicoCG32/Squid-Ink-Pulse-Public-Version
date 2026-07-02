@@ -137,7 +137,7 @@ La prueba crea un participante, sincroniza snapshot, consulta ranking, obtiene p
 
 El lado Unity vive separado bajo `Assets/Implementation/Code/Fair/`:
 
-- `FairModeBootstrap`: prueba `/health` contra el servidor configurado al iniciar el ejecutable; solo abre el flujo de feria si el servidor responde y el modo no fue deshabilitado.
+- `FairModeBootstrap`: prueba `/health` contra el servidor configurado al iniciar el ejecutable; abre el flujo de feria aunque la prueba inicial falle, para que la URL pueda corregirse desde la interfaz.
 - `FairModeSettings`: define servidor, `machineId`, version de build y argumentos de arranque.
 - `FairApiClient`: cliente HTTP para crear, recuperar, sincronizar snapshot, heartbeat y checkout.
 - `FairApiModels`: DTOs serializables para requests, responses y snapshot.
@@ -150,8 +150,8 @@ El adaptador no escribe JSON directamente desde UI. Para aplicar un snapshot rem
 Flujo de arranque del `.exe`:
 
 1. `FairModeBootstrap` consulta `GET /health` con timeout corto.
-2. Si el servidor no responde, no abre interfaz de feria y el juego continua en modo local normal.
-3. Si el servidor responde, crea `FairParticipantSession` y muestra `FairModeMenuManager`.
+2. Crea `FairParticipantSession` y muestra `FairModeMenuManager`.
+3. Si el servidor no responde, la interfaz muestra la URL `/health` que debe probarse y permite continuar localmente.
 4. El jugador ingresa `nickname` + `recoveryCode`, o presiona `Nuevo jugador`.
 5. Recuperar llama `POST /participants/recover`; nuevo jugador llama `POST /participants`.
 6. El snapshot remoto se aplica al perfil local antes de permitir jugar.
@@ -181,8 +181,7 @@ Tambien se aceptan `--fair-server http://IP_DEL_HOST:8080` y `--fair-machine PC-
 
 `--fair-disabled` desactiva el overlay de feria para builds o pruebas que no usen servidor.
 
-Si no hay servidor disponible en la URL configurada, el overlay de nick/codigo no aparece. Esto evita bloquear el juego normal cuando el ejecutable se abre fuera del montaje de feria.
-Si el juego se abre con `--fair-server` explicito, el overlay se muestra aunque el chequeo `/health` falle, para permitir diagnosticar una URL mal escrita desde la propia interfaz.
+Si no hay servidor disponible en la URL configurada, el overlay de nick/codigo aparece con advertencia y muestra la URL `/health` que debe probarse desde ese PC. El boton `Continuar local` permite seguir sin sesion de feria.
 
 Cada build genera archivos auxiliares junto al `.exe`:
 

@@ -13,6 +13,49 @@ La mecánica central gira en torno a la adrenalina: acercarte a amenazas como ti
 - `Assets/Scenes/`: escenas del juego.
 - `Packages/` y `ProjectSettings/`: base Unity del proyecto.
 
+## Compilación con Unity
+
+Versión requerida:
+
+- Unity `6000.3.11f1`, según `ProjectSettings/ProjectVersion.txt`.
+
+Pasos recomendados:
+
+1. Abrir Unity Hub.
+2. Seleccionar `Add project from disk` y elegir la carpeta raíz del repositorio.
+3. Abrir el proyecto con Unity `6000.3.11f1`.
+4. Esperar a que termine la importación inicial.
+5. Revisar la consola de Unity y corregir cualquier error rojo antes de compilar.
+6. Abrir `File > Build Profiles` o `File > Build Settings`, según la interfaz de Unity.
+7. Seleccionar plataforma Windows y aceptar `Switch Platform` si Unity lo solicita.
+8. Confirmar que las escenas habilitadas sean:
+
+```text
+Assets/Scenes/MainMenu/MainMenu.unity
+Assets/Scenes/Game/ZonaEpipelagica.unity
+Assets/Scenes/Game/ZonaAbisopelagica.unity
+Assets/Scenes/Game/ZonaTutorial.unity
+Assets/Scenes/ShopMenu/ShopMenu.unity
+```
+
+9. Elegir una carpeta de salida fuera de `Assets/`, por ejemplo:
+
+```text
+Builds/Feria/SquidInkPulse_Feria/
+```
+
+10. Presionar `Build And Run`.
+
+El resultado debe incluir el `.exe`, la carpeta `*_Data`, `UnityPlayer.dll` y los demás archivos generados por Unity. No copiar solamente el `.exe`; el build necesita la carpeta completa.
+
+En builds Windows, el proyecto también genera automáticamente archivos auxiliares junto al ejecutable:
+
+- `README_CLIENTE_FERIA.txt`
+- `REINICIAR_DATOS_JUEGO.bat`
+- `REINICIAR_DATOS_JUEGO.ps1`
+
+Para montar varios PCs en modo feria, usar la guía completa: [Docs/FairEventSetupGuide.md](Docs/FairEventSetupGuide.md).
+
 ## Documentación
 
 - [Docs/README.md](Docs/README.md)

@@ -44,6 +44,7 @@ public sealed class FairApiClient
         string message = !string.IsNullOrWhiteSpace(error?.message)
             ? error.message
             : webRequest.error;
+        Debug.LogWarning($"[FairApiClient] GET {baseUrl}/health failed. Result={webRequest.result}. Code={webRequest.responseCode}. Error={webRequest.error}");
         onCompleted?.Invoke(FairApiResult<FairHealthResponse>.Fail(errorCode, message, webRequest.responseCode));
     }
 
@@ -153,6 +154,7 @@ public sealed class FairApiClient
         string message = !string.IsNullOrWhiteSpace(error?.message)
             ? error.message
             : webRequest.error;
+        Debug.LogWarning($"[FairApiClient] {method} {baseUrl}{path} failed. Result={webRequest.result}. Code={webRequest.responseCode}. Error={webRequest.error}");
         onCompleted?.Invoke(FairApiResult<TResponse>.Fail(errorCode, message, webRequest.responseCode));
     }
 

@@ -161,6 +161,7 @@ public sealed class FairBuildReadmePostprocessor : IPostprocessBuildWithReport
         builder.AppendLine("7. Problemas frecuentes");
         builder.AppendLine("-----------------------");
         builder.AppendLine("- Si /health funciona pero no aparece la interfaz, confirmar que se abrio el acceso directo y no el .exe directo.");
+        builder.AppendLine("- Si aun asi se necesita abrir el login, usar el area invisible BotonLog en el MainMenu como respaldo.");
         builder.AppendLine("- Si Windows dice que el destino no es valido, revisar las comillas del campo Destino.");
         builder.AppendLine("- Si el servidor no responde, confirmar que el host tiene abierto Tools/FairServer/start_fair_server.");
         builder.AppendLine("- Si varios PCs usan el mismo jugador a la vez, el servidor puede bloquear la sesion duplicada.");

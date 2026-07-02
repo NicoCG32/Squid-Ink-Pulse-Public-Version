@@ -10,12 +10,14 @@ serves a simple browser leaderboard.
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import random
 import re
 import secrets
 import signal
+import socket
 import sqlite3
 import string
 import sys
@@ -46,6 +48,65 @@ def utc_now() -> datetime:
 
 def utc_now_text() -> str:
     return utc_now().replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def discover_lan_ipv4_addresses() -> list[str]:
+    addresses: list[str] = []
+    seen: set[str] = set()
+
+    def add_candidate(value: str | None) -> None:
+        if not value or value in seen:
+            return
+
+        try:
+            parsed = ipaddress.ip_address(value)
+        except ValueError:
+            return
+
+        if parsed.version != 4 or parsed.is_loopback or parsed.is_link_local or parsed.is_unspecified:
+            return
+
+        seen.add(value)
+        addresses.append(value)
+
+    host_names = {socket.gethostname(), socket.getfqdn()}
+    for host_name in host_names:
+        try:
+            for info in socket.getaddrinfo(host_name, None, socket.AF_INET, socket.SOCK_STREAM):
+                add_candidate(info[4][0])
+        except OSError:
+            pass
+
+        try:
+            _, _, host_addresses = socket.gethostbyname_ex(host_name)
+            for host_address in host_addresses:
+                add_candidate(host_address)
+        except OSError:
+            pass
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.connect(("8.8.8.8", 80))
+            add_candidate(probe.getsockname()[0])
+    except OSError:
+        pass
+
+    return addresses
+
+
+def lan_base_urls(bind_host: str, port: int) -> list[str]:
+    try:
+        parsed_bind_host = ipaddress.ip_address(bind_host)
+    except ValueError:
+        parsed_bind_host = None
+
+    if bind_host in {"", "0.0.0.0"} or (parsed_bind_host is not None and parsed_bind_host.is_unspecified):
+        return [f"http://{address}:{port}" for address in discover_lan_ipv4_addresses()]
+
+    if parsed_bind_host is None or parsed_bind_host.is_loopback:
+        return []
+
+    return [f"http://{bind_host}:{port}"]
 
 
 def parse_utc(value: str | None) -> datetime | None:
@@ -1053,7 +1114,19 @@ def main() -> int:
     print(f"Event: {args.event_id}")
     print(f"Database: {db_path}")
     print(f"Listen: http://{args.host}:{args.port}")
-    print(f"Leaderboard: http://localhost:{args.port}/")
+    print(f"Host leaderboard: http://localhost:{args.port}/")
+    print(f"Host health: http://localhost:{args.port}/health")
+    urls = lan_base_urls(args.host, args.port)
+    if urls:
+        print("LAN client URLs:")
+        for url in urls:
+            print(f"  Leaderboard: {url}/")
+            print(f"  Health: {url}/health")
+            print(f"  Unity arg: --fair-server={url}")
+    else:
+        print("LAN client URLs: no non-loopback IPv4 address was detected.")
+        print("Run ipconfig on the host and use http://HOST_IPV4:8080 from clients.")
+    print("If clients cannot open /health, check Windows Firewall for inbound TCP port 8080.")
     print("Press Ctrl+C to stop.")
     server.serve_forever()
     server.server_close()

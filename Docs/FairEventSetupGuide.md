@@ -138,12 +138,10 @@ Antes de distribuir, hacer una prueba minima.
    - nuevo jugador.
 3. Cerrar el juego.
 
-La interfaz de feria solo aparece si el servidor configurado responde a `/health`. Para probarla antes de distribuir, levantar primero el servidor local o usar un acceso directo con `--fair-server=http://IP_DEL_HOST:8080`.
+La interfaz de feria aparece mientras el modo feria no este desactivado. Si el servidor configurado no responde a `/health`, la interfaz muestra una advertencia y permite corregir la URL del servidor.
 
 Si no aparece la interfaz de feria, revisar:
 
-- que el servidor este corriendo;
-- que la URL configurada responda a `/health`;
 - que el acceso directo o comando no este usando:
 
 ```text
@@ -337,6 +335,8 @@ http://192.168.1.50:8080/health
 
 Si funciona en el host pero no en los clientes, casi siempre el problema es firewall, IP incorrecta o equipos en redes distintas.
 
+Este paso debe pasar antes de diagnosticar Unity. Si `/health` no abre en el navegador del cliente, el juego tampoco podra conectarse aunque el argumento `--fair-server` este bien escrito.
+
 ## 11. Permitir el servidor en Firewall de Windows
 
 Cuando Windows pregunte si Python puede aceptar conexiones, permitirlo para red privada.
@@ -365,9 +365,11 @@ http://IP_DEL_HOST:8080/health
 
 ## 12. Configurar el juego para conectarse al host
 
-Hay dos formas practicas.
+Hay dos formas practicas. Para el primer arranque de cada PC cliente, la opcion mas confiable es el acceso directo, porque deja escrita la IP correcta desde el inicio.
 
 ### Opcion A: configurar desde la interfaz del juego
+
+Usar esta opcion cuando la interfaz de feria esta visible. Si el PC cliente nunca ha guardado una URL de feria y se abre el `.exe` directo, el campo `Servidor` puede empezar en `http://localhost:8080`; reemplazarlo por la IP real del host.
 
 En cada PC cliente:
 
@@ -408,6 +410,8 @@ Tambien se acepta este formato:
 ```text
 "C:\SquidFeria\Game\Squid Ink Pulse.exe" --fair-server http://192.168.1.50:8080 --fair-machine PC-02
 ```
+
+Ambos formatos son validos. Si ninguno conecta, probar primero `http://192.168.1.50:8080/health` en el navegador del cliente; si esa URL falla, el problema es de red/firewall/IP y no del parser.
 
 El argumento debe apuntar a la base del servidor, no a `/health`. Correcto:
 
@@ -614,20 +618,20 @@ fair_server_final_2026-07-01.sqlite3
 
 ### El juego no muestra la interfaz de feria
 
-La interfaz solo se muestra cuando el servidor configurado responde a `/health`.
+La interfaz debe mostrarse mientras el juego no se haya abierto con `--fair-disabled`.
 
 Revisar:
 
-1. El servidor esta abierto.
-2. La URL configurada es correcta.
-3. `http://IP_DEL_HOST:8080/health` responde desde ese PC.
-4. El juego no se abrio con:
+1. El juego no se abrio con:
 
 ```text
 --fair-disabled
 ```
 
-Tambien confirmar que se esta usando el build actualizado.
+2. Se esta usando el build actualizado.
+3. El acceso directo apunta al `.exe` correcto.
+4. El proyecto no tiene errores de compilacion en Unity.
+5. En el `MainMenu`, usar el area invisible `BotonLog` como respaldo para abrir manualmente el login de feria.
 
 ### El cliente no conecta al servidor
 

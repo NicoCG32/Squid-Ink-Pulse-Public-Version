@@ -113,6 +113,18 @@ public class MainMenu : MonoBehaviour
         LoadConfiguredScene(shopMenuSceneName, "tienda");
     }
 
+    public void AbrirLoginFeria()
+    {
+        if (!FairModeSettings.IsEnabled)
+        {
+            Debug.LogWarning("[MainMenu] El login de feria esta desactivado por --fair-disabled.", this);
+            return;
+        }
+
+        FairParticipantSession.EnsureInstance();
+        FairModeMenuManager.EnsureInstance().ShowInitialLogin();
+    }
+
     public void AbrirTutorial()
     {
         ResolveUiReferences();

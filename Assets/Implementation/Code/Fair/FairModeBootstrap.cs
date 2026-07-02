@@ -48,13 +48,7 @@ public sealed class FairModeStartupProbe : MonoBehaviour
 
         if (!serverAvailable)
         {
-            if (!FairModeSettings.HasExplicitServerArgument)
-            {
-                Destroy(gameObject);
-                yield break;
-            }
-
-            Debug.LogWarning($"Fair mode opened from explicit server argument, but /health did not answer at {serverUrl}.");
+            Debug.LogWarning($"Fair mode could not verify /health at {serverUrl}. Showing login UI so the server URL can be corrected.");
         }
 
         FairParticipantSession.EnsureInstance();

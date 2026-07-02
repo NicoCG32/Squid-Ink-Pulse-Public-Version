@@ -31,6 +31,14 @@ El servidor escucha en:
 http://0.0.0.0:8080
 ```
 
+Al iniciar tambien imprime URLs LAN concretas, por ejemplo:
+
+```text
+http://192.168.1.50:8080/health
+```
+
+Esa URL es la primera prueba obligatoria desde cada PC cliente. Si funciona en el host pero no en el cliente, el problema esta en IP, red o Firewall de Windows, no en el parser de argumentos del juego.
+
 En el PC host se puede abrir:
 
 ```text
@@ -146,4 +154,6 @@ Smoke test OK
 - Ejecutar el servidor en el PC host.
 - Abrir `http://localhost:8080/` en una pantalla visible para ranking.
 - Configurar los clientes Unity para apuntar a `http://IP_DEL_HOST:8080`.
+- Antes de abrir el juego en un cliente, probar `http://IP_DEL_HOST:8080/health` en el navegador de ese mismo cliente.
+- El cliente acepta tanto `--fair-server=http://IP_DEL_HOST:8080` como `--fair-server http://IP_DEL_HOST:8080`.
 - Si un participante queda bloqueado por sesion activa, esperar el timeout o hacer checkout desde el PC que lo tiene activo.

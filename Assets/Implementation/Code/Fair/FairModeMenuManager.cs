@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -18,6 +19,7 @@ public sealed class FairModeMenuManager : MonoBehaviour
     private Button recoverButton;
     private Button createButton;
     private Button continueButton;
+    private TMP_Text continueButtonLabel;
     private Button exitButton;
     private CanvasGroup canvasGroup;
     private bool isBusy;
@@ -60,9 +62,9 @@ public sealed class FairModeMenuManager : MonoBehaviour
         BuildUi();
         SetStatus(serverVerified
             ? "Ingresa tu nick y codigo, o crea un jugador nuevo."
-            : "No se pudo verificar el servidor. Revisa la URL antes de entrar.");
+            : $"No se pudo verificar el servidor. Prueba {BuildHealthUrl()} en este PC.");
         SetBusy(false);
-        continueButton.gameObject.SetActive(false);
+        SetContinueButton(serverVerified ? null : "Continuar local");
         recoveryCodeInput.gameObject.SetActive(true);
         Show();
     }
@@ -120,7 +122,11 @@ public sealed class FairModeMenuManager : MonoBehaviour
 
         statusText = CreateText("Status", panel.transform, string.Empty, 19, FontStyles.Normal);
         statusText.alignment = TextAlignmentOptions.Center;
-        SetElementHeight(statusText.gameObject, 72f);
+        statusText.enableWordWrapping = true;
+        statusText.enableAutoSizing = true;
+        statusText.fontSizeMin = 14f;
+        statusText.fontSizeMax = 19f;
+        SetElementHeight(statusText.gameObject, 86f);
 
         nicknameInput = CreateInput(panel.transform, "Nick", "Nick");
         recoveryCodeInput = CreateInput(panel.transform, "Codigo", "Codigo de recuperacion");
@@ -140,6 +146,7 @@ public sealed class FairModeMenuManager : MonoBehaviour
         createButton = CreateButton(buttonRow.transform, "Nuevo jugador", CreateNewParticipant);
         exitButton = CreateButton(buttonRow.transform, "Salir", QuitApplication);
         continueButton = CreateButton(panel.transform, "Continuar", Hide);
+        continueButtonLabel = continueButton.GetComponentInChildren<TMP_Text>();
         SetElementHeight(continueButton.gameObject, 64f);
         continueButton.gameObject.SetActive(false);
     }
@@ -213,7 +220,7 @@ public sealed class FairModeMenuManager : MonoBehaviour
                 string code = result.Value.recoveryCode;
                 recoveryCodeInput.text = code;
                 SetStatus($"Jugador creado. Codigo: {code}. Guardalo para volver.");
-                continueButton.gameObject.SetActive(true);
+                SetContinueButton("Continuar");
                 SetBusy(false);
             }
             else
@@ -249,6 +256,20 @@ public sealed class FairModeMenuManager : MonoBehaviour
         }
     }
 
+    private void SetContinueButton(string label)
+    {
+        bool isVisible = !string.IsNullOrWhiteSpace(label);
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(isVisible);
+        }
+
+        if (continueButtonLabel != null && isVisible)
+        {
+            continueButtonLabel.text = label;
+        }
+    }
+
     private void Show()
     {
         canvasGroup.alpha = 1f;
@@ -268,7 +289,7 @@ public sealed class FairModeMenuManager : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
     }
 
-    private static string FormatError<T>(FairApiResult<T> result)
+    private string FormatError<T>(FairApiResult<T> result)
     {
         if (result.ErrorCode == "active_session")
         {
@@ -280,9 +301,28 @@ public sealed class FairModeMenuManager : MonoBehaviour
             return "Nick o codigo no encontrado.";
         }
 
+        if (result.ResponseCode == 0 || result.ErrorCode == "ConnectionError")
+        {
+            return $"No se pudo conectar con el servidor. Prueba {BuildHealthUrl()} desde este PC.";
+        }
+
         return string.IsNullOrWhiteSpace(result.Message)
             ? $"Error de servidor: {result.ErrorCode}"
             : result.Message;
+    }
+
+    private string BuildHealthUrl()
+    {
+        string value = serverUrlInput != null && !string.IsNullOrWhiteSpace(serverUrlInput.text)
+            ? serverUrlInput.text.Trim()
+            : FairModeSettings.ServerBaseUrl;
+
+        if (value.EndsWith("/health", StringComparison.OrdinalIgnoreCase))
+        {
+            return value;
+        }
+
+        return value.TrimEnd('/') + "/health";
     }
 
     private static TMP_Text CreateText( string name, Transform parent, string text, int size, FontStyles style)

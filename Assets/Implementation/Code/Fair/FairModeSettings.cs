@@ -52,7 +52,7 @@ public static class FairModeSettings
     public static string BuildVersion => Clamp(Application.version, 64);
 
     public static float RequestTimeoutSeconds => 10f;
-    public static float StartupProbeTimeoutSeconds => 1.5f;
+    public static float StartupProbeTimeoutSeconds => 4f;
     public static float HeartbeatIntervalSeconds => 20f;
 
     public static void SaveServerBaseUrl(string serverBaseUrl)
