@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Este documento registra las maquinas de estado formales de Squid Ink-Pulse y las maquinas planificadas para sistemas que todavia no necesitan una implementacion completa.
+Este documento registra las maquinas de estado formales de Squid Ink-Pulse y las extensiones que solo deben formalizarse si ganan responsabilidad sistemica.
 
 Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea interacciones, gobierna una transicion importante, o evita que varios sistemas dependan de temporizadores y banderas sueltas.
 
@@ -168,7 +168,7 @@ Estos tipos no gobiernan gameplay ni reemplazan `GameSessionState`. Funcionan co
 | `PortalEpipelagicToAbyssopelagic` | Comic fijo para portal desde `ZonaEpipelagica` hacia `ZonaAbisopelagica`. |
 | `PortalAbyssopelagicToEpipelagic` | Comic fijo para portal desde `ZonaAbisopelagica` hacia `ZonaEpipelagica`. |
 | `Defeat` | Comic de derrota, elegido aleatoriamente entre sprites validos de la zona activa. |
-| `ScoreMilestone` | Reservado para hitos futuros de puntaje. |
+| `ScoreMilestone` | Reservado para una extension narrativa de puntaje. |
 | `ShopInGameFirst` | Comic de primera entrada a tienda in-game desde `DealerFish`. |
 | `ShopInGameLastPurchased` | Comic de primera salida de tienda in-game cuando hubo compra. |
 | `ShopInGameLastNoPurchase` | Comic de primera salida de tienda in-game cuando no hubo compra. |
@@ -177,7 +177,7 @@ Estos tipos no gobiernan gameplay ni reemplazan `GameSessionState`. Funcionan co
 
 ### Ciclo visual de ZoneLightingController
 
-No existe como enum formal porque todavia no bloquea input, no altera spawn y no coordina transiciones entre sistemas. Es un ciclo visual local:
+No existe como enum formal porque no bloquea input, no altera spawn y no coordina transiciones entre sistemas. Es un ciclo visual local:
 
 | Fase conceptual | Efecto |
 | --- | --- |
@@ -185,11 +185,11 @@ No existe como enum formal porque todavia no bloquea input, no altera spawn y no
 | Relevado | Cada `LightGrazeSource` declara una posicion de luz activa. |
 | Composicion | `ZoneLightingController` genera una unica textura de oscuridad y usa la menor opacidad por pixel cuando dos luces se cruzan. |
 
-Debe formalizarse como estado propio solo si en el futuro modifica reglas de spawn, IA, tutorial, audio adaptativo o interacciones de zona.
+Debe formalizarse como estado propio solo si una extension posterior modifica reglas de spawn, IA, tutorial, audio adaptativo o interacciones de zona.
 
-## Estados planificados
+## Estados de extension
 
-- `GadgetRuntimeState`
+- `GadgetRuntimeState`, requerido solo si los gadgets incorporan cooldowns, duraciones o animaciones de activacion.
 
 Nota sobre portales:
 - `ScenePortal` ya implementa el cambio directo entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
@@ -205,7 +205,7 @@ Nota sobre gadgets:
 - `Ink-Bottle` es activo y fuerza `InkPulseState.Ready` cuando procede.
 - Los desbloqueos permanentes de gadgets no son posesion runtime: `RunGadgetUnlockService` solo decide si pueden aparecer en `ShopEventState.Offering`.
 - La tienda out-of-game no agrega estados de gadget; sus compras son skins o niveles de `permanentUpgrades`.
-- `GadgetRuntimeState` se justifica cuando existan cooldowns, duraciones o animaciones de activacion.
+- `GadgetRuntimeState` queda como extension tecnica, no como dependencia de la entrega.
 
 ## Lo que no es estado
 
@@ -220,4 +220,4 @@ Si cambian, se ajusta la escena; no se agregan estados ni banderas para compensa
 ## Regla base
 
 - Si un sistema cambia comportamiento, habilita una interaccion o evita ambiguedad entre sistemas, merece estado propio.
-- Si el sistema futuro puede resolverse con un `bool` sin perder claridad, no necesita otra maquina.
+- Si una extension puede resolverse con un `bool` sin perder claridad, no necesita otra maquina.

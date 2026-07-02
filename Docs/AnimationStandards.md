@@ -104,7 +104,14 @@ Prefabs jugables actuales:
 - `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Sonic.prefab`
 - `Assets/Content/Prefabs/Player/Resources/PlayerSkins/Travis.prefab`
 
-`Tools/Squid/Player/Build Skin Prefabs` ejecuta `PlayerSkinAssetBuilder` y regenera esos prefabs desde `Assets/Content/Animations/Characters/BabySquid/`. La skin base usa `Assets/Content/Animations/Characters/BabySquid/default/Generated` como carpeta generada y toma sus sprites fuente desde `default/Movement`, `default/InkPulse` y `default/PortalEffect`. Mientras una skin alternativa no tenga secuencias separadas para `InkPulse` y `Portal`, la utilidad usa la secuencia disponible de la skin como placeholder tecnico para las tres raices visuales.
+Los prefabs de skins se mantienen como assets finales bajo `PlayerSkins/`. La skin base toma sus sprites desde `default/Movement`, `default/InkPulse` y `default/PortalEffect`. Mientras una skin alternativa no tenga secuencias separadas para `InkPulse` y `Portal`, sus raices visuales pueden reutilizar la secuencia disponible de movimiento como recurso provisional.
+
+### Escala visual de skins
+
+- La escala jugable de cada skin se valida contra el alto visible de su animacion de movimiento, no contra el tamano total del PNG con margenes transparentes.
+- `Default` conserva dimensiones propias por estado: su `InkPulseVisual` incluye el chorro de tinta y por eso no es referencia de tamano corporal para skins alternativas.
+- En skins alternativas, `MovementVisual` define el tamano corporal. `InkPulseVisual` y `PortalVisual` pueden compartir escala proporcional mientras no tengan secuencias dedicadas.
+- Ajustar una skin desde el prefab visual no debe modificar colliders, `GrazeZone`, velocidad, limites ni scripts del jugador canonico.
 
 Skins activas en catalogo runtime:
 - `skin.default` -> `PlayerSkins/Default`

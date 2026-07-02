@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este documento reune el sistema de spawn, el catalogo de enemigos, los enemigos actuales, SS Carnage y el boss abisal `UnknownBoss` / `FlappyBoss`.
+Este documento reune el sistema de spawn, el catalogo de enemigos, los enemigos incluidos en la entrega, SS Carnage y el boss abisal `UnknownBoss` / `FlappyBoss`.
 
 ## LevelSpawner
 
@@ -22,7 +22,7 @@ Cada perfil define prefab, tag logico, peso de aparicion, intensidad minima y mu
 
 Durante `BossActive`, el spawner no se detiene: recibe un intervalo reducido desde la progresion, por lo que los obstaculos aparecen con mayor frecuencia. Durante `PostBossWindow`, la run conserva intensidad alta mientras ofrece el portal. Si el jugador no cruza, la partida sigue intensa; si cruza, la zona destino empieza relajada.
 
-La excepcion deliberada es `EnemyCanaPescar`: la caña regular pertenece al modo normal de spawner. Durante `BossActive` no se fuerza desde `LevelSpawner`, porque el anzuelo de Carnage debe modelarse como ataque propio del boss, con prefab y controlador especificos.
+La excepcion deliberada es `EnemyCanaPescar`: la cana regular pertenece al modo normal de spawner. Durante `BossActive` no se fuerza desde `LevelSpawner`, porque el anzuelo de Carnage debe modelarse como ataque propio del boss, con prefab y controlador especificos.
 
 ## Distribucion vertical
 
@@ -32,8 +32,8 @@ El spawn vertical depende del contrato de boundaries:
 - Pez Globo aparece en el tramo superior del rango jugable. En las zonas jugables actuales usa `upperZoneSpawnCoverage = 0.8`, equivalente a cuatro quintos del semicampo superior.
 - Mina aparece en todo el rango de `PlayerBoundaries`.
 - Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, calcula una distancia X proporcional a la velocidad horizontal actual del jugador, nace arriba y baja verticalmente hasta esa Y fija.
-- Ray esta implementado para `ZonaEpipelagica`, dentro de los tres cuartos inferiores del rango jugable. Avanza en diagonal hacia la izquierda y alterna aleatoriamente entre diagonal ascendente y descendente al aparecer. Estado actual: deshabilitado en spawn por `baseWeight: 0`.
-- Jellyfish esta implementado para `ZonaAbisopelagica`, en todo el rango jugable. Se mueve siempre hacia arriba de forma lenta. Estado actual: deshabilitado en spawn por `baseWeight: 0`.
+- Ray esta implementado para `ZonaEpipelagica`, dentro de los tres cuartos inferiores del rango jugable. Avanza en diagonal hacia la izquierda y alterna aleatoriamente entre diagonal ascendente y descendente al aparecer. En la configuracion de entrega permanece no habilitado por balance con `baseWeight: 0`.
+- Jellyfish esta implementado para `ZonaAbisopelagica`, en todo el rango jugable. Se mueve siempre hacia arriba de forma lenta. En la configuracion de entrega permanece no habilitado por balance con `baseWeight: 0`.
 
 No hay rangos manuales de respaldo para spawn.
 
@@ -69,7 +69,7 @@ Contrato actual:
 - No recibe boundaries.
 - Si el enemigo necesita limites, debe resolverlos con `BoundaryReferenceResolver`.
 
-## Enemigos actuales
+## Enemigos de la entrega
 
 ### PufferfishEnemy
 
@@ -98,23 +98,23 @@ Estos parametros pertenecen a `ZoneSpawnProfile.pufferfishTuning`. El prefab `Pe
 
 ### Mina
 
-Estado actual:
+Estado de entrega:
 - Prefab y tag implementados.
-- Sin script propio todavia.
-- Su comportamiento actual es estatico y su aparicion depende de `LevelSpawner`.
+- Sin script propio, por decision de alcance.
+- Su comportamiento es estatico y su aparicion depende de `LevelSpawner`.
 - Aparece en todo el rango de `PlayerBoundaries` en `ZonaEpipelagica` y `ZonaAbisopelagica`.
 
 ### Ray
 
 Archivo: `Assets/Implementation/Code/Enemies/RayEnemy.cs`
 
-Prefab tecnico: `Assets/Content/Prefabs/Enemies/Ray.prefab`
+Prefab base: `Assets/Content/Prefabs/Enemies/Ray.prefab`
 
-Estado actual:
+Estado de entrega:
 - Enemigo exclusivo de `ZonaEpipelagicaSpawnProfile`.
 - Usa tag `EnemyRay` y layer `Enemy`.
 - El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
-- El arte final, escala y collider quedan bajo autoria visual posterior.
+- Permanece no habilitado por balance con `baseWeight: 0`; el prefab queda listo para reemplazo visual y ajuste de collider.
 
 Responsabilidad:
 - Moverse en diagonal constante hacia la izquierda.
@@ -132,13 +132,14 @@ Estos parametros pertenecen a `ZoneSpawnProfile.rayTuning`.
 
 Archivo: `Assets/Implementation/Code/Enemies/JellyfishEnemy.cs`
 
-Prefab tecnico: `Assets/Content/Prefabs/Enemies/Jellyfish.prefab`
+Prefab base: `Assets/Content/Prefabs/Enemies/Jellyfish.prefab`
 
-Estado actual:
+Estado de entrega:
 - Enemigo exclusivo de `ZonaAbisopelagicaSpawnProfile`.
 - Usa tag `EnemyJellyfish` y layer `Enemy`.
 - El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
 - `SpawnedObjectConfigurator` le agrega `LightGrazeSource` en la zona abisal igual que al resto de enemigos spawneados.
+- Permanece no habilitado por balance con `baseWeight: 0`.
 
 Responsabilidad:
 - Moverse siempre hacia arriba lentamente.
@@ -152,14 +153,14 @@ Este parametro pertenece a `ZoneSpawnProfile.jellyfishTuning`.
 
 ### Cana de pescar
 
-Estado actual:
+Estado de entrega:
 - Prefab y tag implementados.
 - Script propio `FishingRodEnemy` implementado.
 - En juego normal se fuerza cada `fishingRodEnemyInterval` enemigos.
 - Aparece desde la derecha, captura la Y del jugador en el momento de spawn y queda arriba hasta entrar en su ventana de lectura.
 - Al llegar a la ventana de lectura, espera una pausa breve configurable y baja desde el top del rango jugable hasta la Y capturada.
 - No persigue al jugador despues de capturar la Y.
-- Durante `BossActive`, el spawner regular no fuerza cañas; los anzuelos del SS Carnage deben implementarse como ataque de boss separado.
+- Durante `BossActive`, el spawner regular no fuerza canas; los anzuelos del SS Carnage deben implementarse como ataque de boss separado.
 
 Parametros de balance:
 - `dropSpeed`

@@ -675,7 +675,6 @@ public class MainMenu : MonoBehaviour
 
         demoShrimpSecretProgress = 0;
         ShrimpRuntimeWallet.Refund(DemoShrimpGrantAmount);
-        Debug.Log($"[MainMenu] Codigo secreto de muestra '{DemoShrimpSecretCode}' aplicado: +{ShrimpCounterDisplay.FormatShrimpAmount(DemoShrimpGrantAmount)} camarones. Saldo actual: {ShrimpCounterDisplay.FormatShrimpAmount(ShrimpRuntimeWallet.TotalShrimp)}.", this);
     }
 
     private static bool WasDemoShrimpSecretKeyPressed(Keyboard keyboard, int keyIndex)

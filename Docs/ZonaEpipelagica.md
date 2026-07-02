@@ -122,7 +122,7 @@ Las zonas jugables usan una composicion centrada alrededor del origen:
 - `Boundaries` queda cerca del origen, pero la dimension real sigue determinada por `PlayerBoundaries` y `CameraBoundaries`.
 - No se escala un root para corregir tamano. Si se requiere un escalado global, debe hacerse como tarea de balance completa.
 
-La utilidad de mantenimiento es `Tools/Squid/Normalize Gameplay Scene Coordinates`.
+La revision de mantenimiento debe confirmar estos valores directamente en la jerarquia de escena.
 
 ## Managers y responsabilidades
 

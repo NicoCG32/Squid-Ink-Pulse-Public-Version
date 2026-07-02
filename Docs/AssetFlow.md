@@ -32,7 +32,7 @@ Regla:
 - `LevelSpawner` orquesta la aparicion runtime.
 - `ZoneSpawnProfile` almacena prefabs, pesos, intervalos, tienda, portales y tuning de enemigos.
 - Una zona jugable con `zoneSpawnProfile` vacio esta mal configurada.
-- `Tools/Squid/Validate Scene Contracts` valida que cada zona apunte a su perfil correcto.
+- Cada zona jugable debe revisarse antes de entrega para confirmar que apunte a su perfil correcto.
 
 ## Prefabs actuales
 
@@ -100,7 +100,7 @@ Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanent
 
 Estos prefabs son raices de composicion por zona, no prefabs globales compartidos. Conservan la estructura mayor de `GameRoot`, `Systems` y `Player`, junto a los overrides propios de cada escena. Si en el futuro las tres zonas estabilizan una jerarquia identica, se puede extraer un prefab base comun y dejar estas piezas como variants.
 
-`GameRoot_*` tambien conserva el subroot `Gameplay`, que agrupa `LevelSpawner`, `Boundaries`, `CleanUp`, `Bosses` y `Portals`. No se separo `Gameplay` como prefab independiente porque Unity no permite guardar directamente una parte de una instancia prefab como nuevo prefab sin reestructurar el asset padre. Arquitectonicamente, ese subroot ya queda protegido por el contrato de `GameRoot_*` y por `Tools/Squid/Validate Scene Contracts`.
+`GameRoot_*` tambien conserva el subroot `Gameplay`, que agrupa `LevelSpawner`, `Boundaries`, `CleanUp`, `Bosses` y `Portals`. No se separo `Gameplay` como prefab independiente porque Unity no permite guardar directamente una parte de una instancia prefab como nuevo prefab sin reestructurar el asset padre. Arquitectonicamente, ese subroot queda protegido por el contrato de `GameRoot_*` y por las pautas de revision de `QATester.md`.
 
 ## UI/HUD
 
@@ -137,8 +137,7 @@ Regla de eventos:
 - Los prefabs de vista no deben guardar `onClick` persistentes hacia managers externos de escena.
 - Si el listener apunta a un componente del mismo prefab, el `onClick` persistente es valido porque queda autocontenido y auditable.
 - `LoreComic.prefab` mantiene el listener persistente de su propio `ContinuarBoton` hacia `LoreComicPresenter.Continue()`, porque ambos viven dentro del mismo prefab.
-- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` pueden conservar cableado runtime como respaldo defensivo durante migracion, pero el contrato preferido es referencia visible/serializada y no dependencia oculta por busqueda.
-- La migracion/validacion de estas instancias vive en `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs`.
+- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` pueden conservar cableado runtime como respaldo defensivo, pero el contrato preferido es referencia visible/serializada y no dependencia oculta por busqueda.
 
 ## World prefabs
 
@@ -184,7 +183,7 @@ Contrato de escena:
 - Las escenas jugables usan un root llamado `GameUIRoot`.
 - `GameUIRoot` tiene `Assets/Implementation/Code/UI/GameUIRoot.cs` y conserva referencias a `EventSystem`, `HUD`, vistas prefab y managers UI.
 - `GameUIRoot` no instancia prefabs, no navega escenas y no decide estados de pausa, tienda o derrota.
-- Si se cambia la composicion de UI, se debe actualizar `GameUIRoot` y validar con `Tools/Squid/Validate Gameplay UI Prefab Instances`.
+- Si se cambia la composicion de UI, se debe actualizar `GameUIRoot` y revisar manualmente que las escenas conserven las instancias prefab esperadas.
 
 ## Player prefab
 

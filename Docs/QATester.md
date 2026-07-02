@@ -2,7 +2,7 @@
 
 ## Proposito
 
-Este documento enumera los parametros que actualmente pueden ajustarse para probar, medir y balancear la experiencia. La regla de trabajo es distinguir entre:
+Este documento enumera parametros ajustables, criterios de prueba y contratos de validacion para la entrega. La regla de trabajo es distinguir entre:
 
 - Parametros de balance: valores que el tester puede variar para evaluar dificultad, ritmo, recompensa o lectura visual.
 - Referencias tecnicas: campos que conectan objetos de escena, prefabs, camaras, colliders o textos. No deberian modificarse durante balance salvo que se este corrigiendo cableado.
@@ -17,17 +17,11 @@ Los cambios deben probarse de uno en uno cuando sea posible. Si se modifican var
 4. Registrar valor anterior, valor nuevo y resultado.
 5. Repetir hasta encontrar un rango aceptable.
 
-Antes de una sesion de QA, ejecutar en Unity:
-
-```text
-Tools/Squid/Validate Scene Contracts
-```
-
-Esta validacion no modifica escenas. Revisa perfiles de spawn, prefabs obligatorios, tags, layers, boundaries, `CleanUp`, `GameUIRoot` y reglas por zona. Si falla, primero se corrige contrato; despues se balancean parametros.
+Antes de una sesion de QA, revisar el contrato de escena: perfiles de spawn, prefabs obligatorios, tags, layers, boundaries, `CleanUp`, `GameUIRoot` y reglas por zona. Si falla una referencia estructural, primero se corrige ese contrato; despues se balancean parametros.
 
 ## Estado de QA local
 
-El loop principal fue probado en Editor y reportado como correcto para gameplay, botones, pausa, Game Over, skins, tienda in-run y tienda out-of-run. Desde este punto, el siguiente nivel de QA no debe buscar cambios de gameplay por defecto: debe confirmar build Windows fuera del Editor, prueba larga de `ZonaAbisopelagica` y estabilidad de persistencia.
+El loop principal de entrega cubre gameplay, botones, pausa, Game Over, skins, tienda in-run y tienda out-of-run. La validacion final debe confirmar build Windows fuera del Editor, prueba larga de `ZonaAbisopelagica` y estabilidad de persistencia.
 
 ## Contrato no balanceable: boundaries
 
@@ -298,6 +292,7 @@ Regla vigente de input:
 - `Gadget2` se activa con `W` si contiene un gadget activo.
 - `Shell Shield` es pasivo y no muestra tecla.
 - `Ink-Bottle` es activo y fuerza `InkPulseState.Ready` si el Ink-Pulse puede recibir ese cambio.
+- Al usar `Ink-Bottle` correctamente, el gadget se consume, libera su slot y desaparece del HUD. Si `TryForceReady()` falla, debe conservarse.
 - Los gadgets y slots persisten al cruzar portales.
 - Los gadgets y slots se reinician al entrar en Game Over.
 - Los gadgets no se compran en `ShopMenu`; solo se compran durante la run desde `DealerFish`.
@@ -432,7 +427,7 @@ La animacion de hinchado se reproduce una sola vez al entrar en expansion. El cl
 
 ### Mina
 
-La mina no tiene script propio todavia. Su balance actual depende de:
+La mina no requiere script propio en esta entrega. Su balance depende de:
 
 - Perfil `EnemyMina` en `ZoneSpawnProfile.enemyProfiles`.
 - Regla de posicion global de `SpawnPositionResolver`: puede aparecer en todo `PlayerBoundaries`.
@@ -440,7 +435,7 @@ La mina no tiene script propio todavia. Su balance actual depende de:
 
 ### Ray
 
-Estado actual: deshabilitado en spawn por `baseWeight: 0` dentro de `ZonaEpipelagicaSpawnProfile`. Para probarlo, subir temporalmente ese peso.
+Estado de entrega: implementado y no habilitado por balance con `baseWeight: 0` dentro de `ZonaEpipelagicaSpawnProfile`. Para ensayos controlados, subir ese peso de forma local y restaurarlo despues de la prueba.
 
 Script de comportamiento: `RayEnemy`
 
@@ -451,7 +446,7 @@ Reglas vigentes:
 - Aparece en los tres cuartos inferiores del rango jugable.
 - Se mueve en diagonal hacia la izquierda.
 - Alterna por spawn entre diagonal ascendente y descendente.
-- El prefab actual es tecnico: square visible, `BoxCollider2D` trigger y layer `Enemy`.
+- El prefab de entrega es base: square visible, `BoxCollider2D` trigger y layer `Enemy`.
 
 Parametros ajustables:
 
@@ -462,7 +457,7 @@ Parametros ajustables:
 
 ### Jellyfish
 
-Estado actual: deshabilitado en spawn por `baseWeight: 0` dentro de `ZonaAbisopelagicaSpawnProfile`. Para probarlo, subir temporalmente ese peso.
+Estado de entrega: implementado y no habilitado por balance con `baseWeight: 0` dentro de `ZonaAbisopelagicaSpawnProfile`. Para ensayos controlados, subir ese peso de forma local y restaurarlo despues de la prueba.
 
 Script de comportamiento: `JellyfishEnemy`
 
@@ -473,7 +468,7 @@ Reglas vigentes:
 - Aparece en todo el rango jugable.
 - Se mueve siempre hacia arriba lentamente.
 - En abisal recibe `LightGrazeSource` por `SpawnedObjectConfigurator`.
-- El prefab actual es tecnico: square visible, `BoxCollider2D` trigger y layer `Enemy`.
+- El prefab de entrega es base: square visible, `BoxCollider2D` trigger y layer `Enemy`.
 
 Parametros ajustables:
 
@@ -491,8 +486,8 @@ Parametros ajustables:
 
 | Campo | Que controla | Efecto esperado al subirlo |
 | --- | --- | --- |
-| `dropSpeed` | Velocidad vertical de bajada hacia la Y capturada del jugador. | La caña cae mas brusca y rapidamente. |
-| `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La caña nace mas abajo si se sube. |
+| `dropSpeed` | Velocidad vertical de bajada hacia la Y capturada del jugador. | La cana cae mas brusca y rapidamente. |
+| `startYOffsetBelowTopBoundary` | Distancia bajo el `TopBoundary` desde donde empieza la bajada. | La cana nace mas abajo si se sube. |
 | `descentStartViewportX` | Punto horizontal de viewport donde se permite iniciar la bajada. `1` es el borde derecho de camara. | Valores mayores inician la accion levemente antes de entrar a camara; valores menores la retrasan. |
 | `descentWindupSeconds` | Pausa breve entre entrar en ventana de lectura y empezar a caer. | Da mas lectura, pero debe mantenerse corta para no volver trivial la amenaza. |
 | `enableFastPaceHorizontalHold` | Habilita el anclaje horizontal cuando la partida ya va rapida. | Evita que la cana quede atras durante la bajada en late game. |
@@ -508,13 +503,13 @@ Tambien depende de:
 - Collider y escala del prefab.
 
 Reglas vigentes:
-- La caña regular captura la altura Y del jugador al spawnear.
+- La cana regular captura la altura Y del jugador al spawnear.
 - Luego espera a entrar en ventana de lectura, mantiene una pausa breve y baja verticalmente desde el top del rango jugable hasta esa Y.
 - Si la velocidad horizontal supera `horizontalHoldMinScrollSpeed`, puede mantener su X en `horizontalHoldViewportX` hasta terminar la bajada.
 - La distancia X de aparicion se calcula con la velocidad horizontal actual del jugador y el tiempo estimado de caida.
 - No persigue al jugador despues de capturar la Y.
-- La caña regular se fuerza solo fuera de `BossActive`.
-- Un futuro anzuelo del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
+- La cana regular se fuerza solo fuera de `BossActive`.
+- Cualquier anzuelo adicional del SS Carnage debe probarse como prefab/ataque de boss independiente, no como excepcion del spawner regular.
 
 Contrato de tamano visual de `CanaPescar`:
 - El tamano de `Rope`/`Visual` en `CanaPescar.prefab` es parte de la autoria del prefab. No es legacy ni debe reducirse por normalizacion automatica.

@@ -4,7 +4,7 @@
 
 `ZonaTutorial` ensena el loop principal mediante una secuencia dirigida y testeable. No es una zona normal de gameplay: funciona como onboarding y como prueba integrada de movimiento, graze, Ink-Pulse, tienda temporal, gadgets, SS Carnage, portal local y Game Over.
 
-El tutorial no implementa textos, prompts ni senalizacion visual. Cualquier indicacion futura debe conectarse a los eventos de `TutorialDirector`, sin duplicar el sistema.
+El tutorial no genera textos, prompts ni senalizacion visual por codigo. Cualquier indicacion visual debe conectarse a los eventos de `TutorialDirector`, sin duplicar el sistema.
 
 ## Controlador
 
@@ -12,7 +12,7 @@ El tutorial no implementa textos, prompts ni senalizacion visual. Cualquier indi
 
 `TutorialPresentationController` vive en el mismo nodo y es el subsistema aislado de presentacion. Su responsabilidad es congelar el juego durante `TutorialPhase.Presentation`, oscurecer levemente la pantalla y suprimir activacion de Ink-Pulse mientras el jugador esta leyendo/observando la fase.
 
-`TutorialTaskHudController` vive bajo `TutorialPresentationOverlay/TutorialTaskHUD`. Su contrato es exclusivamente activar un nodo por `TutorialStep` durante `TutorialPhase.Presentation`. No dibuja textos ni crea visuales por codigo: cada hijo del HUD es un placeholder para que se agreguen animaciones desde Unity.
+`TutorialTaskHudController` vive bajo `TutorialPresentationOverlay/TutorialTaskHUD`. Su contrato es exclusivamente activar un nodo por `TutorialStep` durante `TutorialPhase.Presentation`. No dibuja textos ni crea visuales por codigo: cada hijo del HUD es un nodo configurable desde Unity.
 
 Responsabilidades:
 - Avanzar por `TutorialStep` en orden.
@@ -29,7 +29,7 @@ No debe:
 - Crear un sistema paralelo de tutorial.
 - Meter excepciones pedagogicas en `LevelSpawner`, jugador, boss o tienda.
 - Crear canvas, textos o prompts por codigo.
-- Cambiar arte visual del usuario.
+- Cambiar arte visual de autoria de escena.
 
 ## Secuencia
 
@@ -90,7 +90,7 @@ Durante `Practice`:
 - `TutorialPresentationController.presentationAlpha = 0.35`.
 - `TutorialPresentationOverlay` bajo `GameUIRoot`, con root activo solo durante presentacion y `Dimmer` negro con `CanvasGroup` alpha inicial `0`.
 - El alpha de oscurecimiento debe aplicarse al `Dimmer`, no al root del overlay, para que `TutorialTaskHUD` no herede transparencia.
-- `TutorialPresentationOverlay/TutorialTaskHUD` con un hijo por `TutorialStep`; esos hijos son placeholders visuales editables por Inspector.
+- `TutorialPresentationOverlay/TutorialTaskHUD` con un hijo por `TutorialStep`; esos hijos son nodos visuales editables por Inspector.
 - `grazeRequiredChargeRatio = 1`.
 - `inkBottleBarrierEnemyPrefab` asignado a una amenaza y `inkBottleBarrierEnemyCount` ajustable desde Inspector.
 - `emptyInkPulseBeforeInkBottleBarrier = true` para que Ink Bottle sea necesario en esa prueba dirigida.
@@ -105,20 +105,20 @@ Durante `Practice`:
 - `BossEventDirector.spawnCamera`.
 - `BossEventDirector.eventCameraController`.
 
-`firstZoneVisualRoots` y `secondZoneVisualRoots` son puntos de conexion visual. Si estan vacios, el flujo mecanico avanza igual; cuando se agregue arte de segunda zona, debe asignarse por Inspector.
+`firstZoneVisualRoots` y `secondZoneVisualRoots` son puntos de conexion visual. Si estan vacios, el flujo mecanico avanza igual; si se agrega arte de segunda zona, debe asignarse por Inspector.
 
 ## Gadgets
 
-Ink Bottle es un gadget activo de run, no un buff temporal. Al usarse desde `PlayerGadgetInventory` fuerza Ink-Pulse a `Ready` si puede, pero no se consume durante la run.
+Ink Bottle es un gadget activo de run, no un buff temporal. Al usarse desde `PlayerGadgetInventory` fuerza Ink-Pulse a `Ready` si puede; si el efecto se concreta, se consume y desaparece del inventario runtime.
 
 Shell Shield es pasivo y se consume automaticamente al bloquear un impacto que causaria Game Over.
 
 ## Hooks publicos
 
-`TutorialDirector` conserva metodos manuales para integraciones futuras:
+`TutorialDirector` conserva metodos manuales para integraciones externas:
 - `NotifyShopPresented()`
 - `NotifyGadgetAcquiredOrUsed()`
 - `NotifyBossTutorialResolved()`
 - `NotifyPortalEntered()`
 
-Estos hooks son para overlays, herramientas QA o eventos visuales futuros; no reemplazan las condiciones mecanicas principales. Las notificaciones externas que resuelven tienda, boss o portal solo avanzan durante `TutorialPhase.Practice`, nunca durante `Presentation`.
+Estos hooks son para overlays, herramientas QA o eventos visuales externos; no reemplazan las condiciones mecanicas principales. Las notificaciones externas que resuelven tienda, boss o portal solo avanzan durante `TutorialPhase.Practice`, nunca durante `Presentation`.

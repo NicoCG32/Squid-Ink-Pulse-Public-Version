@@ -50,7 +50,6 @@ public sealed class FairModeStartupProbe : MonoBehaviour
         {
             if (!FairModeSettings.HasExplicitServerArgument)
             {
-                Debug.Log($"Fair mode skipped. No fair server available at {serverUrl}.");
                 Destroy(gameObject);
                 yield break;
             }

@@ -75,7 +75,7 @@ Antes de crear el build, confirmar el estado del proyecto. Esta fase evita distr
 9. Salir de Play Mode.
 10. Guardar escenas y assets si Unity muestra cambios pendientes.
 
-Si esta fase falla, no generar build todavia. Primero corregir el problema en Unity y repetir el checklist.
+Si esta fase falla, no generar build. Primero corregir el problema en Unity y repetir el checklist.
 
 ## 4. Generar el build desde Unity
 
@@ -122,7 +122,7 @@ SquidInkPulse_Feria_2026-07-01/
 `- otros archivos generados por Unity
 ```
 
-`README_CLIENTE_FERIA.txt` se genera automaticamente al terminar el build. Incluye instrucciones de cliente con el placeholder `<IP_DEL_HOST>` para configurar el acceso directo contra el servidor de feria.
+`README_CLIENTE_FERIA.txt` se genera automaticamente al terminar el build. Incluye instrucciones de cliente con el marcador `<IP_DEL_HOST>` para configurar el acceso directo contra el servidor de feria.
 
 `REINICIAR_DATOS_JUEGO.bat` y `REINICIAR_DATOS_JUEGO.ps1` tambien se generan automaticamente. Permiten limpiar el progreso local de ese PC cliente y recrear la base `db` desde las semillas incluidas en el build.
 

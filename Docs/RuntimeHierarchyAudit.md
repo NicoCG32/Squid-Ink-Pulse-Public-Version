@@ -73,7 +73,7 @@ Reglas:
 - `ZonaAbisopelagica` puede agregar `LightGrazeSource` como override de instancia, porque la luz de esa zona es una capacidad ambiental especifica, no una propiedad base de BabySquid.
 - Los cambios de collider, visual base, `GrazeZone`, `SquidVisual`, `InkPulseVisual`, `PortalVisual` o inventario deben hacerse en el prefab, no en copias de escena.
 - Las skins futuras deben ser variantes visuales o prefab variants; no deben duplicar scripts de gameplay.
-- Si se reconstruye el player, usar `Tools/Squid/Rebuild And Wire Player Prefab Contract`.
+- Si se reconstruye el player, revisar manualmente que el prefab mantenga este contrato antes de propagarlo a escenas.
 
 ## Contrato de boundaries
 
@@ -144,9 +144,7 @@ Las escenas `ZonaEpipelagica`, `ZonaAbisopelagica` y `ZonaTutorial` deben quedar
 - No escalar `GameRoot`, `Gameplay`, `CameraRig`, `Enviroment` ni `Audio` para corregir tamano. Los roots estructurales deben permanecer con escala `(1, 1, 1)`.
 - Un escalado global distinto de `1` requiere una pasada de balance separada, porque afecta velocidades, offsets, colliders, camara, spawn y limpieza.
 
-La herramienta `Tools/Squid/Normalize Gameplay Scene Coordinates` ejecuta esta normalizacion sobre las tres escenas jugables. Su codigo vive en `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`.
-
-La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de solo lectura sobre las zonas jugables. Valida prefabs obligatorios, `ZoneSpawnProfile`, tags, layers, boundaries, `CleanUp`, `GameUIRoot`, ausencia de scripts faltantes y reglas especificas por zona como SS Carnage solo en `ZonaEpipelagica` y `ZoneLightingController` solo en `ZonaAbisopelagica`.
+La revision previa a entrega debe confirmar estos puntos en las tres escenas jugables y verificar prefabs obligatorios, `ZoneSpawnProfile`, tags, layers, boundaries, `CleanUp`, `GameUIRoot`, ausencia de scripts faltantes y reglas especificas por zona como SS Carnage solo en `ZonaEpipelagica` y `ZoneLightingController` solo en `ZonaAbisopelagica`.
 
 | Nodo | Script esperado | Responsabilidad |
 | --- | --- | --- |
@@ -214,7 +212,7 @@ La herramienta `Tools/Squid/Validate Scene Contracts` ejecuta una auditoria de s
 | `CleanUp` | `DestroyOffscreen` en `DestroyZone/GarbageCollector` | root `Untagged`; hijo `DestroyZone` | root `Default`; hijos `DestroyZone` |
 | `Boundaries` | `HorizontalTracker` en root, colliders en `TopBoundary`/`BottomBoundary` | `Untagged` | `Boundary` |
 
-La mina no tiene script propio todavia porque su logica actual vive en el algoritmo de spawn. La cana ya tiene `FishingRodEnemy`; su temporizacion de aparicion pertenece a `LevelSpawner`, pero su caida vertical pertenece al prefab.
+La mina no requiere script propio en esta entrega porque su comportamiento es estatico y su aparicion vive en el algoritmo de spawn. La cana ya tiene `FishingRodEnemy`; su temporizacion de aparicion pertenece a `LevelSpawner`, pero su caida vertical pertenece al prefab.
 
 `CanaPescar` puede tener `Rope` y `Visual` escalados para lectura visual. Ese tamano pertenece al prefab: la identidad jugable se conserva en el root (`EnemyCanaPescar` / `Enemy`) y los hijos visuales permanecen sin tag logico propio. El cleanup debe evaluar bounds agregados de colliders/renderers para no destruir la cana hasta que todo su volumen haya pasado la distancia segura.
 
@@ -246,8 +244,7 @@ Reglas:
 - Los managers de escena pueden cablear listeners en runtime solo como respaldo defensivo; el contrato preferido es que referencias y acciones relevantes sean visibles o serializadas para auditoria.
 - Los managers de escena no deben desactivar listeners persistentes del Inspector. No usar `SetPersistentListenerState` ni helpers tipo `DisablePersistentOnClick`.
 - `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquia.
-- `Assets/Implementation/Editor/GameplayUiPrefabSceneMigration.cs` permite reejecutar la migracion y validacion desde `Tools/Squid/Migrate Gameplay UI To Prefab Instances`.
-- `Tools/Squid/Validate Scene Contracts` tambien valida que cada zona tenga `GameRoot/GameUIRoot/HUD/InkBar` como instancia de `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`.
+- Cada zona debe conservar `GameRoot/GameUIRoot/HUD/InkBar` como instancia de `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`.
 
 Contrato de `LoreComic`:
 - `MainMenu` debe contener una instancia `LoreComicRoot` para el comic de inicio.
@@ -325,7 +322,7 @@ Reglas:
 - No agregar un segundo script de movimiento a `Main Camera`.
 - No agregar un fallback generico de enemigo al spawner si ya existen perfiles.
 - No dejar `LevelSpawner.zoneSpawnProfile` vacio en zonas jugables.
-- Ejecutar `Tools/Squid/Validate Scene Contracts` antes de cerrar una refactorizacion de escenas, prefabs o perfiles de spawn.
+- Revisar manualmente los contratos de escena, prefabs y perfiles de spawn antes de cerrar una refactorizacion.
 - No bloquear el spawn regular durante `BossActive`; el evento debe duplicar frecuencia, no detener obstaculos.
 - No usar `LevelSpawner` para lanzar anzuelos desde el SS Carnage; los ataques que nacen del boss deben vivir en el controlador/prefab del boss.
 - No serializar tags de enemigos en `PlayerCollision`, `GrazeDetector` o `DestroyOffscreen`.

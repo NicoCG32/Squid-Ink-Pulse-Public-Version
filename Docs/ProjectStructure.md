@@ -12,14 +12,7 @@
 - `Assets/Implementation/Code/`: codigo C# organizado por dominio.
 - `Assets/Implementation/Config/`: configuracion tecnica.
 - `Assets/Implementation/Config/Spawning/`: assets `ZoneSpawnProfile` por zona (`ZonaEpipelagicaSpawnProfile`, `ZonaAbisopelagicaSpawnProfile`, `ZonaTutorialSpawnProfile`).
-- `Assets/Implementation/Editor/`: herramientas de editor para migraciones o validaciones, fuera de runtime.
-- `Assets/Implementation/Editor/GameplaySceneCoordinateNormalizer.cs`: herramienta para centrar las escenas jugables alrededor del origen.
-- `Assets/Implementation/Editor/CleanupPrefabMigration.cs`: herramienta para crear y conectar el prefab canonico `CleanUp` en escenas jugables.
-- `Assets/Implementation/Editor/SceneContractValidator.cs`: herramienta `Tools/Squid/Validate Scene Contracts` para auditar zonas jugables, prefabs criticos, perfiles de spawn, tags y layers.
-- `Assets/Implementation/Editor/Shop/ShopMenuSetupUtility.cs`: serializa el contrato funcional de `ShopMenu` sin modificar su arte y asegura las instancias faltantes de `OptionsMenu` global antes de abrir la tienda.
-- `Assets/Implementation/Editor/Shop/ShopProductInfoSetupUtility.cs`: crea y conecta el bloque funcional de nombre, descripcion y precio del producto seleccionado sin añadir arte a `ShopMenu`.
-- `Assets/Implementation/Editor/Lore/LoreComicSetupUtility.cs`: instala o repara el contrato de lore comics; su reparacion de visibilidad normaliza la escala del canvas `Comic` sin alterar vinetas ni layout.
-- `Assets/Implementation/Editor/UI/OptionsMenuPresenceUtility.cs`: instala solo instancias faltantes de `OptionsMenu` como roots de escena; no normaliza layout ni overrides visuales.
+- `Assets/Implementation/Editor/`: soporte de build final. Actualmente contiene el postprocesador que genera instrucciones y scripts de reinicio para builds de feria.
 - `Assets/Content/Prefabs/`: prefabs runtime.
 - `Assets/Content/Audio/`: soundtrack y SFX.
 - `Assets/Content/Art/`: arte runtime.
@@ -53,7 +46,7 @@ La arquitectura formal esta definida en [SoftwareArchitecture.md](SoftwareArchit
 
 ## Prefabs por dominio
 
-- `Assets/Content/Prefabs/Enemies/`: enemigos actuales y futuros.
+- `Assets/Content/Prefabs/Enemies/`: enemigos de entrega y extensiones preparadas.
 - `Assets/Content/Prefabs/Player/`: `BabySquid.prefab`, fuente canonica del jugador.
 - `Assets/Content/Prefabs/Bosses/`: SS Carnage y red.
 - `Assets/Content/Prefabs/Collectibles/`: camarones y otros recogibles.

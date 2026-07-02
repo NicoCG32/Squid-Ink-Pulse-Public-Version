@@ -11,7 +11,7 @@ Eventos implementados:
 - Derrota en zona actual antes de mostrar Game Over.
 - Comics de tienda in-game: primera entrada por `DealerFish`, primera salida con compra y primera salida sin compra.
 
-Hitos de puntaje quedan reservados para una fase posterior.
+Los hitos de puntaje quedan fuera del alcance de esta entrega y se mantienen como extension narrativa posible.
 
 ## Componente
 
@@ -25,7 +25,7 @@ Referencias principales:
 - `comicRoot`: Canvas o nodo raiz visual `Comic`.
 - `canvasGroup`: controla visibilidad, raycasts e interaccion.
 - `comicImage`: imagen donde se asigna el sprite de la vineta.
-- `continueButton`: boton visual de continuar/play, preparado por el usuario.
+- `continueButton`: boton visual de continuar/play, preparado como parte de la autoria visual.
 - `continueButtonRoot`: raiz opcional del boton si se quiere mostrar/ocultar un nodo visual completo.
 
 El script no crea Canvas, botones, imagenes, textos ni jerarquias visuales en runtime. Solo activa/desactiva y asigna sprites en referencias existentes.
@@ -45,7 +45,7 @@ El `RectTransform` de `Comic` debe conservar escala local `(1,1,1)`. La visibili
 
 | Campo | Uso |
 | --- | --- |
-| `comicEvent` | Evento narrativo: inicio, portal epi->abi, portal abi->epi, derrota, tienda in-game, hito futuro. |
+| `comicEvent` | Evento narrativo: inicio, portal epi->abi, portal abi->epi, derrota o tienda in-game. |
 | `zone` | Zona asociada. En derrota debe usarse la zona real; `Unknown` funciona como fallback. |
 | `sprites` | Lista de sprites candidatos. En derrota se selecciona aleatoriamente entre sprites no nulos. |
 | `displaySeconds` | Duracion minima usando tiempo real. |
@@ -70,7 +70,7 @@ Los sprites de comics viven organizados por dominio:
 - `Assets/Content/Art/ComicLore/Derrota/Abisopelagica/`
 - `Assets/Content/Art/ComicLore/Tienda/`
 
-La carpeta legacy `ComicLore/Placeholders` no debe recrearse ni usarse para arte final.
+La carpeta `ComicLore/Placeholders` no forma parte del paquete final de arte runtime.
 
 ## Integraciones
 
@@ -98,6 +98,6 @@ Por defecto, `LoreComicPresenter` pausa `Time.timeScale` mientras el comic esta 
 
 Si una escena necesita que el mundo siga moviendose detras del comic, se puede desactivar `pauseTimeWhileShowing`.
 
-## Pendiente visual
+## Criterio de entrega visual
 
-Falta validar arte final, layout y tamanos visuales en Unity si hace falta. El nodo y las referencias base ya estan montados.
+El sistema queda listo cuando cada entrada activa del catalogo muestra al menos una vineta valida, el boton de continuar responde y el panel vuelve al flujo correspondiente sin bloquear gameplay, portal, tienda ni Game Over.

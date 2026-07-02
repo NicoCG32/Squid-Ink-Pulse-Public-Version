@@ -11,7 +11,7 @@ Squid Ink-Pulse es un endless runner 2D en Unity donde el jugador controla a un 
 - Claridad visual: el entorno debe leerse rapido incluso cuando la densidad sube.
 - Rejugabilidad: progresion de run, bosses, tienda, gadgets y portales modifican cada intento.
 
-## Estado tecnico actual
+## Estado de entrega
 
 - Movimiento del jugador limitado por `PlayerBoundaries`.
 - Jugador canonico como `Assets/Content/Prefabs/Player/BabySquid.prefab`, instanciado en zonas jugables como `Squid`.

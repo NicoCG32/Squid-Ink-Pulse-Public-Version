@@ -4,7 +4,7 @@
 
 Este documento formaliza la arquitectura runtime de Squid Ink-Pulse. Su objetivo es que cada sistema tenga un propietario claro, que las maquinas de estado sean visibles, y que el crecimiento hacia tienda permanente, tutorial, skins, zonas y enemigos no produzca scripts redundantes o contradictorios.
 
-El informe historico en `Docs/Reports/` no se reescribe. Este documento describe el contrato vivo del codigo actual.
+El informe historico en `Docs/Reports/` no se reescribe. Este documento describe el contrato arquitectonico de la entrega.
 
 ## Tesis arquitectonica
 
@@ -280,7 +280,7 @@ Estos prefabs reducen divergencia estructural entre escenas. Si una referencia e
 
 Algunos scripts usan `FindFirstObjectByType`, `FindGameObjectWithTag`, `GetComponent` o `TryGetComponent`. Esto es aceptable solo cuando cumple una de estas condiciones:
 - recuperar una referencia local del mismo `GameObject`;
-- tolerar escenas antiguas durante migracion;
+- tolerar escenas con referencias incompletas mientras se conserva compatibilidad;
 - funcionar como respaldo si el inspector no fue cableado;
 - resolver un singleton de infraestructura ya documentado.
 
@@ -292,9 +292,9 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 
 ### Herramientas de editor
 
-`Assets/Implementation/Editor/` puede usar migraciones amplias, `AddComponent` y normalizacion de escenas. No forma parte de la arquitectura runtime.
+`Assets/Implementation/Editor/` queda reservado para soporte de build final. Las herramientas historicas de reorganizacion de assets no forman parte de la entrega runtime.
 
-## Hallazgos de la auditoria actual
+## Resultado de auditoria arquitectonica
 
 ### Cumplimientos fuertes
 
@@ -310,12 +310,12 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 ### Riesgos controlados
 
 - `LevelSpawner` conserva la autoridad unica de aparicion runtime, pero ya no concentra seleccion, calculo de posiciones ni configuracion repetible de instancias. Si crece de nuevo, la regla es extraer otro servicio interno antes de crear un segundo spawner.
-- `MainMenu` no sigue sufijo `Controller`. No se renombro para evitar perder referencias serializadas de escena. Refactor futuro recomendado: `MainMenuController` con migracion de escena.
+- `MainMenu` no sigue sufijo `Controller`. Se conserva asi por estabilidad de referencias serializadas de escena; cualquier renombre posterior debe hacerse como refactor controlado.
 - `InkPulseMusicCrossfader` es un adaptador de audio, no un controlador de gameplay. Su nombre es valido porque describe una especializacion tecnica.
 - `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresion, pero no gobierna dificultad, input, spawn, score ni estado de sesion.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepcion visual deliberada para entidades spawneadas.
-- `InGameShopManager` sigue siendo grande porque administra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y calculo de precio ya viven en helpers puros; la siguiente separacion razonable seria una vista/presenter de tienda si el canvas crece.
-- `OutOfGameShopManager` es el presenter de `ShopMenu`. Solo coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, limites y persistencia. La aplicacion visual de skins sigue pendiente y debe vivir fuera de los controladores de gameplay.
+- `InGameShopManager` concentra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y calculo de precio viven en helpers puros; si el canvas crece, la extension natural es separar una vista/presenter de tienda.
+- `OutOfGameShopManager` es el presenter de `ShopMenu`. Coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, limites y persistencia. La aplicacion visual de skins se realiza mediante `PlayerSkinApplier`, fuera de los controladores de gameplay.
 
 ### Refactor aplicado
 

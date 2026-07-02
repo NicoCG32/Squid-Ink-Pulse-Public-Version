@@ -205,7 +205,7 @@ Responsabilidad:
 
 Gadgets implementados:
 - `Shell Shield`: pasivo, se consume automaticamente para cancelar un Game Over.
-- `Ink-Bottle`: activo de run, fuerza Ink-Pulse a `Ready` si puede y no se consume al usarse.
+- `Ink-Bottle`: activo de run, fuerza Ink-Pulse a `Ready` si puede y se consume solo cuando el efecto se ejecuta correctamente.
 
 Reglas de slot:
 - El prefab no define si un gadget va en `Q` o `W`.
@@ -213,6 +213,7 @@ Reglas de slot:
 - El segundo gadget activo en `Gadget2` usa `W`.
 - Los pasivos ocupan slot visual, pero no muestran tecla.
 - Ningun gadget es stackable.
+- Todo gadget comprado durante la run es de un solo uso: al consumirse libera su slot y desaparece del HUD.
 
 ## Tienda temporal de suministros
 

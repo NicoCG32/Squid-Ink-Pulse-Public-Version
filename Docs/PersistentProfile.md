@@ -171,7 +171,7 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 - `player-profile.json` guarda decisiones del jugador: mejoras permanentes, skins y gadgets de run ya habilitados por hitos.
 - `player-profile.json/lore.viewedComicEventIds` guarda comics de portal y tienda in-game ya vistos para no repetirlos en partidas futuras.
 - `player-records.json` guarda valores numericos acumulados: camarones, mejor puntaje y estadisticas.
-- `local-leaderboard.json` es local por dispositivo. El futuro modo feria multi-PC requiere un servidor LAN y SQLite; su diseño privado vive en `CODEX/planFeria.md`, no en esta base local.
+- `local-leaderboard.json` es local por dispositivo. El modo feria multi-PC usa el servidor LAN descrito en `Docs/FairServer.md` y `Docs/FairEventSetupGuide.md`.
 - La skin default siempre debe existir como `skin.default`.
 - El catalogo runtime solo incluye skins con prefab jugable disponible; skins conceptuales sin animacion/prefab se mantienen en fuentes de diseno hasta implementarse.
 - Los gadgets son exclusivos de la tienda in-game. La persistencia no guarda compras de una run; solo guarda si un gadget ya puede aparecer en la aleatoriedad de `InGameShopManager`.
@@ -293,7 +293,7 @@ Resultado verificado:
 - leaderboard vacio;
 - catalogo version `8` con `9` skins implementadas.
 
-## Migracion
+## Compatibilidad De Datos
 
 Si existe el formato antiguo:
 
@@ -301,7 +301,7 @@ Si existe el formato antiguo:
 Application.persistentDataPath/player-profile.json
 ```
 
-`PlayerProfileRepository` lo migra automaticamente cuando faltan los nuevos archivos en `Application.persistentDataPath/db/`.
+`PlayerProfileRepository` lo convierte automaticamente cuando faltan los nuevos archivos en `Application.persistentDataPath/db/`.
 
 Mapeo desde formato monolitico legacy:
 - `wallet.totalShrimps` pasa a `player-records.json.totalShrimps`.
@@ -311,11 +311,11 @@ Mapeo desde formato monolitico legacy:
 Mapeo desde `player-profile.json` version 2:
 - `upgrades` pasa a `permanentUpgrades`.
 - `gadgets.unlockedGadgetIds` pasa a `runGadgetUnlocks.unlockedRunGadgetIds`.
-- `activeSkillIds` se descarta porque las skills persistentes aun no son un contrato vivo. Las mejoras permanentes ocupan ese rol mediante ids de upgrade y niveles.
+- `activeSkillIds` se descarta porque las skills persistentes no forman parte del contrato de entrega. Las mejoras permanentes ocupan ese rol mediante ids de upgrade y niveles.
 
 ## Validacion
 
-`Tools/Squid/Validate Scene Contracts` valida que existan y puedan parsearse las semillas de:
+La revision de persistencia debe confirmar que existan y puedan parsearse las semillas de:
 
 - `Assets/StreamingAssets/db/unlockables-catalog.json`
 - `Assets/StreamingAssets/db/player-profile.json`

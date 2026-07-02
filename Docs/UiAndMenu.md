@@ -203,8 +203,8 @@ ShopMenu
 
 - Cada control dentro de `ShopInteractionRoot` conserva el contrato `*Boton/Button/Visual/{Normal,Destacado,Presionado}`.
 - El `Image` del hijo `Button` es una hitbox blanca con alpha `0`; no es arte ni debe recolorearse.
-- Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este es un contrato funcional temporal: puede reemplazarse por un SFX de tienda aprobado sin tocar la jerarquia ni los sprites.
-- El usuario ajusta la posicion y el tamano de cada owner `*Boton` para coincidir con las vitrinas o flechas del mueble. El codigo no modifica sus sprites, layout, escala, color ni jerarquia visual.
+- Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este contrato permite reemplazar el SFX de tienda sin tocar la jerarquia ni los sprites.
+- La autoria visual de cada owner `*Boton` pertenece a la escena: posicion, tamano, sprites, layout, escala, color y jerarquia no se modifican por codigo.
 - Los cuatro slots superiores estan reservados, en este orden, para `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
 - Las descripciones de mejoras deben ser cortas y con tono de tienda del juego, sin tildes ni caracteres especiales:
   - Tinta Persistente: "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo."
@@ -238,7 +238,7 @@ Reglas:
 - Si la skin ya esta equipada y no es `skin.default`, accionar `Comprar` la deselecciona y vuelve a equipar `skin.default`.
 - El cambio visual efectivo del jugador usa `playerSkinPrefabResourcePath`: al entrar a gameplay, `PlayerSkinApplier` instancia ese prefab bajo `BabySquid/SkinMount` y `PlayerVisualStateController` alterna sus raices `MovementVisual`/`SquidVisual`, `InkPulseVisual` y `PortalVisual`.
 - El catalogo runtime solo debe incluir skins con prefab visual completo y ruta valida. Las skins conceptuales o no implementadas quedan fuera de `unlockables-catalog.json` hasta que tengan animacion/prefab jugable.
-- Para pruebas en Editor, las compras se guardan en `Application.persistentDataPath/db/`. Si se necesita una sesion limpia, hay que borrar o reemplazar esa carpeta de persistencia antes de iniciar Play Mode. La sesion limpia actual esperada tiene mejoras en `0`, camarones `0`, best `0`, leaderboard vacio y solo `skin.default` desbloqueada/equipada.
+- Para QA local, las compras se guardan en `Application.persistentDataPath/db/`. Una sesion limpia de entrega tiene mejoras en `0`, camarones `0`, best `0`, leaderboard vacio y solo `skin.default` desbloqueada/equipada.
 
 ## HUD
 
@@ -276,7 +276,7 @@ Reglas:
 - `GameUIRoot` puede tener referencias a vistas, HUD y managers UI.
 - Los managers siguen siendo duenos del comportamiento de pausa, game over y tienda.
 - Los prefabs de vista no deben contener managers ni referencias a sesion.
-- Si se reestructura la UI, se debe actualizar `GameUIRoot` y luego validar con la utilidad de editor.
+- Si se reestructura la UI, se debe actualizar `GameUIRoot` y validar manualmente el contrato de escena.
 
 Responsabilidad:
 - Mostrar carga del Ink-Pulse.
