@@ -243,6 +243,8 @@ public class DestroyOffscreen : MonoBehaviour
         AddTaggedCandidates(EnemyTagCatalog.Mine);
         AddTaggedCandidates(EnemyTagCatalog.Pufferfish);
         AddTaggedCandidates(EnemyTagCatalog.FishingRod);
+        AddTaggedCandidates(EnemyTagCatalog.Ray);
+        AddTaggedCandidates(EnemyTagCatalog.Jellyfish);
         AddTaggedCandidates(GameplayTagCatalog.Shrimp);
         AddTaggedCandidates(GameplayTagCatalog.Collectible);
         AddTaggedCandidates(GameplayTagCatalog.Portal);

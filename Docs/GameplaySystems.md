@@ -49,6 +49,7 @@ Responsabilidad:
 - Permitir que `Ink-Bottle` fuerce el estado `Ready` mediante `TryForceReady()`.
 - Persistir carga, estado activo y tiempo restante entre portales.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
+- Durante `Active`, la carga mecanica ya queda consumida, pero `ChargeBar` muestra `PulseRemainingSeconds / PulseDuration` para que la InkBar se vacie gradualmente mientras dura el pulso.
 - Bloquear activacion manual mientras `InGameShopManager` esta mostrando una oferta temporal.
 - Bloquear activacion nueva mientras `PlayerStateController` esta en `PlayerRuntimeState.PortalTransition`.
 - Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
@@ -257,11 +258,12 @@ Reglas:
 3. En `ZonaAbisopelagica`, las entidades con `LightGrazeSource` revelan localmente `LayerBlack` dentro del overlay compuesto.
 4. `InkPulseController` pasa de `Idle` a `Charging` o `Ready`.
 5. Si el jugador activa el recurso, `InkPulseController` entra en `Active`.
-6. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerVisualStateController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
-7. `PlayerCollision` y sistemas de entorno resuelven impactos.
-8. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield`.
-9. Cruzar un portal fuerza `PlayerRuntimeState.PortalTransition`, muestra solo `PortalVisual`, espera `PortalEffect` y luego carga la zona destino.
-10. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
+6. Mientras el pulso esta activo, `InkBar` consume visualmente su llenado de forma progresiva hasta llegar a cero.
+7. `PlayerMovement` ajusta velocidad y comportamiento mientras el pulso esta activo, `PlayerVisualStateController` muestra `InkPulseVisual`, oculta temporalmente `SquidVisual` y `InkPulseMusicCrossfader` cruza hacia la pista intensa.
+8. `PlayerCollision` y sistemas de entorno resuelven impactos.
+9. Antes de Game Over, `PlayerGadgetInventory` puede consumir `Shell Shield`.
+10. Cruzar un portal fuerza `PlayerRuntimeState.PortalTransition`, muestra solo `PortalVisual`, espera `PortalEffect` y luego carga la zona destino.
+11. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
 
 ## Reglas de diseno
 

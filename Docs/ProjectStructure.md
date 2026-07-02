@@ -36,6 +36,7 @@
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Player/Profile/`: persistencia JSON local, catalogo de desbloqueables, perfil, records, skins, economia permanente y leaderboard local.
 - `Assets/Implementation/Code/Player/Visual/`: controladores visuales del jugador que observan estado sin decidir gameplay.
+- `Assets/Implementation/Code/Fair/`: adaptador Unity para servidor de feria LAN, login/registro, snapshots, heartbeat y checkout.
 - `Assets/Implementation/Code/Spawning/`: `LevelSpawner`, perfiles de spawn y servicios internos de seleccion, posicion y configuracion de entidades spawneadas.
 - `Assets/Implementation/Code/Enemies/`: comportamientos propios de enemigos.
 - `Assets/Implementation/Code/Bosses/`: directores y comportamientos de boss.

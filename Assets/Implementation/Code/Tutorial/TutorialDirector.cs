@@ -886,7 +886,9 @@ public sealed class TutorialDirector : MonoBehaviour
             gameplayCamera,
             player,
             new PufferfishEnemyTuning(),
-            new FishingRodEnemyTuning());
+            new FishingRodEnemyTuning(),
+            new RayEnemyTuning(),
+            new JellyfishEnemyTuning());
     }
 
     private Transform GetSpawnParent()

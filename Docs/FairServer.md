@@ -26,6 +26,8 @@ Tools/FairServer/
 
 El servidor usa Python estandar y SQLite. No requiere FastAPI, Node ni paquetes externos.
 
+Para montaje completo de feria desde cero, incluyendo build Windows, distribucion a 3 o 4 PCs, red, firewall, conexion de clientes, prueba previa y reseteo de datos, ver [FairEventSetupGuide.md](FairEventSetupGuide.md).
+
 ## Ejecutar en Windows
 
 Desde `Tools/FairServer/`:
@@ -131,16 +133,58 @@ python .\smoke_test.py
 
 La prueba crea un participante, sincroniza snapshot, consulta ranking, obtiene posicion y hace checkout.
 
-## Siguiente integracion Unity
+## Adaptador Unity
 
-El lado Unity debe agregarse como adaptador separado bajo `Assets/Implementation/Code/Fair/`:
+El lado Unity vive separado bajo `Assets/Implementation/Code/Fair/`:
 
-- `FairModeSettings`
-- `FairApiClient`
-- `FairParticipantSession`
-- `FairProfileSnapshot`
-- `FairProfileMapper`
-- `FairLeaderboardService`
-- `FairModeMenuManager`
+- `FairModeBootstrap`: prueba `/health` contra el servidor configurado al iniciar el ejecutable; solo abre el flujo de feria si el servidor responde y el modo no fue deshabilitado.
+- `FairModeSettings`: define servidor, `machineId`, version de build y argumentos de arranque.
+- `FairApiClient`: cliente HTTP para crear, recuperar, sincronizar snapshot, heartbeat y checkout.
+- `FairApiModels`: DTOs serializables para requests, responses y snapshot.
+- `FairParticipantSession`: sesion runtime persistente entre escenas; mantiene heartbeat y ejecuta checkout al salir.
+- `FairProfileMapper`: convierte entre `PersistentPlayerProfile` y el snapshot del servidor.
+- `FairModeMenuManager`: interfaz simple de nick/codigo/nuevo jugador.
 
-El adaptador debe leer/escribir mediante servicios existentes de perfil, no editar JSON directamente desde UI.
+El adaptador no escribe JSON directamente desde UI. Para aplicar un snapshot remoto usa `PersistentPlayerProfile.ReplaceForFairMode()`, que centraliza guardado, normalizacion y eventos de perfil/records.
+
+Flujo de arranque del `.exe`:
+
+1. `FairModeBootstrap` consulta `GET /health` con timeout corto.
+2. Si el servidor no responde, no abre interfaz de feria y el juego continua en modo local normal.
+3. Si el servidor responde, crea `FairParticipantSession` y muestra `FairModeMenuManager`.
+4. El jugador ingresa `nickname` + `recoveryCode`, o presiona `Nuevo jugador`.
+5. Recuperar llama `POST /participants/recover`; nuevo jugador llama `POST /participants`.
+6. El snapshot remoto se aplica al perfil local antes de permitir jugar.
+7. Se sincroniza snapshot local mediante `PUT /participants/{participantId}/snapshot`.
+8. `FairParticipantSession` mantiene heartbeat periodico.
+
+Flujo de salida:
+
+1. `MainMenu.Salir()` consulta `FairParticipantSession`.
+2. Si hay sesion activa, crea snapshot local final.
+3. Llama `POST /participants/{participantId}/checkout` con `finalSnapshot`.
+4. Al terminar el checkout, cierra el juego.
+
+Configuracion de host:
+
+- Por defecto usa `http://localhost:8080`.
+- El campo `Servidor` de la interfaz guarda la URL en `PlayerPrefs`.
+- Tambien puede pasarse por argumento de linea de comandos:
+
+```text
+--fair-server=http://IP_DEL_HOST:8080
+--fair-machine=PC-02
+--fair-disabled
+```
+
+Tambien se aceptan `--fair-server http://IP_DEL_HOST:8080` y `--fair-machine PC-02`.
+
+`--fair-disabled` desactiva el overlay de feria para builds o pruebas que no usen servidor.
+
+Si no hay servidor disponible en la URL configurada, el overlay de nick/codigo no aparece. Esto evita bloquear el juego normal cuando el ejecutable se abre fuera del montaje de feria.
+Si el juego se abre con `--fair-server` explicito, el overlay se muestra aunque el chequeo `/health` falle, para permitir diagnosticar una URL mal escrita desde la propia interfaz.
+
+Cada build genera archivos auxiliares junto al `.exe`:
+
+- `README_CLIENTE_FERIA.txt`: explica al cliente como reemplazar `<IP_DEL_HOST>` por la IPv4 del host y crear el acceso directo con `--fair-server`.
+- `REINICIAR_DATOS_JUEGO.bat` y `REINICIAR_DATOS_JUEGO.ps1`: limpian la persistencia local de ese PC y recrean `Application.persistentDataPath/db/` desde las semillas incluidas en el build.

@@ -37,6 +37,7 @@ public class ChargeBar : MonoBehaviour
     private RectTransform fullPromptTransform;
     private Vector3 fullPromptBaseScale = Vector3.one;
     private bool fullPromptVisible;
+    private bool fullPromptSuppressed;
     private float fullPromptPulseTimer;
 
     private void Awake()
@@ -81,6 +82,17 @@ public class ChargeBar : MonoBehaviour
         fillRatio = Mathf.Clamp01(normalizedValue);
         ResolveReferences(syncFromSlider: false);
         ApplyFill();
+        ApplyFullPromptVisibility(immediate: false);
+    }
+
+    public void SetFullPromptSuppressed(bool suppressed)
+    {
+        if (fullPromptSuppressed == suppressed)
+        {
+            return;
+        }
+
+        fullPromptSuppressed = suppressed;
         ApplyFullPromptVisibility(immediate: false);
     }
 
@@ -172,7 +184,7 @@ public class ChargeBar : MonoBehaviour
             return;
         }
 
-        bool shouldShow = fillRatio >= fullPromptThreshold;
+        bool shouldShow = !fullPromptSuppressed && fillRatio >= fullPromptThreshold;
         if (fullPromptVisible == shouldShow && !immediate)
         {
             return;

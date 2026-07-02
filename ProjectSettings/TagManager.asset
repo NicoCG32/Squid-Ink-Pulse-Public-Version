@@ -11,6 +11,8 @@ TagManager:
   - EnemyMina
   - EnemyPezGlobo
   - EnemyCanaPescar
+  - EnemyRay
+  - EnemyJellyfish
   - SSCarnage
   - Boss
   - Portal

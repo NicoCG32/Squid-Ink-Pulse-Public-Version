@@ -232,13 +232,50 @@ En Windows, con la configuracion actual de `ProjectSettings`, `Application.persi
 C:\Users\<usuario>\AppData\LocalLow\DefaultCompany\Squid Ink-Pulse
 ```
 
+El proyecto incluye un script para hacer este reinicio sin tocar las semillas del repositorio:
+
+```powershell
+.\Tools\CleanPersistentData.ps1
+```
+
+Tambien existe un wrapper para doble click:
+
+```text
+Tools/CleanPersistentData.bat
+```
+
+Ademas, cada build de Unity genera scripts equivalentes junto al `.exe`:
+
+```text
+REINICIAR_DATOS_JUEGO.bat
+REINICIAR_DATOS_JUEGO.ps1
+```
+
+Estos scripts son para PCs cliente fuera del repo. Toman las semillas limpias desde `<NombreDelJuego>_Data/StreamingAssets/db/` y limpian solo la persistencia local de ese usuario Windows.
+
+Comportamiento por defecto:
+
+- respalda la persistencia actual en `Application.persistentDataPath/_backups/clean-YYYYMMDD-HHMMSS`;
+- borra `Application.persistentDataPath/db/`;
+- borra el legacy `Application.persistentDataPath/player-profile.json` si existe;
+- recrea `Application.persistentDataPath/db/` copiando los JSON limpios desde `Assets/StreamingAssets/db/`;
+- no borra `PlayerPrefs`, por lo que opciones de pantalla/volumen y URL de feria se conservan.
+
+Opciones utiles:
+
+```powershell
+.\Tools\CleanPersistentData.ps1 -NoBackup
+.\Tools\CleanPersistentData.ps1 -IncludePlayerPrefs
+.\Tools\CleanPersistentData.ps1 -WhatIf
+```
+
+`-IncludePlayerPrefs` tambien borra la clave `HKCU\Software\DefaultCompany\Squid Ink-Pulse`, por lo que debe usarse solo si se quiere limpiar opciones y residuos externos al progreso.
+
 Para reiniciar el progreso local sin tocar las semillas del repositorio:
 
 1. Cerrar Play Mode o el build.
-2. Apartar o borrar `Application.persistentDataPath/db/`.
-3. Apartar o borrar el legacy `Application.persistentDataPath/player-profile.json` si existe.
-4. Copiar nuevamente los JSON de `Assets/StreamingAssets/db/` hacia `Application.persistentDataPath/db/`, o dejar que `PlayerProfileRepository` los regenere al cargar.
-5. Si se quiere limpiar tambien opciones antiguas y residuos de PlayerPrefs, borrar la clave `HKCU\Software\DefaultCompany\Squid Ink-Pulse`.
+2. Ejecutar `Tools/CleanPersistentData.bat` o `.\Tools\CleanPersistentData.ps1`.
+3. Abrir nuevamente Play Mode o el build.
 
 Reinicio aplicado el 2026-06-30 en el equipo de trabajo:
 

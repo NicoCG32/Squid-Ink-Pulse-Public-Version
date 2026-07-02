@@ -16,8 +16,9 @@ Este directorio organiza la documentacion viva del proyecto. Los informes de `Do
 ## Sistemas de juego
 
 - [CoreSystems.md](CoreSystems.md) - sesion, progresion, flujo de escenas y persistencia.
-- [PersistentProfile.md](PersistentProfile.md) - base JSON local `db`: catalogo de desbloqueables, perfil, records y leaderboard.
+- [PersistentProfile.md](PersistentProfile.md) - base JSON local `db`: catalogo de desbloqueables, perfil, records, leaderboard y script de limpieza de persistencia.
 - [FairServer.md](FairServer.md) - servidor LAN MVP de feria con SQLite, snapshots y ranking web.
+- [FairEventSetupGuide.md](FairEventSetupGuide.md) - guia operativa paso a paso para generar build, levantar servidor y conectar 3 o 4 PCs desde cero.
 - [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
 - [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos, SS Carnage y boss abisal.
 - [Portals.md](Portals.md) - portales entre zonas y reglas de carga.

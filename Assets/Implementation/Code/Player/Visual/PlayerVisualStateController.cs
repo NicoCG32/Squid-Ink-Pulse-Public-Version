@@ -195,9 +195,9 @@ public class PlayerVisualStateController : MonoBehaviour
 
     private void ShowMovementVisual()
     {
-        SetRenderersVisible(movementRenderers, true);
-        SetRenderersVisible(inkPulseRenderers, false);
-        SetRenderersVisible(portalRenderers, false);
+        SetVisualRootVisible(movementVisualRoot, movementRenderers, true);
+        SetVisualRootVisible(inkPulseVisualRoot, inkPulseRenderers, false);
+        SetVisualRootVisible(portalVisualRoot, portalRenderers, false);
 
         SetAnimatorSpeed(movementAnimator, 1f);
         SetAnimatorSpeed(inkPulseAnimator, 0f);
@@ -206,9 +206,9 @@ public class PlayerVisualStateController : MonoBehaviour
 
     private void ShowInkPulseVisual()
     {
-        SetRenderersVisible(movementRenderers, false);
-        SetRenderersVisible(inkPulseRenderers, true);
-        SetRenderersVisible(portalRenderers, false);
+        SetVisualRootVisible(movementVisualRoot, movementRenderers, false);
+        SetVisualRootVisible(inkPulseVisualRoot, inkPulseRenderers, true);
+        SetVisualRootVisible(portalVisualRoot, portalRenderers, false);
 
         SetAnimatorSpeed(movementAnimator, 0f);
         SetAnimatorSpeed(portalAnimator, 0f);
@@ -229,9 +229,9 @@ public class PlayerVisualStateController : MonoBehaviour
 
     private void ShowPortalVisual()
     {
-        SetRenderersVisible(movementRenderers, false);
-        SetRenderersVisible(inkPulseRenderers, false);
-        SetRenderersVisible(portalRenderers, true);
+        SetVisualRootVisible(movementVisualRoot, movementRenderers, false);
+        SetVisualRootVisible(inkPulseVisualRoot, inkPulseRenderers, false);
+        SetVisualRootVisible(portalVisualRoot, portalRenderers, true);
 
         SetAnimatorSpeed(movementAnimator, 0f);
         SetAnimatorSpeed(inkPulseAnimator, 0f);
@@ -344,9 +344,9 @@ public class PlayerVisualStateController : MonoBehaviour
             ResolveRendererCaches();
         }
 
-        SetRenderersVisible(movementRenderers, false);
-        SetRenderersVisible(inkPulseRenderers, false);
-        SetRenderersVisible(portalRenderers, false);
+        SetVisualRootVisible(movementVisualRoot, movementRenderers, false);
+        SetVisualRootVisible(inkPulseVisualRoot, inkPulseRenderers, false);
+        SetVisualRootVisible(portalVisualRoot, portalRenderers, false);
         SetAnimatorSpeed(movementAnimator, 0f);
         SetAnimatorSpeed(inkPulseAnimator, 0f);
         SetAnimatorSpeed(portalAnimator, 0f);
@@ -385,6 +385,24 @@ public class PlayerVisualStateController : MonoBehaviour
         return stateInfo.length > 0f && !float.IsInfinity(stateInfo.length)
             ? stateInfo.length
             : Mathf.Max(0.01f, fallbackLength);
+    }
+
+    private static void SetVisualRootVisible(GameObject visualRoot, Renderer[] renderers, bool visible)
+    {
+        if (!visible)
+        {
+            SetRenderersVisible(renderers, false);
+        }
+
+        if (visualRoot != null && visualRoot.activeSelf != visible)
+        {
+            visualRoot.SetActive(visible);
+        }
+
+        if (visible)
+        {
+            SetRenderersVisible(renderers, true);
+        }
     }
 
     private static void SetRenderersVisible(Renderer[] renderers, bool visible)

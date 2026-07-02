@@ -226,8 +226,14 @@ public class LevelSpawner : MonoBehaviour
         FishingRodEnemyTuning fishingRodTuning = zoneSpawnProfile != null
             ? zoneSpawnProfile.FishingRodTuning
             : new FishingRodEnemyTuning();
+        RayEnemyTuning rayTuning = zoneSpawnProfile != null
+            ? zoneSpawnProfile.RayTuning
+            : new RayEnemyTuning();
+        JellyfishEnemyTuning jellyfishTuning = zoneSpawnProfile != null
+            ? zoneSpawnProfile.JellyfishTuning
+            : new JellyfishEnemyTuning();
 
-        return new EnemySpawnContext(spawnCamera, player, pufferfishTuning, fishingRodTuning);
+        return new EnemySpawnContext(spawnCamera, player, pufferfishTuning, fishingRodTuning, rayTuning, jellyfishTuning);
     }
 
     private bool CanSpawnPortalForCurrentState()

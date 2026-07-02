@@ -314,6 +314,19 @@ public static class PersistentPlayerProfile
         RecordsChanged?.Invoke(currentRecords);
     }
 
+    public static void ReplaceForFairMode(PlayerProfileSaveData profile, PlayerRecordsSaveData records)
+    {
+        EnsureLoaded();
+        currentProfile = profile ?? PlayerProfileSaveData.CreateDefault();
+        currentRecords = records ?? PlayerRecordsSaveData.CreateDefault();
+        currentProfile.Normalize();
+        currentRecords.Normalize();
+        PlayerProfileRepository.Save(currentProfile);
+        PlayerProfileRepository.SaveRecords(currentRecords);
+        ProfileChanged?.Invoke(currentProfile);
+        RecordsChanged?.Invoke(currentRecords);
+    }
+
     private static void EnsureLoaded()
     {
         if (loaded)

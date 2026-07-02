@@ -37,7 +37,7 @@ Regla:
 ## Prefabs actuales
 
 - `Prefabs/Player/`: `BabySquid`.
-- `Prefabs/Enemies/`: `PezGlobo`, `Mina`, `CanaPescar`.
+- `Prefabs/Enemies/`: `PezGlobo`, `Mina`, `CanaPescar`, `Ray`, `Jellyfish`.
 - `Prefabs/Bosses/SSCarnage/`: `SSCarnage`, `BossNetWall`.
 - `Prefabs/Bosses/UnknownBoss/`: `UnknownBoss`, `BossPillars`.
 - `Prefabs/Gadgets/`: `ShellShield`, `InkBottle`.

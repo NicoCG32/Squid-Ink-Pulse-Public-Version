@@ -9,6 +9,8 @@ Servidor LAN local para feria. Corre en un PC host con Windows, guarda datos en 
 
 No reemplaza la persistencia local normal del juego. El servidor guarda snapshots agregados de participantes de feria.
 
+La guia completa para preparar una feria desde cero, generar build, configurar red, conectar 3 o 4 PCs y validar el flujo esta en [Docs/FairEventSetupGuide.md](../../Docs/FairEventSetupGuide.md).
+
 ## Ejecutar en Windows
 
 Desde esta carpeta:

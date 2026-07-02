@@ -102,6 +102,18 @@ public static class SpawnPositionResolver
             return true;
         }
 
+        if (enemyTag == EnemyTagCatalog.Mine || enemyTag == EnemyTagCatalog.Jellyfish)
+        {
+            spawnPosition = new Vector3(spawnX, RandomInFullRange(playerRange), 0f);
+            return true;
+        }
+
+        if (enemyTag == EnemyTagCatalog.Ray)
+        {
+            spawnPosition = new Vector3(spawnX, RandomInLowerFraction(playerRange, 0.75f), 0f);
+            return true;
+        }
+
         if (enemyTag == EnemyTagCatalog.FishingRod)
         {
             float laneY = CalculateFishingRodPlayerY(player, playerRange, centerY);
@@ -171,6 +183,17 @@ public static class SpawnPositionResolver
     {
         float lowerHeight = Mathf.Max(0.01f, centerY - playerRange.x);
         float maxY = playerRange.x + (lowerHeight * Mathf.Clamp(coverage, 0.01f, 1f));
+        return UnityEngine.Random.Range(playerRange.x, maxY);
+    }
+
+    private static float RandomInFullRange(Vector2 playerRange)
+    {
+        return UnityEngine.Random.Range(playerRange.x, playerRange.y);
+    }
+
+    private static float RandomInLowerFraction(Vector2 playerRange, float fraction)
+    {
+        float maxY = Mathf.Lerp(playerRange.x, playerRange.y, Mathf.Clamp01(fraction));
         return UnityEngine.Random.Range(playerRange.x, maxY);
     }
 

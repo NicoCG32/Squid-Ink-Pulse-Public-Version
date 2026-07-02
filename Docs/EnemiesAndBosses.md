@@ -29,9 +29,11 @@ La excepcion deliberada es `EnemyCanaPescar`: la caña regular pertenece al modo
 El spawn vertical depende del contrato de boundaries:
 - Camarones usan el rango visible de `CameraBoundaries`, intersectado con la camara y con `PlayerBoundaries`, por lo que no aparecen sobre el `TopBoundary` del jugador.
 - Enemigos, `DealerFish` y portales usan `PlayerBoundaries`.
-- Pez Globo aparece en los tres cuartos superiores de la mitad superior.
-- Mina aparece en los tres cuartos inferiores de la mitad inferior.
+- Pez Globo aparece en el tramo superior del rango jugable. En las zonas jugables actuales usa `upperZoneSpawnCoverage = 0.8`, equivalente a cuatro quintos del semicampo superior.
+- Mina aparece en todo el rango de `PlayerBoundaries`.
 - Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, calcula una distancia X proporcional a la velocidad horizontal actual del jugador, nace arriba y baja verticalmente hasta esa Y fija.
+- Ray esta implementado para `ZonaEpipelagica`, dentro de los tres cuartos inferiores del rango jugable. Avanza en diagonal hacia la izquierda y alterna aleatoriamente entre diagonal ascendente y descendente al aparecer. Estado actual: deshabilitado en spawn por `baseWeight: 0`.
+- Jellyfish esta implementado para `ZonaAbisopelagica`, en todo el rango jugable. Se mueve siempre hacia arriba de forma lenta. Estado actual: deshabilitado en spawn por `baseWeight: 0`.
 
 No hay rangos manuales de respaldo para spawn.
 
@@ -48,6 +50,8 @@ Tags actuales:
 - `EnemyMina`
 - `EnemyPezGlobo`
 - `EnemyCanaPescar`
+- `EnemyRay`
+- `EnemyJellyfish`
 
 ## EnemySpawnContext
 
@@ -61,6 +65,7 @@ Responsabilidad:
 Contrato actual:
 - Recibe `Camera` y `Transform player`.
 - Recibe tuning de comportamiento especifico desde `LevelSpawner` mediante `SpawnedObjectConfigurator` cuando aplica.
+- Los tunings actuales son `PufferfishEnemyTuning`, `FishingRodEnemyTuning`, `RayEnemyTuning` y `JellyfishEnemyTuning`.
 - No recibe boundaries.
 - Si el enemigo necesita limites, debe resolverlos con `BoundaryReferenceResolver`.
 
@@ -97,6 +102,53 @@ Estado actual:
 - Prefab y tag implementados.
 - Sin script propio todavia.
 - Su comportamiento actual es estatico y su aparicion depende de `LevelSpawner`.
+- Aparece en todo el rango de `PlayerBoundaries` en `ZonaEpipelagica` y `ZonaAbisopelagica`.
+
+### Ray
+
+Archivo: `Assets/Implementation/Code/Enemies/RayEnemy.cs`
+
+Prefab tecnico: `Assets/Content/Prefabs/Enemies/Ray.prefab`
+
+Estado actual:
+- Enemigo exclusivo de `ZonaEpipelagicaSpawnProfile`.
+- Usa tag `EnemyRay` y layer `Enemy`.
+- El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
+- El arte final, escala y collider quedan bajo autoria visual posterior.
+
+Responsabilidad:
+- Moverse en diagonal constante hacia la izquierda.
+- Alternar al aparecer entre diagonal ascendente y diagonal descendente.
+- No perseguir ni recapturar al jugador.
+- Detener movimiento cuando `GameSessionController.IsGameplayActive` es falso.
+
+Parametros de balance:
+- `horizontalSpeed`
+- `verticalSpeed`
+
+Estos parametros pertenecen a `ZoneSpawnProfile.rayTuning`.
+
+### Jellyfish
+
+Archivo: `Assets/Implementation/Code/Enemies/JellyfishEnemy.cs`
+
+Prefab tecnico: `Assets/Content/Prefabs/Enemies/Jellyfish.prefab`
+
+Estado actual:
+- Enemigo exclusivo de `ZonaAbisopelagicaSpawnProfile`.
+- Usa tag `EnemyJellyfish` y layer `Enemy`.
+- El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
+- `SpawnedObjectConfigurator` le agrega `LightGrazeSource` en la zona abisal igual que al resto de enemigos spawneados.
+
+Responsabilidad:
+- Moverse siempre hacia arriba lentamente.
+- No perseguir al jugador.
+- Detener movimiento cuando `GameSessionController.IsGameplayActive` es falso.
+
+Parametros de balance:
+- `upwardSpeed`
+
+Este parametro pertenece a `ZoneSpawnProfile.jellyfishTuning`.
 
 ### Cana de pescar
 
@@ -172,6 +224,7 @@ Responsabilidad:
 Contrato:
 - `UnknownBoss` usa tag `Boss` y layer `Boss`.
 - `BossPillars` usan layer `Enemy` y tag de enemigo para que colision, graze y cleanup los traten como obstaculos jugables.
+- `BossPillars/TopPillar` y `BossPillars/BottomPillar` deben usar `PolygonCollider2D` como trigger de gameplay. No deben llevar `BoxCollider2D`, porque la silueta autorada del pilar define la colision real.
 - El ultimo pilar puede actuar como pared continua cuando `spawnFinalContinuousWall` esta activo.
 - En `ZonaAbisopelagica`, `GameRoot_ZonaAbisopelagica` instala `BossEventDirector` en `FlappyBossManager` para instanciar `UnknownBoss`.
 - `UnknownBoss` declara `LightGrazeSource` propio para ser legible dentro de `LayerBlack`.

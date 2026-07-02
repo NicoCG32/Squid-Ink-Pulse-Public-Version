@@ -36,7 +36,10 @@ public sealed class PlayerSkinVisualSet : MonoBehaviour
 
     public bool IsConfigured => movementVisualRoot != null
         && inkPulseVisualRoot != null
-        && portalVisualRoot != null;
+        && portalVisualRoot != null
+        && movementVisualRoot != inkPulseVisualRoot
+        && movementVisualRoot != portalVisualRoot
+        && inkPulseVisualRoot != portalVisualRoot;
 
     private void Awake()
     {

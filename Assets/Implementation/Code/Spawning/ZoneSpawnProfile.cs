@@ -24,12 +24,14 @@ public class ZoneSpawnProfile : ScriptableObject
     [SerializeField, Range(0f, 1f)] private float coinSpawnChance = 0.225f;
     [SerializeField, Range(0f, 1f)] private float rareCoinSpawnChanceWithinCoins = 0.1f;
     [SerializeField, Min(1)] private int fishingRodEnemyInterval = 5;
-    [SerializeField, Range(0.01f, 1f)] private float upperZoneSpawnCoverage = 0.75f;
+    [SerializeField, Range(0.01f, 1f)] private float upperZoneSpawnCoverage = 0.8f;
     [SerializeField, Range(0.01f, 1f)] private float lowerZoneSpawnCoverage = 0.75f;
 
     [Header("Enemy Behaviour Tuning")]
     [SerializeField] private PufferfishEnemyTuning pufferfishTuning = new();
     [SerializeField] private FishingRodEnemyTuning fishingRodTuning = new();
+    [SerializeField] private RayEnemyTuning rayTuning = new();
+    [SerializeField] private JellyfishEnemyTuning jellyfishTuning = new();
 
     [Header("Dealer Fish Spawning")]
     [SerializeField] private bool enableDealerFishSpawns = true;
@@ -64,6 +66,8 @@ public class ZoneSpawnProfile : ScriptableObject
 
     public PufferfishEnemyTuning PufferfishTuning => pufferfishTuning ?? new PufferfishEnemyTuning();
     public FishingRodEnemyTuning FishingRodTuning => fishingRodTuning ?? new FishingRodEnemyTuning();
+    public RayEnemyTuning RayTuning => rayTuning ?? new RayEnemyTuning();
+    public JellyfishEnemyTuning JellyfishTuning => jellyfishTuning ?? new JellyfishEnemyTuning();
 
     public bool EnableDealerFishSpawns => enableDealerFishSpawns;
     public float FirstDealerFishSpawnDelay => Mathf.Max(0f, firstDealerFishSpawnDelay);

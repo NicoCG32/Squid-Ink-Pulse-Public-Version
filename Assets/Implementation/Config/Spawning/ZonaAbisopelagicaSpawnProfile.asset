@@ -32,13 +32,18 @@ MonoBehaviour:
     baseWeight: 1
     minIntensity: 0
     spawnIntervalMultiplier: 1
+  - prefab: {fileID: 7702000000000000001, guid: a1119db8e14f4f0f9d72dfc856f10b29, type: 3}
+    enemyTag: EnemyJellyfish
+    baseWeight: 0
+    minIntensity: 0
+    spawnIntervalMultiplier: 1.2
   timeBetweenSpawns: 1.5
   spawnDistanceFromCameraRight: 2
   verticalPadding: 0.75
   coinSpawnChance: 0.225
   rareCoinSpawnChanceWithinCoins: 0.1
   fishingRodEnemyInterval: 5
-  upperZoneSpawnCoverage: 0.75
+  upperZoneSpawnCoverage: 0.8
   lowerZoneSpawnCoverage: 0.75
   pufferfishTuning:
     fallSpeed: 0.55
@@ -60,6 +65,11 @@ MonoBehaviour:
     arriveDistance: 0.03
     horizontalLeadTimePaddingSeconds: 0.25
     minimumHorizontalLeadDistance: 2
+  rayTuning:
+    horizontalSpeed: 1.8
+    verticalSpeed: 1.1
+  jellyfishTuning:
+    upwardSpeed: 0.45
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30

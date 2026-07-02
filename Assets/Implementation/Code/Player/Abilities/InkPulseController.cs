@@ -26,6 +26,7 @@ public class InkPulseController : MonoBehaviour
     public float PulseRemainingSeconds => IsPulseActive ? Mathf.Max(0f, pulseTimer) : 0f;
     public float CurrentCharge => currentCharge;
     public float ChargeRatio => maxCharge > 0f ? currentCharge / maxCharge : 0f;
+    public float PulseVisualRatio => IsPulseActive ? CalculatePulseVisualRatio() : ChargeRatio;
     public bool IsCharged => currentCharge >= maxCharge;
     public bool IsPulseActive { get; private set; }
     public InkPulseState CurrentState { get; private set; } = InkPulseState.Idle;
@@ -177,6 +178,7 @@ public class InkPulseController : MonoBehaviour
             return;
         }
 
+        UpdateChargeBar();
         PersistRuntimeState();
     }
 
@@ -194,6 +196,7 @@ public class InkPulseController : MonoBehaviour
     private void EndPulse()
     {
         IsPulseActive = false;
+        pulseTimer = 0f;
         currentCharge = 0f;
         UpdateChargeBar();
         ApplyState(ResolveState());
@@ -234,9 +237,20 @@ public class InkPulseController : MonoBehaviour
 
     private void UpdateChargeBar()
     {
-        float ratio = ChargeRatio;
-        chargeBar?.UpdateBar(ratio);
-        ChargeChanged?.Invoke(ratio);
+        float displayRatio = PulseVisualRatio;
+        if (chargeBar != null)
+        {
+            chargeBar.SetFullPromptSuppressed(IsPulseActive);
+            chargeBar.UpdateBar(displayRatio);
+        }
+
+        ChargeChanged?.Invoke(ChargeRatio);
+    }
+
+    private float CalculatePulseVisualRatio()
+    {
+        float duration = Mathf.Max(0.01f, PulseDuration);
+        return Mathf.Clamp01(pulseTimer / duration);
     }
 
     private InkPulseState ResolveState()

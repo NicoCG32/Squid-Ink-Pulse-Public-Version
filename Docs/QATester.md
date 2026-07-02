@@ -150,15 +150,15 @@ Parametros ajustables:
 | `coinSpawnChance` | `ZoneSpawnProfile` | Probabilidad de que el spawn sea camaron. | Hay mas recompensa y menos peligro. |
 | `rareCoinSpawnChanceWithinCoins` | `ZoneSpawnProfile` | Probabilidad de camaron x10 cuando ya salio camaron. | Aumenta la economia de la run. |
 | `fishingRodEnemyInterval` | `ZoneSpawnProfile` | Cada cuantos enemigos de juego normal se fuerza una cana. | La cana aparece menos seguido si se sube. |
-| `upperZoneSpawnCoverage` | `ZoneSpawnProfile` | Porcion superior disponible para Pez Globo. | El Pez Globo tiene mas dispersion vertical. |
-| `lowerZoneSpawnCoverage` | `ZoneSpawnProfile` | Porcion inferior disponible para Mina. | La Mina tiene mas dispersion vertical. |
+| `upperZoneSpawnCoverage` | `ZoneSpawnProfile` | Porcion superior disponible para Pez Globo. En Epi/Abiso vale `0.8`. | El Pez Globo tiene mas dispersion vertical dentro del semicampo superior. |
+| `lowerZoneSpawnCoverage` | `ZoneSpawnProfile` | Porcion inferior disponible para enemigos sin regla vertical propia. | Da mas dispersion a amenazas que usan el fallback inferior. |
 
 `enemyProfiles` define el peso por enemigo dentro del `ZoneSpawnProfile`:
 
 | Campo | Que controla | Nota de test |
 | --- | --- | --- |
 | `prefab` | Prefab instanciado. | Debe tener tag esperado y collider correcto. |
-| `enemyTag` | Identidad logica del enemigo. | Usar `EnemyMina`, `EnemyPezGlobo` o `EnemyCanaPescar`. |
+| `enemyTag` | Identidad logica del enemigo. | Usar `EnemyMina`, `EnemyPezGlobo`, `EnemyCanaPescar`, `EnemyRay` o `EnemyJellyfish`. |
 | `baseWeight` | Peso relativo de aparicion. | Mas alto implica mayor frecuencia relativa. |
 | `minIntensity` | Intensidad minima para poder aparecer. | Sirve para retrasar enemigos complejos. |
 | `spawnIntervalMultiplier` | Modificador del intervalo despues de ese enemigo. | Mas alto deja mas aire tras ese spawn. |
@@ -323,6 +323,8 @@ Reglas vigentes:
 - Se activa con click izquierdo o tecla `Space`.
 - La carga del Ink-Pulse persiste al cruzar portales.
 - Si el Ink-Pulse esta en `Active` al cruzar, persiste con su tiempo restante.
+- Durante `Active`, `InkBar` debe vaciarse progresivamente segun `PulseRemainingSeconds / PulseDuration`; no debe saltar de lleno a vacio al iniciar el pulso.
+- El texto `CLICK` debe ocultarse durante `Active`, aunque la barra empiece visualmente llena en el primer instante del consumo.
 - La carga vuelve a cero al entrar en Game Over.
 - No puede activarse mientras `InGameShopManager` esta en `ShopEventState.Offering`.
 
@@ -433,8 +435,51 @@ La animacion de hinchado se reproduce una sola vez al entrar en expansion. El cl
 La mina no tiene script propio todavia. Su balance actual depende de:
 
 - Perfil `EnemyMina` en `ZoneSpawnProfile.enemyProfiles`.
-- `lowerZoneSpawnCoverage` en `ZoneSpawnProfile`.
+- Regla de posicion global de `SpawnPositionResolver`: puede aparecer en todo `PlayerBoundaries`.
 - Collider y escala del prefab.
+
+### Ray
+
+Estado actual: deshabilitado en spawn por `baseWeight: 0` dentro de `ZonaEpipelagicaSpawnProfile`. Para probarlo, subir temporalmente ese peso.
+
+Script de comportamiento: `RayEnemy`
+
+Owner de parametros: `ZoneSpawnProfile.rayTuning`.
+
+Reglas vigentes:
+- Solo esta en `ZonaEpipelagicaSpawnProfile`.
+- Aparece en los tres cuartos inferiores del rango jugable.
+- Se mueve en diagonal hacia la izquierda.
+- Alterna por spawn entre diagonal ascendente y descendente.
+- El prefab actual es tecnico: square visible, `BoxCollider2D` trigger y layer `Enemy`.
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `horizontalSpeed` | Velocidad propia hacia la izquierda. | Llega antes al jugador y sale antes del plano. |
+| `verticalSpeed` | Componente vertical de la diagonal. | Cruza mas rapido entre carriles altos y bajos. |
+
+### Jellyfish
+
+Estado actual: deshabilitado en spawn por `baseWeight: 0` dentro de `ZonaAbisopelagicaSpawnProfile`. Para probarlo, subir temporalmente ese peso.
+
+Script de comportamiento: `JellyfishEnemy`
+
+Owner de parametros: `ZoneSpawnProfile.jellyfishTuning`.
+
+Reglas vigentes:
+- Solo esta en `ZonaAbisopelagicaSpawnProfile`.
+- Aparece en todo el rango jugable.
+- Se mueve siempre hacia arriba lentamente.
+- En abisal recibe `LightGrazeSource` por `SpawnedObjectConfigurator`.
+- El prefab actual es tecnico: square visible, `BoxCollider2D` trigger y layer `Enemy`.
+
+Parametros ajustables:
+
+| Campo | Que controla | Efecto esperado al subirlo |
+| --- | --- | --- |
+| `upwardSpeed` | Velocidad vertical ascendente. | La medusa abandona carriles bajos mas rapido. |
 
 ### Cana de pescar
 
@@ -481,6 +526,8 @@ Contrato de tamano visual de `CanaPescar`:
 Scripts: `BossEventDirector`, `SSCarnageController`, `SSCarnageNetWall`
 
 Escena esperada actual para SS Carnage: `ZonaEpipelagica`. `ZonaAbisopelagica` puede reutilizar `BossEventDirector` como disparador generico de `UnknownBoss`/`FlappyBoss`, pero no debe tener `SSCarnageManager`, `SSCarnage` ni `BossNetWall`.
+
+Contrato de `BossPillars`: `TopPillar` y `BottomPillar` deben conservar `PolygonCollider2D` trigger como collider jugable. No deben tener `BoxCollider2D`; si aparece un box, la colision vuelve a ser rectangular y contradice la silueta autorada.
 
 Parametros ajustables:
 

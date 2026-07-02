@@ -60,6 +60,11 @@ MonoBehaviour:
     arriveDistance: 0.03
     horizontalLeadTimePaddingSeconds: 0.25
     minimumHorizontalLeadDistance: 2
+  rayTuning:
+    horizontalSpeed: 1.8
+    verticalSpeed: 1.1
+  jellyfishTuning:
+    upwardSpeed: 0.45
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30

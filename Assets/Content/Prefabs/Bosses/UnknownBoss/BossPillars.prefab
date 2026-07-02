@@ -59,7 +59,7 @@ GameObject:
   m_Component:
   - component: {fileID: 390725977012599586}
   - component: {fileID: 4528636057001420723}
-  - component: {fileID: 5909864448686672715}
+  - component: {fileID: 5708178146903656836}
   m_Layer: 7
   m_Name: TopPillar
   m_TagString: EnemyMina
@@ -142,8 +142,8 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!61 &5909864448686672715
-BoxCollider2D:
+--- !u!60 &5708178146903656836
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -186,8 +186,23 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.16080329, y: 0.5387865}
+      - {x: -0.5, y: 0.5}
+      - {x: -1.184903, y: 0.21857183}
+      - {x: -1.1886449, y: 0.076702364}
+      - {x: -0.95260286, y: -0.11545629}
+      - {x: -0.6863252, y: -0.26789752}
+      - {x: -0.50994384, y: -0.35707653}
+      - {x: -0.30480683, y: -0.4128965}
+      - {x: -0.13801244, y: -0.39961082}
+      - {x: 0.32612884, y: -0.50412315}
+      - {x: 0.5268867, y: -0.3988179}
+      - {x: 0.6890311, y: -0.22765186}
+      - {x: 1.0848513, y: 0.21369453}
+      - {x: 0.6971744, y: 0.5084319}
+  m_UseDelaunayMesh: 1
 --- !u!1 &3922673945233011543
 GameObject:
   m_ObjectHideFlags: 0
@@ -198,7 +213,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8114665531077930420}
   - component: {fileID: 1468080588284290003}
-  - component: {fileID: 7170278534810492121}
+  - component: {fileID: 3693460071559167632}
   m_Layer: 7
   m_Name: BottomPillar
   m_TagString: EnemyMina
@@ -281,8 +296,8 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!61 &7170278534810492121
-BoxCollider2D:
+--- !u!60 &3693460071559167632
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -325,8 +340,24 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: -0.59682876, y: 0.5}
+      - {x: -0.8669434, y: 0.37868997}
+      - {x: -1.1531657, y: 0.077104755}
+      - {x: -1.278713, y: -0.077210024}
+      - {x: -1.319627, y: -0.16740589}
+      - {x: -1.3218017, y: -0.22813626}
+      - {x: -0.95224404, y: -0.435556}
+      - {x: -0.8984451, y: -0.47294885}
+      - {x: -0.656416, y: -0.50390434}
+      - {x: 0.5, y: -0.5}
+      - {x: 1.137692, y: -0.16589448}
+      - {x: 1.0888499, y: -0.07501386}
+      - {x: 0.8047136, y: 0.12324216}
+      - {x: 0.5171983, y: 0.28491113}
+      - {x: 0.18716615, y: 0.3984864}
+  m_UseDelaunayMesh: 1
 --- !u!1 &5563123955990547593
 GameObject:
   m_ObjectHideFlags: 0

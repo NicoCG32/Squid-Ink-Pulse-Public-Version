@@ -210,6 +210,11 @@ public class PillarObstacle : MonoBehaviour
 
     private float ResolveAuthoredUnitHeight(Transform pillar)
     {
+        if (pillar.TryGetComponent(out PolygonCollider2D polygonCollider))
+        {
+            return ResolvePolygonUnitHeight(polygonCollider);
+        }
+
         if (pillar.TryGetComponent(out SpriteRenderer renderer) && renderer.sprite != null)
         {
             return Mathf.Max(0.01f, renderer.sprite.bounds.size.y);
@@ -221,6 +226,35 @@ public class PillarObstacle : MonoBehaviour
         }
 
         return 1f;
+    }
+
+    private static float ResolvePolygonUnitHeight(PolygonCollider2D polygonCollider)
+    {
+        if (polygonCollider == null || polygonCollider.pathCount <= 0)
+        {
+            return 1f;
+        }
+
+        float minY = float.PositiveInfinity;
+        float maxY = float.NegativeInfinity;
+
+        for (int pathIndex = 0; pathIndex < polygonCollider.pathCount; pathIndex++)
+        {
+            Vector2[] path = polygonCollider.GetPath(pathIndex);
+            for (int pointIndex = 0; pointIndex < path.Length; pointIndex++)
+            {
+                float pointY = path[pointIndex].y + polygonCollider.offset.y;
+                minY = Mathf.Min(minY, pointY);
+                maxY = Mathf.Max(maxY, pointY);
+            }
+        }
+
+        if (!float.IsFinite(minY) || !float.IsFinite(maxY))
+        {
+            return 1f;
+        }
+
+        return Mathf.Max(0.01f, maxY - minY);
     }
 
     private enum PillarAnchor
