@@ -15,7 +15,7 @@ public sealed class FairApiClient
         this.timeoutSeconds = Mathf.Max(1, Mathf.CeilToInt(timeoutSeconds));
     }
 
-    public IEnumerator CheckHealth(Action<FairApiResult<FairHealthResponse>> onCompleted)
+    public IEnumerator CheckHealth(Action<FairApiResult<FairHealthResponse>> onCompleted, bool logFailure = true)
     {
         using UnityWebRequest webRequest = UnityWebRequest.Get($"{baseUrl}/health");
         webRequest.timeout = timeoutSeconds;
@@ -44,7 +44,11 @@ public sealed class FairApiClient
         string message = !string.IsNullOrWhiteSpace(error?.message)
             ? error.message
             : webRequest.error;
-        Debug.LogWarning($"[FairApiClient] GET {baseUrl}/health failed. Result={webRequest.result}. Code={webRequest.responseCode}. Error={webRequest.error}");
+        if (logFailure)
+        {
+            Debug.LogWarning($"[FairApiClient] GET {baseUrl}/health failed. Result={webRequest.result}. Code={webRequest.responseCode}. Error={webRequest.error}");
+        }
+
         onCompleted?.Invoke(FairApiResult<FairHealthResponse>.Fail(errorCode, message, webRequest.responseCode));
     }
 

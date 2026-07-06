@@ -50,6 +50,7 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private TutorialComicPage[] tutorialComicPages = Array.Empty<TutorialComicPage>();
 
     private bool isLoading;
+    private bool isCheckingFairLogin;
     private bool tutorialComicsOpen;
     private int currentTutorialComicPageIndex = -1;
     private int demoShrimpSecretProgress;
@@ -119,6 +120,33 @@ public class MainMenu : MonoBehaviour
         {
             Debug.LogWarning("[MainMenu] El login de feria esta desactivado por --fair-disabled.", this);
             return;
+        }
+
+        if (isCheckingFairLogin)
+        {
+            return;
+        }
+
+        StartCoroutine(OpenFairLoginWhenServerAvailable());
+    }
+
+    private IEnumerator OpenFairLoginWhenServerAvailable()
+    {
+        isCheckingFairLogin = true;
+        string serverUrl = FairModeSettings.ServerBaseUrl;
+        FairApiClient client = new(serverUrl, FairModeSettings.StartupProbeTimeoutSeconds);
+        bool serverAvailable = false;
+
+        yield return client.CheckHealth(result =>
+        {
+            serverAvailable = result.Success && (result.Value == null || result.Value.ok);
+        }, logFailure: false);
+
+        isCheckingFairLogin = false;
+        if (!serverAvailable)
+        {
+            Debug.Log($"[MainMenu] No se abre el login de feria porque no hay servidor activo en {serverUrl}/health.", this);
+            yield break;
         }
 
         FairParticipantSession.EnsureInstance();

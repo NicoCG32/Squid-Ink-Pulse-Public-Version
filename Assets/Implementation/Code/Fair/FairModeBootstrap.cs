@@ -44,15 +44,17 @@ public sealed class FairModeStartupProbe : MonoBehaviour
         yield return client.CheckHealth(result =>
         {
             serverAvailable = result.Success && (result.Value == null || result.Value.ok);
-        });
+        }, logFailure: false);
 
         if (!serverAvailable)
         {
-            Debug.LogWarning($"Fair mode could not verify /health at {serverUrl}. Showing login UI so the server URL can be corrected.");
+            Debug.Log($"Fair mode skipped because no active server was found at {serverUrl}/health.");
+            Destroy(gameObject);
+            yield break;
         }
 
         FairParticipantSession.EnsureInstance();
-        FairModeMenuManager.EnsureInstance().ShowInitialLogin(serverAvailable);
+        FairModeMenuManager.EnsureInstance().ShowInitialLogin();
         Destroy(gameObject);
     }
 

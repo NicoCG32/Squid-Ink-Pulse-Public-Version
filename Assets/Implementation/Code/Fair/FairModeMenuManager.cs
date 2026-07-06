@@ -53,6 +53,12 @@ public sealed class FairModeMenuManager : MonoBehaviour
 
     public void ShowInitialLogin(bool serverVerified = true)
     {
+        if (!serverVerified)
+        {
+            Hide();
+            return;
+        }
+
         if (FairParticipantSession.HasActiveSession)
         {
             Hide();
@@ -60,11 +66,9 @@ public sealed class FairModeMenuManager : MonoBehaviour
         }
 
         BuildUi();
-        SetStatus(serverVerified
-            ? "Ingresa tu nick y codigo, o crea un jugador nuevo."
-            : $"No se pudo verificar el servidor. Prueba {BuildHealthUrl()} en este PC.");
+        SetStatus("Ingresa tu nick y codigo, o crea un jugador nuevo.");
         SetBusy(false);
-        SetContinueButton(serverVerified ? null : "Continuar local");
+        SetContinueButton(null);
         recoveryCodeInput.gameObject.SetActive(true);
         Show();
     }
