@@ -2,14 +2,14 @@
 
 ## Proposito
 
-`ZonaAbisopelagica` se diferencia de la zona principal mediante oscuridad ambiental local. La implementacion no duplica fondos: el fondo claro sigue siendo el fondo real de escena y una capa negra semitransparente, `LayerBlack`, lo cubre. Las entidades con `LightGrazeSource` declaran centros de luz y `ZoneLightingController` genera un overlay compuesto que revela esa oscuridad con bordes suaves.
+`ZonaAbisopelagica` se diferencia de la zona principal mediante oscuridad ambiental local. La implementación no duplica fondos: el fondo claro sigue siendo el fondo real de escena y una capa negra semitransparente, `LayerBlack`, lo cubre. Las entidades con `LightGrazeSource` declaran centros de luz y `ZoneLightingController` genera un overlay compuesto que revela esa oscuridad con bordes suaves.
 
 ## Scripts
 
 | Script | Ubicacion | Responsabilidad |
 | --- | --- | --- |
 | `ZoneLightingController` | `Assets/Implementation/Code/World/Lighting/ZoneLightingController.cs` | Controla `LayerBlack`, su opacidad y el overlay compuesto de luz. |
-| `LightGrazeSource` | `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs` | Registra la muestra visual de luz de una entidad: posicion, forma local y titileo opcional. |
+| `LightGrazeSource` | `Assets/Implementation/Code/World/Lighting/LightGrazeSource.cs` | Registra la muestra visual de luz de una entidad: posición, forma local y titileo opcional. |
 
 ## Contrato de escena
 
@@ -29,7 +29,7 @@ Las entidades de mundo relevantes en `ZonaAbisopelagica` reciben `LightGrazeSour
 - La instancia `Squid` de `BabySquid.prefab` lo tiene como override de escena en `ZonaAbisopelagica`.
 - `SpawnedObjectConfigurator`, invocado por `LevelSpawner`, lo agrega a camarones, enemigos, `DealerFish` y portales si existe `ZoneLightingController` activo.
 
-Los prefabs compartidos no deben depender de esta mecanica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaAbisopelagica`.
+Los prefabs compartidos no deben depender de esta mecánica; el prefab base `BabySquid` tampoco debe incluirla. `SSCarnage` y `BossNetWall` no participan en este sistema porque no aparecen en `ZonaAbisopelagica`.
 
 En modo compuesto, `LightGrazeSource` no crea renderers visibles por entidad: solo participa en una lista runtime de posiciones. `ZoneLightingController` calcula una unica textura de oscuridad y, cuando dos luces se cruzan, toma la menor opacidad por pixel. Esto evita que dos halos se sumen y generen manchas negras o sobreposicion artificial. El radio, la suavidad y la resolucion del overlay se definen en `ZoneLightingController`, no en la entidad.
 
@@ -45,9 +45,9 @@ Casos actuales:
 
 ## Rendimiento del modo compuesto
 
-El overlay compuesto esta optimizado para no escalar con objetos fuera de camara. El flujo esperado es:
+El overlay compuesto esta optimizado para no escalar con objetos fuera de cámara. El flujo esperado es:
 
-1. Calcular el area visible de camara con margen.
+1. Calcular el area visible de cámara con margen.
 2. Recolectar solo `LightGrazeSource` activos dentro de esa area ampliada por el radio de luz.
 3. Rellenar la textura con la opacidad negra base.
 4. Pintar solo el rectangulo de pixeles que puede afectar cada luz visible.
@@ -55,7 +55,7 @@ El overlay compuesto esta optimizado para no escalar con objetos fuera de camara
 
 No debe volver al algoritmo de recorrer toda la textura y comparar cada pixel contra todas las fuentes activas. Ese enfoque cuesta `ancho * alto * fuentes` por actualizacion y degrada especialmente en `ZonaAbisopelagica`, donde camarones, enemigos, `DealerFish`, portales y jugador pueden declarar `LightGrazeSource`.
 
-La reduccion de frecuencia es intencional: la iluminacion es feedback ambiental, no una mecanica de precision. El contrato actual usa `60` recomposiciones por segundo para que el halo no se perciba entrecortado durante Ink-Pulse. Si el costo vuelve a ser alto, bajarlo o reducir `compositeTextureWidth`/`compositeTextureHeight`.
+La reduccion de frecuencia es intencional: la iluminacion es feedback ambiental, no una mecánica de precision. El contrato actual usa `60` recomposiciones por segundo para que el halo no se perciba entrecortado durante Ink-Pulse. Si el costo vuelve a ser alto, bajarlo o reducir `compositeTextureWidth`/`compositeTextureHeight`.
 
 ## Diferencia con GrazeDetector
 
@@ -75,14 +75,14 @@ La reduccion de frecuencia es intencional: la iluminacion es feedback ambiental,
 
 Esta separacion permite ajustar lectura visual de `ZonaAbisopelagica` sin alterar economia, carga de Ink-Pulse ni dificultad directa.
 
-## Parametros ajustables
+## Parámetros ajustables
 
 Owner: `ZoneLightingController`.
 
 | Campo | Que controla |
 | --- | --- |
 | `blackAlpha` | Opacidad fija de `LayerBlack`. |
-| `overlayPadding` | Margen extra para cubrir toda la camara aunque cambie aspect ratio. |
+| `overlayPadding` | Margen extra para cubrir toda la cámara aunque cambie aspect ratio. |
 | `maskSortingOrderPadding` | Rango de sorting usado solo por el modo fallback con `SpriteMask`. |
 | `lightHoleRadius` | Radio de mundo de cada zona revelada. |
 | `lightEdgeSoftness` | Proporcion del radio usada como borde suave. `0` equivale a borde duro. |
@@ -91,7 +91,7 @@ Owner: `ZoneLightingController`.
 | `compositeTextureWidth` | Resolucion horizontal de la textura runtime de oscuridad. |
 | `compositeTextureHeight` | Resolucion vertical de la textura runtime de oscuridad. |
 | `compositeUpdatesPerSecond` | Frecuencia maxima a la que se recompone la textura. |
-| `lightSourceCullingPadding` | Margen extra, en unidades de mundo, para considerar fuentes cercanas al borde de camara. |
+| `lightSourceCullingPadding` | Margen extra, en unidades de mundo, para considerar fuentes cercanas al borde de cámara. |
 
 Owner: `LightGrazeSource`.
 
@@ -106,4 +106,4 @@ Owner: `LightGrazeSource`.
 
 ## Regla de mantenimiento
 
-No agregar parametros globales de balance de luz a enemigos, camarones, portales o tienda. Las entidades pueden declarar `LightGrazeSource` con ancla, forma y titileo local; el radio base, opacidad, suavidad, resolucion y frecuencia de recomposicion pertenecen al `ZoneLightingController`.
+No agregar parámetros globales de balance de luz a enemigos, camarones, portales o tienda. Las entidades pueden declarar `LightGrazeSource` con ancla, forma y titileo local; el radio base, opacidad, suavidad, resolucion y frecuencia de recomposicion pertenecen al `ZoneLightingController`.

@@ -6,8 +6,8 @@
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
-/[Bb]uild/
 /[Bb]uilds/
+/[Bb]uild/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 *.log
@@ -78,6 +78,7 @@ mono_crash.*
 *.unitypackage
 *.unitypackage.meta
 *.app
+*_BurstDebugInformation_DoNotShip/
 
 # Crashlytics generated file
 crashlytics-build.properties

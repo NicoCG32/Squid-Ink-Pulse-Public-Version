@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Los portales permiten cambiar entre escenarios de gameplay sin pasar por menu ni terminar la run. La implementacion actual cubre la transicion directa entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
+Los portales permiten cambiar entre escenarios de gameplay sin pasar por menú ni terminar la run. La implementación actual cubre la transición directa entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
 
 El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpawner`, igual que otros eventos del mundo.
 
@@ -42,13 +42,13 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 
 `LevelSpawner`:
 - Instancia `ScenePortal.prefab` como evento temporal de mundo.
-- Ubica el portal por la derecha de la camara.
+- Ubica el portal por la derecha de la cámara.
 - Elige la altura dentro del rango permitido por `PlayerBoundaries`.
 - Aplica tag `Portal` y capa `Collectible` de forma recursiva.
 - Puede exigir que no exista otro portal activo antes de crear uno nuevo.
 - En `PostBossWindow`, espera `firstPortalSpawnDelay`, realiza una sola tirada con `postBossPortalSpawnChance` y no reintenta hasta el siguiente boss.
 
-## Politicas de aparicion
+## Politicas de aparición
 
 `LevelSpawner` usa `PortalSpawnPolicy`:
 
@@ -57,7 +57,7 @@ El portal no es un objeto fijo de escena. Es un prefab instanciado por `LevelSpa
 | `Disabled` | No instancia portales. |
 | `PostBossWindow` | Evalua un portal solo mientras `RunProgressionDirector.EventState` sea `PostBossWindow`, despues de un delay y con probabilidad configurable. |
 
-Configuracion actual:
+Configuración actual:
 
 | Escena | Politica | Delay | Probabilidad | Reintento |
 | --- | --- | --- | --- | --- |
@@ -81,7 +81,7 @@ Esto permite usar el mismo prefab como portal de ida y portal inverso.
 
 ## Lore antes del cambio
 
-La transicion narrativa de portal pertenece al sistema de lore, no al prefab visual del portal.
+La transición narrativa de portal pertenece al sistema de lore, no al prefab visual del portal.
 
 Secuencia esperada:
 1. El jugador toca `ScenePortal`.
@@ -102,7 +102,7 @@ Cruzar un portal no equivale a Game Over:
 - `RuntimeGadgetInventory` conserva gadgets y slots.
 - `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante.
 - `RuntimeRunScore` conserva el puntaje acumulado de la run.
-- `RuntimePlayerPace` conserva la progresion de velocidad.
+- `RuntimePlayerPace` conserva la progresión de velocidad.
 - `GameSessionController` reinicia esos estados de run solo al entrar en `GameSessionState.GameOver`.
 - `ShrimpRuntimeWallet` conserva camarones durante runtime.
 - `PersistentPlayerProfile` incrementa `player-records.json.totalPortalsCrossed` cuando el portal acepta cargar la escena destino.
@@ -127,5 +127,5 @@ Si faltan boundaries, el portal no debe inventar una altura manual.
 - No usar tag `Collectible` en portales, aunque usen la capa `Collectible`; el tag debe ser `Portal`.
 - No usar `DealerFish` para portales: tienda y portal son interacciones distintas.
 - No poner rutas de escena en el prefab `ScenePortal`; esas rutas pertenecen a `SceneFlowController`.
-- La animacion del jugador al cruzar portal pertenece a `PortalVisual` dentro de `BabySquid`; el prefab `ScenePortal` solo detecta contacto.
+- La animación del jugador al cruzar portal pertenece a `PortalVisual` dentro de `BabySquid`; el prefab `ScenePortal` solo detecta contacto.
 - No cargar la escena inmediatamente al tocar portal: primero debe entrar `PlayerRuntimeState.PortalTransition` y reproducirse `PortalEffect`.

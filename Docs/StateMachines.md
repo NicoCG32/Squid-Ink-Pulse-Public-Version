@@ -2,24 +2,23 @@
 
 ## Resumen
 
-Este documento registra las maquinas de estado formales de Squid Ink-Pulse y las extensiones que solo deben formalizarse si ganan responsabilidad sistemica.
+Este documento registra las máquinas de estado formales de Squid Ink-Pulse y las extensiones que solo deben formalizarse si ganan responsabilidad sistemica.
 
-Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea interacciones, gobierna una transicion importante, o evita que varios sistemas dependan de temporizadores y banderas sueltas.
+Un estado merece existir si cambia comportamiento sistemico, habilita o bloquea interacciones, gobierna una transición importante, o evita que varios sistemas dependan de temporizadores y banderas sueltas.
 
-La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchitecture.md). En particular, un `...State` modela la fase; el `...Controller`, `...Manager` o `...Director` dueno ejecuta la transicion y aplica efectos sobre las especializaciones.
+La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchitecture.md). En particular, un `...State` modela la fase; el `...Controller`, `...Manager` o `...Director` dueno ejecuta la transición y aplica efectos sobre las especializaciones.
 
 ## Jerarquia conceptual
 
 | Nivel | Maquina | Pregunta que responde |
 | --- | --- | --- |
 | Global | `GameSessionState` | La simulacion esta jugando, pausada o terminada? |
-| Macro run | `RunEventState` | La run esta en flujo normal, boss, post-boss o transicion? |
+| Macro run | `RunEventState` | La run esta en flujo normal, boss, post-boss o transición? |
 | Entidad jugador | `PlayerRuntimeState` | El jugador se mueve, esta en Ink-Pulse, esta cruzando portal o murio? |
 | Recurso del jugador | `InkPulseState` | El Ink-Pulse esta vacio, cargando, listo o activo? |
 | Evento de suministro | `ShopEventState` | La tienda temporal esta cerrada u ofreciendo un gadget? |
-| Tutorial | `TutorialStep` | Que mecanica pedagogica debe ensenarse o validarse ahora? |
 | Boss especifico | `SSCarnageAttackState` | En que fase interna esta el ataque del SS Carnage? |
-| Camara | `CameraEventMode` | Seguir, abrir vista amplia o volver al seguimiento? |
+| Cámara | `CameraEventMode` | Seguir, abrir vista amplia o volver al seguimiento? |
 | Narrativa | `LoreComicEvent` + `LoreComicZone` | Que vineta narrativa debe mostrarse antes de continuar un flujo? |
 | Feedback visual de zona | ciclo no formal de `ZoneLightingController` | La zona esta oscura, revelada o volviendo a oscuridad? |
 
@@ -30,7 +29,6 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 - `PlayerRuntimeState` (`Player/State/PlayerRuntimeState.cs`)
 - `InkPulseState` (`Player/Abilities/InkPulseState.cs`)
 - `ShopEventState` (`UI/Shop/ShopEventState.cs`)
-- `TutorialStep` (`Tutorial/TutorialStep.cs`)
 - `SSCarnageAttackState` (`Bosses/SSCarnage/SSCarnageAttackState.cs`)
 - `CameraEventMode` (`Core/Camera/CameraEventMode.cs`)
 - `LoreComicEvent` y `LoreComicZone` (`Lore/LoreComicPresenter.cs`)
@@ -58,14 +56,14 @@ La regla arquitectonica completa esta en [SoftwareArchitecture.md](SoftwareArchi
 
 | Estado | Efecto |
 | --- | --- |
-| `Moving` | Movimiento normal y animacion base. |
-| `InkPulse` | Movimiento impulsado durante Ink-Pulse y animacion visual de impulso no-loop. |
+| `Moving` | Movimiento normal y animación base. |
+| `InkPulse` | Movimiento impulsado durante Ink-Pulse y animación visual de impulso no-loop. |
 | `PortalTransition` | Bloquea movimiento e input nuevo de Ink-Pulse mientras reproduce `PortalEffect` antes de cargar la escena destino. |
 | `Death` | Estado de derrota. |
 
 `PlayerStateController` traduce eventos de `InkPulseController` y `ScenePortal` a estado del jugador y comunica el cambio a `PlayerMovement`. No gobierna animadores directamente.
 
-La presentacion visual vive en `PlayerVisualStateController`, ubicado en el root de `BabySquid`. Este controlador observa `PlayerRuntimeState` y aplica prioridad estricta:
+La presentación visual vive en `PlayerVisualStateController`, ubicado en el root de `BabySquid`. Este controlador observa `PlayerRuntimeState` y aplica prioridad estricta:
 
 | Prioridad | Visual visible |
 | --- | --- |
@@ -86,7 +84,7 @@ Esta separacion evita que `PortalEffect`, `InkPulse.anim` y `Movement.anim` dibu
 
 `RuntimeInkPulseState` conserva carga, estado activo y tiempo restante entre portales. `GameOver` lo reinicia.
 
-El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCrossfader` observa `InkPulseState.Active` y ajusta mezcla; `SoundtrackPitchProgression` observa `RuntimePlayerPace.ElapsedSpeedSeconds` y ajusta pitch. Ninguno gobierna input, dificultad, spawn ni dano.
+El soundtrack dinámico no agrega una maquina de estado propia. `InkPulseMusicCrossfader` observa `InkPulseState.Active` y ajusta mezcla; `SoundtrackPitchProgression` observa `RuntimePlayerPace.ElapsedSpeedSeconds` y ajusta pitch. Ninguno gobierna input, dificultad, spawn ni dano.
 
 ### ShopEventState
 
@@ -97,46 +95,6 @@ El soundtrack dinamico no agrega una maquina de estado propia. `InkPulseMusicCro
 | `Closed` | No hay oferta visible. |
 | `Offering` | La tienda muestra gadget, precio y contador. La compra se intenta con `B`. |
 
-### TutorialStep
-
-`TutorialStep` pertenece a `TutorialDirector` y representa progresion pedagogica, no dificultad normal. Su contrato es observar o solicitar eventos de aprendizaje sin cambiar el significado de `RunEventState`, `GameSessionState` o `LevelSpawner`.
-
-| Estado | Efecto |
-| --- | --- |
-| `Inactive` | Director presente pero sin secuencia activa. |
-| `Movement` | Valida desplazamiento vertical dentro de `PlayerBoundaries`. |
-| `GrazeCharge` | Valida carga de Ink-Pulse por graze controlado. |
-| `InkPulseObstacle` | Valida que Ink-Pulse permita superar una amenaza obligatoria. |
-| `CollectShrimps10` | Espera recoleccion de 10 camarones desde el baseline del paso. |
-| `FirstShopOpen` | Espera apertura de la primera tienda temporal. |
-| `BuyInkBottle` | Espera compra de Ink Bottle. |
-| `InkBottleBarrier` | Exige usar Ink Bottle para preparar Ink-Pulse y superar una barrera dirigida. |
-| `CarnageIntro` | Espera SS Carnage con red activa. |
-| `CarnageInkPulseAssist` | Da asistencia mecanica breve para dejar Ink-Pulse listo si hace falta. |
-| `CarnageInkPulseResolve` | Espera resolucion de la red de SS Carnage. |
-| `SecondShopOpen` | Espera apertura de la segunda tienda temporal. |
-| `BuyShellShield` | Espera compra de Shell Shield. |
-| `ProtectedHitSetup` | Instancia una amenaza para validar el golpe protegido. |
-| `ProtectedHitResolved` | Espera bloqueo/consumo de Shell Shield. |
-| `PortalSpawn` | Instancia portal local. |
-| `PortalEnter` | Espera entrada al portal sin cambio de escena. |
-| `VisualZoneShift` | Activa/desactiva roots visuales de zona si estan asignados. |
-| `FinalEnemy` | Instancia amenaza final. |
-| `FinalDeath` | Espera Game Over sin Shell Shield disponible. |
-| `Completed` | Tutorial completado. |
-
-El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`, pero esos flags viven en `TutorialDirector`; no son excepciones dispersas en los sistemas de gameplay. En `ZonaTutorial`, ambos spawners normales permanecen bloqueados hasta `Completed`.
-
-### TutorialPhase
-
-`TutorialPhase` es la subfase pedagogica de cada `TutorialStep`. Sirve para separar presentacion y practica sin crear otro sistema de tutorial.
-
-| Estado | Efecto |
-| --- | --- |
-| `Inactive` | No hay paso activo o el tutorial termino. |
-| `Presentation` | El juego puede congelarse durante un tiempo configurable para mostrar comic o explicacion visual conectada por Inspector. |
-| `Practice` | El jugador prueba la mecanica; el paso evalua su condicion y puede usar un limite de tiempo configurable. |
-
 ### SSCarnageAttackState
 
 | Estado | Efecto |
@@ -144,7 +102,7 @@ El director puede activar compuertas sobre `LevelSpawner` y `BossEventDirector`,
 | `Inactive` | Boss sin ataque activo. |
 | `Warning` | Carnage avisa antes de desplegar red. |
 | `DeployingNet` | Instanciacion de la red. |
-| `NetActive` | La red decide resolucion o fallo; si cleanup elimina la red o el root del boss por quedar fuera de camara, el boss lo trata como resolucion para no bloquear `RunEventState.BossActive`. |
+| `NetActive` | La red decide resolucion o fallo; si cleanup elimina la red o el root del boss por quedar fuera de cámara, el boss lo trata como resolucion para no bloquear `RunEventState.BossActive`. |
 | `Resolved` | El jugador supero el evento. |
 | `Failed` | El jugador fallo el evento. |
 | `Exiting` | Carnage se retira hacia la derecha. |
@@ -182,10 +140,10 @@ No existe como enum formal porque no bloquea input, no altera spawn y no coordin
 | Fase conceptual | Efecto |
 | --- | --- |
 | Oscuro | `LayerBlack` usa `blackAlpha` y cubre el fondo. |
-| Relevado | Cada `LightGrazeSource` declara una posicion de luz activa. |
+| Relevado | Cada `LightGrazeSource` declara una posición de luz activa. |
 | Composicion | `ZoneLightingController` genera una unica textura de oscuridad y usa la menor opacidad por pixel cuando dos luces se cruzan. |
 
-Debe formalizarse como estado propio solo si una extension posterior modifica reglas de spawn, IA, tutorial, audio adaptativo o interacciones de zona.
+Debe formalizarse como estado propio solo si una extension posterior modifica reglas de spawn, IA, audio adaptativo o interacciones de zona.
 
 ## Estados de extension
 
@@ -193,10 +151,10 @@ Debe formalizarse como estado propio solo si una extension posterior modifica re
 
 Nota sobre portales:
 - `ScenePortal` ya implementa el cambio directo entre `ZonaEpipelagica` y `ZonaAbisopelagica`.
-- `LevelSpawner` gobierna aparicion de portales solo durante `PostBossWindow`; tanto `ZonaEpipelagica` como `ZonaAbisopelagica` usan delay y probabilidad configurables despues del boss.
+- `LevelSpawner` gobierna aparición de portales solo durante `PostBossWindow`; tanto `ZonaEpipelagica` como `ZonaAbisopelagica` usan delay y probabilidad configurables despues del boss.
 - Cruzar un portal conserva `RuntimeGadgetInventory` y `RuntimeInkPulseState`.
 - Entrar en `GameSessionState.GameOver` reinicia ambos.
-- La transicion visual actual se modela dentro de `PlayerRuntimeState.PortalTransition`. Solo debe escalar a una maquina `PortalTransitionState` separada si aparecen fases internas como entrada, fundido, carga asincronica o salida.
+- La transición visual actual se modela dentro de `PlayerRuntimeState.PortalTransition`. Solo debe escalar a una maquina `PortalTransitionState` separada si aparecen fases internas como entrada, fundido, carga asincronica o salida.
 
 Nota sobre gadgets:
 - El inventario ya existe como modelo runtime por posesion unica y slots.
@@ -205,11 +163,11 @@ Nota sobre gadgets:
 - `Ink-Bottle` es activo y fuerza `InkPulseState.Ready` cuando procede.
 - Los desbloqueos permanentes de gadgets no son posesion runtime: `RunGadgetUnlockService` solo decide si pueden aparecer en `ShopEventState.Offering`.
 - La tienda out-of-game no agrega estados de gadget; sus compras son skins o niveles de `permanentUpgrades`.
-- `GadgetRuntimeState` queda como extension tecnica, no como dependencia de la entrega.
+- `GadgetRuntimeState` queda como extension técnica, no como dependencia de la entrega.
 
 ## Lo que no es estado
 
-Los boundaries no son una maquina de estado ni un parametro de progresion. Son contrato estructural de escena:
+Los boundaries no son una maquina de estado ni un parametro de progresión. Son contrato estructural de escena:
 - `PlayerBoundaries/TopBoundary`
 - `PlayerBoundaries/BottomBoundary`
 - `CameraBoundaries/TopBoundary`

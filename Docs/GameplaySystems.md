@@ -8,23 +8,23 @@ Este documento agrupa los sistemas que definen la experiencia directa del jugado
 
 Archivo: `Assets/Implementation/Code/Player/Movement/PlayerMovement.cs`
 
-Prefab canonico: `Assets/Content/Prefabs/Player/BabySquid.prefab`
+Prefab canónico: `Assets/Content/Prefabs/Player/BabySquid.prefab`
 
 Responsabilidad:
 - Mover al jugador en horizontal con avance continuo.
-- Ajustar la posicion vertical segun input del mouse.
-- Aplicar limites verticales usando `PlayerBoundaries`.
+- Ajustar la posición vertical segun input del mouse.
+- Aplicar límites verticales usando `PlayerBoundaries`.
 - Cambiar velocidad y tilt durante Ink-Pulse.
 - Opcionalmente elegir una Y inicial aleatoria dentro de `PlayerBoundaries`.
 
-Contrato de limites:
+Contrato de límites:
 - No usa `minY` ni `maxY` serializados.
 - No recibe `topBorder` ni `bottomBorder` por Inspector.
 - Si `PlayerBoundaries/TopBoundary` o `PlayerBoundaries/BottomBoundary` faltan, el problema es de escena.
 
 Contrato de prefab:
 - Las escenas jugables usan una instancia llamada `Squid`, pero la fuente editable es `BabySquid.prefab`.
-- El prefab base no guarda referencias externas a sesion, camara, HUD, progression director ni boundaries.
+- El prefab base no guarda referencias externas a sesión, cámara, HUD, progression director ni boundaries.
 - Las instancias de escena tienen esas referencias externas asignadas en Inspector.
 - Los componentes del jugador resuelven esas referencias en runtime solo como respaldo.
 - Los cambios de collider, visuales base, `GrazeZone`, inventario o Ink-Pulse deben aplicarse al prefab.
@@ -49,7 +49,7 @@ Responsabilidad:
 - Permitir que `Ink-Bottle` fuerce el estado `Ready` mediante `TryForceReady()`.
 - Persistir carga, estado activo y tiempo restante entre portales.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
-- Durante `Active`, la carga mecanica ya queda consumida, pero `ChargeBar` muestra `PulseRemainingSeconds / PulseDuration` para que la InkBar se vacie gradualmente mientras dura el pulso.
+- Durante `Active`, la carga mecánica ya queda consumida, pero `ChargeBar` muestra `PulseRemainingSeconds / PulseDuration` para que la InkBar se vacie gradualmente mientras dura el pulso.
 - Bloquear activacion manual mientras `InGameShopManager` esta mostrando una oferta temporal.
 - Bloquear activacion nueva mientras `PlayerStateController` esta en `PlayerRuntimeState.PortalTransition`.
 - Exponer eventos para feedback externo, incluida la mezcla musical del soundtrack normal y `INK`.
@@ -57,7 +57,7 @@ Responsabilidad:
 
 Input:
 - Click izquierdo o tecla `Space` intentan activar el pulso.
-- Ambos inputs pasan por la misma validacion: no activan durante tienda, portal, muerte, Game Over ni antes de `Ready`.
+- Ambos inputs pasan por la misma comprobacion: no activan durante tienda, portal, muerte, Game Over ni antes de `Ready`.
 
 Estados:
 - `Idle`
@@ -95,12 +95,12 @@ Responsabilidad:
 - Oscurecer `ZonaAbisopelagica` mediante un overlay de escena.
 - Componer una unica textura de oscuridad que revela el entorno alrededor de entidades con `LightGrazeSource`.
 - Suavizar el borde de cada zona revelada sin acumular opacidad cuando dos luces se cruzan.
-- Filtrar fuentes fuera de camara y recomponer solo a una frecuencia configurable para evitar picos de FPS.
+- Filtrar fuentes fuera de cámara y recomponer solo a una frecuencia configurable para evitar picos de FPS.
 - Mantenerse independiente del `GrazeDetector` y del `GrazeZone`.
 - No cargar Ink-Pulse ni modificar economia, dano o colisiones.
 
 Reglas:
-- Los parametros visuales viven en `ZoneLightingController`.
+- Los parámetros visuales viven en `ZoneLightingController`.
 - En modo compuesto, `LayerBlack` usa una textura generada por `ZoneLightingController` y `SpriteRenderer.maskInteraction = None`.
 - `SpriteRenderer.maskInteraction = VisibleOutsideMask` solo corresponde al fallback legacy con `SpriteMask`.
 - En modo compuesto, el algoritmo debe pintar solo el area de pixeles afectada por cada fuente visible, no comparar cada pixel contra todas las fuentes activas.
@@ -151,13 +151,13 @@ Archivos:
 
 Responsabilidad:
 - Registrar avance abstracto de la partida como puntaje.
-- Subir rapidamente mientras la sesion esta en gameplay activo.
+- Subir rápidamente mientras la sesión esta en gameplay activo.
 - Persistir entre portales.
 - Conservar el valor acumulado al pasar de `ZonaEpipelagica` a `ZonaAbisopelagica`.
 - Pausar acumulacion desde el contacto con portal mientras la run esta en `RunEventState.Transitioning`.
 - Capturar el puntaje final al entrar en Game Over antes de reiniciar el contador runtime.
 - Reiniciarse al pulsar reintentar, porque se inicia una run nueva desde `ZonaEpipelagica`.
-- Alimentar sistemas de progresion como precios de tienda.
+- Alimentar sistemas de progresión como precios de tienda.
 - Separar score y velocidad del flujo de intensidad de spawns.
 
 Reglas:
@@ -165,7 +165,7 @@ Reglas:
 - `RunProgressionDirector` acumula el valor; `ScoreCounterDisplay` solo lo muestra.
 - El HUD puede tener un nodo `Score` con `TextMeshProUGUI`; la utilidad de escena le asigna `ScoreCounterDisplay`.
 - `RuntimeRunScore.LastCompletedScore` conserva el puntaje final de la ultima run terminada para que `GameOverMenuManager` lo muestre aunque `TotalScore` ya haya vuelto a cero.
-- `RuntimePlayerPace` acumula la progresion de velocidad del calamar y persiste entre portales.
+- `RuntimePlayerPace` acumula la progresión de velocidad del calamar y persiste entre portales.
 - La velocidad horizontal normal crece de forma asintotica desde `minScrollSpeed` hacia `maxScrollSpeed`.
 - La intensidad de spawn usa otra curva: baja a alta, boss, post-boss intenso; cruzar portal reinicia esa intensidad en la zona destino.
 - La mejora permanente `upgrade.score_multiplier` multiplica el score producido por `RunProgressionDirector`.
@@ -175,10 +175,6 @@ Valores globales vigentes en `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopel
 - `maxScrollSpeed = 15`
 - `speedGrowthTimeConstantSeconds = 120`
 - `scorePerSecond = 3200`
-
-Excepcion de tutorial:
-- `GameRoot_ZonaTutorial` conserva los mismos parametros globales de intensidad/movimiento, pero `scorePerSecond = 0`.
-- `TutorialDirector.suppressScoreDuringTutorial = true` mantiene `RuntimeRunScore` en cero mientras el tutorial esta activo.
 
 ## Gadgets e inventario
 
@@ -225,7 +221,7 @@ Archivos:
 Responsabilidad:
 - Instanciar `DealerFish` desde `LevelSpawner`.
 - Ubicar `DealerFish` dentro de una zona normalizada configurable de la mitad inferior del rango entre `PlayerBoundaries`.
-- Separar intervalo base de aparicion y variacion aleatoria de cadencia.
+- Separar intervalo base de aparición y variacion aleatoria de cadencia.
 - Abrir un overlay temporal al colisionar con `DealerFish`.
 - Mostrar el comic `ShopInGameFirst` antes de la primera apertura por `DealerFish`.
 - Seleccionar un gadget aleatorio desde ofertas configuradas.
@@ -240,16 +236,16 @@ Reglas:
 - Por defecto congela gameplay mientras el contador avanza en tiempo real.
 - La compra se intenta con `B` o click sobre el boton `Comprar`.
 - `SinSaldo` aparece solo despues de intentar comprar sin camarones suficientes.
-- El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parametros equivalentes en `InGameShopManager`.
+- El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parámetros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
 - `DealerFish` se consume solo si `InGameShopManager` acepta la apertura. Tras abrir tienda, conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
 - `RuntimeInGameShopLoreState` limita los intentos de comic de entrada/salida a una vez por run, y `player-profile.json/lore.viewedComicEventIds` impide repetir comics de tienda ya vistos en partidas futuras.
 - Al comprar correctamente, la tienda entrega el gadget y se cierra. El feedback visual permanente del vendedor no pertenece a esta tienda, sino a `ShopMenu`.
 - Mientras la tienda o su comic previo estan activos, `InkPulseController` y `PlayerGadgetInventory` bloquean activacion de Ink-Pulse e InkBottle.
-- `LevelSpawner` calcula cada aparicion de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
-- `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por codigo a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
-- `ZonaAbisopelagica` referencia `DealerFish_ZonaAbisopelagica.prefab`, que conserva la misma logica pero oscurece `Visual` y `VisualSupport` a RGB `135,135,135`.
+- `LevelSpawner` calcula cada aparición de DealerFish como `intervaloBase * random(min, max)`. El contrato actual usa `random(1, 3)`.
+- `dealerFishSpawnZoneMin` y `dealerFishSpawnZoneMax` estan limitados por código a la mitad inferior: `0` equivale a `BottomBoundary`, `0.5` equivale al centro.
+- `ZonaAbisopelagica` referencia `DealerFish_ZonaAbisopelagica.prefab`, que conserva la misma lógica pero oscurece `Visual` y `VisualSupport` a RGB `135,135,135`.
 - La UI de tienda pertenece a la escena; el manager no autogenera canvas.
 
 ## Flujo de interaccion
@@ -266,15 +262,15 @@ Reglas:
 10. Cruzar un portal fuerza `PlayerRuntimeState.PortalTransition`, muestra solo `PortalVisual`, espera `PortalEffect` y luego carga la zona destino.
 11. Cruzar un portal conserva gadgets e Ink-Pulse; Game Over los reinicia.
 
-## Reglas de diseno
+## Reglas de diseño
 
 - El jugador no debe depender de flags sueltas para su estado runtime.
 - La carga del Ink-Pulse debe ser legible desde la UI.
 - El riesgo debe generar valor real.
 - La recoleccion de camarones no debe romper el ritmo del runner.
 - Los tags compartidos (`Player`, `Shrimp`, `Collectible`, `Portal`) deben provenir de `GameplayTagCatalog`.
-- Los limites verticales del jugador deben provenir de `PlayerBoundaries`.
-- Los parametros ajustables de gameplay deben vivir en managers/controladores, no en entidades de colision o prefabs de evento.
-- El light graze visual no debe mezclarse con la carga mecanica de Ink-Pulse.
-- La animacion visual de Ink-Pulse debe vivir en `InkPulseVisual`, separada de `SquidVisual`, para poder dimensionar el sprite largo sin deformar el cuerpo del jugador ni dibujar dos cuerpos a la vez.
-- La animacion visual de portal debe vivir en `PortalVisual`; su prioridad visual es mayor que Ink-Pulse porque representa una transicion de escena.
+- Los límites verticales del jugador deben provenir de `PlayerBoundaries`.
+- Los parámetros ajustables de gameplay deben vivir en managers/controladores, no en entidades de colision o prefabs de evento.
+- El light graze visual no debe mezclarse con la carga mecánica de Ink-Pulse.
+- La animación visual de Ink-Pulse debe vivir en `InkPulseVisual`, separada de `SquidVisual`, para poder dimensionar el sprite largo sin deformar el cuerpo del jugador ni dibujar dos cuerpos a la vez.
+- La animación visual de portal debe vivir en `PortalVisual`; su prioridad visual es mayor que Ink-Pulse porque representa una transición de escena.

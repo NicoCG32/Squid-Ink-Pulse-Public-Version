@@ -20,7 +20,7 @@ Application.persistentDataPath/db/
 | `unlockables-catalog.json` | Catalogo de contenido | Define skins, gadgets de run desbloqueables por hitos y mejoras permanentes, junto a precio base, efecto y meta de desbloqueo. |
 | `player-profile.json` | Perfil del jugador | Guarda mejoras permanentes compradas, skins desbloqueadas/equipada, gadgets de run habilitados para aparecer en la tienda in-game y comics de lore ya vistos. |
 | `player-records.json` | Economia y records | Guarda camarones, mejor puntaje, runs, portales cruzados y camarones recolectados historicamente. |
-| `local-leaderboard.json` | Local por dispositivo | Guarda ranking local ordenado por puntaje. Es historico/fallback y no es la fuente compartida para una feria multi-PC. |
+| `local-leaderboard.json` | Local por dispositivo | Guarda ranking local ordenado por puntaje. No es fuente remota ni reemplaza el leaderboard del host usado por el add-on de feria. |
 
 ## Scripts
 
@@ -49,7 +49,7 @@ Application.persistentDataPath/db/
 
 ```json
 {
-  "version": 8,
+  "versión": 8,
   "skins": [
     {
       "id": "skin.default",
@@ -102,7 +102,7 @@ Application.persistentDataPath/db/
 
 ```json
 {
-  "version": 3,
+  "versión": 3,
   "permanentUpgrades": {
     "inkPulseDurationLevel": 0,
     "inkPulseRechargeRateLevel": 0,
@@ -126,7 +126,7 @@ Application.persistentDataPath/db/
 
 ```json
 {
-  "version": 1,
+  "versión": 1,
   "totalShrimps": 0,
   "bestScore": 0,
   "totalRuns": 0,
@@ -139,7 +139,7 @@ Application.persistentDataPath/db/
 
 ```json
 {
-  "version": 1,
+  "versión": 1,
   "maxEntries": 20,
   "entries": []
 }
@@ -158,7 +158,7 @@ La semilla vigente del proyecto arranca sin progreso adquirido:
 - leaderboard local vacio;
 - solo `skin.default` desbloqueada y equipada.
 
-La skin default no se considera una compra: es el fallback tecnico minimo para que el jugador siempre tenga un visual valido. Por eso, "sin skins" significa sin skins adicionales compradas.
+La skin default no se considera una compra: es el fallback técnico mínimo para que el jugador siempre tenga un visual valido. Por eso, "sin skins" significa sin skins adicionales compradas.
 
 Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por defecto en `runGadgetUnlocks` porque el flujo actual de tienda in-game depende de que puedan aparecer durante la run. No representan compras permanentes de ShopMenu.
 
@@ -171,9 +171,9 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 - `player-profile.json` guarda decisiones del jugador: mejoras permanentes, skins y gadgets de run ya habilitados por hitos.
 - `player-profile.json/lore.viewedComicEventIds` guarda comics de portal y tienda in-game ya vistos para no repetirlos en partidas futuras.
 - `player-records.json` guarda valores numericos acumulados: camarones, mejor puntaje y estadisticas.
-- `local-leaderboard.json` es local por dispositivo. El modo feria multi-PC usa el servidor LAN descrito en `Docs/FairServer.md` y `Docs/FairEventSetupGuide.md`.
+- `local-leaderboard.json` es local por dispositivo. El add-on de feria usa un servidor LAN para leaderboard en el PC host, descrito en `Docs/FairServer.md` y `Docs/FairEventSetupGuide.md`; no reemplaza la persistencia local completa del jugador.
 - La skin default siempre debe existir como `skin.default`.
-- El catalogo runtime solo incluye skins con prefab jugable disponible; skins conceptuales sin animacion/prefab se mantienen en fuentes de diseno hasta implementarse.
+- El catalogo runtime solo incluye skins con prefab jugable disponible; skins conceptuales sin animación/prefab se mantienen en fuentes de diseño hasta implementarse.
 - Los gadgets son exclusivos de la tienda in-game. La persistencia no guarda compras de una run; solo guarda si un gadget ya puede aparecer en la aleatoriedad de `InGameShopManager`.
 - La tienda out-of-game no vende gadgets. Vende skins y mejoras permanentes.
 - Las mejoras permanentes actuales son `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
@@ -190,7 +190,7 @@ Los gadgets `gadget.shell_shield` y `gadget.ink_bottle` siguen habilitados por d
 - Los gadgets actuales quedan habilitados por defecto para no romper la tienda in-run actual.
 - Las rutas `shopSpriteResourcePath`, `shopHighlightedSpriteResourcePath`, `shopBuyedSpriteResourcePath` y `shopSelectedSpriteResourcePath` son rutas de `Resources` sin extension hacia sprites de tienda.
 - `playerSkinPrefabResourcePath` es una ruta de `Resources` sin extension hacia el prefab visual jugable de la skin. La skin default debe apuntar a `PlayerSkins/Default`; si otra skin deja esta ruta vacia, se puede comprar y equipar a nivel de perfil, pero el jugador conserva el visual base.
-- El prefab apuntado por `playerSkinPrefabResourcePath` debe contener `MovementVisual` o `SquidVisual`, `InkPulseVisual` y `PortalVisual`. Estas tres raices permiten que cada skin tenga animacion propia de movimiento, portal e Ink-Pulse.
+- El prefab apuntado por `playerSkinPrefabResourcePath` debe contener `MovementVisual` o `SquidVisual`, `InkPulseVisual` y `PortalVisual`. Estas tres raices permiten que cada skin tenga animación propia de movimiento, portal e Ink-Pulse.
 - Las skins activas del catalogo actual son `skin.default`, `skin.bob_marley`, `skin.rockstar`, `skin.formal`, `skin.sonic`, `skin.huaso`, `skin.chile`, `skin.nemo` y `skin.travis`.
 
 ## Separacion conceptual
@@ -226,7 +226,7 @@ Comportamiento de compra permanente:
 
 ## Reinicio local controlado
 
-En Windows, con la configuracion actual de `ProjectSettings`, `Application.persistentDataPath` resuelve a:
+En Windows, con la configuración actual de `ProjectSettings`, `Application.persistentDataPath` resuelve a:
 
 ```text
 C:\Users\<usuario>\AppData\LocalLow\DefaultCompany\Squid Ink-Pulse
@@ -251,7 +251,9 @@ REINICIAR_DATOS_JUEGO.bat
 REINICIAR_DATOS_JUEGO.ps1
 ```
 
-Estos scripts son para PCs cliente fuera del repo. Toman las semillas limpias desde `<NombreDelJuego>_Data/StreamingAssets/db/` y limpian solo la persistencia local de ese usuario Windows.
+Estos scripts son para equipos de prueba fuera del repo. Toman las semillas limpias desde `<NombreDelJuego>_Data/StreamingAssets/db/` y limpian solo la persistencia local de ese usuario Windows.
+
+Para una versión compilada local, la prueba normal parte desde `Build/Squid Ink-Pulse.exe` o desde la carpeta de salida elegida al compilar. Si se necesita limpiar datos del equipo de desarrollo antes o despues de probar ese ejecutable, usar `Tools/CleanPersistentData.bat` desde el repositorio.
 
 Comportamiento por defecto:
 
@@ -291,7 +293,7 @@ Resultado verificado:
 - `bestScore = 0`;
 - `totalRuns = 0`;
 - leaderboard vacio;
-- catalogo version `8` con `9` skins implementadas.
+- catalogo versión `8` con `9` skins implementadas.
 
 ## Compatibilidad De Datos
 
@@ -308,20 +310,20 @@ Mapeo desde formato monolitico legacy:
 - `stats.bestScore`, `totalRuns`, `totalPortalsCrossed` y `totalShrimpsCollected` pasan a `player-records.json`.
 - `upgrades` y `skins` pasan a `player-profile.json`.
 
-Mapeo desde `player-profile.json` version 2:
+Mapeo desde `player-profile.json` versión 2:
 - `upgrades` pasa a `permanentUpgrades`.
 - `gadgets.unlockedGadgetIds` pasa a `runGadgetUnlocks.unlockedRunGadgetIds`.
 - `activeSkillIds` se descarta porque las skills persistentes no forman parte del contrato de entrega. Las mejoras permanentes ocupan ese rol mediante ids de upgrade y niveles.
 
-## Validacion
+## Comprobacion de cierre
 
-La revision de persistencia debe confirmar que existan y puedan parsearse las semillas de:
+La persistencia de cierre debe conservar semillas legibles para:
 
 - `Assets/StreamingAssets/db/unlockables-catalog.json`
 - `Assets/StreamingAssets/db/player-profile.json`
 - `Assets/StreamingAssets/db/player-records.json`
 - `Assets/StreamingAssets/db/local-leaderboard.json`
 
-Tambien valida que el catalogo contenga `skin.default`, `gadget.shell_shield`, `gadget.ink_bottle`, `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
+Tambien debe contener `skin.default`, `gadget.shell_shield`, `gadget.ink_bottle`, `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
 
-Tambien valida que `ShopMenu` tenga un `OutOfGameShopManager`, una instancia del prefab `ShrimpCounter`, los cuatro ids de upgrade canonicos y los listeners persistentes de compra, seleccion y paginacion.
+`ShopMenu` conserva un `OutOfGameShopManager`, una instancia del prefab `ShrimpCounter`, los cuatro ids de upgrade canonicos y los listeners persistentes de compra, seleccion y paginacion.

@@ -1,17 +1,10 @@
-# Servidor MVP de feria
+# Servidor local de feria
 
-Servidor LAN local para feria. Corre en un PC host con Windows, guarda datos en SQLite y expone:
+Este servidor es el add-on de feria que desarrollamos para presentaciones presenciales de Squid Ink-Pulse. Corre en un PC host, guarda datos en SQLite y muestra un leaderboard web para la red local.
 
-- API JSON para Unity.
-- Pantalla web de ranking en `http://localhost:8080/`.
-- Recuperacion por `nickname` + `recoveryCode`.
-- Sesion exclusiva suave por `machineId`.
+El juego principal funciona sin este servidor. El alcance confiable del add-on es el leaderboard almacenado en el host. Los resultados que se guardan formalmente son los jugados desde ese PC host; otros dispositivos solo visualizan el ranking web. No presentamos como logro final la sincronización completa de progreso, compras, skins o recuperación integral entre PCs.
 
-No reemplaza la persistencia local normal del juego. El servidor guarda snapshots agregados de participantes de feria.
-
-La guia completa para preparar una feria desde cero, generar build, configurar red, conectar 3 o 4 PCs y validar el flujo esta en [Docs/FairEventSetupGuide.md](../../Docs/FairEventSetupGuide.md).
-
-## Ejecutar en Windows
+## Ejecutar
 
 Desde esta carpeta:
 
@@ -19,7 +12,7 @@ Desde esta carpeta:
 .\start_fair_server.ps1
 ```
 
-O doble click en:
+O con doble click:
 
 ```text
 start_fair_server.bat
@@ -31,21 +24,14 @@ El servidor escucha en:
 http://0.0.0.0:8080
 ```
 
-Al iniciar tambien imprime URLs LAN concretas, por ejemplo:
-
-```text
-http://192.168.1.50:8080/health
-```
-
-Esa URL es la primera prueba obligatoria desde cada PC cliente. Si funciona en el host pero no en el cliente, el problema esta en IP, red o Firewall de Windows, no en el parser de argumentos del juego.
-
-En el PC host se puede abrir:
+En el PC host:
 
 ```text
 http://localhost:8080/
+http://localhost:8080/health
 ```
 
-En otros PCs de la misma red, usar la IP del host:
+En otros PCs o celulares de la misma red, solo para visualizar el leaderboard:
 
 ```text
 http://IP_DEL_HOST:8080/
@@ -57,7 +43,19 @@ La base queda en:
 Tools/FairServer/data/fair_server.sqlite3
 ```
 
-## Endpoints MVP
+Esa base vive solo en el host. Si se quiere conservar el resultado de una feria, se debe respaldar ese archivo.
+
+## Probar en feria
+
+Para registrar resultados, levantar el servidor y ejecutar el juego en el mismo PC host. Para ver el ranking desde otros dispositivos, abrir en navegador:
+
+```text
+http://IP_DEL_HOST:8080/
+```
+
+Si el servidor no está activo, Unity o el build pueden mostrar warnings rojos por falta de host. Para jugar local normal esos warnings se ignoran; para probar feria, primero hay que levantar este servidor.
+
+## Endpoints técnicos
 
 ```text
 GET  /health
@@ -72,67 +70,7 @@ GET  /leaderboard?limit=20
 GET  /
 ```
 
-## Crear participante
-
-```json
-{
-  "nickname": "NICO",
-  "machineId": "PC-02",
-  "buildVersion": "feria-1.0"
-}
-```
-
-Respuesta relevante:
-
-```json
-{
-  "participantId": "uuid",
-  "nickname": "NICO",
-  "recoveryCode": "4821",
-  "profileSnapshot": {}
-}
-```
-
-## Sincronizar snapshot
-
-```json
-{
-  "machineId": "PC-02",
-  "bestScore": 183200,
-  "attemptCount": 6,
-  "records": {
-    "totalShrimps": 120,
-    "totalShrimpsCollected": 900,
-    "totalPortalsCrossed": 2
-  },
-  "profile": {
-    "permanentUpgrades": {
-      "inkPulseDurationLevel": 2,
-      "inkPulseRechargeRateLevel": 1,
-      "shrimpMultiplierLevel": 0,
-      "scoreMultiplierLevel": 3
-    },
-    "skins": {
-      "unlockedSkinIds": ["skin.default", "skin.sonic"],
-      "equippedSkinId": "skin.sonic"
-    },
-    "runGadgetUnlocks": {
-      "unlockedRunGadgetIds": ["gadget.shell_shield", "gadget.ink_bottle"]
-    }
-  },
-  "unlockedEvents": []
-}
-```
-
-Reglas de merge del MVP:
-
-- `bestScore`: conserva el maximo.
-- `attemptCount`: conserva el maximo recibido.
-- `totalShrimpsCollected`: conserva el maximo.
-- `totalPortalsCrossed`: conserva el maximo.
-- `permanentUpgrades`: conserva el maximo por mejora.
-- `skins`, `runGadgetUnlocks`, `unlockedEvents`: union de conjuntos.
-- `totalShrimps`: reemplaza con el valor del cliente activo, porque la sesion es exclusiva.
+Los endpoints de participante y snapshot existen como base técnica del add-on, pero la entrega final debe presentarse como leaderboard host, no como persistencia remota completa entre PCs.
 
 ## Prueba de humo
 
@@ -148,12 +86,4 @@ Debe imprimir:
 Smoke test OK
 ```
 
-## Operacion de feria
-
-- Antes de abrir feria, hacer copia de `data/fair_server.sqlite3`.
-- Ejecutar el servidor en el PC host.
-- Abrir `http://localhost:8080/` en una pantalla visible para ranking.
-- Configurar los clientes Unity para apuntar a `http://IP_DEL_HOST:8080`.
-- Antes de abrir el juego en un cliente, probar `http://IP_DEL_HOST:8080/health` en el navegador de ese mismo cliente.
-- El cliente acepta tanto `--fair-server=http://IP_DEL_HOST:8080` como `--fair-server http://IP_DEL_HOST:8080`.
-- Si un participante queda bloqueado por sesion activa, esperar el timeout o hacer checkout desde el PC que lo tiene activo.
+Esta prueba confirma que el servidor responde. No cambia el alcance final documentado.

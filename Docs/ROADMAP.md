@@ -1,76 +1,94 @@
-# Alcance de entrega y continuidad
+# Cierre de entrega
 
 ## Proposito
 
-Este documento resume el estado de entrega de Squid Ink-Pulse y ordena las extensiones recomendadas para una etapa posterior. No funciona como bitacora de tareas internas: el contrato tecnico vigente esta distribuido en `StateMachines.md`, `RuntimeHierarchyAudit.md`, `QATester.md`, `GameplaySystems.md` y los documentos de cada sistema.
+Este documento formaliza el cierre de Squid Ink-Pulse como entrega final. Lo escribimos como equipo para separar con claridad lo que desarrollamos y entregamos, lo que queda documentado como add-on secundario de feria y lo que queda fuera del cierre actual.
 
-## Alcance entregado
+## Alcance principal entregado
 
-La entrega integra un endless runner 2D con progresion de run, economia persistente, tienda permanente, tienda temporal, skins, gadgets, comics narrativos, portales entre zonas, boss de zona epipelagica, boss abisal y soporte operativo para una feria LAN.
+La entrega principal integra un endless runner 2D con progresión de run, economía persistente, tienda permanente, tienda temporal, skins, gadgets, comics narrativos, portales entre zonas, boss de zona epipelágica, boss abisal, comic de `Cómo Jugar` y menús globales.
 
-Componentes principales incluidos:
+Componentes incluidos:
+
 - `ZonaEpipelagica` y `ZonaAbisopelagica` como zonas jugables conectadas por portales.
-- `ZonaTutorial` como secuencia dirigida de onboarding y prueba integrada.
-- `BabySquid.prefab` como jugador canonico, con `SkinMount` para aplicar skins visuales.
+- Comic tutorial de `Cómo Jugar` accesible desde `MainMenu`.
+- `BabySquid.prefab` como jugador canónico.
 - Ink-Pulse con carga por graze, consumo visual progresivo y HUD `InkBar`.
 - Tienda out-of-game `ShopMenu` para mejoras permanentes y skins.
-- Tienda in-game por `DealerFish` para gadgets de run de un solo uso.
+- Tienda in-game por `DealerFish` para gadgets de run.
 - Persistencia local por JSON bajo `Application.persistentDataPath/db/`.
-- Servidor de feria `Tools/FairServer/` con SQLite, ranking web, snapshots, recuperacion y checkout.
-- Guia operativa de feria en `FairEventSetupGuide.md`.
+- Comics de lore para inicio, portales, tienda y derrota.
+- Soundtrack dinámico, crossfade Ink-Pulse y progresión de pitch.
+- Volumen maestro global que afecta musica normal, musica Ink-Pulse, botones, inkbar y SFX.
 
-## Criterios de aceptacion de entrega
+## Add-on de feria entregado
 
-La entrega se considera cerrada cuando se verifican estos puntos:
-- El build Windows abre en modo local sin requerir servidor de feria.
-- Si existe servidor de feria disponible, el overlay de feria permite crear o recuperar participante.
-- MainMenu, pausa, opciones, Game Over, tutorial, comics, portales y ambas tiendas no bloquean el flujo.
-- Las compras permanentes modifican perfil, saldo y efectos de gameplay/economia segun catalogo.
+También desarrollamos un add-on de feria para apoyar presentaciones presenciales. Este componente es opcional: el juego no depende de él para funcionar.
+
+Alcance logrado:
+
+- Servidor local en `Tools/FairServer/`.
+- Base SQLite en el PC host.
+- Pantalla web de leaderboard en `http://localhost:8080/`.
+- Visualizacion del leaderboard desde otros dispositivos mediante `http://IP_DEL_HOST:8080/`.
+- README de servidor generado automaticamente al compilar.
+- Scripts generados para reiniciar persistencia local del equipo donde se ejecuta el build.
+
+Limitacion importante:
+
+- El resultado confiable del add-on es almacenar y mostrar el leaderboard del PC host.
+- Los resultados guardados formalmente son los jugados desde el PC host; otros dispositivos solo visualizan el leaderboard web.
+- La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral entre PCs no quedo cerrada como parte funcional de la entrega.
+- Por tanto, la persistencia principal sigue siendo local por dispositivo.
+
+## Warnings esperados
+
+Cuando el servidor de feria no está activo, Unity o el build pueden mostrar warnings rojos relacionados con la falta de host, `localhost:8080` o la conexión del add-on. Nosotros los consideramos esperados y se pueden ignorar durante pruebas locales del juego.
+
+Solo deben investigarse si la prueba tiene como objetivo revisar feria. Para probar feria, primero hay que levantar `Tools/FairServer/` en el host y comprobar el leaderboard web.
+
+## Estado de cierre
+
+La entrega queda cerrada con estos componentes integrados:
+
+- El build Windows abre desde `MainMenu` sin requerir servicios externos.
+- MainMenu, pausa, opciones, Game Over, comic de `Cómo Jugar`, comics narrativos, portales y ambas tiendas no bloquean el flujo.
+- Las compras permanentes modifican perfil, saldo y efectos de gameplay/economía según catálogo.
 - Las skins compradas se guardan, se equipan y se aplican visualmente al entrar a gameplay.
 - Los gadgets comprados durante la run se consumen al ejecutar su efecto y se limpian en Game Over.
-- `ZonaAbisopelagica` conserva iluminacion compuesta y boss abisal sin cargar SS Carnage.
+- `ZonaAbisopelagica` conserva iluminacion compuesta y boss abisal.
 - Ray y Jellyfish permanecen implementados pero no habilitados por balance (`baseWeight: 0`).
-- La documentacion de `Docs/` describe contratos, operacion y validacion sin depender de notas internas.
+- El slider de volumen afecta todos los sonidos del juego.
+- La feria se presenta como add-on opcional de leaderboard, no como persistencia remota completa.
 
-## Continuidad recomendada
+## Extensiones fuera del cierre actual
 
-Las siguientes lineas de trabajo son extensiones naturales, no requisitos para considerar cerrada esta entrega:
+Las siguientes líneas no condicionan la entrega final. Quedan registradas solo como posibles extensiones posteriores:
 
-1. Prueba LAN completa con varios PCs reales.
-   - Confirmar host, firewall, recuperacion de participantes, checkout y ranking visible.
-   - Registrar evidencia operativa usando `FairEventSetupGuide.md`.
+1. Ampliacion completa de feria.
+   - Definir si se quiere sincronizacion real de perfil entre PCs.
+   - Separar leaderboard de progreso completo.
+   - Agregar pruebas LAN automatizadas si se retoma el sistema.
 
-2. Pulido visual de prefabs tecnicos.
-   - Reemplazar Square base de Ray y Jellyfish por arte final.
-   - Ajustar colliders y escala desde prefab, manteniendo tags/layers y scripts existentes.
+2. Pruebas extendidas de build Windows.
+   - Probar sesiones largas por zona.
+   - Revisar crecimiento de jerarquía runtime y limpieza fuera de pantalla.
+   - Confirmar que pausa, Game Over, comics y tiendas restauran `Time.timeScale`.
 
-3. Activacion gradual de enemigos preparados.
-   - Subir `baseWeight` de Ray o Jellyfish solo despues de validar lectura visual, dificultad y rendimiento.
-   - Documentar cualquier cambio de balance en `EnemiesAndBosses.md` y `QATester.md`.
+3. Pulido audiovisual.
+   - Ajustar feedback de portales, boss abisal, tienda y `ZonaAbisopelagica`.
+   - Revisar mezcla relativa de soundtrack, Ink-Pulse, botones, inkbar y SFX.
 
-4. Ampliacion narrativa.
-   - Agregar hitos de puntaje a `LoreComicPresenter.entries` si se decide ampliar la narrativa.
-   - Mantener la regla de no crear UI visual por codigo.
-
-5. Refinamiento arquitectonico posterior.
-   - Separar una vista/presenter adicional de `InGameShopManager` solo si el canvas crece.
-   - Renombrar `MainMenu` a `MainMenuController` solo con migracion controlada de referencias serializadas.
-
-## Fuera de alcance de la entrega
-
-Quedan fuera del alcance final:
-- multiplayer en tiempo real;
-- sincronizacion continua de todas las runs entre clientes;
-- balance definitivo de Ray y Jellyfish habilitados;
-- nuevos bosses fuera de los ya conectados;
-- generacion automatica de arte, layouts o animaciones por codigo.
+4. Balance.
+   - Ajustar curva de spawn, recompensas de camarones y multiplicadores permanentes.
+   - Considerar activación gradual de Ray y Jellyfish.
 
 ## Regla de mantenimiento documental
 
 Todo cambio posterior debe actualizar el documento que corresponda al contrato modificado:
+
 - gameplay y reglas de jugador: `GameplaySystems.md`;
-- escena, prefabs y jerarquia: `RuntimeHierarchyAudit.md`;
-- camara, boundaries y limpieza: `WorldAndCamera.md`;
+- escena, prefabs y jerarquía: `RuntimeHierarchyAudit.md`;
+- cámara, boundaries y limpieza: `WorldAndCamera.md`;
 - datos persistentes y tienda permanente: `PersistentProfile.md`;
 - feria LAN: `FairServer.md` y `FairEventSetupGuide.md`;
-- validacion manual: `QATester.md`.

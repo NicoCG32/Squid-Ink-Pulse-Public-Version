@@ -1,8 +1,8 @@
-# Sistemas nucleo
+# Sistemas núcleo
 
 ## Alcance
 
-Este documento cubre la capa de orquestacion: sesion global, progresion de run, flujo de escenas y reglas base que afectan a todos los sistemas.
+Este documento cubre la capa de orquestación: sesión global, progresión de run, flujo de escenas y reglas base que afectan a todos los sistemas.
 
 ## GameSessionController
 
@@ -10,7 +10,7 @@ Archivo: `Assets/Implementation/Code/Core/Session/GameSessionController.cs`
 
 Responsabilidad:
 - Controlar el estado global del juego.
-- Aplicar `Time.timeScale` segun el estado.
+- Aplicar `Time.timeScale` según el estado.
 - Exponer eventos para que otros sistemas respondan sin acoplarse directamente.
 - Reiniciar `RuntimeGadgetInventory` y `RuntimeInkPulseState` al entrar en `GameOver`.
 
@@ -48,8 +48,8 @@ Responsabilidad:
 - Cargar semillas desde `Assets/StreamingAssets/db`.
 - Crear y guardar archivos reales en `Application.persistentDataPath/db`.
 - Persistir perfil logico en `player-profile.json`.
-- Persistir economia y records en `player-records.json`.
-- Persistir leaderboard local de feria en `local-leaderboard.json`.
+- Persistir economía y records en `player-records.json`.
+- Persistir leaderboard local por dispositivo en `local-leaderboard.json`.
 - Cargar catalogo de desbloqueables desde `unlockables-catalog.json`.
 - Normalizar defaults, incluyendo la skin base `skin.default`.
 - Mantener settings fuera de esta base local.
@@ -61,7 +61,7 @@ Reglas:
 - `ShopMenu` debe usar `PermanentShopService` para skins y mejoras permanentes.
 - `InGameShopManager` debe usar `RunGadgetUnlockService` para filtrar ofertas de gadgets.
 
-La especificacion completa esta en [PersistentProfile.md](PersistentProfile.md).
+La especificación completa está en [PersistentProfile.md](PersistentProfile.md).
 
 ## RunProgressionDirector
 
@@ -74,7 +74,7 @@ Archivos:
 Responsabilidad:
 - Llevar el ritmo de la run.
 - Calcular intensidad, scroll y spawn.
-- Gestionar ventanas de boss y transicion.
+- Gestionar ventanas de boss y transición.
 - Modular la frecuencia de spawn segun estado macro.
 - Separar el reloj de intensidad del reloj de reaparicion de boss, para sostener presion alta sin disparar otro SS Carnage de inmediato.
 - Avanzar `RuntimePlayerPace` solo cuando la run progresa efectivamente; ese reloj alimenta velocidad, score y pitch progresivo del soundtrack.
@@ -93,7 +93,7 @@ Reglas de spawn por evento:
 
 Regla de pace runtime:
 - `RuntimePlayerPace.ElapsedSpeedSeconds` no representa tiempo absoluto de escena.
-- Solo avanza mientras la sesion esta en juego y el evento macro permite progresion.
+- Solo avanza mientras la sesión está en juego y el evento macro permite progresión.
 - Se reinicia al comenzar una run nueva o al entrar en Game Over.
 - Puede ser consumido por sistemas que deben crecer con la run sin duplicar relojes propios, como scroll speed y `SoundtrackPitchProgression`.
 
@@ -105,9 +105,9 @@ Responsabilidad:
 - Cargar escenas por nombre, indice o ruta `.unity`.
 - Reiniciar la escena actual.
 - Reiniciar una run desde `primaryGameplaySceneName`.
-- Volver al menu principal.
+- Volver al menú principal.
 - Restaurar `Time.timeScale` antes de cambiar de escena.
-- Preparar rutas conocidas para `ZonaTutorial` y `ShopMenu`; `OptionsMenu` es prefab/panel, no escena.
+- Preparar rutas conocidas para `ShopMenu`; `OptionsMenu` es prefab/panel, no escena.
 - Exponer el destino de portal antes de cargar para transiciones narrativas mediante `TryResolvePortalDestinationFromActiveScene`.
 
 Uso por portales:
@@ -129,18 +129,18 @@ Archivo: `Assets/Implementation/Code/Core/World/BoundaryReferenceResolver.cs`
 
 Aunque vive en `Core/World`, es infraestructura transversal:
 - Define el contrato formal de `PlayerBoundaries` y `CameraBoundaries`.
-- Evita que cada sistema guarde referencias manuales a limites.
-- Permite que zonas nuevas sean compatibles si respetan la misma jerarquia.
+- Evita que cada sistema guarde referencias manuales a límites.
+- Permite que zonas nuevas sean compatibles si respetan la misma jerarquía.
 
-La especificacion completa esta en [WorldAndCamera.md](WorldAndCamera.md).
+La especificación completa está en [WorldAndCamera.md](WorldAndCamera.md).
 
 ## Reglas compartidas
 
-- La sesion global manda sobre pausa, game over y reanudacion.
-- La progresion no debe mezclarse con logica de UI.
-- Los cambios de zona no deben limpiar estado runtime salvo que la sesion entre en Game Over o se ejecute un reintento explicito.
+- La sesión global manda sobre pausa, game over y reanudacion.
+- La progresión no debe mezclarse con lógica de UI.
+- Los cambios de zona no deben limpiar estado runtime salvo que la sesión entre en Game Over o se ejecute un reintento explicito.
 - Los cambios de zona se disparan por `ScenePortal`, pero las rutas pertenecen a `SceneFlowController`.
-- Los limites de escena pertenecen a `PlayerBoundaries` y `CameraBoundaries`, no a campos manuales de scripts.
-- La limpieza fuera de pantalla pertenece a `DestroyOffscreen`; su posicion runtime se deriva de la camara, no de coordenadas manuales.
+- Los límites de escena pertenecen a `PlayerBoundaries` y `CameraBoundaries`, no a campos manuales de scripts.
+- La limpieza fuera de pantalla pertenece a `DestroyOffscreen`; su posición runtime se deriva de la cámara, no de coordenadas manuales.
 - Las escenas jugables se componen alrededor del origen: `Main Camera` inicia en `(0, 0, -10)` y `Squid` en `(-5, 0, 0)`.
-- No se corrige tamano escalando roots estructurales; un escalado global requiere balancear tambien velocidad, camara, spawn, colliders y offsets.
+- No se corrige tamaño escalando roots estructurales; un escalado global requiere balancear también velocidad, cámara, spawn, colliders y offsets.

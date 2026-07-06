@@ -1,19 +1,22 @@
-# Servidor de feria
+# Add-on de feria: servidor local
 
 ## Proposito
 
-El servidor de feria es una capa externa para eventos presenciales. No reemplaza la persistencia local normal del juego y no escribe directamente los JSON internos de Unity.
+Como equipo tambien implementamos un add-on de feria para apoyar demostraciones presenciales. Este componente es externo al juego principal: el build normal funciona sin servidor, sin red local y sin configuración adicional.
 
-Responsabilidades:
+El add-on permite levantar un servidor Python en un PC host, guardar datos en SQLite y mostrar una pagina web de leaderboard para la red local. Su alcance final debe leerse con precision:
 
-- crear participantes de feria;
-- generar codigo corto de recuperacion;
-- recuperar participantes por `nickname` + `recoveryCode`;
-- recibir snapshots agregados de progreso;
-- mantener una leaderboard compartida entre PCs;
-- servir una pantalla web de ranking.
+- Logramos un servidor local en `Tools/FairServer/`.
+- Logramos una base SQLite en el PC host.
+- Logramos una pantalla web de ranking en `http://localhost:8080/`.
+- El resultado confiable de feria es el leaderboard almacenado y mostrado desde el PC host.
+- Los dispositivos ajenos al host pueden visualizar ese leaderboard web desde `http://IP_DEL_HOST:8080/`.
+- Los resultados que se guardan formalmente son los jugados en el PC host.
+- No cerramos como funcionalidad final la sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral de jugadores entre PCs.
 
-Implementacion actual:
+Por tanto, la persistencia principal del juego sigue siendo local por dispositivo. El servidor de feria es un complemento operativo, no el sistema oficial de guardado remoto del juego.
+
+## Estructura
 
 ```text
 Tools/FairServer/
@@ -24,9 +27,15 @@ Tools/FairServer/
 `- README.md
 ```
 
-El servidor usa Python estandar y SQLite. No requiere FastAPI, Node ni paquetes externos.
+El servidor usa Python estándar y SQLite. No requiere FastAPI, Node ni paquetes externos.
 
-Para montaje completo de feria desde cero, incluyendo build Windows, distribucion a 3 o 4 PCs, red, firewall, conexion de clientes, prueba previa y reseteo de datos, ver [FairEventSetupGuide.md](FairEventSetupGuide.md).
+La guia operativa para preparar una prueba de feria esta en [FairEventSetupGuide.md](FairEventSetupGuide.md).
+
+## Warnings esperados sin host
+
+Si Unity o el build se abren sin servidor de feria activo, pueden aparecer warnings rojos asociados a la falta de host, `localhost:8080` o una conexión rechazada. Para probar el juego principal esos warnings se ignoran, siempre que no existan errores de compilación C# ni referencias rotas de escena.
+
+Solo deben investigarse cuando el objetivo sea probar explicitamente el add-on de feria. En ese caso, primero se levanta el servidor en el host y luego se comprueba el leaderboard web.
 
 ## Ejecutar en Windows
 
@@ -36,94 +45,79 @@ Desde `Tools/FairServer/`:
 .\start_fair_server.ps1
 ```
 
-O doble click en:
+O con doble click:
 
 ```text
 start_fair_server.bat
 ```
 
-URLs:
+URLs utiles:
 
-- host local: `http://localhost:8080/`
-- clientes LAN: `http://IP_DEL_HOST:8080/`
+- Host local: `http://localhost:8080/`
+- Health check: `http://localhost:8080/health`
+- Visualizacion LAN: `http://IP_DEL_HOST:8080/`
 
-Base SQLite:
+Base SQLite del evento:
 
 ```text
 Tools/FairServer/data/fair_server.sqlite3
 ```
 
-## API MVP
+Este archivo queda en el PC host. Si se borra, se elimina el leaderboard y los datos registrados por ese servidor.
 
-| Metodo | Ruta | Uso |
+## API implementada
+
+El servidor conserva endpoints para participantes, snapshot, rank, heartbeat, checkout y leaderboard:
+
+| Metodo | Ruta | Uso técnico |
 | --- | --- | --- |
 | `GET` | `/health` | Estado del servidor. |
-| `POST` | `/participants` | Crea participante y entrega `recoveryCode`. |
-| `POST` | `/participants/recover` | Recupera participante por `nickname` + codigo. |
-| `GET` | `/participants/{participantId}` | Devuelve snapshot del participante. |
-| `PUT` | `/participants/{participantId}/snapshot` | Sincroniza progreso. |
-| `GET` | `/participants/{participantId}/rank` | Devuelve posicion actual. |
-| `POST` | `/participants/{participantId}/heartbeat` | Extiende sesion exclusiva. |
-| `POST` | `/participants/{participantId}/checkout` | Cierra sesion y libera participante. |
+| `POST` | `/participants` | Crea participante. |
+| `POST` | `/participants/recover` | Intenta recuperar participante por `nickname` + código. |
+| `GET` | `/participants/{participantId}` | Devuelve datos guardados para ese participante. |
+| `PUT` | `/participants/{participantId}/snapshot` | Recibe snapshot desde una instancia del juego. |
+| `GET` | `/participants/{participantId}/rank` | Devuelve posición actual. |
+| `POST` | `/participants/{participantId}/heartbeat` | Extiende sesión activa. |
+| `POST` | `/participants/{participantId}/checkout` | Cierra sesión. |
 | `GET` | `/leaderboard?limit=20` | Ranking JSON. |
 | `GET` | `/` | Ranking web autoactualizado. |
 
-## Snapshot
+Estos endpoints existen porque desarrollamos una base técnica para feria. Sin embargo, el alcance cerrado para la entrega no es la persistencia remota completa de perfil. El cierre formal del add-on se centra en que el host registre y muestre el leaderboard.
 
-El servidor acepta datos top-level y bloques `records`/`profile` para facilitar el adaptador Unity.
+## Probar el add-on
 
-Campos principales:
+1. Levantar el servidor en el PC host.
+2. Verificar en el host:
 
-```json
-{
-  "machineId": "PC-02",
-  "bestScore": 183200,
-  "attemptCount": 6,
-  "records": {
-    "totalShrimps": 120,
-    "totalShrimpsCollected": 900,
-    "totalPortalsCrossed": 2
-  },
-  "profile": {
-    "permanentUpgrades": {
-      "inkPulseDurationLevel": 2,
-      "inkPulseRechargeRateLevel": 1,
-      "shrimpMultiplierLevel": 0,
-      "scoreMultiplierLevel": 3
-    },
-    "skins": {
-      "unlockedSkinIds": ["skin.default", "skin.sonic"],
-      "equippedSkinId": "skin.sonic"
-    },
-    "runGadgetUnlocks": {
-      "unlockedRunGadgetIds": ["gadget.shell_shield", "gadget.ink_bottle"]
-    }
-  },
-  "unlockedEvents": []
-}
+```text
+http://localhost:8080/health
 ```
 
-Reglas de consolidacion:
+3. Abrir el ranking:
 
-- `bestScore`: maximo entre servidor y cliente.
-- `attemptCount`: maximo recibido.
-- `totalShrimpsCollected`: maximo recibido.
-- `totalPortalsCrossed`: maximo recibido.
-- `permanentUpgrades`: maximo por mejora.
-- `skins`, `runGadgetUnlocks` y `unlockedEvents`: union de conjuntos.
-- `totalShrimps`: valor del cliente activo, porque el MVP usa sesion exclusiva por participante.
+```text
+http://localhost:8080/
+```
 
-## Sesion exclusiva
+4. Ejecutar el juego en el mismo PC host para guardar resultados en la base del evento.
+5. Obtener la IPv4 del host con `ipconfig` si se quiere mostrar el ranking en otro dispositivo.
+6. Desde otro PC o celular de la misma red, abrir:
 
-Cada participante tiene una sesion activa por `machineId`.
+```text
+http://IP_DEL_HOST:8080/
+```
 
-- Crear o recuperar participante marca una sesion activa.
-- Si otro PC intenta recuperar el mismo participante antes de expirar la sesion, recibe `409 active_session`.
-- `heartbeat` extiende el bloqueo.
-- `checkout` libera la sesion.
-- Si el PC cae, el bloqueo expira despues del timeout configurado.
+## Archivos generados por build
 
-## Prueba
+Al compilar, el postprocesador de build genera archivos auxiliares junto al `.exe`:
+
+- `README_SERVIDOR_FERIA.txt`: guia del servidor y del leaderboard web. Si solo se quiere probar el juego, se ignora.
+- `REINICIAR_DATOS_JUEGO.bat`: acceso rapido para reiniciar datos locales del equipo.
+- `REINICIAR_DATOS_JUEGO.ps1`: script PowerShell de reinicio local.
+
+Estos scripts limpian la persistencia local del equipo donde se ejecutan y recrean `Application.persistentDataPath/db/` desde las semillas del build. No borran la base SQLite del servidor host ni datos de otros PCs.
+
+## Prueba de humo técnica
 
 Con el servidor corriendo:
 
@@ -131,59 +125,15 @@ Con el servidor corriendo:
 python .\smoke_test.py
 ```
 
-La prueba crea un participante, sincroniza snapshot, consulta ranking, obtiene posicion y hace checkout.
+La prueba valida que el servidor responde y que los endpoints principales no estan caidos. No convierte la sincronizacion completa de perfiles entre PCs en alcance final.
 
-## Adaptador Unity
+## Criterio de cierre
 
-El lado Unity vive separado bajo `Assets/Implementation/Code/Fair/`:
+Consideramos correcto el add-on cuando:
 
-- `FairModeBootstrap`: prueba `/health` contra el servidor configurado al iniciar el ejecutable; abre el flujo de feria aunque la prueba inicial falle, para que la URL pueda corregirse desde la interfaz.
-- `FairModeSettings`: define servidor, `machineId`, version de build y argumentos de arranque.
-- `FairApiClient`: cliente HTTP para crear, recuperar, sincronizar snapshot, heartbeat y checkout.
-- `FairApiModels`: DTOs serializables para requests, responses y snapshot.
-- `FairParticipantSession`: sesion runtime persistente entre escenas; mantiene heartbeat y ejecuta checkout al salir.
-- `FairProfileMapper`: convierte entre `PersistentPlayerProfile` y el snapshot del servidor.
-- `FairModeMenuManager`: interfaz simple de nick/codigo/nuevo jugador.
-
-El adaptador no escribe JSON directamente desde UI. Para aplicar un snapshot remoto usa `PersistentPlayerProfile.ReplaceForFairMode()`, que centraliza guardado, normalizacion y eventos de perfil/records.
-
-Flujo de arranque del `.exe`:
-
-1. `FairModeBootstrap` consulta `GET /health` con timeout corto.
-2. Crea `FairParticipantSession` y muestra `FairModeMenuManager`.
-3. Si el servidor no responde, la interfaz muestra la URL `/health` que debe probarse y permite continuar localmente.
-4. El jugador ingresa `nickname` + `recoveryCode`, o presiona `Nuevo jugador`.
-5. Recuperar llama `POST /participants/recover`; nuevo jugador llama `POST /participants`.
-6. El snapshot remoto se aplica al perfil local antes de permitir jugar.
-7. Se sincroniza snapshot local mediante `PUT /participants/{participantId}/snapshot`.
-8. `FairParticipantSession` mantiene heartbeat periodico.
-
-Flujo de salida:
-
-1. `MainMenu.Salir()` consulta `FairParticipantSession`.
-2. Si hay sesion activa, crea snapshot local final.
-3. Llama `POST /participants/{participantId}/checkout` con `finalSnapshot`.
-4. Al terminar el checkout, cierra el juego.
-
-Configuracion de host:
-
-- Por defecto usa `http://localhost:8080`.
-- El campo `Servidor` de la interfaz guarda la URL en `PlayerPrefs`.
-- Tambien puede pasarse por argumento de linea de comandos:
-
-```text
---fair-server=http://IP_DEL_HOST:8080
---fair-machine=PC-02
---fair-disabled
-```
-
-Tambien se aceptan `--fair-server http://IP_DEL_HOST:8080` y `--fair-machine PC-02`.
-
-`--fair-disabled` desactiva el overlay de feria para builds o pruebas que no usen servidor.
-
-Si no hay servidor disponible en la URL configurada, el overlay de nick/codigo aparece con advertencia y muestra la URL `/health` que debe probarse desde ese PC. El boton `Continuar local` permite seguir sin sesion de feria.
-
-Cada build genera archivos auxiliares junto al `.exe`:
-
-- `README_CLIENTE_FERIA.txt`: explica al cliente como reemplazar `<IP_DEL_HOST>` por la IPv4 del host y crear el acceso directo con `--fair-server`.
-- `REINICIAR_DATOS_JUEGO.bat` y `REINICIAR_DATOS_JUEGO.ps1`: limpian la persistencia local de ese PC y recrean `Application.persistentDataPath/db/` desde las semillas incluidas en el build.
+- el servidor abre en el host;
+- `/health` responde;
+- la pagina `/` muestra el ranking;
+- otros dispositivos pueden visualizar la pagina web del host;
+- el host conserva su SQLite del evento;
+- la documentación comunica que solo el leaderboard del host es el resultado confiable de feria.

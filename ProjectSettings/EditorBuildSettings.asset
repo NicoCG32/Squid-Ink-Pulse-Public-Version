@@ -15,9 +15,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Game/ZonaAbisopelagica.unity
     guid: 1571093e54d17344ca68418f3b1fafca
   - enabled: 1
-    path: Assets/Scenes/Game/ZonaTutorial.unity
-    guid: 6bfcbb38a6b804c41ba24c07f01eca2b
-  - enabled: 1
     path: Assets/Scenes/ShopMenu/ShopMenu.unity
     guid: a36232944e1a104469860917b39c3f85
   m_configObjects:

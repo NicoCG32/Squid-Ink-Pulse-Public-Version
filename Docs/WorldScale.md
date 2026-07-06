@@ -1,4 +1,4 @@
-# Escala estandar de mundo
+# Escala estándar de mundo
 
 ## Proposito
 
@@ -9,7 +9,7 @@ Este documento fija la relacion canonica entre pixeles de arte, unidades de Unit
 - `100 px` de arte equivalen a `1 unidad Unity`.
 - `1 px` de arte equivale a `0.01 unidades Unity`.
 - `10 px` de arte equivalen a `0.1 unidades Unity`.
-- Los sprites 2D nuevos deben importarse con `Pixels Per Unit = 100`, salvo excepcion artistica documentada.
+- Los sprites 2D nuevos deben importarse con `Pixels Per Unit = 100`, salvo excepción artistica documentada.
 
 Formula general:
 
@@ -34,9 +34,9 @@ Importante: si el `SpriteRenderer` esta en `Draw Mode = Simple`, el campo `Size`
 
 ## Boundaries del jugador
 
-`Boundaries` debe provenir de `Assets/Content/Prefabs/World/Boundaries.prefab`. La escala canonica se conserva ajustando los colliders de la instancia prefab de cada zona, no creando una jerarquia nueva.
+`Boundaries` debe provenir de `Assets/Content/Prefabs/World/Boundaries.prefab`. La escala canonica se conserva ajustando los colliders de la instancia prefab de cada zona, no creando una jerarquía nueva.
 
-La ventana vertical util del jugador se define por la jerarquia obligatoria:
+La ventana vertical util del jugador se define por la jerarquía obligatoria:
 
 ```text
 PlayerBoundaries
@@ -44,18 +44,18 @@ PlayerBoundaries
 └── BottomBoundary
 ```
 
-La altura util no se mide desde la posicion central de los transforms, sino desde sus bordes fisicos internos:
+La altura util no se mide desde la posición central de los transforms, sino desde sus bordes fisicos internos:
 
 - borde superior de `BottomBoundary`: `bottomCollider.bounds.max.y`;
 - borde inferior de `TopBoundary`: `topCollider.bounds.min.y`.
 
-En la configuracion actual de `ZonaEpipelagica`, esa distancia esta normalizada en `14.69 unidades Unity`, equivalentes a `1469 px` de arte a `100 PPU`.
+En la configuración actual de `ZonaEpipelagica`, esa distancia esta normalizada en `14.69 unidades Unity`, equivalentes a `1469 px` de arte a `100 PPU`.
 
-## Boundaries de camara
+## Boundaries de cámara
 
 `CameraBoundaries` tambien pertenece a la misma instancia prefab `Boundaries`.
 
-La camara usa una jerarquia separada:
+La cámara usa una jerarquía separada:
 
 ```text
 CameraBoundaries
@@ -63,7 +63,7 @@ CameraBoundaries
 └── BottomBoundary
 ```
 
-Estos colliders definen hasta donde puede desplazarse el encuadre. No deben mezclarse con `PlayerBoundaries`, porque el jugador y la camara tienen restricciones distintas.
+Estos colliders definen hasta donde puede desplazarse el encuadre. No deben mezclarse con `PlayerBoundaries`, porque el jugador y la cámara tienen restricciones distintas.
 
 ## Red del SS Carnage
 
@@ -71,10 +71,10 @@ El prefab `BossNetWall` usa la misma fuente de verdad que el jugador:
 
 - origen vertical runtime: borde superior de `BottomBoundary`;
 - destino vertical runtime: borde inferior de `TopBoundary`;
-- altura runtime: distancia fisica entre ambos bordes;
+- altura runtime: distancia física entre ambos bordes;
 - referencia visual de autor: el prefab conserva sus proporciones y se escala de forma uniforme.
 
-El objeto hijo `WallReferenceRectangle` es la referencia fisica de la pared. Debe quedar dimensionado como la altura util entre `PlayerBoundaries`. El collider puede reemplazarse o ajustarse luego al contorno real de la red, pero la fuente de altura no cambia.
+El objeto hijo `WallReferenceRectangle` es la referencia física de la pared. Debe quedar dimensionado como la altura util entre `PlayerBoundaries`. El collider puede reemplazarse o ajustarse luego al contorno real de la red, pero la fuente de altura no cambia.
 
 El prefab tambien puede conservar un hijo inactivo `AuthoringPlayerBoundaries`. Este objeto no es un boundary runtime; sirve solo como regla de autor dentro del prefab. `SSCarnageNetWall` lo usa para conocer que tramo local del prefab debe mapearse contra los `PlayerBoundaries` reales de la escena. Por eso:
 
@@ -83,13 +83,13 @@ El prefab tambien puede conservar un hijo inactivo `AuthoringPlayerBoundaries`. 
 - sus hijos pueden llamarse `TopBoundary` y `BottomBoundary` porque estan encapsulados bajo `AuthoringPlayerBoundaries`;
 - si se mueven los sprites de la red, conviene ajustar esta referencia authored para que el tramo inferior/superior siga representando la altura jugable.
 
-En runtime, `SSCarnageNetWall` calcula la escala de la red contra `PlayerBoundaries` en espacio de mundo y compensa la escala de cualquier padre de jerarquia. Esto evita que un prefab que cuadra en edicion se vea mas pequeno o mas grande al entrar en Play.
+En runtime, `SSCarnageNetWall` calcula la escala de la red contra `PlayerBoundaries` en espacio de mundo y compensa la escala de cualquier padre de jerarquía. Esto evita que un prefab que cuadra en edicion se vea mas pequeno o mas grande al entrar en Play.
 
 ## Reglas practicas
 
-- Ajustar sprites desde importacion y escala local antes de compensar con codigo.
+- Ajustar sprites desde importación y escala local antes de compensar con código.
 - Mantener prefabs visuales en escala local `1` siempre que sea posible.
-- Usar `PlayerBoundaries` y `CameraBoundaries` como unica fuente de limites de gameplay.
+- Usar `PlayerBoundaries` y `CameraBoundaries` como unica fuente de límites de gameplay.
 - No deformar sprites estirando un solo eje, salvo elementos geometricos sin lectura artistica.
 - No introducir rangos manuales de respaldo para corregir una escena mal configurada.
-- Documentar cualquier excepcion a `100 PPU` en este archivo o en la ficha del sistema correspondiente.
+- Documentar cualquier excepción a `100 PPU` en este archivo o en la ficha del sistema correspondiente.

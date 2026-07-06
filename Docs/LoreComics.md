@@ -2,7 +2,7 @@
 
 ## Alcance
 
-El sistema de lore comics muestra vinetas antes o durante transiciones narrativas sin crear UI visual por codigo. La base funcional vive en el prefab `LoreComic`; la escena o prefab de zona debe contener una instancia `LoreComicRoot` y el arte final se ajusta manualmente en Unity.
+El sistema de lore comics muestra viñetas antes o durante transiciones narrativas sin crear UI visual por código. La base funcional vive en el prefab `LoreComic`; la escena o prefab de zona debe contener una instancia `LoreComicRoot` y el arte final se ajusta manualmente en Unity.
 
 Eventos implementados:
 - Inicio de partida desde `MainMenu.Jugar`.
@@ -17,7 +17,7 @@ Los hitos de puntaje quedan fuera del alcance de esta entrega y se mantienen com
 
 Archivo: `Assets/Implementation/Code/Lore/LoreComicPresenter.cs`
 
-Prefab canonico: `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab`
+Prefab canónico: `Assets/Content/Prefabs/UI/Menus/LoreComic.prefab`
 
 `LoreComicPresenter` debe vivir en un GameObject activo de la escena. El Canvas visual puede estar oculto, pero el GameObject que contiene el componente debe permanecer activo para que las corrutinas puedan ejecutarse.
 
@@ -41,7 +41,7 @@ El `RectTransform` de `Comic` debe conservar escala local `(1,1,1)`. La visibili
 
 ## Catalogo local
 
-`entries` define las vinetas disponibles:
+`entries` define las viñetas disponibles:
 
 | Campo | Uso |
 | --- | --- |
@@ -78,9 +78,11 @@ La carpeta `ComicLore/Placeholders` no forma parte del paquete final de arte run
 
 `ScenePortal` resuelve la escena destino antes de cargarla y llama `LoreComicPresenter.PlayPortalTransitionIfAvailable(targetScene)`.
 
-`GameOverMenuManager` espera `LoreComicPresenter.PlayDefeatIfAvailable()` antes de mostrar el menu de Game Over.
+`GameOverMenuManager` espera `LoreComicPresenter.PlayDefeatIfAvailable()` antes de mostrar el menú de Game Over.
 
 `InGameShopManager` coordina los comics de tienda cuando la apertura viene desde `DealerFish`: muestra `ShopInGameFirst` antes de la primera apertura y, al cerrar esa primera tienda, elige entre `ShopInGameLastPurchased` y `ShopInGameLastNoPurchase`.
+
+El comic de `Cómo Jugar` vive en `MainMenu` y se abre desde su botón propio.
 
 Si no hay `LoreComicPresenter` activo en la escena, el flujo continua sin bloquearse. Portal y derrota tambien se omiten si no existe una entrada configurada para ese evento; esto evita mostrar un panel vacio durante gameplay.
 
@@ -90,7 +92,6 @@ Instalacion actual:
 - `Assets/Scenes/MainMenu/MainMenu.unity`
 - `Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab`
 - `Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab`
-- `Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaTutorial.prefab`
 
 ## Tiempo y pausa
 

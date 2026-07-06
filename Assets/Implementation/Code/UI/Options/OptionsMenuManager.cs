@@ -11,13 +11,10 @@ public class OptionsMenuManager : MonoBehaviour
 {
     private const int MinimumOptionsSortingOrder = 100;
     private static readonly string[] BackgroundNames = { "Background", "Fondo" };
-    private const string VolumePrefsKey = "MasterVolume";
     private const string FullscreenPrefsKey = "Fullscreen";
     private const string ResolutionIndexPrefsKey = "ResolutionIndex";
     private const string ResolutionWidthPrefsKey = "ResolutionWidth";
     private const string ResolutionHeightPrefsKey = "ResolutionHeight";
-    private const float MinimumMixerVolume = 0.0001f;
-    private const float MutedMixerDecibels = -80f;
 
     [Header("UI References")]
     [SerializeField] private GameObject menuRoot;
@@ -92,9 +89,8 @@ public class OptionsMenuManager : MonoBehaviour
     public void SetVolume(float volume)
     {
         float normalizedVolume = Mathf.Clamp01(volume);
-        ApplyGlobalVolume(normalizedVolume);
-        PlayerPrefs.SetFloat(VolumePrefsKey, normalizedVolume);
-        PlayerPrefs.Save();
+        GlobalAudioSettings.SetMasterVolume(normalizedVolume);
+        GlobalAudioSettings.ApplyToMixer(audioMixer, masterVolumeParameter, normalizedVolume);
     }
 
     public void SetFullscreen(bool isFullscreen)
@@ -139,14 +135,15 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void LoadSavedSettings()
     {
-        float savedVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(VolumePrefsKey, 0.75f));
+        float savedVolume = GlobalAudioSettings.MasterVolume;
         if (volumeSlider != null)
         {
             // Default to 75% volume if they haven't saved a preference yet
             volumeSlider.SetValueWithoutNotify(savedVolume);
         }
 
-        ApplyGlobalVolume(savedVolume);
+        GlobalAudioSettings.SetMasterVolume(savedVolume, save: false);
+        GlobalAudioSettings.ApplyToMixer(audioMixer, masterVolumeParameter, savedVolume);
 
         if (fullscreenToggle != null)
         {
@@ -180,22 +177,6 @@ public class OptionsMenuManager : MonoBehaviour
         SaveResolutionPreference(resolution, resolutionIndex);
         PlayerPrefs.SetInt(FullscreenPrefsKey, isFullscreen ? 1 : 0);
         PlayerPrefs.Save();
-    }
-
-    private void ApplyGlobalVolume(float volume)
-    {
-        float normalizedVolume = Mathf.Clamp01(volume);
-        AudioListener.volume = normalizedVolume;
-
-        if (audioMixer == null || string.IsNullOrWhiteSpace(masterVolumeParameter))
-        {
-            return;
-        }
-
-        float decibels = normalizedVolume <= 0f
-            ? MutedMixerDecibels
-            : Mathf.Log10(Mathf.Max(MinimumMixerVolume, normalizedVolume)) * 20f;
-        audioMixer.SetFloat(masterVolumeParameter.Trim(), decibels);
     }
 
     private Resolution[] BuildUniqueResolutionList()
