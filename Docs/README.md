@@ -12,6 +12,7 @@ Este directorio organiza la documentación técnica de la entrega final. Los inf
 - [AssetFlow.md](AssetFlow.md) - entrada y uso de audio, arte, prefabs y animaciones.
 - [WorldScale.md](WorldScale.md) - escala canonica entre pixeles, unidades de mundo y boundaries.
 - [AnimationStandards.md](AnimationStandards.md) - reglas y pautas de animaciones runtime.
+- [Testing.md](Testing.md) - base mínima de pruebas EditMode y ejecución batch.
 
 ## Sistemas de juego
 
