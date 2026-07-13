@@ -30,6 +30,8 @@ Este directorio organiza la documentación técnica de la entrega final. Los inf
 
 - [Tutorial.md](Tutorial.md) - comic tutorial activo y tutorial jugable pendiente fuera del build.
 
+- [SceneCompositionValidation.md](SceneCompositionValidation.md) - validacion Editor/batch de escenas, prefabs canonicos y busquedas globales restantes.
+
 ## Cierre de entrega
 
 - [StateMachines.md](StateMachines.md) - estados implementados y extensiones previstas.

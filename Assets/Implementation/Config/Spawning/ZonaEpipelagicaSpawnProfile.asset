@@ -34,7 +34,7 @@ MonoBehaviour:
     spawnIntervalMultiplier: 1
   - prefab: {fileID: 7602000000000000001, guid: d7ed1c8e0c9649a7b75da1f729ea308d, type: 3}
     enemyTag: EnemyRay
-    baseWeight: 0
+    baseWeight: 0.35
     minIntensity: 0.2
     spawnIntervalMultiplier: 1.15
   timeBetweenSpawns: 1.5

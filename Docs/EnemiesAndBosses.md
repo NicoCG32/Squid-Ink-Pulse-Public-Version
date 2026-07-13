@@ -32,8 +32,8 @@ El spawn vertical depende del contrato de boundaries:
 - Pez Globo aparece en el tramo superior del rango jugable. En las zonas jugables actuales usa `upperZoneSpawnCoverage = 0.8`, equivalente a cuatro quintos del semicampo superior.
 - Mina aparece en todo el rango de `PlayerBoundaries`.
 - Cana de pescar aparece por la derecha, cada `fishingRodEnemyInterval` enemigos en juego normal. Captura la altura del jugador al spawnear, calcula una distancia X proporcional a la velocidad horizontal actual del jugador, nace arriba y baja verticalmente hasta esa Y fija.
-- Ray esta implementado para `ZonaEpipelagica`, dentro de los tres cuartos inferiores del rango jugable. Avanza en diagonal hacia la izquierda y alterna aleatoriamente entre diagonal ascendente y descendente al aparecer. En la configuración de entrega permanece no habilitado por balance con `baseWeight: 0`.
-- Jellyfish esta implementado para `ZonaAbisopelagica`, en todo el rango jugable. Se mueve siempre hacia arriba de forma lenta. En la configuración de entrega permanece no habilitado por balance con `baseWeight: 0`.
+- Ray esta implementado para `ZonaEpipelagica`, dentro de los tres cuartos inferiores del rango jugable. Avanza en diagonal hacia la izquierda y alterna aleatoriamente entre diagonal ascendente y descendente al aparecer. Ahora queda habilitado gradualmente para playtest.
+- Jellyfish esta implementado para `ZonaAbisopelagica`, en todo el rango jugable. Se mueve siempre hacia arriba de forma lenta. Ahora queda habilitado gradualmente para playtest. Su lectura de contacto se divide en dos colliders: zona superior de rebote y zona inferior letal.
 
 No hay rangos manuales de respaldo para spawn.
 
@@ -113,8 +113,8 @@ Prefab base: `Assets/Content/Prefabs/Enemies/Ray.prefab`
 Estado de entrega:
 - Enemigo exclusivo de `ZonaEpipelagicaSpawnProfile`.
 - Usa tag `EnemyRay` y layer `Enemy`.
-- El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
-- Permanece no habilitado por balance con `baseWeight: 0`; el prefab queda listo para reemplazo visual y ajuste de collider.
+- El prefab base tiene root en layer `Enemy` con tag `EnemyRay`, `Visual` animado sin tag logico propio, `Rigidbody2D` cinematico y collider corporal en layer `Enemy`.
+- Queda habilitado en `ZonaEpipelagicaSpawnProfile` con `baseWeight: 0.35` y `minIntensity: 0.2` para playtest gradual.
 
 Responsabilidad:
 - Moverse en diagonal constante hacia la izquierda.
@@ -137,12 +137,15 @@ Prefab base: `Assets/Content/Prefabs/Enemies/Jellyfish.prefab`
 Estado de entrega:
 - Enemigo exclusivo de `ZonaAbisopelagicaSpawnProfile`.
 - Usa tag `EnemyJellyfish` y layer `Enemy`.
-- El prefab base tiene `Visual` con un Square simple, `Rigidbody2D` cinematico y `BoxCollider2D` trigger.
+- El prefab base tiene `Visual` animado, `Rigidbody2D` cinematico, `CircleCollider2D` superior no-trigger para rebote y `BoxCollider2D` inferior trigger para muerte.
+- El tag logico `EnemyJellyfish` pertenece solo al root; los hijos visuales permanecen `Untagged` y en layer `Enemy`.
 - `SpawnedObjectConfigurator` le agrega `LightGrazeSource` en la zona abisal igual que al resto de enemigos spawneados.
-- Permanece no habilitado por balance con `baseWeight: 0`.
+- Queda habilitado en `ZonaAbisopelagicaSpawnProfile` con `baseWeight: 0.45` para playtest gradual.
 
 Responsabilidad:
 - Moverse siempre hacia arriba lentamente.
+- Reservar el `CircleCollider2D` superior como zona de rebote o impulso fisico hacia arriba; `PlayerCollision` no debe tratarlo como collider letal.
+- Matar al jugador solo cuando entra por el `BoxCollider2D` inferior trigger.
 - No perseguir al jugador.
 - Detener movimiento cuando `GameSessionController.IsGameplayActive` es falso.
 

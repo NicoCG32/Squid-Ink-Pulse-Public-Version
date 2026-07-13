@@ -57,7 +57,7 @@ La entrega queda cerrada con estos componentes integrados:
 - Las skins compradas se guardan, se equipan y se aplican visualmente al entrar a gameplay.
 - Los gadgets comprados durante la run se consumen al ejecutar su efecto y se limpian en Game Over.
 - `ZonaAbisopelagica` conserva iluminacion compuesta y boss abisal.
-- Ray y Jellyfish permanecen implementados pero no habilitados por balance (`baseWeight: 0`).
+- Ray y Jellyfish quedan reactivados gradualmente para playtest desde sus `ZoneSpawnProfile`; el ajuste fino pertenece a balance.
 - El slider de volumen afecta todos los sonidos del juego.
 - La feria se presenta como add-on opcional de leaderboard, no como persistencia remota completa.
 
@@ -81,7 +81,7 @@ Las siguientes líneas no condicionan la entrega final. Quedan registradas solo 
 
 4. Balance.
    - Ajustar curva de spawn, recompensas de camarones y multiplicadores permanentes.
-   - Considerar activación gradual de Ray y Jellyfish.
+   - Ajustar pesos de Ray y Jellyfish si el playtest muestra exceso o defecto de presión.
 
 ## Regla de mantenimiento documental
 

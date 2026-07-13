@@ -34,7 +34,7 @@ MonoBehaviour:
     spawnIntervalMultiplier: 1
   - prefab: {fileID: 7702000000000000001, guid: a1119db8e14f4f0f9d72dfc856f10b29, type: 3}
     enemyTag: EnemyJellyfish
-    baseWeight: 0
+    baseWeight: 0.45
     minIntensity: 0
     spawnIntervalMultiplier: 1.2
   timeBetweenSpawns: 1.5

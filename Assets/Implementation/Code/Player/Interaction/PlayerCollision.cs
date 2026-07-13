@@ -41,10 +41,25 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        if (EnemyTagCatalog.IsEnemy(other))
+        if (EnemyTagCatalog.IsEnemy(other) && IsLethalHazardCollider(other))
         {
             HandleHazardCollision(other);
         }
+    }
+
+    private static bool IsLethalHazardCollider(Collider2D collider)
+    {
+        if (collider == null)
+        {
+            return false;
+        }
+
+        if (collider.CompareTag(EnemyTagCatalog.Jellyfish))
+        {
+            return collider.isTrigger;
+        }
+
+        return true;
     }
 
     private void HandleHazardCollision(Collider2D hazard)
