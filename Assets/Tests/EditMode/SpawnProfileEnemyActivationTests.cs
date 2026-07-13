@@ -55,6 +55,37 @@ namespace SquidInkPulse.Tests.EditMode
             Assert.That(deathCollider.offset.y, Is.LessThan(bounceCollider.offset.y), "El collider letal de Jellyfish debe quedar bajo el collider de rebote.");
         }
 
+        [Test]
+        public void RayMovement_StopsVerticalTravelAtPlayerBoundaryAndKeepsHorizontalTravel()
+        {
+            Vector3 start = new(2f, 4.9f, 0f);
+            Vector2 verticalRange = new(-5f, 5f);
+
+            Vector3 next = RayEnemy.CalculateNextPosition(
+                start,
+                2f,
+                3f,
+                1f,
+                1f,
+                true,
+                verticalRange,
+                out float nextVerticalDirection);
+
+            Assert.That(next.x, Is.EqualTo(0f).Within(0.0001f), "Ray debe seguir avanzando horizontalmente.");
+            Assert.That(next.y, Is.EqualTo(5f).Within(0.0001f), "Ray debe quedar limitado por el boundary superior.");
+            Assert.That(nextVerticalDirection, Is.Zero, "Ray debe anular movimiento vertical al tocar un boundary.");
+        }
+
+        [Test]
+        public void JellyfishTuning_DefaultBounceParametersAreActive()
+        {
+            JellyfishEnemyTuning tuning = new();
+
+            Assert.That(tuning.BounceVerticalVelocity, Is.GreaterThan(0f));
+            Assert.That(tuning.BounceDuration, Is.GreaterThan(0f));
+            Assert.That(tuning.BounceCooldown, Is.GreaterThanOrEqualTo(0f));
+        }
+
         private static void AssertEnemyPrefabTagAndLayerContract(GameObject prefab, string expectedRootTag)
         {
             int enemyLayer = LayerMask.NameToLayer("Enemy");

@@ -70,6 +70,9 @@ MonoBehaviour:
     verticalSpeed: 1.1
   jellyfishTuning:
     upwardSpeed: 0.45
+    bounceVerticalVelocity: 12
+    bounceDuration: 0.25
+    bounceCooldown: 0.2
   enableDealerFishSpawns: 1
   firstDealerFishSpawnDelay: 18
   dealerFishSpawnInterval: 30

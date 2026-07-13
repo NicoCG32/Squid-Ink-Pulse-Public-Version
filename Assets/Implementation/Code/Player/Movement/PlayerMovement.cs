@@ -38,6 +38,8 @@ public class PlayerMovement : MonoBehaviour
     private float maxY;
     private bool hasVerticalLimits;
     private bool movementSuppressed;
+    private float externalVerticalImpulseVelocity;
+    private float externalVerticalImpulseRemainingSeconds;
 
     public float CurrentHorizontalSpeed => currentHorizontalSpeed;
     public float CurrentVerticalSpeed => currentVerticalSpeed;
@@ -104,6 +106,19 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void ApplyExternalVerticalImpulse(float verticalVelocity, float durationSeconds)
+    {
+        float safeVelocity = Mathf.Max(0f, verticalVelocity);
+        float safeDuration = Mathf.Max(0f, durationSeconds);
+        if (safeVelocity <= 0f || safeDuration <= 0f)
+        {
+            return;
+        }
+
+        externalVerticalImpulseVelocity = Mathf.Max(externalVerticalImpulseVelocity, safeVelocity);
+        externalVerticalImpulseRemainingSeconds = Mathf.Max(externalVerticalImpulseRemainingSeconds, safeDuration);
+    }
+
     private void ResetRuntimeState()
     {
         currentHorizontalSpeed = inkPulseActive ? inkPulseHorizontalSpeed : normalHorizontalSpeed;
@@ -112,21 +127,52 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (gameplayCamera == null || Mouse.current == null || !hasVerticalLimits)
+        if (!hasVerticalLimits)
         {
             return;
         }
 
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector3 mouseWithDepth = new Vector3(mousePos.x, mousePos.y, gameplayCamera.nearClipPlane + 10f);
-        Vector3 worldMousePos = gameplayCamera.ScreenToWorldPoint(mouseWithDepth);
-        worldMousePos.z = 0f;
-
         float nextX = transform.position.x + currentHorizontalSpeed * Time.deltaTime;
-        float nextY = Mathf.MoveTowards(transform.position.y, worldMousePos.y, currentVerticalSpeed * Time.deltaTime);
+        float nextY;
+        if (!TryResolveExternalImpulseY(out nextY))
+        {
+            if (gameplayCamera == null || Mouse.current == null)
+            {
+                return;
+            }
+
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            Vector3 mouseWithDepth = new Vector3(mousePos.x, mousePos.y, gameplayCamera.nearClipPlane + 10f);
+            Vector3 worldMousePos = gameplayCamera.ScreenToWorldPoint(mouseWithDepth);
+            worldMousePos.z = 0f;
+
+            nextY = Mathf.MoveTowards(transform.position.y, worldMousePos.y, currentVerticalSpeed * Time.deltaTime);
+        }
+
         nextY = Mathf.Clamp(nextY, minY, maxY);
 
         transform.position = new Vector3(nextX, nextY, 0f);
+    }
+
+    private bool TryResolveExternalImpulseY(out float nextY)
+    {
+        nextY = transform.position.y;
+        if (externalVerticalImpulseRemainingSeconds <= 0f || externalVerticalImpulseVelocity <= 0f)
+        {
+            return false;
+        }
+
+        float appliedDuration = Mathf.Min(Time.deltaTime, externalVerticalImpulseRemainingSeconds);
+        nextY = transform.position.y + externalVerticalImpulseVelocity * appliedDuration;
+        externalVerticalImpulseRemainingSeconds -= Time.deltaTime;
+
+        if (externalVerticalImpulseRemainingSeconds <= 0f)
+        {
+            externalVerticalImpulseRemainingSeconds = 0f;
+            externalVerticalImpulseVelocity = 0f;
+        }
+
+        return true;
     }
 
     private void UpdateSpeedTransition()

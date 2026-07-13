@@ -119,6 +119,7 @@ Estado de entrega:
 Responsabilidad:
 - Moverse en diagonal constante hacia la izquierda.
 - Alternar al aparecer entre diagonal ascendente y diagonal descendente.
+- Al alcanzar `TopBoundary` o `BottomBoundary` de `PlayerBoundaries`, anular su movimiento vertical y continuar horizontalmente hacia la izquierda.
 - No perseguir ni recapturar al jugador.
 - Detener movimiento cuando `GameSessionController.IsGameplayActive` es falso.
 
@@ -144,15 +145,18 @@ Estado de entrega:
 
 Responsabilidad:
 - Moverse siempre hacia arriba lentamente.
-- Reservar el `CircleCollider2D` superior como zona de rebote o impulso fisico hacia arriba; `PlayerCollision` no debe tratarlo como collider letal.
+- Usar el `CircleCollider2D` superior como zona de rebote o impulso fisico hacia arriba; `PlayerCollision` no debe tratarlo como collider letal.
 - Matar al jugador solo cuando entra por el `BoxCollider2D` inferior trigger.
 - No perseguir al jugador.
 - Detener movimiento cuando `GameSessionController.IsGameplayActive` es falso.
 
 Parámetros de balance:
 - `upwardSpeed`
+- `bounceVerticalVelocity`
+- `bounceDuration`
+- `bounceCooldown`
 
-Este parametro pertenece a `ZoneSpawnProfile.jellyfishTuning`.
+Estos parametros pertenecen a `ZoneSpawnProfile.jellyfishTuning`.
 
 ### Cana de pescar
 
