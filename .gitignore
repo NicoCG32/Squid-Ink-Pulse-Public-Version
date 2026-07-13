@@ -49,6 +49,8 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
+!Squid-Ink-Pulse.slnx
 *.suo
 *.tmp
 *.user
@@ -115,9 +117,6 @@ InitTestScene*.unity*
 
 # IDE/local tooling
 .idea/
-
-# Internal working notes
-/CODEX/
 
 # Runtime data for the local fair server
 /Tools/FairServer/data/

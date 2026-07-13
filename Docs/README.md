@@ -28,6 +28,8 @@ Este directorio organiza la documentación técnica de la entrega final. Los inf
 - [WorldAndCamera.md](WorldAndCamera.md) - cámara, boundaries, parallax y limpieza fuera de pantalla.
 - [UiAndMenu.md](UiAndMenu.md) - menus, pausa, game over, tienda y HUD.
 
+- [Tutorial.md](Tutorial.md) - comic tutorial activo y tutorial jugable pendiente fuera del build.
+
 ## Cierre de entrega
 
 - [StateMachines.md](StateMachines.md) - estados implementados y extensiones previstas.
