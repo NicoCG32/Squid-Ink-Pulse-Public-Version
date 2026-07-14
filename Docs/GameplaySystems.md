@@ -239,6 +239,7 @@ Reglas:
 - El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parámetros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.
 - Si el contador llega a cero, la oferta se cierra.
+- La ruta de apertura queda clasificada por `InGameShopOpenSource`: `DealerFish` habilita comics de entrada/salida, `Tutorial` fuerza oferta sin activar lore de DealerFish y `Timed` representa apertura temporal normal.
 - `DealerFish` se consume solo si `InGameShopManager` acepta la apertura. Tras abrir tienda, conserva su collider trigger para que `DestroyOffscreen` pueda limpiarlo. Las aperturas repetidas se evitan con un flag interno del propio `DealerFish`.
 - `RuntimeInGameShopLoreState` limita los intentos de comic de entrada/salida a una vez por run, y `player-profile.json/lore.viewedComicEventIds` impide repetir comics de tienda ya vistos en partidas futuras.
 - Al comprar correctamente, la tienda entrega el gadget y se cierra. El feedback visual permanente del vendedor no pertenece a esta tienda, sino a `ShopMenu`.

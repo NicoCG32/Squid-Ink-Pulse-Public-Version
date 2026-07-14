@@ -59,7 +59,7 @@ public class InGameShopManager : MonoBehaviour
     private GadgetId queuedTutorialOffer = GadgetId.None;
     private int queuedTutorialPriceOverride = -1;
     private Coroutine pendingWorldShopRoutine;
-    private bool currentShopOpenedFromDealerFish;
+    private InGameShopOpenSource currentShopOpenSource = InGameShopOpenSource.Timed;
     private bool currentShopPurchased;
 
     public static InGameShopManager Instance => instance;
@@ -152,7 +152,7 @@ public class InGameShopManager : MonoBehaviour
             return true;
         }
 
-        return TryOpenTimedShop(openedFromDealerFish: true);
+        return TryOpenTimedShop(InGameShopOpenSource.DealerFish);
     }
 
     private IEnumerator OpenWorldShopAfterFirstComicRoutine()
@@ -160,7 +160,7 @@ public class InGameShopManager : MonoBehaviour
         yield return LoreComicPresenter.PlayInGameShopFirstIfAvailable();
         BlockInkPulseActivationBriefly();
         pendingWorldShopRoutine = null;
-        TryOpenTimedShop(openedFromDealerFish: true);
+        TryOpenTimedShop(InGameShopOpenSource.DealerFish);
     }
 
     public void QueueTutorialOffer(GadgetId gadget, int priceOverride = -1)
@@ -172,15 +172,15 @@ public class InGameShopManager : MonoBehaviour
     public bool TryOpenTutorialOffer(GadgetId gadget, int priceOverride = -1)
     {
         QueueTutorialOffer(gadget, priceOverride);
-        return TryOpenTimedShop();
+        return TryOpenTimedShop(InGameShopOpenSource.Tutorial);
     }
 
     public bool TryOpenTimedShop()
     {
-        return TryOpenTimedShop(openedFromDealerFish: false);
+        return TryOpenTimedShop(InGameShopOpenSource.Timed);
     }
 
-    private bool TryOpenTimedShop(bool openedFromDealerFish)
+    private bool TryOpenTimedShop(InGameShopOpenSource openSource)
     {
         ResolveReferences();
         PrepareOverlayPresenter();
@@ -203,7 +203,7 @@ public class InGameShopManager : MonoBehaviour
         currentPrice = CalculateCurrentPrice();
         offerTimer.Start(offerDurationSeconds);
         ClearQueuedTutorialOffer();
-        currentShopOpenedFromDealerFish = openedFromDealerFish;
+        currentShopOpenSource = openSource;
         currentShopPurchased = false;
 
         EnsureTimeScaleHold();
@@ -341,15 +341,15 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
-        bool shouldPlayFirstExitComic = currentShopOpenedFromDealerFish
-            && (session == null || !session.IsGameOver)
+        bool isGameOver = session != null && session.IsGameOver;
+        bool shouldPlayFirstExitComic = InGameShopLorePolicy.ShouldAttemptFirstDealerExitComic(currentShopOpenSource, isGameOver)
             && RuntimeInGameShopLoreState.TryMarkFirstDealerShopExit();
         bool purchasedDuringDealerShop = currentShopPurchased;
 
         isOpen = false;
         currentOffer = null;
         offerTimer.Stop();
-        currentShopOpenedFromDealerFish = false;
+        currentShopOpenSource = InGameShopOpenSource.Timed;
         currentShopPurchased = false;
         BlockInkPulseActivationBriefly();
         RestoreTimeScaleIfNeeded();
