@@ -30,6 +30,7 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - Los prefabs canonicos principales no tienen scripts faltantes.
 - Las cuatro escenas de build no tienen scripts faltantes.
 - `MainMenu` y `ShopMenu` tienen un unico `EventSystem` y su manager principal.
+- `ShopMenu` tiene cableadas las referencias serializadas de `OutOfGameShopManager`: botones, textos principales, estados visuales del dealer, vistas de slots y gotas del indicador de nivel.
 - Cada escena jugable tiene un unico `GameSessionController`, `RunProgressionDirector`, `SceneFlowController`, `LevelSpawner` y `GameUIRoot`.
 - `LevelSpawner.zoneSpawnProfile` esta asignado.
 - `GameUIRoot` tiene asignadas sus referencias serializadas de composicion, HUD y managers.
@@ -58,7 +59,7 @@ Estas busquedas quedan documentadas como deuda controlada. No deben multiplicars
 | `FlappyBossController` | `FindFirstObjectByType<LevelSpawner>` | fallback de boss | Boss abisal necesita suspender/reanudar spawner; debe recibir contexto desde `BossEventDirector`. |
 | `FairModeMenuManager` | `FindFirstObjectByType<EventSystem>` | bootstrap opcional de feria | Modo feria es opcional y crea UI auxiliar solo si falta infraestructura. |
 | `PlayerSkinApplier` | `Resources.Load<GameObject>` | runtime store formal | Carga skins declaradas por `unlockables-catalog.json`; protegido por `CatalogIntegrityTests`. |
-| `OutOfGameShopManager` | `Resources.Load<Sprite>` | runtime store formal | Carga sprites declarados por catalogo runtime. |
+| `OutOfGameShopManager` | `Resources.Load<Sprite>` | runtime store formal | Carga sprites declarados por catalogo runtime; la vista de `ShopMenu` queda cableada por referencias serializadas validadas por `SceneCompositionValidator`. |
 | `TutorialDirector` | `FindFirstObjectByType` y `FindGameObjectWithTag` | tutorial pendiente aislado | No pertenece al build activo; se tratara cuando se implemente el tutorial jugable. |
 | `TutorialTaskHudController` | `FindFirstObjectByType<TutorialDirector>` | tutorial pendiente aislado | Igual que `TutorialDirector`. |
 

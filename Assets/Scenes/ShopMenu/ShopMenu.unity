@@ -5346,6 +5346,12 @@ MonoBehaviour:
   timeDelay: 0.6
   showStartLoreComicBeforePlay: 1
   optionsMenuPanel: {fileID: 0}
+  tutorialComicsPanel: {fileID: 0}
+  tutorialComicsCanvasGroup: {fileID: 0}
+  tutorialLayerBlack: {fileID: 0}
+  tutorialButton: {fileID: 0}
+  tutorialNextButton: {fileID: 0}
+  tutorialComicPages: []
 --- !u!114 &1248894016
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5368,11 +5374,93 @@ MonoBehaviour:
   - {fileID: 1821193646}
   - {fileID: 1288448550}
   - {fileID: 1260310274}
+  upgradeSlotVisuals:
+  - button: {fileID: 243762844}
+    buttonVisualState: {fileID: 243762841}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 243762842}
+    purchasedState: {fileID: 0}
+    equippedState: {fileID: 0}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 1821193646}
+    buttonVisualState: {fileID: 1821193643}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 1821193644}
+    purchasedState: {fileID: 0}
+    equippedState: {fileID: 0}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 1288448550}
+    buttonVisualState: {fileID: 1288448547}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 1288448548}
+    purchasedState: {fileID: 0}
+    equippedState: {fileID: 0}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 1260310274}
+    buttonVisualState: {fileID: 1260310271}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 1260310272}
+    purchasedState: {fileID: 0}
+    equippedState: {fileID: 0}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
   skinSlotButtons:
   - {fileID: 2027602789}
   - {fileID: 1793682217}
   - {fileID: 2075650210}
   - {fileID: 1960832428}
+  skinSlotVisuals:
+  - button: {fileID: 2027602789}
+    buttonVisualState: {fileID: 2027602786}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 2027602787}
+    purchasedState: {fileID: 2041291952}
+    equippedState: {fileID: 809654409}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 1793682217}
+    buttonVisualState: {fileID: 1793682214}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 1793682215}
+    purchasedState: {fileID: 538564546}
+    equippedState: {fileID: 1078702407}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 2075650210}
+    buttonVisualState: {fileID: 2075650207}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 2075650208}
+    purchasedState: {fileID: 1966572267}
+    equippedState: {fileID: 1817149576}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
+  - button: {fileID: 1960832428}
+    buttonVisualState: {fileID: 1960832425}
+    normalImage: {fileID: 0}
+    highlightedImage: {fileID: 0}
+    pressedImage: {fileID: 0}
+    fallbackImage: {fileID: 1960832426}
+    purchasedState: {fileID: 1724959808}
+    equippedState: {fileID: 1173226750}
+    legacyBuyedState: {fileID: 0}
+    legacySelectedState: {fileID: 0}
   previousSkinPageButton: {fileID: 597599019}
   nextSkinPageButton: {fileID: 1038402588}
   purchaseButton: {fileID: 1847044897}
@@ -5381,6 +5469,25 @@ MonoBehaviour:
   selectedItemPriceText: {fileID: 1289369395}
   selectedItemStateText: {fileID: 0}
   skinPageText: {fileID: 0}
+  defaultShopVisualState: {fileID: 339093395}
+  happyShopVisualState: {fileID: 477996967}
+  upgradeLevelIndicatorRoot: {fileID: 1283523937}
+  upgradeLevelDrops:
+  - emptyState: {fileID: 1012947271}
+    halfState: {fileID: 1666319223}
+    fullState: {fileID: 1596999295}
+  - emptyState: {fileID: 1398665326}
+    halfState: {fileID: 944395463}
+    fullState: {fileID: 1244800312}
+  - emptyState: {fileID: 861420123}
+    halfState: {fileID: 351762478}
+    fullState: {fileID: 923801981}
+  - emptyState: {fileID: 1725477778}
+    halfState: {fileID: 2069008210}
+    fullState: {fileID: 792190879}
+  - emptyState: {fileID: 1826032863}
+    halfState: {fileID: 288868189}
+    fullState: {fileID: 2385067}
   onPurchaseSucceeded:
     m_PersistentCalls:
       m_Calls: []

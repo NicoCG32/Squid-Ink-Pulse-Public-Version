@@ -225,8 +225,8 @@ ShopMenu
 - Las mejoras usan `shopSpriteResourcePath` para estado normal y `shopHighlightedSpriteResourcePath` para el estado visual seleccionado. En el arte actual, los sprites seleccionados terminan en `Ink`.
 - Las skins usan `shopSpriteResourcePath` para su imagen base, `shopBuyedSpriteResourcePath` para el estado comprado no equipado y `shopSelectedSpriteResourcePath` para la skin equipada. Si faltan sprites de comprado o equipado, el manager conserva fallback hacia la imagen base.
 - Los campos TMP de detalle `NombreProducto`, `DescripcionProducto` y `PrecioProducto` son referencias funcionales del manager. Su posición y estilo pertenecen a la escena; el manager solo escribe contenido.
-- El indicador de nivel de mejoras vive en el nodo visual `Mejorable/Gota1..Gota5`. Cada gota debe exponer estados `Visual/Vacia`, `Visual/Media` y `Visual/Llena`. Cinco gotas representan diez segmentos de mejora.
-- El vendedor de `ShopMenu` puede exponer dos estados hermanos: `Default` y `AfterBuy`/`Happy`. `OutOfGameShopManager` vuelve a `Default` al entrar o salir del menú, y cambia a `AfterBuy`/`Happy` solo despues de una compra real exitosa, conservando ese estado durante la visita actual. Equipar o desequipar una skin ya comprada no cuenta como compra nueva.
+- El indicador de nivel de mejoras vive en el nodo visual `Mejorable/Gota1..Gota5`. Cada gota debe exponer estados `Visual/Vacia`, `Visual/Media` y `Visual/Llena`. Cinco gotas representan diez segmentos de mejora. `OutOfGameShopManager` no busca esos nombres en runtime: las gotas y sus estados quedan serializados en la escena y validados por `SceneCompositionValidator`.
+- El vendedor de `ShopMenu` expone dos estados serializados: `Default` y `AfterBuy`/`Happy`. `OutOfGameShopManager` vuelve a `Default` al entrar o salir del menú, y cambia a `AfterBuy`/`Happy` solo despues de una compra real exitosa, conservando ese estado durante la visita actual. Equipar o desequipar una skin ya comprada no cuenta como compra nueva.
 
 Eventos persistentes requeridos:
 

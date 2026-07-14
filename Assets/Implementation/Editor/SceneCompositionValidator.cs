@@ -112,7 +112,12 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             }
             else if (scenePath == ShopMenuScenePath)
             {
-                RequireSingle<OutOfGameShopManager>(scene, "OutOfGameShopManager", failures);
+                OutOfGameShopManager shopManager = RequireSingle<OutOfGameShopManager>(scene, "OutOfGameShopManager", failures);
+                if (shopManager != null)
+                {
+                    ValidateShopMenu(shopManager, failures);
+                }
+
                 RequireSingle<EventSystem>(scene, "EventSystem", failures);
             }
         }
@@ -168,6 +173,77 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         foreach (string propertyName in requiredProperties)
         {
             RequireObjectReference(uiRoot, propertyName, $"{zoneName}/GameUIRoot.{propertyName}", failures);
+        }
+    }
+
+    private static void ValidateShopMenu(OutOfGameShopManager shopManager, List<string> failures)
+    {
+        RequireObjectReferenceArray(shopManager, "upgradeSlotButtons", 4, "ShopMenu.upgradeSlotButtons", failures);
+        RequireObjectReferenceArray(shopManager, "skinSlotButtons", 4, "ShopMenu.skinSlotButtons", failures);
+        RequireObjectReference(shopManager, "purchaseButton", "ShopMenu.purchaseButton", failures);
+        RequireObjectReference(shopManager, "selectedItemNameText", "ShopMenu.selectedItemNameText", failures);
+        RequireObjectReference(shopManager, "selectedItemDescriptionText", "ShopMenu.selectedItemDescriptionText", failures);
+        RequireObjectReference(shopManager, "selectedItemPriceText", "ShopMenu.selectedItemPriceText", failures);
+        RequireObjectReference(shopManager, "defaultShopVisualState", "ShopMenu.defaultShopVisualState", failures);
+        RequireObjectReference(shopManager, "happyShopVisualState", "ShopMenu.happyShopVisualState", failures);
+        RequireObjectReference(shopManager, "upgradeLevelIndicatorRoot", "ShopMenu.upgradeLevelIndicatorRoot", failures);
+
+        SerializedObject serializedManager = new(shopManager);
+        RequireSlotVisualArray(serializedManager, "upgradeSlotVisuals", 4, requireSkinStates: false, "ShopMenu.upgradeSlotVisuals", failures);
+        RequireSlotVisualArray(serializedManager, "skinSlotVisuals", 4, requireSkinStates: true, "ShopMenu.skinSlotVisuals", failures);
+        RequireLevelDropArray(serializedManager, "upgradeLevelDrops", 5, "ShopMenu.upgradeLevelDrops", failures);
+    }
+
+    private static void RequireSlotVisualArray(
+        SerializedObject serializedObject,
+        string propertyName,
+        int expectedCount,
+        bool requireSkinStates,
+        string label,
+        List<string> failures)
+    {
+        SerializedProperty array = RequireArray(serializedObject, propertyName, expectedCount, label, failures);
+        if (array == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < array.arraySize; index++)
+        {
+            SerializedProperty slot = array.GetArrayElementAtIndex(index);
+            string slotLabel = $"{label}[{index}]";
+            RequireRelativeObjectReference(slot, "button", $"{slotLabel}.button", failures);
+            RequireRelativeObjectReference(slot, "buttonVisualState", $"{slotLabel}.buttonVisualState", failures);
+            RequireRelativeObjectReference(slot, "fallbackImage", $"{slotLabel}.fallbackImage", failures);
+
+            if (requireSkinStates)
+            {
+                RequireRelativeObjectReference(slot, "purchasedState", $"{slotLabel}.purchasedState", failures);
+                RequireRelativeObjectReference(slot, "equippedState", $"{slotLabel}.equippedState", failures);
+            }
+        }
+    }
+
+    private static void RequireLevelDropArray(
+        SerializedObject serializedObject,
+        string propertyName,
+        int expectedCount,
+        string label,
+        List<string> failures)
+    {
+        SerializedProperty array = RequireArray(serializedObject, propertyName, expectedCount, label, failures);
+        if (array == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < array.arraySize; index++)
+        {
+            SerializedProperty drop = array.GetArrayElementAtIndex(index);
+            string dropLabel = $"{label}[{index}]";
+            RequireRelativeObjectReference(drop, "emptyState", $"{dropLabel}.emptyState", failures);
+            RequireRelativeObjectReference(drop, "halfState", $"{dropLabel}.halfState", failures);
+            RequireRelativeObjectReference(drop, "fullState", $"{dropLabel}.fullState", failures);
         }
     }
 
@@ -323,6 +399,90 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         }
 
         return property.objectReferenceValue;
+    }
+
+    private static void RequireObjectReferenceArray(
+        UnityEngine.Object target,
+        string propertyName,
+        int expectedCount,
+        string label,
+        List<string> failures)
+    {
+        SerializedObject serializedObject = new(target);
+        SerializedProperty property = RequireArray(serializedObject, propertyName, expectedCount, label, failures);
+        if (property == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < property.arraySize; index++)
+        {
+            SerializedProperty item = property.GetArrayElementAtIndex(index);
+            if (item.propertyType != SerializedPropertyType.ObjectReference)
+            {
+                failures.Add($"{label}[{index}]: el elemento no es ObjectReference.");
+                continue;
+            }
+
+            if (item.objectReferenceValue == null)
+            {
+                failures.Add($"{label}[{index}]: referencia obligatoria no asignada.");
+            }
+        }
+    }
+
+    private static SerializedProperty RequireArray(
+        SerializedObject serializedObject,
+        string propertyName,
+        int expectedCount,
+        string label,
+        List<string> failures)
+    {
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null)
+        {
+            failures.Add($"{label}: propiedad serializada no encontrada.");
+            return null;
+        }
+
+        if (!property.isArray)
+        {
+            failures.Add($"{label}: la propiedad no es un array serializado.");
+            return null;
+        }
+
+        if (property.arraySize != expectedCount)
+        {
+            failures.Add($"{label}: debe tener {expectedCount} elementos; actual: {property.arraySize}.");
+            return null;
+        }
+
+        return property;
+    }
+
+    private static void RequireRelativeObjectReference(
+        SerializedProperty parent,
+        string childPropertyName,
+        string label,
+        List<string> failures)
+    {
+        SerializedProperty property = parent.FindPropertyRelative(childPropertyName);
+        if (property == null)
+        {
+            failures.Add($"{label}: propiedad serializada no encontrada.");
+            return;
+        }
+
+        if (property.propertyType != SerializedPropertyType.ObjectReference)
+        {
+            failures.Add($"{label}: la propiedad no es ObjectReference.");
+            return;
+        }
+
+        if (property.objectReferenceValue == null)
+        {
+            failures.Add($"{label}: referencia obligatoria no asignada.");
+        }
     }
 
     private static T[] FindSceneObjects<T>(Scene scene) where T : Component

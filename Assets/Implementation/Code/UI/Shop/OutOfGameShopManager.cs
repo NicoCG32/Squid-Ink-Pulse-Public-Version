@@ -12,11 +12,6 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     private const int VisibleUpgradeSlotCount = 4;
     private const int VisibleSkinSlotCount = 4;
     private const int UpgradeLevelSegmentsPerDrop = 2;
-    private const string EmptyDropStateName = "Vacia";
-    private const string HalfDropStateName = "Media";
-    private const string FullDropStateName = "Llena";
-    private static readonly string[] DefaultShopVisualNames = { "Default", "DealerDefault", "OctoDealerDefault", "ShopDefault" };
-    private static readonly string[] HappyShopVisualNames = { "AfterBuy", "Happy", "DealerHappy", "OctoDealerHappy", "Feliz" };
 
     [Header("Fixed Upgrade Slots")]
     [SerializeField] private string[] upgradeIds =
@@ -27,9 +22,11 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         PlayerUnlockableIds.ScoreMultiplierUpgrade
     };
     [SerializeField] private Button[] upgradeSlotButtons = new Button[VisibleUpgradeSlotCount];
+    [SerializeField] private PermanentShopSlotVisual[] upgradeSlotVisuals = new PermanentShopSlotVisual[VisibleUpgradeSlotCount];
 
     [Header("Paged Skin Slots")]
     [SerializeField] private Button[] skinSlotButtons = new Button[VisibleSkinSlotCount];
+    [SerializeField] private PermanentShopSlotVisual[] skinSlotVisuals = new PermanentShopSlotVisual[VisibleSkinSlotCount];
     [SerializeField] private Button previousSkinPageButton;
     [SerializeField] private Button nextSkinPageButton;
 
@@ -47,6 +44,10 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     [SerializeField] private GameObject defaultShopVisualState;
     [SerializeField] private GameObject happyShopVisualState;
 
+    [Header("Upgrade Level Indicator")]
+    [SerializeField] private GameObject upgradeLevelIndicatorRoot;
+    [SerializeField] private LevelDropVisual[] upgradeLevelDrops = new LevelDropVisual[5];
+
     [Header("Events")]
     [SerializeField] private UnityEvent onPurchaseSucceeded = new UnityEvent();
     [SerializeField] private UnityEvent onSelectionChanged = new UnityEvent();
@@ -54,13 +55,8 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     private ShopSelectionKind selectionKind = ShopSelectionKind.None;
     private string selectedUpgradeId;
     private int selectedSkinIndex = -1;
-    private int skinPage;
-    private readonly Dictionary<string, Sprite> shopSpriteCache = new();
-    private readonly HashSet<string> missingShopSpritePaths = new();
-    private UnlockableSkinDefinition[] visibleShopSkins = Array.Empty<UnlockableSkinDefinition>();
-    private LevelDropVisual[] levelDropVisuals = Array.Empty<LevelDropVisual>();
-    private GameObject levelIndicatorRoot;
-    private bool levelDropVisualsResolved;
+    private readonly PermanentShopSkinPager skinPager = new(VisibleSkinSlotCount);
+    private PermanentShopSlotPresenter slotPresenter;
     private string purchaseResultMessage = string.Empty;
     private bool hasPurchasedInCurrentMenu;
 
@@ -71,49 +67,29 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         Skin
     }
 
-    private enum LevelDropState
+    [Serializable]
+    private struct LevelDropVisual
     {
-        Empty,
-        Half,
-        Full
-    }
-
-    private readonly struct LevelDropVisual
-    {
-        private readonly GameObject emptyState;
-        private readonly GameObject halfState;
-        private readonly GameObject fullState;
-
-        public LevelDropVisual(Transform dropRoot)
-        {
-            Transform visualRoot = dropRoot != null ? dropRoot.Find(UiButtonContract.VisualChildName) : null;
-            emptyState = ResolveDropState(visualRoot, EmptyDropStateName);
-            halfState = ResolveDropState(visualRoot, HalfDropStateName);
-            fullState = ResolveDropState(visualRoot, FullDropStateName);
-        }
+        [SerializeField] private GameObject emptyState;
+        [SerializeField] private GameObject halfState;
+        [SerializeField] private GameObject fullState;
 
         public bool IsConfigured => emptyState != null || halfState != null || fullState != null;
 
-        public void Apply(LevelDropState state)
+        public void Apply(PermanentShopLevelDropState state)
         {
-            SetActive(emptyState, state == LevelDropState.Empty);
-            SetActive(halfState, state == LevelDropState.Half);
-            SetActive(fullState, state == LevelDropState.Full);
-        }
-
-        private static GameObject ResolveDropState(Transform visualRoot, string stateName)
-        {
-            Transform state = visualRoot != null ? visualRoot.Find(stateName) : null;
-            return state != null ? state.gameObject : null;
+            SetActive(emptyState, state == PermanentShopLevelDropState.Empty);
+            SetActive(halfState, state == PermanentShopLevelDropState.Half);
+            SetActive(fullState, state == PermanentShopLevelDropState.Full);
         }
     }
 
     private void Awake()
     {
         EnsureSlotArrays();
+        EnsureSlotPresenter();
         NormalizeRenderableScale();
         ConfigureRaycastTargets();
-        ResolveShopVisualStates();
         hasPurchasedInCurrentMenu = false;
         ApplyShopVisualState(happy: false);
         Refresh();
@@ -126,7 +102,6 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         PersistentPlayerProfile.RecordsChanged += HandleRecordsChanged;
         NormalizeRenderableScale();
         ConfigureRaycastTargets();
-        ResolveShopVisualStates();
         hasPurchasedInCurrentMenu = false;
         ApplyShopVisualState(happy: false);
         Refresh();
@@ -158,15 +133,14 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         selectedSkinIndex = -1;
         purchaseResultMessage = string.Empty;
         Refresh();
-        SelectButtonInEventSystem(upgradeSlotButtons[slotIndex]);
+        SelectButtonInEventSystem(GetUpgradeSlotButton(slotIndex));
         onSelectionChanged.Invoke();
     }
 
     public void SelectSkinSlot(int slotIndex)
     {
         RefreshVisibleShopSkins();
-        int skinIndex = skinPage * VisibleSkinSlotCount + slotIndex;
-        if (slotIndex < 0 || slotIndex >= VisibleSkinSlotCount || skinIndex < 0 || skinIndex >= visibleShopSkins.Length)
+        if (!skinPager.TryGetSkinIndexForSlot(slotIndex, out int skinIndex))
         {
             ClearSelection();
             return;
@@ -177,14 +151,14 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         selectedSkinIndex = skinIndex;
         purchaseResultMessage = string.Empty;
         Refresh();
-        SelectButtonInEventSystem(skinSlotButtons[slotIndex]);
+        SelectButtonInEventSystem(GetSkinSlotButton(slotIndex));
         onSelectionChanged.Invoke();
     }
 
     public void PreviousSkinPage()
     {
         RefreshVisibleShopSkins();
-        skinPage = Mathf.Max(0, skinPage - 1);
+        skinPager.PreviousPage();
         ClearSelection();
         Refresh();
     }
@@ -192,7 +166,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     public void NextSkinPage()
     {
         RefreshVisibleShopSkins();
-        skinPage = Mathf.Min(GetMaxSkinPage(), skinPage + 1);
+        skinPager.NextPage();
         ClearSelection();
         Refresh();
     }
@@ -227,6 +201,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     {
         RefreshVisibleShopSkins();
         NormalizeSkinPage();
+        EnsureSlotPresenter();
         RefreshSlotInteractivity();
         RefreshSlotVisuals();
         RefreshNavigation();
@@ -287,7 +262,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     {
         for (int index = 0; index < upgradeSlotButtons.Length; index++)
         {
-            Button button = upgradeSlotButtons[index];
+            Button button = GetUpgradeSlotButton(index);
             if (button != null)
             {
                 button.interactable = TryGetUpgradeId(index, out string upgradeId)
@@ -297,14 +272,13 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
         for (int index = 0; index < skinSlotButtons.Length; index++)
         {
-            Button button = skinSlotButtons[index];
+            Button button = GetSkinSlotButton(index);
             if (button == null)
             {
                 continue;
             }
 
-            int skinIndex = skinPage * VisibleSkinSlotCount + index;
-            button.interactable = skinIndex >= 0 && skinIndex < visibleShopSkins.Length;
+            button.interactable = skinPager.TryGetSkinIndexForSlot(index, out _);
         }
     }
 
@@ -318,11 +292,9 @@ public sealed class OutOfGameShopManager : MonoBehaviour
                 upgrade = UnlockablesCatalogQuery.FindPermanentUpgrade(upgradeId);
             }
 
-            ConfigureSelectedVisualState(upgradeSlotButtons[index], usePressedStateWhenSelected: true);
-            ApplyShopSprites(
-                upgradeSlotButtons[index],
-                upgrade?.shopSpriteResourcePath,
-                upgrade?.shopHighlightedSpriteResourcePath,
+            slotPresenter.PresentUpgradeSlot(
+                GetUpgradeSlotVisual(index),
+                upgrade,
                 selectionKind == ShopSelectionKind.Upgrade
                     && upgrade != null
                     && string.Equals(selectedUpgradeId, upgrade.id, StringComparison.Ordinal));
@@ -330,15 +302,12 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
         for (int index = 0; index < skinSlotButtons.Length; index++)
         {
-            int skinIndex = skinPage * VisibleSkinSlotCount + index;
-            UnlockableSkinDefinition skin = skinIndex >= 0 && skinIndex < visibleShopSkins.Length
-                ? visibleShopSkins[skinIndex]
-                : null;
+            UnlockableSkinDefinition skin = skinPager.GetSkinForSlot(index);
             bool isOwned = skin != null && PersistentPlayerProfile.HasUnlockedSkin(skin.id);
             bool isEquipped = skin != null
                 && string.Equals(PersistentPlayerProfile.EquippedSkinId, skin.id, StringComparison.Ordinal);
 
-            ApplySkinShopSprites(skinSlotButtons[index], skin, isOwned, isEquipped);
+            slotPresenter.PresentSkinSlot(GetSkinSlotVisual(index), skin, isOwned, isEquipped);
         }
     }
 
@@ -347,27 +316,20 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         int maxSkinPage = GetMaxSkinPage();
         if (previousSkinPageButton != null)
         {
-            previousSkinPageButton.interactable = skinPage > 0;
+            previousSkinPageButton.interactable = skinPager.Page > 0;
         }
 
         if (nextSkinPageButton != null)
         {
-            nextSkinPageButton.interactable = skinPage < maxSkinPage;
+            nextSkinPageButton.interactable = skinPager.Page < maxSkinPage;
         }
 
-        SetText(skinPageText, maxSkinPage > 0 ? $"{skinPage + 1}/{maxSkinPage + 1}" : string.Empty);
+        SetText(skinPageText, maxSkinPage > 0 ? $"{skinPager.Page + 1}/{maxSkinPage + 1}" : string.Empty);
     }
 
     private void RefreshSelectionPresentation()
     {
-        string name = string.Empty;
-        string description = string.Empty;
-        string price = string.Empty;
-        string state = string.Empty;
-        bool canPurchase = false;
-        bool showUpgradeLevel = false;
-        int upgradeLevel = 0;
-        int upgradeMaxLevel = 10;
+        PermanentShopSelectionPresentation presentation = PermanentShopSelectionPresentation.Empty;
 
         if (selectionKind == ShopSelectionKind.Upgrade)
         {
@@ -376,17 +338,14 @@ public sealed class OutOfGameShopManager : MonoBehaviour
             {
                 int level = PersistentPlayerProfile.GetPermanentUpgradeLevel(upgrade.id);
                 bool isGoalMet = upgrade.defaultUnlocked || UnlockablesCatalogQuery.IsGoalMet(upgrade.unlockGoal);
-                bool isMaxed = level >= upgrade.maxLevel;
                 int nextPrice = PermanentShopService.GetPermanentUpgradePrice(upgrade.id);
 
-                name = upgrade.displayName;
-                description = upgrade.description;
-                price = nextPrice > 0 ? FormatShopPrice(nextPrice) : "MAX";
-                state = !isGoalMet ? "BLOQUEADO" : isMaxed ? "MAX" : string.Empty;
-                canPurchase = isGoalMet && !isMaxed;
-                showUpgradeLevel = true;
-                upgradeLevel = level;
-                upgradeMaxLevel = upgrade.maxLevel;
+                presentation = PermanentShopSelectionPresenter.ForUpgrade(
+                    upgrade,
+                    level,
+                    isGoalMet,
+                    nextPrice,
+                    FormatShopPrice);
             }
         }
         else if (selectionKind == ShopSelectionKind.Skin)
@@ -397,32 +356,34 @@ public sealed class OutOfGameShopManager : MonoBehaviour
                 bool isOwned = PersistentPlayerProfile.HasUnlockedSkin(skin.id);
                 bool isEquipped = string.Equals(PersistentPlayerProfile.EquippedSkinId, skin.id, StringComparison.Ordinal);
                 bool isGoalMet = skin.defaultUnlocked || UnlockablesCatalogQuery.IsGoalMet(skin.unlockGoal);
-                bool canUnequipToDefault = isOwned
-                    && isEquipped
-                    && !string.Equals(skin.id, PlayerSkinIds.Default, StringComparison.Ordinal);
 
-                name = skin.displayName;
-                description = skin.description;
-                price = isOwned ? (isEquipped ? (canUnequipToDefault ? "QUITAR" : "EQUIPADA") : "USAR") : FormatShopPrice(skin.basePrice);
-                state = !isGoalMet ? "BLOQUEADO" : isEquipped ? "EQUIPADA" : string.Empty;
-                canPurchase = isGoalMet && (!isOwned || !isEquipped || canUnequipToDefault);
+                presentation = PermanentShopSelectionPresenter.ForSkin(
+                    skin,
+                    isOwned,
+                    isEquipped,
+                    isGoalMet,
+                    FormatShopPrice);
             }
         }
 
+        string state = presentation.State;
         if (!string.IsNullOrWhiteSpace(purchaseResultMessage))
         {
             state = purchaseResultMessage;
         }
 
-        SetText(selectedItemNameText, name);
-        SetText(selectedItemDescriptionText, description);
-        SetText(selectedItemPriceText, price);
+        SetText(selectedItemNameText, presentation.DisplayName);
+        SetText(selectedItemDescriptionText, presentation.Description);
+        SetText(selectedItemPriceText, presentation.Price);
         SetText(selectedItemStateText, state);
-        RefreshUpgradeLevelPresentation(showUpgradeLevel, upgradeLevel, upgradeMaxLevel);
+        RefreshUpgradeLevelPresentation(
+            presentation.ShowUpgradeLevel,
+            presentation.UpgradeLevel,
+            presentation.UpgradeMaxLevel);
 
         if (purchaseButton != null)
         {
-            purchaseButton.interactable = canPurchase;
+            purchaseButton.interactable = presentation.CanPurchase;
         }
     }
 
@@ -450,22 +411,17 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
     private UnlockableSkinDefinition GetSelectedSkin()
     {
-        return selectedSkinIndex >= 0 && selectedSkinIndex < visibleShopSkins.Length
-            ? visibleShopSkins[selectedSkinIndex]
-            : null;
+        return skinPager.GetSkinAtIndex(selectedSkinIndex);
     }
 
     private int GetMaxSkinPage()
     {
-        int skinCount = visibleShopSkins.Length;
-        return skinCount <= VisibleSkinSlotCount
-            ? 0
-            : Mathf.Max(0, Mathf.CeilToInt(skinCount / (float)VisibleSkinSlotCount) - 1);
+        return skinPager.MaxPage;
     }
 
     private void NormalizeSkinPage()
     {
-        skinPage = Mathf.Clamp(skinPage, 0, GetMaxSkinPage());
+        skinPager.NormalizePage();
         if (selectionKind == ShopSelectionKind.Skin && GetSelectedSkin() == null)
         {
             ClearSelection();
@@ -486,85 +442,12 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
     private void RefreshVisibleShopSkins()
     {
-        UnlockableSkinDefinition[] skins = PersistentPlayerProfile.UnlockablesCatalog.skins;
-        if (skins == null || skins.Length == 0)
-        {
-            visibleShopSkins = Array.Empty<UnlockableSkinDefinition>();
-            return;
-        }
-
-        List<UnlockableSkinDefinition> visibleSkins = new(skins.Length);
-        for (int index = 0; index < skins.Length; index++)
-        {
-            UnlockableSkinDefinition skin = skins[index];
-            if (skin != null && !string.IsNullOrWhiteSpace(skin.shopSpriteResourcePath))
-            {
-                visibleSkins.Add(skin);
-            }
-        }
-
-        visibleShopSkins = visibleSkins.ToArray();
+        skinPager.SetCatalogSkins(PersistentPlayerProfile.UnlockablesCatalog.skins);
     }
 
-    private void ApplyShopSprites(Button button, string normalSpritePath, string pressedSpritePath, bool usePressedSpriteWhenSelected)
+    private void EnsureSlotPresenter()
     {
-        Transform visualRoot = button != null && button.transform.parent != null
-            ? button.transform.parent.Find(UiButtonContract.VisualChildName)
-            : null;
-        if (button == null)
-        {
-            return;
-        }
-
-        Sprite normalSprite = LoadShopSprite(normalSpritePath);
-        Sprite pressedSprite = LoadShopSprite(pressedSpritePath) ?? normalSprite;
-
-        bool appliedToVisualStates = false;
-        if (visualRoot != null)
-        {
-            appliedToVisualStates |= ApplyStateSprite(visualRoot, UiButtonContract.NormalStateName, normalSprite);
-            appliedToVisualStates |= ApplyStateSprite(visualRoot, UiButtonContract.HighlightedStateName, normalSprite);
-            appliedToVisualStates |= ApplyStateSprite(visualRoot, UiButtonContract.PressedStateName, pressedSprite);
-        }
-
-        if (!appliedToVisualStates)
-        {
-            Sprite fallbackSprite = usePressedSpriteWhenSelected ? pressedSprite : normalSprite;
-            ApplyFallbackButtonSprite(button, fallbackSprite);
-        }
-    }
-
-    private void ApplySkinShopSprites(Button button, UnlockableSkinDefinition skin, bool isOwned, bool isEquipped)
-    {
-        ConfigureSelectedVisualState(button, usePressedStateWhenSelected: false);
-        ApplyShopSprites(
-            button,
-            skin?.shopSpriteResourcePath,
-            pressedSpritePath: null,
-            usePressedSpriteWhenSelected: false);
-        ApplySkinOwnershipVisuals(button, isOwned, isEquipped);
-    }
-
-    private void ApplySkinOwnershipVisuals(Button button, bool isOwned, bool isEquipped)
-    {
-        Transform visualRoot = button != null && button.transform.parent != null
-            ? button.transform.parent.Find(UiButtonContract.VisualChildName)
-            : null;
-        if (visualRoot == null)
-        {
-            return;
-        }
-
-        SetSkinStatusVisualActive(
-            visualRoot,
-            UiButtonContract.PurchasedStateName,
-            UiButtonContract.LegacyBuyedStateName,
-            isOwned && !isEquipped);
-        SetSkinStatusVisualActive(
-            visualRoot,
-            UiButtonContract.EquippedStateName,
-            UiButtonContract.LegacySelectedStateName,
-            isEquipped);
+        slotPresenter ??= new PermanentShopSlotPresenter(this);
     }
 
     private static string FormatShopPrice(int amount)
@@ -572,277 +455,35 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         return ShrimpCounterDisplay.FormatShrimpAmount(amount);
     }
 
-    private static void ConfigureSelectedVisualState(Button button, bool usePressedStateWhenSelected)
-    {
-        if (button != null && button.TryGetComponent(out ButtonVisualState visualState))
-        {
-            visualState.SetUsePressedStateWhenSelected(usePressedStateWhenSelected);
-        }
-    }
-
-    private Sprite LoadShopSprite(string resourcePath)
-    {
-        if (string.IsNullOrWhiteSpace(resourcePath))
-        {
-            return null;
-        }
-
-        string normalizedPath = resourcePath.Trim().Replace('\\', '/');
-        if (shopSpriteCache.TryGetValue(normalizedPath, out Sprite cachedSprite))
-        {
-            return cachedSprite;
-        }
-
-        Sprite sprite = Resources.Load<Sprite>(normalizedPath);
-        if (sprite == null && missingShopSpritePaths.Add(normalizedPath))
-        {
-            Debug.LogWarning($"[OutOfGameShopManager] No se encontro el sprite de tienda Resources/{normalizedPath}.", this);
-        }
-
-        shopSpriteCache[normalizedPath] = sprite;
-        return sprite;
-    }
-
-    private static bool ApplyStateSprite(Transform visualRoot, string stateName, Sprite sprite)
-    {
-        Transform state = visualRoot.Find(stateName);
-        if (state == null)
-        {
-            return false;
-        }
-
-        Image image = state.GetComponent<Image>() ?? state.GetComponentInChildren<Image>(includeInactive: true);
-        if (image == null)
-        {
-            return false;
-        }
-
-        image.enabled = sprite != null;
-        if (sprite != null)
-        {
-            image.sprite = sprite;
-            image.preserveAspect = true;
-        }
-
-        image.raycastTarget = false;
-        return true;
-    }
-
-    private static void SetVisualStateActive(Transform visualRoot, string stateName, bool active)
-    {
-        Transform state = visualRoot != null ? visualRoot.Find(stateName) : null;
-        SetActive(state != null ? state.gameObject : null, active);
-    }
-
-    private static void SetSkinStatusVisualActive(
-        Transform visualRoot,
-        string primaryStateName,
-        string legacyStateName,
-        bool active)
-    {
-        SetVisualStateActive(visualRoot, primaryStateName, active);
-        if (!string.Equals(primaryStateName, legacyStateName, StringComparison.Ordinal))
-        {
-            SetVisualStateActive(visualRoot, legacyStateName, active);
-        }
-    }
-
-    private static void ApplyFallbackButtonSprite(Button button, Sprite sprite)
-    {
-        Image image = button.targetGraphic as Image;
-        if (image == null)
-        {
-            image = button.GetComponent<Image>();
-        }
-
-        if (image == null)
-        {
-            return;
-        }
-
-        image.enabled = true;
-        image.sprite = sprite;
-        image.preserveAspect = true;
-        image.raycastTarget = true;
-
-        Color color = image.color;
-        color.a = sprite != null ? 1f : 0f;
-        image.color = color;
-    }
-
     private void RefreshUpgradeLevelPresentation(bool isVisible, int level, int maxLevel)
     {
-        EnsureLevelDropVisuals();
-        SetActive(levelIndicatorRoot, isVisible);
-        if (!isVisible || levelDropVisuals.Length == 0)
+        SetActive(upgradeLevelIndicatorRoot, isVisible);
+
+        LevelDropVisual[] drops = upgradeLevelDrops ?? Array.Empty<LevelDropVisual>();
+        if (!isVisible || drops.Length == 0)
         {
             return;
         }
 
-        int totalSegments = levelDropVisuals.Length * UpgradeLevelSegmentsPerDrop;
-        int filledSegments = maxLevel > 0
-            ? Mathf.RoundToInt(Mathf.Clamp01(level / (float)maxLevel) * totalSegments)
-            : 0;
+        PermanentShopLevelDropState[] dropStates = PermanentShopLevelMeter.CalculateDropStates(
+            level,
+            maxLevel,
+            drops.Length,
+            UpgradeLevelSegmentsPerDrop);
 
-        for (int index = 0; index < levelDropVisuals.Length; index++)
+        for (int index = 0; index < drops.Length; index++)
         {
-            int dropSegments = Mathf.Clamp(filledSegments - index * UpgradeLevelSegmentsPerDrop, 0, UpgradeLevelSegmentsPerDrop);
-            LevelDropState dropState = dropSegments switch
+            if (drops[index].IsConfigured)
             {
-                0 => LevelDropState.Empty,
-                1 => LevelDropState.Half,
-                _ => LevelDropState.Full
-            };
-
-            levelDropVisuals[index].Apply(dropState);
-        }
-    }
-
-    private void EnsureLevelDropVisuals()
-    {
-        if (levelDropVisualsResolved)
-        {
-            return;
-        }
-
-        levelDropVisualsResolved = true;
-        Transform mejorable = FindDescendant(transform, "Mejorable");
-        levelIndicatorRoot = mejorable != null ? mejorable.gameObject : null;
-        if (mejorable == null)
-        {
-            levelDropVisuals = Array.Empty<LevelDropVisual>();
-            return;
-        }
-
-        List<LevelDropVisual> drops = new();
-        for (int index = 1; index <= 5; index++)
-        {
-            Transform dropRoot = mejorable.Find($"Gota{index}");
-            LevelDropVisual drop = new(dropRoot);
-            if (drop.IsConfigured)
-            {
-                drops.Add(drop);
+                drops[index].Apply(dropStates[index]);
             }
-        }
-
-        levelDropVisuals = drops.ToArray();
-    }
-
-    private static Transform FindDescendant(Transform root, string childName)
-    {
-        if (root == null || string.IsNullOrWhiteSpace(childName))
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int index = 0; index < children.Length; index++)
-        {
-            if (children[index].name == childName)
-            {
-                return children[index];
-            }
-        }
-
-        return null;
-    }
-
-    private void ResolveShopVisualStates()
-    {
-        if (defaultShopVisualState != null && happyShopVisualState != null)
-        {
-            return;
-        }
-
-        Transform searchRoot = GetComponentInParent<Canvas>(includeInactive: true)?.transform ?? transform.root ?? transform;
-        if (happyShopVisualState == null)
-        {
-            happyShopVisualState = FindStateWithSibling(searchRoot, HappyShopVisualNames, DefaultShopVisualNames);
-        }
-
-        if (defaultShopVisualState == null)
-        {
-            defaultShopVisualState = FindStateWithSibling(searchRoot, DefaultShopVisualNames, HappyShopVisualNames);
-        }
-
-        if (happyShopVisualState != null && defaultShopVisualState == null)
-        {
-            defaultShopVisualState = FindDirectChild(happyShopVisualState.transform.parent, DefaultShopVisualNames);
-        }
-
-        if (defaultShopVisualState != null && happyShopVisualState == null)
-        {
-            happyShopVisualState = FindDirectChild(defaultShopVisualState.transform.parent, HappyShopVisualNames);
         }
     }
 
     private void ApplyShopVisualState(bool happy)
     {
-        ResolveShopVisualStates();
         SetActive(defaultShopVisualState, !happy || happyShopVisualState == null);
         SetActive(happyShopVisualState, happy);
-    }
-
-    private static GameObject FindStateWithSibling(Transform root, string[] targetNames, string[] siblingNames)
-    {
-        if (root == null || targetNames == null || siblingNames == null)
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int index = 0; index < children.Length; index++)
-        {
-            Transform candidate = children[index];
-            if (!NameMatches(candidate.name, targetNames) || candidate.parent == null)
-            {
-                continue;
-            }
-
-            if (FindDirectChild(candidate.parent, siblingNames) != null)
-            {
-                return candidate.gameObject;
-            }
-        }
-
-        return null;
-    }
-
-    private static GameObject FindDirectChild(Transform parent, string[] childNames)
-    {
-        if (parent == null || childNames == null)
-        {
-            return null;
-        }
-
-        for (int index = 0; index < parent.childCount; index++)
-        {
-            Transform child = parent.GetChild(index);
-            if (NameMatches(child.name, childNames))
-            {
-                return child.gameObject;
-            }
-        }
-
-        return null;
-    }
-
-    private static bool NameMatches(string candidate, string[] names)
-    {
-        if (string.IsNullOrWhiteSpace(candidate) || names == null)
-        {
-            return false;
-        }
-
-        for (int index = 0; index < names.Length; index++)
-        {
-            if (string.Equals(candidate, names[index], StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void EnsureSlotArrays()
@@ -850,6 +491,9 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         upgradeIds ??= Array.Empty<string>();
         upgradeSlotButtons ??= Array.Empty<Button>();
         skinSlotButtons ??= Array.Empty<Button>();
+        upgradeSlotVisuals = EnsureArrayLength(upgradeSlotVisuals, VisibleUpgradeSlotCount);
+        skinSlotVisuals = EnsureArrayLength(skinSlotVisuals, VisibleSkinSlotCount);
+        upgradeLevelDrops = EnsureArrayLength(upgradeLevelDrops, 5);
 
         if (upgradeIds.Length == 0)
         {
@@ -861,6 +505,48 @@ public sealed class OutOfGameShopManager : MonoBehaviour
                 PlayerUnlockableIds.ScoreMultiplierUpgrade
             };
         }
+    }
+
+    private static T[] EnsureArrayLength<T>(T[] source, int length)
+    {
+        if (source == null)
+        {
+            return new T[length];
+        }
+
+        if (source.Length == length)
+        {
+            return source;
+        }
+
+        Array.Resize(ref source, length);
+        return source;
+    }
+
+    private PermanentShopSlotVisual GetUpgradeSlotVisual(int slotIndex)
+    {
+        return GetArrayItem(upgradeSlotVisuals, slotIndex);
+    }
+
+    private PermanentShopSlotVisual GetSkinSlotVisual(int slotIndex)
+    {
+        return GetArrayItem(skinSlotVisuals, slotIndex);
+    }
+
+    private Button GetUpgradeSlotButton(int slotIndex)
+    {
+        return GetUpgradeSlotVisual(slotIndex)?.Button ?? GetArrayItem(upgradeSlotButtons, slotIndex);
+    }
+
+    private Button GetSkinSlotButton(int slotIndex)
+    {
+        return GetSkinSlotVisual(slotIndex)?.Button ?? GetArrayItem(skinSlotButtons, slotIndex);
+    }
+
+    private static T GetArrayItem<T>(T[] source, int index)
+        where T : class
+    {
+        return source != null && index >= 0 && index < source.Length ? source[index] : null;
     }
 
     private void ConfigureRaycastTargets()
@@ -963,10 +649,62 @@ public sealed class OutOfGameShopManager : MonoBehaviour
             Debug.LogWarning("[OutOfGameShopManager] Deben asignarse 4 botones de upgrades y 4 botones de skins desde el Inspector.", this);
         }
 
+        if (!HasConfiguredSlotVisuals(upgradeSlotVisuals, VisibleUpgradeSlotCount)
+            || !HasConfiguredSlotVisuals(skinSlotVisuals, VisibleSkinSlotCount))
+        {
+            Debug.LogWarning("[OutOfGameShopManager] Faltan referencias visuales serializadas para slots de tienda permanente.", this);
+        }
+
+        if (defaultShopVisualState == null || happyShopVisualState == null)
+        {
+            Debug.LogWarning("[OutOfGameShopManager] Faltan referencias serializadas para estados visuales del dealer.", this);
+        }
+
+        if (upgradeLevelIndicatorRoot == null || !HasConfiguredLevelDrops())
+        {
+            Debug.LogWarning("[OutOfGameShopManager] Faltan referencias serializadas para el indicador de nivel de mejoras.", this);
+        }
+
         if (selectedItemNameText == null || selectedItemDescriptionText == null || selectedItemPriceText == null)
         {
             Debug.LogWarning("[OutOfGameShopManager] Faltan referencias de ProductInfoBlock. Asigna NombreProducto, DescripcionProducto y PrecioProducto desde el Inspector.", this);
         }
+    }
+
+    private static bool HasConfiguredSlotVisuals(PermanentShopSlotVisual[] visuals, int expectedCount)
+    {
+        if (visuals == null || visuals.Length != expectedCount)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < visuals.Length; index++)
+        {
+            if (visuals[index] == null || !visuals[index].IsConfigured)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool HasConfiguredLevelDrops()
+    {
+        if (upgradeLevelDrops == null || upgradeLevelDrops.Length == 0)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < upgradeLevelDrops.Length; index++)
+        {
+            if (upgradeLevelDrops[index].IsConfigured)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void SetText(TMP_Text target, string value)
