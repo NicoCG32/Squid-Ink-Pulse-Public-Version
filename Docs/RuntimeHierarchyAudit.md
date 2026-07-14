@@ -241,7 +241,8 @@ Reglas:
 - Los botones que llaman a un componente del mismo prefab pueden conservar `OnClick` persistente autocontenido.
 - Los managers de escena pueden cablear listeners en runtime solo como respaldo defensivo; el contrato preferido es que referencias y acciones relevantes sean visibles o serializadas para auditoria.
 - Los managers de escena no deben desactivar listeners persistentes del Inspector. No usar `SetPersistentListenerState` ni helpers tipo `DisablePersistentOnClick`.
-- `PauseMenuManager`, `GameOverMenuManager` e `InGameShopManager` conservan las referencias de escena hacia las instancias visuales. Tambien pueden resolver referencias por nombre si el prefab visual se ubica bajo su jerarquía.
+- `PauseMenuManager` y `GameOverMenuManager` conservan las referencias de escena hacia las instancias visuales y pueden mantener resolucion defensiva por nombre mientras se refactorizan.
+- `InGameShopManager` consume referencias serializadas de la vista de tienda temporal; no resuelve `InGameCanvas` ni controles internos por nombre en runtime.
 - Cada zona debe conservar `GameRoot/GameUIRoot/HUD/InkBar` como instancia de `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`.
 
 Contrato de `LoreComic`:

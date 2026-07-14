@@ -143,6 +143,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         if (uiRoot != null)
         {
             ValidateGameUIRoot(uiRoot, zoneName, failures);
+            ValidateInGameShopManager(uiRoot.InGameShopManager, zoneName, failures);
         }
 
         RequirePlayer(scene, zoneName, failures);
@@ -174,6 +175,25 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             RequireObjectReference(uiRoot, propertyName, $"{zoneName}/GameUIRoot.{propertyName}", failures);
         }
+    }
+
+    private static void ValidateInGameShopManager(InGameShopManager shopManager, string zoneName, List<string> failures)
+    {
+        if (shopManager == null)
+        {
+            return;
+        }
+
+        string label = $"{zoneName}/InGameShopManager";
+        RequireObjectReference(shopManager, "session", $"{label}.session", failures);
+        RequireObjectReference(shopManager, "menuRoot", $"{label}.menuRoot", failures);
+        RequireObjectReference(shopManager, "canvasGroup", $"{label}.canvasGroup", failures);
+        RequireObjectReference(shopManager, "gadgetImage", $"{label}.gadgetImage", failures);
+        RequireObjectReference(shopManager, "priceText", $"{label}.priceText", failures);
+        RequireObjectReference(shopManager, "buyKeyText", $"{label}.buyKeyText", failures);
+        RequireObjectReference(shopManager, "buyButton", $"{label}.buyButton", failures);
+        RequireObjectReference(shopManager, "insufficientFundsText", $"{label}.insufficientFundsText", failures);
+        RequireInGameShopOfferArray(shopManager, $"{label}.offers", failures);
     }
 
     private static void ValidateShopMenu(OutOfGameShopManager shopManager, List<string> failures)
@@ -427,6 +447,63 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             if (item.objectReferenceValue == null)
             {
                 failures.Add($"{label}[{index}]: referencia obligatoria no asignada.");
+            }
+        }
+    }
+
+    private static void RequireInGameShopOfferArray(
+        InGameShopManager shopManager,
+        string label,
+        List<string> failures)
+    {
+        SerializedObject serializedObject = new(shopManager);
+        SerializedProperty offers = serializedObject.FindProperty("offers");
+        if (offers == null)
+        {
+            failures.Add($"{label}: propiedad serializada no encontrada.");
+            return;
+        }
+
+        if (!offers.isArray)
+        {
+            failures.Add($"{label}: la propiedad no es un array serializado.");
+            return;
+        }
+
+        if (offers.arraySize == 0)
+        {
+            failures.Add($"{label}: debe tener al menos una oferta configurada.");
+            return;
+        }
+
+        for (int index = 0; index < offers.arraySize; index++)
+        {
+            SerializedProperty offer = offers.GetArrayElementAtIndex(index);
+            SerializedProperty gadgetPrefab = offer.FindPropertyRelative("gadgetPrefab");
+            string offerLabel = $"{label}[{index}].gadgetPrefab";
+
+            if (gadgetPrefab == null)
+            {
+                failures.Add($"{offerLabel}: propiedad serializada no encontrada.");
+                continue;
+            }
+
+            if (gadgetPrefab.propertyType != SerializedPropertyType.ObjectReference)
+            {
+                failures.Add($"{offerLabel}: la propiedad no es ObjectReference.");
+                continue;
+            }
+
+            if (gadgetPrefab.objectReferenceValue == null)
+            {
+                failures.Add($"{offerLabel}: referencia obligatoria no asignada.");
+                continue;
+            }
+
+            if (gadgetPrefab.objectReferenceValue is GameObject prefab
+                && prefab.GetComponent<GadgetShopItem>() == null)
+            {
+                failures.Add($"{offerLabel}: el prefab debe incluir GadgetShopItem.");
             }
         }
     }

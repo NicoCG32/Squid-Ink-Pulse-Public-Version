@@ -50,14 +50,12 @@ public class InGameShopManager : MonoBehaviour
     private static int inkPulseActivationBlockedUntilFrame = -1;
 
     private ShopGadgetOffer currentOffer;
-    private float remainingSeconds;
+    private readonly InGameShopOfferTimer offerTimer = new();
+    private InGameShopTimeScaleHold timeScaleHold;
+    private InGameShopOverlayPresenter overlayPresenter;
     private int currentPrice;
     private float currentRandomPriceMultiplier = 1f;
     private bool isOpen;
-    private bool isHoldingTimeScale;
-    private float previousTimeScale = 1f;
-    private Vector3 priceTextBaseScale = Vector3.one;
-    private Vector3 buyKeyTextBaseScale = Vector3.one;
     private GadgetId queuedTutorialOffer = GadgetId.None;
     private int queuedTutorialPriceOverride = -1;
     private Coroutine pendingWorldShopRoutine;
@@ -84,11 +82,10 @@ public class InGameShopManager : MonoBehaviour
         }
 
         instance = this;
+        EnsureTimeScaleHold();
         ResolveReferences();
-        ResolveUiReferences();
-        WireButtons();
-        CacheAnimatedTextScales();
-        HideImmediate();
+        PrepareOverlayPresenter();
+        overlayPresenter.HideImmediate();
         WarnIfMissingReferences();
     }
 
@@ -107,7 +104,7 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
-        bool externalPause = session != null && !session.IsPlaying && !isHoldingTimeScale;
+        bool externalPause = session != null && !session.IsPlaying && !IsHoldingTimeScale;
         if (externalPause)
         {
             return;
@@ -118,13 +115,13 @@ public class InGameShopManager : MonoBehaviour
             BuyCurrentOffer();
         }
 
-        AnimateAttentionTexts();
+        overlayPresenter?.AnimateAttentionTexts(Time.unscaledTime, textPulseAmplitude, textPulseFrequency);
 
-        float deltaTime = isHoldingTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
-        remainingSeconds = Mathf.Max(0f, remainingSeconds - deltaTime);
-        RefreshTimer();
+        float deltaTime = IsHoldingTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
+        bool expired = offerTimer.Tick(deltaTime);
+        overlayPresenter?.RefreshTimer(offerTimer.RemainingSeconds);
 
-        if (remainingSeconds <= 0f)
+        if (expired)
         {
             CloseShop();
         }
@@ -186,8 +183,7 @@ public class InGameShopManager : MonoBehaviour
     private bool TryOpenTimedShop(bool openedFromDealerFish)
     {
         ResolveReferences();
-        ResolveUiReferences();
-        WireButtons();
+        PrepareOverlayPresenter();
 
         if (isOpen || session == null || !session.IsPlaying)
         {
@@ -205,22 +201,18 @@ public class InGameShopManager : MonoBehaviour
 
         currentRandomPriceMultiplier = RollRandomPriceMultiplier();
         currentPrice = CalculateCurrentPrice();
-        remainingSeconds = Mathf.Max(0.5f, offerDurationSeconds);
+        offerTimer.Start(offerDurationSeconds);
         ClearQueuedTutorialOffer();
         currentShopOpenedFromDealerFish = openedFromDealerFish;
         currentShopPurchased = false;
 
-        if (pauseGameplayWhileOpen)
-        {
-            previousTimeScale = Time.timeScale;
-            Time.timeScale = 0f;
-            isHoldingTimeScale = true;
-        }
+        EnsureTimeScaleHold();
+        timeScaleHold.Begin(pauseGameplayWhileOpen);
 
         BlockInkPulseActivationBriefly();
         isOpen = true;
         ApplyState(ShopEventState.Offering);
-        SetVisible(true);
+        overlayPresenter.Show();
         RefreshOfferUi();
         onShopOpened.Invoke();
         return true;
@@ -229,8 +221,7 @@ public class InGameShopManager : MonoBehaviour
     private bool CanAttemptOpenTimedShop()
     {
         ResolveReferences();
-        ResolveUiReferences();
-        WireButtons();
+        PrepareOverlayPresenter();
 
         if (isOpen || session == null || !session.IsPlaying)
         {
@@ -302,29 +293,44 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
-        GadgetId gadget = currentOffer.GadgetId;
-        if (RuntimeGadgetInventory.HasGadget(gadget) || currentShopPurchased)
+        if (currentShopPurchased)
         {
-            SetInsufficientFundsVisible(false);
-            SetBuyButtonInteractable(false);
+            overlayPresenter.SetInsufficientFundsVisible(false);
+            overlayPresenter.SetBuyButtonInteractable(false);
             return;
         }
 
-        if (!ShrimpRuntimeWallet.TrySpend(currentPrice))
+        InGameShopPurchaseResult result = InGameShopPurchaseService.TryPurchase(
+            currentOffer.GadgetId,
+            currentOffer.Icon,
+            currentOffer.IconTint,
+            currentPrice,
+            RuntimeGadgetInventory.HasGadget,
+            ShrimpRuntimeWallet.TrySpend,
+            ShrimpRuntimeWallet.Refund,
+            RuntimeGadgetInventory.Acquire);
+
+        if (result == InGameShopPurchaseResult.AlreadyOwned)
         {
-            SetInsufficientFundsVisible(true);
+            overlayPresenter.SetInsufficientFundsVisible(false);
+            overlayPresenter.SetBuyButtonInteractable(false);
             return;
         }
 
-        if (!RuntimeGadgetInventory.Acquire(gadget, currentOffer.Icon, currentOffer.IconTint))
+        if (result == InGameShopPurchaseResult.InsufficientFunds)
         {
-            ShrimpRuntimeWallet.Refund(currentPrice);
-            SetInsufficientFundsVisible(false);
+            overlayPresenter.SetInsufficientFundsVisible(true);
+            return;
+        }
+
+        if (result != InGameShopPurchaseResult.Success)
+        {
+            overlayPresenter.SetInsufficientFundsVisible(false);
             return;
         }
 
         currentShopPurchased = true;
-        onGadgetPurchased.Invoke(gadget);
+        onGadgetPurchased.Invoke(currentOffer.GadgetId);
         CloseShop();
     }
 
@@ -342,11 +348,12 @@ public class InGameShopManager : MonoBehaviour
 
         isOpen = false;
         currentOffer = null;
+        offerTimer.Stop();
         currentShopOpenedFromDealerFish = false;
         currentShopPurchased = false;
         BlockInkPulseActivationBriefly();
         RestoreTimeScaleIfNeeded();
-        HideImmediate();
+        overlayPresenter?.HideImmediate();
         ApplyState(ShopEventState.Closed);
         onShopClosed.Invoke();
 
@@ -391,128 +398,32 @@ public class InGameShopManager : MonoBehaviour
     {
         if (currentOffer == null)
         {
-            ApplyIcon(null, Color.clear);
-            SetText(priceText, "-");
-            SetText(timerText, Mathf.CeilToInt(remainingSeconds).ToString());
-            SetInsufficientFundsVisible(false);
-            SetBuyButtonInteractable(false);
+            overlayPresenter.PresentEmpty(offerTimer.RemainingSeconds);
             return;
         }
 
-        ApplyIcon(currentOffer.Icon, currentOffer.IconTint);
-        SetText(priceText, currentPrice.ToString());
-        RefreshTimer();
-        SetInsufficientFundsVisible(false);
-        SetBuyButtonInteractable(!currentShopPurchased && !RuntimeGadgetInventory.HasGadget(currentOffer.GadgetId));
-    }
-
-    private void RefreshTimer()
-    {
-        SetText(timerText, Mathf.CeilToInt(remainingSeconds).ToString());
-    }
-
-    private void ApplyIcon(Sprite icon, Color tint)
-    {
-        if (gadgetImage == null)
-        {
-            return;
-        }
-
-        gadgetImage.enabled = icon != null;
-        gadgetImage.sprite = icon;
-        gadgetImage.color = icon != null ? tint : Color.clear;
-        gadgetImage.preserveAspect = true;
-    }
-
-    private void AnimateAttentionTexts()
-    {
-        float pulse = 1f + Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f * textPulseFrequency) * textPulseAmplitude;
-        if (priceText != null)
-        {
-            priceText.rectTransform.localScale = priceTextBaseScale * pulse;
-        }
-
-        if (buyKeyText != null)
-        {
-            buyKeyText.rectTransform.localScale = buyKeyTextBaseScale * pulse;
-        }
-    }
-
-    private void CacheAnimatedTextScales()
-    {
-        if (priceText != null)
-        {
-            priceTextBaseScale = priceText.rectTransform.localScale;
-        }
-
-        if (buyKeyText != null)
-        {
-            buyKeyTextBaseScale = buyKeyText.rectTransform.localScale;
-        }
-    }
-
-    private void ResetAnimatedTextScales()
-    {
-        if (priceText != null)
-        {
-            priceText.rectTransform.localScale = priceTextBaseScale;
-        }
-
-        if (buyKeyText != null)
-        {
-            buyKeyText.rectTransform.localScale = buyKeyTextBaseScale;
-        }
-    }
-
-    private void SetVisible(bool visible)
-    {
-        if (menuRoot != null)
-        {
-            menuRoot.SetActive(visible);
-        }
-
-        if (canvasGroup != null)
-        {
-            canvasGroup.alpha = visible ? 1f : 0f;
-            canvasGroup.interactable = visible;
-            canvasGroup.blocksRaycasts = visible;
-        }
-    }
-
-    private void HideImmediate()
-    {
-        SetVisible(false);
-        ApplyIcon(null, Color.clear);
-        SetInsufficientFundsVisible(false);
-        SetBuyButtonInteractable(false);
-        ResetAnimatedTextScales();
-    }
-
-    private void SetInsufficientFundsVisible(bool visible)
-    {
-        if (insufficientFundsText != null)
-        {
-            insufficientFundsText.gameObject.SetActive(visible);
-        }
+        bool canPurchase = !currentShopPurchased && !RuntimeGadgetInventory.HasGadget(currentOffer.GadgetId);
+        overlayPresenter.PresentOffer(
+            currentOffer.Icon,
+            currentOffer.IconTint,
+            currentPrice,
+            offerTimer.RemainingSeconds,
+            canPurchase);
     }
 
     private void RestoreTimeScaleIfNeeded()
     {
-        if (!isHoldingTimeScale)
-        {
-            return;
-        }
+        EnsureTimeScaleHold();
+        timeScaleHold.End(session == null || session.IsPlaying);
+    }
 
-        isHoldingTimeScale = false;
-        if (session != null && !session.IsPlaying)
-        {
-            return;
-        }
+    private bool IsHoldingTimeScale => timeScaleHold != null && timeScaleHold.IsHolding;
 
-        if (session == null || session.IsPlaying)
-        {
-            Time.timeScale = previousTimeScale;
-        }
+    private void EnsureTimeScaleHold()
+    {
+        timeScaleHold ??= new InGameShopTimeScaleHold(
+            getTimeScale: () => Time.timeScale,
+            setTimeScale: value => Time.timeScale = value);
     }
 
     private void ResolveReferences()
@@ -521,93 +432,34 @@ public class InGameShopManager : MonoBehaviour
         {
             session = GameSessionController.Instance;
         }
-
     }
 
-    private void ResolveUiReferences()
+    private void RefreshOverlayPresenter()
     {
-        Transform uiRoot = menuRoot != null ? menuRoot.transform : transform.Find("InGameCanvas");
-        if (menuRoot == null && uiRoot != null)
-        {
-            menuRoot = uiRoot.gameObject;
-        }
-
-        if (canvasGroup == null && menuRoot != null)
-        {
-            canvasGroup = menuRoot.GetComponent<CanvasGroup>();
-        }
-
-        gadgetImage ??= FindChildComponent<Image>(uiRoot, "Gadget");
-        priceText ??= FindChildComponent<TMP_Text>(uiRoot, "Precio");
-        buyKeyText ??= FindChildComponent<TMP_Text>(uiRoot, "B");
-        buyButton ??= UiButtonContract.FindButton(uiRoot, "ComprarBoton", "Comprar");
-        insufficientFundsText ??= FindChildComponent<TMP_Text>(uiRoot, "SinSaldo");
-        timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Tiempo");
-        timerText ??= FindChildComponent<TMP_Text>(uiRoot, "Timer");
+        overlayPresenter = new InGameShopOverlayPresenter(
+            menuRoot,
+            canvasGroup,
+            gadgetImage,
+            priceText,
+            buyKeyText,
+            buyButton,
+            insufficientFundsText,
+            timerText);
     }
 
-    private void WireButtons()
+    private void PrepareOverlayPresenter()
     {
-        if (buyButton == null)
-        {
-            return;
-        }
-
-        if (buyButton.targetGraphic == null)
-        {
-            buyButton.targetGraphic = buyButton.GetComponent<Graphic>();
-        }
-
-        if (buyButton.targetGraphic != null)
-        {
-            buyButton.targetGraphic.raycastTarget = true;
-        }
-
-        buyButton.onClick.RemoveListener(BuyCurrentOffer);
-        buyButton.onClick.AddListener(BuyCurrentOffer);
-    }
-
-    private void SetBuyButtonInteractable(bool interactable)
-    {
-        if (buyButton != null)
-        {
-            buyButton.interactable = interactable;
-        }
-    }
-
-    private T FindChildComponent<T>(Transform root, string childName) where T : Component
-    {
-        if (root == null)
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int i = 0; i < children.Length; i++)
-        {
-            if (children[i].name == childName && children[i].TryGetComponent(out T component))
-            {
-                return component;
-            }
-        }
-
-        return null;
-    }
-
-    private void SetText(TMP_Text text, string value)
-    {
-        if (text != null)
-        {
-            text.text = value;
-        }
+        RefreshOverlayPresenter();
+        overlayPresenter.WireBuyButton(BuyCurrentOffer);
+        overlayPresenter.CacheAnimatedTextScales();
     }
 
     private void WarnIfMissingReferences()
     {
-        if (session == null || menuRoot == null || gadgetImage == null || priceText == null || buyKeyText == null || buyButton == null || insufficientFundsText == null)
+        if (session == null || menuRoot == null || canvasGroup == null || gadgetImage == null || priceText == null || buyKeyText == null || buyButton == null || insufficientFundsText == null)
         {
             Debug.LogWarning(
-                "[InGameShopManager] Faltan referencias. Asigna Session, MenuRoot/InGameCanvas, Gadget, Precio, B, Comprar y SinSaldo en el canvas de tienda.",
+                "[InGameShopManager] Faltan referencias serializadas. Asigna Session, MenuRoot, CanvasGroup, Gadget, Precio, B, Comprar y SinSaldo desde GameRoot/GameUIRoot.",
                 this);
         }
 

@@ -158,14 +158,15 @@ Responsabilidad:
 - Coordinar comics de primera entrada/salida cuando se abre desde `DealerFish`.
 
 Reglas:
-- El canvas de tienda pertenece a la escena o a un prefab de vista instanciado bajo el manager.
-- El nodo manager vive en `UI/InGameShopManager`.
+- El canvas de tienda pertenece a la escena o a un prefab de vista referenciado por el `GameRoot` de cada zona.
+- El manager recibe sus referencias de vista por campos serializados; no busca `InGameCanvas`, `Gadget`, `Precio`, `B`, `Comprar`, `SinSaldo` ni `Timer` por nombre en runtime.
 - Prefab de vista: `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab`.
-- Root esperado: `InGameCanvas`.
+- Root esperado de la vista: `InGameCanvas`, asignado en `menuRoot`.
+- `timerText` es opcional mientras el prefab de vista no exponga un nodo visible de contador.
 - El contador usa tiempo real cuando `pauseGameplayWhileOpen` esta activo.
 - Los textos `B` y `Precio` pulsan para llamar la atencion.
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
-- `Comprar` debe tener componente `Button` y acción auditable hacia `BuyCurrentOffer`; si `InGameShopManager` cablea en runtime, debe tratarse como respaldo defensivo, no como contrato principal.
+- `Comprar` debe tener componente `Button`. `InGameShopManager` registra en runtime la accion `BuyCurrentOffer` sobre la referencia serializada, sin depender de una busqueda jerarquica.
 - `InGameShopManager` no debe desactivar listeners persistentes del Inspector.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
 - Las ofertas se filtran por `RunGadgetUnlockService`; un gadget no habilitado por hitos no aparece.

@@ -314,7 +314,7 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 - `InkPulseMusicCrossfader` es un adaptador de audio, no un controlador de gameplay. Su nombre es valido porque describe una especializacion técnica.
 - `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresión, pero no gobierna dificultad, input, spawn, score ni estado de sesión.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepción visual deliberada para entidades spawneadas.
-- `InGameShopManager` concentra overlay, pausa temporal, botones, oferta activa y transaccion. La seleccion y cálculo de precio viven en helpers puros; si el canvas crece, la extension natural es separar una vista/presenter de tienda.
+- `InGameShopManager` orquesta apertura, cierre, lore y estado de la tienda temporal. La transaccion, temporizacion y presentacion viven en servicios/presenters separados; la seleccion y calculo de precio permanecen en helpers puros.
 - `OutOfGameShopManager` es el presenter de `ShopMenu`. Coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, límites y persistencia. La aplicacion visual de skins se realiza mediante `PlayerSkinApplier`, fuera de los controladores de gameplay.
 
 ### Refactor aplicado
