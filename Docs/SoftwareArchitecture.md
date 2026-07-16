@@ -315,6 +315,8 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 - `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresión, pero no gobierna dificultad, input, spawn, score ni estado de sesión.
 - `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepción visual deliberada para entidades spawneadas.
 - `InGameShopManager` orquesta apertura, cierre, lore y estado de la tienda temporal. La transaccion, temporizacion y presentacion viven en servicios/presenters separados; la seleccion y calculo de precio permanecen en helpers puros.
+- `MainMenu` conserva los metodos publicos usados por botones serializados, pero delega resolucion de escenas a `MainMenuSceneNavigator` y el codigo secreto a `MainMenuSecretCodeProgress`.
+- `LoreComicPresenter` conserva corrutinas, pausa y busqueda del presenter activo; seleccion, persistencia y vista se separan en `LoreComicEntrySelector`, `LoreComicPersistencePolicy` y `LoreComicView`.
 - `OutOfGameShopManager` es el presenter de `ShopMenu`. Coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, límites y persistencia. La aplicacion visual de skins se realiza mediante `PlayerSkinApplier`, fuera de los controladores de gameplay.
 
 ### Refactor aplicado

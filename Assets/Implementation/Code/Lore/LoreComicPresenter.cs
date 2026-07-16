@@ -91,16 +91,16 @@ public sealed class LoreComicPresenter : MonoBehaviour
     private bool continueRequested;
     private bool pauseApplied;
     private float timeScaleBeforePresentation = 1f;
+    private LoreComicView view;
 
     private void Awake()
     {
         ResolveReferences();
-        NormalizeRenderableScale();
-        WireContinueButton();
+        PrepareView();
 
         if (hideOnAwake)
         {
-            HideImmediate();
+            HideViewImmediate();
         }
     }
 
@@ -111,15 +111,12 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     private void OnEnable()
     {
-        WireContinueButton();
+        PrepareView();
     }
 
     private void OnDisable()
     {
-        if (continueButton != null)
-        {
-            continueButton.onClick.RemoveListener(Continue);
-        }
+        view?.UnwireContinueButton(Continue);
 
         RestoreTimeScaleIfNeeded();
     }
@@ -132,16 +129,16 @@ public sealed class LoreComicPresenter : MonoBehaviour
     public bool TryPlay(LoreComicRequest request, Action onCompleted)
     {
         ResolveReferences();
-        NormalizeRenderableScale();
+        PrepareView();
 
-        if (comicRoot == null)
+        if (view == null || !view.HasRoot)
         {
             Debug.LogWarning("[LoreComicPresenter] Falta ComicRoot. El comic se omitira.", this);
             return false;
         }
 
-        LoreComicEntry entry = FindEntry(request);
-        if (!HasDisplayableSprite(entry))
+        LoreComicEntry entry = LoreComicEntrySelector.FindEntry(entries, request);
+        if (!LoreComicEntrySelector.HasDisplayableSprite(entry))
         {
             return false;
         }
@@ -219,7 +216,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     private static IEnumerator PlayIfAvailable(LoreComicRequest request)
     {
-        string persistentEventId = BuildPersistentComicEventId(request);
+        string persistentEventId = LoreComicPersistencePolicy.BuildPersistentComicEventId(request);
         if (!string.IsNullOrEmpty(persistentEventId) && PersistentPlayerProfile.HasSeenLoreComic(persistentEventId))
         {
             yield break;
@@ -248,19 +245,6 @@ public sealed class LoreComicPresenter : MonoBehaviour
         }
     }
 
-    private static string BuildPersistentComicEventId(LoreComicRequest request)
-    {
-        return request.ComicEvent switch
-        {
-            LoreComicEvent.PortalEpipelagicToAbyssopelagic => request.ComicEvent.ToString(),
-            LoreComicEvent.PortalAbyssopelagicToEpipelagic => request.ComicEvent.ToString(),
-            LoreComicEvent.ShopInGameFirst => request.ComicEvent.ToString(),
-            LoreComicEvent.ShopInGameLastPurchased => request.ComicEvent.ToString(),
-            LoreComicEvent.ShopInGameLastNoPurchase => request.ComicEvent.ToString(),
-            _ => null
-        };
-    }
-
     private static LoreComicPresenter FindActivePresenter()
     {
         LoreComicPresenter[] presenters = Resources.FindObjectsOfTypeAll<LoreComicPresenter>();
@@ -287,10 +271,20 @@ public sealed class LoreComicPresenter : MonoBehaviour
         continueRequested = false;
 
         Sprite selectedSprite = SelectSprite(entry);
-        float displaySeconds = ResolveDisplaySeconds(entry, request);
-        bool waitForContinue = ResolveWaitForContinue(entry, request);
-        bool showContinue = ResolveShowContinueButton(entry, request);
-        bool canWaitForContinue = waitForContinue && (continueButton != null || allowExternalContinueWithoutButton);
+        float displaySeconds = LoreComicEntrySelector.ResolveDisplaySeconds(
+            entry,
+            request,
+            defaultDisplaySeconds,
+            defaultStartDisplaySeconds);
+        bool waitForContinue = LoreComicEntrySelector.ResolveWaitForContinue(
+            entry,
+            request,
+            defaultStartWaitsForContinue);
+        bool showContinue = LoreComicEntrySelector.ResolveShowContinueButton(
+            entry,
+            request,
+            defaultStartShowsContinueButton);
+        bool canWaitForContinue = waitForContinue && (view.HasContinueButton || allowExternalContinueWithoutButton);
 
         if (waitForContinue && !canWaitForContinue)
         {
@@ -298,8 +292,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
         }
 
         ApplyTimeScaleIfNeeded();
-        ApplySprite(selectedSprite);
-        SetVisible(true, showContinue && canWaitForContinue);
+        view.Show(selectedSprite, showContinue && canWaitForContinue);
 
         if (displaySeconds > 0f)
         {
@@ -308,14 +301,14 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
         if (canWaitForContinue)
         {
-            SetContinueVisible(showContinue);
+            view.SetContinueVisible(showContinue);
             while (!continueRequested)
             {
                 yield return null;
             }
         }
 
-        HideImmediate();
+        HideViewImmediate();
         RestoreTimeScaleIfNeeded();
 
         activeRoutine = null;
@@ -323,36 +316,6 @@ public sealed class LoreComicPresenter : MonoBehaviour
         Action completion = activeCompletion;
         activeCompletion = null;
         completion?.Invoke();
-    }
-
-    private LoreComicEntry FindEntry(LoreComicRequest request)
-    {
-        if (entries == null)
-        {
-            return null;
-        }
-
-        LoreComicEntry fallback = null;
-        for (int i = 0; i < entries.Length; i++)
-        {
-            LoreComicEntry entry = entries[i];
-            if (entry == null || entry.comicEvent != request.ComicEvent)
-            {
-                continue;
-            }
-
-            if (entry.zone == request.Zone)
-            {
-                return entry;
-            }
-
-            if (entry.zone == LoreComicZone.Unknown)
-            {
-                fallback = entry;
-            }
-        }
-
-        return fallback;
     }
 
     private Sprite SelectSprite(LoreComicEntry entry)
@@ -396,67 +359,6 @@ public sealed class LoreComicPresenter : MonoBehaviour
         return null;
     }
 
-    private static bool HasDisplayableSprite(LoreComicEntry entry)
-    {
-        if (entry?.sprites == null)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < entry.sprites.Length; i++)
-        {
-            if (entry.sprites[i] != null)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private float ResolveDisplaySeconds(LoreComicEntry entry, LoreComicRequest request)
-    {
-        if (entry != null)
-        {
-            return Mathf.Max(0f, entry.displaySeconds);
-        }
-
-        return request.ComicEvent == LoreComicEvent.GameStart
-            ? Mathf.Max(0f, defaultStartDisplaySeconds)
-            : Mathf.Max(0f, defaultDisplaySeconds);
-    }
-
-    private bool ResolveWaitForContinue(LoreComicEntry entry, LoreComicRequest request)
-    {
-        if (entry != null)
-        {
-            return entry.waitForContinue;
-        }
-
-        return request.ComicEvent == LoreComicEvent.GameStart && defaultStartWaitsForContinue;
-    }
-
-    private bool ResolveShowContinueButton(LoreComicEntry entry, LoreComicRequest request)
-    {
-        if (entry != null)
-        {
-            return entry.showContinueButton;
-        }
-
-        return request.ComicEvent == LoreComicEvent.GameStart && defaultStartShowsContinueButton;
-    }
-
-    private void ApplySprite(Sprite sprite)
-    {
-        if (comicImage == null)
-        {
-            return;
-        }
-
-        comicImage.sprite = sprite;
-        comicImage.enabled = sprite != null;
-    }
-
     private void ApplyTimeScaleIfNeeded()
     {
         if (!pauseTimeWhileShowing || pauseApplied)
@@ -480,90 +382,24 @@ public sealed class LoreComicPresenter : MonoBehaviour
         Time.timeScale = timeScaleBeforePresentation;
     }
 
-    private void SetVisible(bool visible, bool showContinue)
+    private void HideViewImmediate()
     {
-        if (visible)
-        {
-            NormalizeRenderableScale();
-        }
-
-        if (comicRoot != null && visible && !comicRoot.activeSelf)
-        {
-            comicRoot.SetActive(true);
-        }
-
-        if (canvasGroup != null)
-        {
-            canvasGroup.alpha = visible ? 1f : 0f;
-            canvasGroup.interactable = visible;
-            canvasGroup.blocksRaycasts = visible;
-        }
-
-        SetContinueVisible(showContinue);
-
-        if (comicRoot != null && !visible && comicRoot != gameObject)
-        {
-            comicRoot.SetActive(false);
-        }
-    }
-
-    private void SetContinueVisible(bool visible)
-    {
-        if (continueButtonRoot != null)
-        {
-            continueButtonRoot.SetActive(visible);
-        }
-
-        if (continueButton != null)
-        {
-            continueButton.interactable = visible;
-        }
-    }
-
-    private void HideImmediate()
-    {
-        SetVisible(false, false);
+        view?.HideImmediate();
         continueRequested = false;
     }
 
-    private void NormalizeRenderableScale()
+    private void PrepareView()
     {
-        Transform rootTransform = comicRoot != null ? comicRoot.transform : transform;
-        Canvas ownerCanvas = rootTransform != null
-            ? rootTransform.GetComponentInParent<Canvas>(true)
-            : GetComponentInParent<Canvas>(true);
-
-        RestoreScaleIfCollapsed(transform);
-        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
-        RestoreScaleIfCollapsed(rootTransform);
-        NormalizeCanvasLayer(ownerCanvas);
-    }
-
-    private static void NormalizeCanvasLayer(Canvas canvas)
-    {
-        if (canvas == null)
-        {
-            return;
-        }
-
-        canvas.overrideSorting = true;
-        canvas.sortingOrder = Mathf.Max(canvas.sortingOrder, MinimumComicSortingOrder);
-    }
-
-    private static void RestoreScaleIfCollapsed(Transform target)
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        Vector3 localScale = target.localScale;
-        if (Mathf.Approximately(localScale.x, 0f)
-            || Mathf.Approximately(localScale.y, 0f)
-            || Mathf.Approximately(localScale.z, 0f))
-        {
-            target.localScale = Vector3.one;
-        }
+        view = new LoreComicView(
+            comicRoot,
+            canvasGroup,
+            comicImage,
+            continueButton,
+            continueButtonRoot,
+            transform,
+            MinimumComicSortingOrder);
+        view.NormalizeRenderableScale();
+        view.WireContinueButton(Continue);
     }
 
     private void ResolveReferences()

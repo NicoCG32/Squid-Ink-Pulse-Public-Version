@@ -138,7 +138,8 @@ Responsabilidad:
 
 Reglas:
 - Runtime no crea Canvas, botones, textos ni jerarquias visuales.
-- `LoreComicPresenter` solo activa/desactiva referencias existentes y asigna sprites configurados en `entries`.
+- `LoreComicPresenter` orquesta reproduccion, pausa y persistencia; `LoreComicView` activa/desactiva referencias existentes y asigna sprites configurados en `entries`.
+- `LoreComicEntrySelector` decide la entrada por evento/zona y `LoreComicPersistencePolicy` decide que eventos se marcan como vistos.
 - `ContinuarBoton` sigue el contrato de botones: nodo con `Button` y `Visual`.
 - El prefab completo debe estar en layer `UI`.
 - Las viñetas viven en `Assets/Content/Art/ComicLore/` separadas por dominio. Se reemplazan desde Inspector o prefab conservando sus `.meta`.

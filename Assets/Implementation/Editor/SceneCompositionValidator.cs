@@ -107,7 +107,12 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             }
             else if (scenePath == MainMenuScenePath)
             {
-                RequireSingle<MainMenu>(scene, "MainMenu", failures);
+                MainMenu mainMenu = RequireSingle<MainMenu>(scene, "MainMenu", failures);
+                if (mainMenu != null)
+                {
+                    ValidateMainMenu(mainMenu, failures);
+                }
+
                 RequireSingle<EventSystem>(scene, "EventSystem", failures);
             }
             else if (scenePath == ShopMenuScenePath)
@@ -175,6 +180,19 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             RequireObjectReference(uiRoot, propertyName, $"{zoneName}/GameUIRoot.{propertyName}", failures);
         }
+    }
+
+    private static void ValidateMainMenu(MainMenu mainMenu, List<string> failures)
+    {
+        RequireObjectReference(mainMenu, "optionsMenuPanel", "MainMenu.optionsMenuPanel", failures);
+        RequireObjectReference(mainMenu, "tutorialComicsPanel", "MainMenu.tutorialComicsPanel", failures);
+        RequireObjectReference(mainMenu, "tutorialComicsCanvasGroup", "MainMenu.tutorialComicsCanvasGroup", failures);
+        RequireObjectReference(mainMenu, "tutorialLayerBlack", "MainMenu.tutorialLayerBlack", failures);
+        RequireObjectReference(mainMenu, "tutorialButton", "MainMenu.tutorialButton", failures);
+        RequireObjectReference(mainMenu, "tutorialNextButton", "MainMenu.tutorialNextButton", failures);
+        RequireMainMenuTutorialPages(mainMenu, expectedCount: 3, failures);
+        RequireSceneNameDoesNotContain(mainMenu, "playSceneName", "tutorial", "MainMenu.playSceneName", failures);
+        RequireSceneNameDoesNotContain(mainMenu, "shopMenuSceneName", "tutorial", "MainMenu.shopMenuSceneName", failures);
     }
 
     private static void ValidateInGameShopManager(InGameShopManager shopManager, string zoneName, List<string> failures)
@@ -264,6 +282,25 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             RequireRelativeObjectReference(drop, "emptyState", $"{dropLabel}.emptyState", failures);
             RequireRelativeObjectReference(drop, "halfState", $"{dropLabel}.halfState", failures);
             RequireRelativeObjectReference(drop, "fullState", $"{dropLabel}.fullState", failures);
+        }
+    }
+
+    private static void RequireMainMenuTutorialPages(MainMenu mainMenu, int expectedCount, List<string> failures)
+    {
+        SerializedObject serializedObject = new(mainMenu);
+        SerializedProperty pages = RequireArray(serializedObject, "tutorialComicPages", expectedCount, "MainMenu.tutorialComicPages", failures);
+        if (pages == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < pages.arraySize; index++)
+        {
+            SerializedProperty page = pages.GetArrayElementAtIndex(index);
+            string label = $"MainMenu.tutorialComicPages[{index}]";
+            RequireRelativeObjectReference(page, "root", $"{label}.root", failures);
+            RequireRelativeObjectReference(page, "vignette", $"{label}.vignette", failures);
+            RequireRelativeObjectReferenceArray(page, "descriptionTexts", 1, $"{label}.descriptionTexts", failures);
         }
     }
 
@@ -559,6 +596,76 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         if (property.objectReferenceValue == null)
         {
             failures.Add($"{label}: referencia obligatoria no asignada.");
+        }
+    }
+
+    private static void RequireRelativeObjectReferenceArray(
+        SerializedProperty parent,
+        string childPropertyName,
+        int minimumCount,
+        string label,
+        List<string> failures)
+    {
+        SerializedProperty property = parent.FindPropertyRelative(childPropertyName);
+        if (property == null)
+        {
+            failures.Add($"{label}: propiedad serializada no encontrada.");
+            return;
+        }
+
+        if (!property.isArray)
+        {
+            failures.Add($"{label}: la propiedad no es un array serializado.");
+            return;
+        }
+
+        if (property.arraySize < minimumCount)
+        {
+            failures.Add($"{label}: debe tener al menos {minimumCount} elementos; actual: {property.arraySize}.");
+            return;
+        }
+
+        for (int index = 0; index < property.arraySize; index++)
+        {
+            SerializedProperty item = property.GetArrayElementAtIndex(index);
+            if (item.propertyType != SerializedPropertyType.ObjectReference)
+            {
+                failures.Add($"{label}[{index}]: el elemento no es ObjectReference.");
+                continue;
+            }
+
+            if (item.objectReferenceValue == null)
+            {
+                failures.Add($"{label}[{index}]: referencia obligatoria no asignada.");
+            }
+        }
+    }
+
+    private static void RequireSceneNameDoesNotContain(
+        UnityEngine.Object target,
+        string propertyName,
+        string forbiddenText,
+        string label,
+        List<string> failures)
+    {
+        SerializedObject serializedObject = new(target);
+        SerializedProperty property = serializedObject.FindProperty(propertyName);
+        if (property == null)
+        {
+            failures.Add($"{label}: propiedad serializada no encontrada.");
+            return;
+        }
+
+        if (property.propertyType != SerializedPropertyType.String)
+        {
+            failures.Add($"{label}: la propiedad no es String.");
+            return;
+        }
+
+        string value = property.stringValue ?? string.Empty;
+        if (value.Contains(forbiddenText, StringComparison.OrdinalIgnoreCase))
+        {
+            failures.Add($"{label}: no debe cargar la escena tutorial pendiente; actual: {value}.");
         }
     }
 

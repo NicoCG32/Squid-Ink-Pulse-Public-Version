@@ -53,7 +53,7 @@ public class MainMenu : MonoBehaviour
     private bool isCheckingFairLogin;
     private bool tutorialComicsOpen;
     private int currentTutorialComicPageIndex = -1;
-    private int demoShrimpSecretProgress;
+    private readonly MainMenuSecretCodeProgress demoShrimpSecretCode = new(DemoShrimpSecretCode);
     private Keyboard demoShrimpTextInputKeyboard;
     private int lastDemoShrimpTextInputFrame = -1;
 
@@ -211,7 +211,9 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        string resolvedSceneName = ResolveLoadableSceneName(sceneName);
+        string resolvedSceneName = MainMenuSceneNavigator.ResolveLoadableSceneName(
+            sceneName,
+            Application.CanStreamedLevelBeLoaded);
         if (string.IsNullOrEmpty(resolvedSceneName))
         {
             Debug.LogError($"[MainMenu] La escena de {sceneLabel} ('{sceneName}') no esta disponible en Build Settings.", this);
@@ -219,32 +221,6 @@ public class MainMenu : MonoBehaviour
         }
 
         StartCoroutine(LoadSceneAfterDelay(resolvedSceneName, showStartLoreComic, resetRunStateBeforeLoad));
-    }
-
-    private string ResolveLoadableSceneName(string sceneName)
-    {
-        if (Application.CanStreamedLevelBeLoaded(sceneName))
-        {
-            return sceneName;
-        }
-
-        string sceneWithoutExtension = sceneName.EndsWith(".unity")
-            ? sceneName.Substring(0, sceneName.Length - ".unity".Length)
-            : sceneName;
-
-        if (Application.CanStreamedLevelBeLoaded(sceneWithoutExtension))
-        {
-            return sceneWithoutExtension;
-        }
-
-        int lastSlashIndex = sceneWithoutExtension.LastIndexOf('/');
-        if (lastSlashIndex < 0 || lastSlashIndex >= sceneWithoutExtension.Length - 1)
-        {
-            return null;
-        }
-
-        string shortSceneName = sceneWithoutExtension.Substring(lastSlashIndex + 1);
-        return Application.CanStreamedLevelBeLoaded(shortSceneName) ? shortSceneName : null;
     }
 
     private IEnumerator LoadSceneAfterDelay(string sceneName, bool showStartLoreComic, bool resetRunStateBeforeLoad)
@@ -662,9 +638,9 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        if (WasDemoShrimpSecretKeyPressed(keyboard, demoShrimpSecretProgress))
+        if (WasDemoShrimpSecretKeyPressed(keyboard, demoShrimpSecretCode.Progress))
         {
-            AdvanceDemoShrimpSecretCode(DemoShrimpSecretCode[demoShrimpSecretProgress]);
+            AdvanceDemoShrimpSecretCode(DemoShrimpSecretCode[demoShrimpSecretCode.Progress]);
         }
         else if (WasDemoShrimpSecretKeyPressed(keyboard, 0))
         {
@@ -676,13 +652,13 @@ public class MainMenu : MonoBehaviour
         }
         else
         {
-            demoShrimpSecretProgress = 0;
+            demoShrimpSecretCode.Reset();
         }
     }
 
     private void HandleDemoShrimpTextInput(char input)
     {
-        if (!TryNormalizeDemoShrimpInput(input, out char normalizedInput))
+        if (!MainMenuSecretCodeProgress.TryNormalizeInput(input, out char normalizedInput))
         {
             return;
         }
@@ -693,27 +669,11 @@ public class MainMenu : MonoBehaviour
 
     private void AdvanceDemoShrimpSecretCode(char input)
     {
-        if (demoShrimpSecretProgress >= 0
-            && demoShrimpSecretProgress < DemoShrimpSecretCode.Length
-            && input == DemoShrimpSecretCode[demoShrimpSecretProgress])
-        {
-            demoShrimpSecretProgress++;
-        }
-        else if (input == DemoShrimpSecretCode[0])
-        {
-            demoShrimpSecretProgress = 1;
-        }
-        else
-        {
-            demoShrimpSecretProgress = 0;
-        }
-
-        if (demoShrimpSecretProgress < DemoShrimpSecretCode.Length)
+        if (!demoShrimpSecretCode.Advance(input))
         {
             return;
         }
 
-        demoShrimpSecretProgress = 0;
         ShrimpRuntimeWallet.Refund(DemoShrimpGrantAmount);
     }
 
@@ -742,12 +702,6 @@ public class MainMenu : MonoBehaviour
             || keyboard[Key.LeftAlt]?.wasPressedThisFrame == true
             || keyboard[Key.RightAlt]?.wasPressedThisFrame == true
             || keyboard[Key.CapsLock]?.wasPressedThisFrame == true;
-    }
-
-    private static bool TryNormalizeDemoShrimpInput(char input, out char normalizedInput)
-    {
-        normalizedInput = char.ToUpperInvariant(input);
-        return char.IsLetterOrDigit(normalizedInput);
     }
 
     private void SyncDemoShrimpTextInputKeyboard()

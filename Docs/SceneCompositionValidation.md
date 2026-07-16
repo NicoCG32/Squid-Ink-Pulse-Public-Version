@@ -30,6 +30,7 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - Los prefabs canonicos principales no tienen scripts faltantes.
 - Las cuatro escenas de build no tienen scripts faltantes.
 - `MainMenu` y `ShopMenu` tienen un unico `EventSystem` y su manager principal.
+- `MainMenu` tiene referencias serializadas para `OptionsMenu`, comics de `Cómo jugar`, boton de tutorial, boton siguiente y paginas del tutorial; `playSceneName` y `shopMenuSceneName` no apuntan a la escena tutorial pendiente.
 - `ShopMenu` tiene cableadas las referencias serializadas de `OutOfGameShopManager`: botones, textos principales, estados visuales del dealer, vistas de slots y gotas del indicador de nivel.
 - Cada escena jugable tiene un unico `GameSessionController`, `RunProgressionDirector`, `SceneFlowController`, `LevelSpawner` y `GameUIRoot`.
 - `LevelSpawner.zoneSpawnProfile` esta asignado.
