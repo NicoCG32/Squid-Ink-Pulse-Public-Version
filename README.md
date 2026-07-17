@@ -31,6 +31,20 @@ Como equipo implementamos:
 - Soundtrack dinámico con mezcla durante Ink-Pulse y progresión de pitch.
 - Volumen maestro global que afecta soundtrack normal, soundtrack Ink-Pulse, botones, inkbar y SFX.
 
+## Próxima prioridad: port móvil
+
+La siguiente meta de producto es portar Squid Ink-Pulse a teléfonos, aprovechando que el proyecto ya está desarrollado en Unity. El objetivo no es rehacer el juego, sino adaptar la base actual para que sea jugable en dispositivos móviles.
+
+Alcance inicial esperado:
+
+- Controles táctiles para movimiento, Ink-Pulse, pausa, tiendas y menús.
+- UI legible y operable en pantallas pequeñas y distintas relaciones de aspecto.
+- Revisión de rendimiento, memoria, tiempos de carga y consumo de batería.
+- Build Android como primera plataforma móvil candidata; iOS queda sujeto a disponibilidad de entorno de compilación.
+- Mantener la experiencia principal: progresión, zonas, enemigos, bosses, tiendas, skins, comics, audio y persistencia local.
+
+Este port debe tratarse como actualización mayor sobre el producto base cerrado, no como requisito pendiente para que el juego exista.
+
 ## Add-on de feria
 
 También implementamos un soporte de feria como extensión operativa, no como requisito para jugar. Este add-on permite levantar un servidor local en un PC host y mostrar un leaderboard web en la red local.

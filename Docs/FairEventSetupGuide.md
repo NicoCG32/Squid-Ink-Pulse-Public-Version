@@ -4,7 +4,7 @@
 
 Esta guía describe como probar el add-on de feria que desarrollamos como complemento de presentación. El juego principal no depende de esta configuración: se puede ejecutar, probar y compilar como juego local sin servidor.
 
-El alcance final de feria es:
+El alcance del add-on de feria es:
 
 - un PC host ejecuta `Tools/FairServer/`;
 - el host guarda una base SQLite local;
@@ -12,13 +12,13 @@ El alcance final de feria es:
 - los resultados que se guardan formalmente son los jugados desde el PC host;
 - otros dispositivos de la misma red solo pueden visualizar el leaderboard web desde un navegador.
 
-No logramos cerrar como entrega final la sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral de jugadores entre PCs. Cada PC conserva su persistencia local del juego.
+La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral de jugadores entre PCs no forma parte del producto base ni del add-on de feria actual. Cada PC conserva su persistencia local del juego.
 
 ## Cuando ignorar esta guía
 
 Si solo queremos probar el juego, esta guía se ignora. Basta con ejecutar el proyecto desde `MainMenu` o abrir un build local regenerado desde Unity.
 
-La feria es secundaria frente a la entrega principal. Su documentación existe para explicar el servidor local y el leaderboard web, no para condicionar la revision del juego.
+La feria es secundaria frente al juego base. Su documentación existe para explicar el servidor local y el leaderboard web, no para condicionar la revision del juego.
 
 ## Warnings rojos durante Unity o build
 
@@ -218,7 +218,7 @@ Revisar:
 
 ### Se esperaba guardar resultados desde otro PC
 
-Esa funcionalidad no quedo cerrada como alcance final. Documentamos la feria como add-on de leaderboard host; la progresión completa del jugador sigue siendo local por dispositivo.
+Esa funcionalidad no forma parte del alcance actual. Documentamos la feria como add-on de leaderboard host; la progresión completa del jugador sigue siendo local por dispositivo.
 
 ## Resumen operativo
 

@@ -29,7 +29,7 @@
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Player/Profile/`: persistencia JSON local, catalogo de desbloqueables, perfil, records, skins, economia permanente y leaderboard local.
 - `Assets/Implementation/Code/Player/Visual/`: controladores visuales del jugador que observan estado sin decidir gameplay.
-- `Assets/Implementation/Code/Fair/`: adaptador Unity para el add-on opcional de feria LAN. El alcance final documentado es leaderboard en host visible desde navegador; no reemplaza la persistencia local del juego.
+- `Assets/Implementation/Code/Fair/`: adaptador Unity para el add-on opcional de feria LAN. El alcance documentado es leaderboard en host visible desde navegador; no reemplaza la persistencia local del juego.
 - `Assets/Implementation/Code/Spawning/`: `LevelSpawner`, perfiles de spawn y servicios internos de seleccion, posición y configuración de entidades spawneadas.
 - `Assets/Implementation/Code/Enemies/`: comportamientos propios de enemigos.
 - `Assets/Implementation/Code/Bosses/`: directores y comportamientos de boss.

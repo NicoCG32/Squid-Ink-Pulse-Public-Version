@@ -1,12 +1,12 @@
-# Cierre de entrega
+# Estado del producto base y actualizaciones
 
 ## Proposito
 
-Este documento formaliza el cierre de Squid Ink-Pulse como entrega final. Lo escribimos como equipo para separar con claridad lo que desarrollamos y entregamos, lo que queda documentado como add-on secundario de feria y lo que queda fuera del cierre actual.
+Este documento formaliza el estado vigente de Squid Ink-Pulse como juego desarrollado, jugable y cerrado en su producto base. Lo escribimos como equipo para separar con claridad lo que ya forma parte del juego, lo que queda documentado como add-on secundario de feria y qué líneas pueden abordarse como actualizaciones posteriores.
 
-## Alcance principal entregado
+## Alcance principal del juego base
 
-La entrega principal integra un endless runner 2D con progresión de run, economía persistente, tienda permanente, tienda temporal, skins, gadgets, comics narrativos, portales entre zonas, boss de zona epipelágica, boss abisal, comic de `Cómo Jugar` y menús globales.
+El juego base integra un endless runner 2D con progresión de run, economía persistente, tienda permanente, tienda temporal, skins, gadgets, comics narrativos, portales entre zonas, boss de zona epipelágica, boss abisal, comic de `Cómo Jugar` y menús globales.
 
 Componentes incluidos:
 
@@ -21,7 +21,7 @@ Componentes incluidos:
 - Soundtrack dinámico, crossfade Ink-Pulse y progresión de pitch.
 - Volumen maestro global que afecta musica normal, musica Ink-Pulse, botones, inkbar y SFX.
 
-## Add-on de feria entregado
+## Add-on de feria disponible
 
 También desarrollamos un add-on de feria para apoyar presentaciones presenciales. Este componente es opcional: el juego no depende de él para funcionar.
 
@@ -38,7 +38,7 @@ Limitacion importante:
 
 - El resultado confiable del add-on es almacenar y mostrar el leaderboard del PC host.
 - Los resultados guardados formalmente son los jugados desde el PC host; otros dispositivos solo visualizan el leaderboard web.
-- La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral entre PCs no quedo cerrada como parte funcional de la entrega.
+- La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral entre PCs no forma parte del producto base.
 - Por tanto, la persistencia principal sigue siendo local por dispositivo.
 
 ## Warnings esperados
@@ -47,9 +47,9 @@ Cuando el servidor de feria no está activo, Unity o el build pueden mostrar war
 
 Solo deben investigarse si la prueba tiene como objetivo revisar feria. Para probar feria, primero hay que levantar `Tools/FairServer/` en el host y comprobar el leaderboard web.
 
-## Estado de cierre
+## Estado del producto base
 
-La entrega queda cerrada con estos componentes integrados:
+El producto base queda cerrado con estos componentes integrados:
 
 - El build Windows abre desde `MainMenu` sin requerir servicios externos.
 - MainMenu, pausa, opciones, Game Over, comic de `Cómo Jugar`, comics narrativos, portales y ambas tiendas no bloquean el flujo.
@@ -57,29 +57,35 @@ La entrega queda cerrada con estos componentes integrados:
 - Las skins compradas se guardan, se equipan y se aplican visualmente al entrar a gameplay.
 - Los gadgets comprados durante la run se consumen al ejecutar su efecto y se limpian en Game Over.
 - `ZonaAbisopelagica` conserva iluminacion compuesta y boss abisal.
-- Ray y Jellyfish quedan reactivados gradualmente para playtest desde sus `ZoneSpawnProfile`; el ajuste fino pertenece a balance.
+- Ray y Jellyfish quedan activos desde sus `ZoneSpawnProfile`; el ajuste fino pertenece a balance o actualizaciones posteriores.
 - El slider de volumen afecta todos los sonidos del juego.
 - La feria se presenta como add-on opcional de leaderboard, no como persistencia remota completa.
 
-## Extensiones fuera del cierre actual
+## Actualizaciones posteriores posibles
 
-Las siguientes líneas no condicionan la entrega final. Quedan registradas solo como posibles extensiones posteriores:
+Las siguientes líneas no condicionan que el juego base exista o sea jugable. Quedan registradas como posibles actualizaciones posteriores:
 
-1. Ampliacion completa de feria.
+1. Contenido nuevo.
+   - Agregar más skins.
+   - Agregar más escenarios o zonas con jugabilidades diferenciadas.
+   - Agregar más enemigos comunes.
+   - Agregar más bosses.
+
+2. Ampliacion completa de feria.
    - Definir si se quiere sincronizacion real de perfil entre PCs.
    - Separar leaderboard de progreso completo.
    - Agregar pruebas LAN automatizadas si se retoma el sistema.
 
-2. Pruebas extendidas de build Windows.
+3. Pruebas extendidas de build Windows.
    - Probar sesiones largas por zona.
    - Revisar crecimiento de jerarquía runtime y limpieza fuera de pantalla.
    - Confirmar que pausa, Game Over, comics y tiendas restauran `Time.timeScale`.
 
-3. Pulido audiovisual.
+4. Pulido audiovisual.
    - Ajustar feedback de portales, boss abisal, tienda y `ZonaAbisopelagica`.
    - Revisar mezcla relativa de soundtrack, Ink-Pulse, botones, inkbar y SFX.
 
-4. Balance.
+5. Balance.
    - Ajustar curva de spawn, recompensas de camarones y multiplicadores permanentes.
    - Ajustar pesos de Ray y Jellyfish si el playtest muestra exceso o defecto de presión.
 

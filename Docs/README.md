@@ -1,10 +1,10 @@
-# Índice de documentación de entrega
+# Índice de documentación
 
-Este directorio organiza la documentación técnica de la entrega final. Los informes de `Docs/Reports/` conservan caracter histórico y no se reescriben para reflejar cada cambio de implementación.
+Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse como juego desarrollado, jugable y cerrado en su producto base. Los informes de `Docs/reports/` conservan caracter histórico y no se reescriben para reflejar cada cambio de implementación.
 
 ## Base del proyecto
 
-- [ProjectOverview.md](ProjectOverview.md) - vision general, pilares y estado de entrega.
+- [ProjectOverview.md](ProjectOverview.md) - vision general, pilares y estado del producto base.
 - [SoftwareArchitecture.md](SoftwareArchitecture.md) - contrato de capas, dependencias, estados, especializaciones y excepciones.
 - [ProjectStructure.md](ProjectStructure.md) - organizacion de carpetas y criterios.
 - [RuntimeHierarchyAudit.md](RuntimeHierarchyAudit.md) - scripts esperados por nodo, prefab y responsabilidad.
@@ -32,9 +32,9 @@ Este directorio organiza la documentación técnica de la entrega final. Los inf
 
 - [SceneCompositionValidation.md](SceneCompositionValidation.md) - validacion Editor/batch de escenas, prefabs canonicos y busquedas globales restantes.
 
-## Cierre de entrega
+## Estado del producto base y evolución
 
 - [StateMachines.md](StateMachines.md) - estados implementados y extensiones previstas.
-- [ROADMAP.md](ROADMAP.md) - cierre de entrega, alcance final y extensiones fuera del cierre actual.
+- [ROADMAP.md](ROADMAP.md) - estado del producto base, add-on de feria y actualizaciones posteriores posibles.
 - [ProjectReport.md](ProjectReport.md) - resumen breve del informe histórico.
-- [Reports/InformeSquidInkPulse.md](Reports/InformeSquidInkPulse.md) - informe histórico completo.
+- [reports/InformeSquidInkPulse.md](reports/InformeSquidInkPulse.md) - informe histórico completo.

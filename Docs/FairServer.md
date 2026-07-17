@@ -4,15 +4,15 @@
 
 Como equipo tambien implementamos un add-on de feria para apoyar demostraciones presenciales. Este componente es externo al juego principal: el build normal funciona sin servidor, sin red local y sin configuración adicional.
 
-El add-on permite levantar un servidor Python en un PC host, guardar datos en SQLite y mostrar una pagina web de leaderboard para la red local. Su alcance final debe leerse con precision:
+El add-on permite levantar un servidor Python en un PC host, guardar datos en SQLite y mostrar una pagina web de leaderboard para la red local. Su alcance debe leerse con precision:
 
-- Logramos un servidor local en `Tools/FairServer/`.
-- Logramos una base SQLite en el PC host.
-- Logramos una pantalla web de ranking en `http://localhost:8080/`.
+- Servidor local en `Tools/FairServer/`.
+- Base SQLite en el PC host.
+- Pantalla web de ranking en `http://localhost:8080/`.
 - El resultado confiable de feria es el leaderboard almacenado y mostrado desde el PC host.
 - Los dispositivos ajenos al host pueden visualizar ese leaderboard web desde `http://IP_DEL_HOST:8080/`.
 - Los resultados que se guardan formalmente son los jugados en el PC host.
-- No cerramos como funcionalidad final la sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral de jugadores entre PCs.
+- La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral de jugadores entre PCs no forma parte del producto base ni del add-on actual.
 
 Por tanto, la persistencia principal del juego sigue siendo local por dispositivo. El servidor de feria es un complemento operativo, no el sistema oficial de guardado remoto del juego.
 
@@ -125,7 +125,7 @@ Con el servidor corriendo:
 python .\smoke_test.py
 ```
 
-La prueba valida que el servidor responde y que los endpoints principales no estan caidos. No convierte la sincronizacion completa de perfiles entre PCs en alcance final.
+La prueba valida que el servidor responde y que los endpoints principales no estan caidos. No convierte la sincronizacion completa de perfiles entre PCs en parte del alcance actual.
 
 ## Criterio de cierre
 

@@ -14,9 +14,9 @@ La idea principal no es esquivar todo el peligro, sino aprender a acercarse al p
 - Rejugabilidad: progresión de run, bosses, tienda, gadgets, mejoras y portales modifican cada intento.
 - Persistencia local: el progreso del jugador se guarda por dispositivo sin depender de servicios externos.
 
-## Estado final de entrega
+## Estado del producto base
 
-Como equipo desarrollamos e integramos:
+Squid Ink-Pulse está cerrado como juego base: es jugable, tiene progresión, sistemas implementados y contenido concreto. Como equipo desarrollamos e integramos:
 
 - Movimiento del jugador limitado por `PlayerBoundaries`.
 - Jugador canónico como `Assets/Content/Prefabs/Player/BabySquid.prefab`.
@@ -40,16 +40,20 @@ Como equipo desarrollamos e integramos:
 
 También implementamos un add-on opcional para presentaciones presenciales. Este add-on permite levantar `Tools/FairServer/` en un PC host, guardar una base SQLite y mostrar un leaderboard web en la red local.
 
-Su alcance final es limitado y debe comunicarse asi:
+Su alcance actual es limitado y debe comunicarse asi:
 
 - El host almacena el leaderboard de feria.
 - Los resultados guardados formalmente son los jugados desde el PC host.
 - Otros dispositivos solo visualizan el leaderboard web del host desde navegador.
 - Cada build genera `README_SERVIDOR_FERIA.txt` y scripts de reinicio local.
 - Si no hay host activo, pueden aparecer warnings rojos que se ignoran durante pruebas locales del juego.
-- No cerramos la sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral entre PCs.
+- La sincronizacion completa de progreso, compras, skins, mejoras o recuperacion integral entre PCs no forma parte del producto base.
 
 Por esta razon, la feria se documenta como add-on de leaderboard host y no como sistema remoto completo de guardado.
+
+## Actualizaciones posteriores
+
+El producto base puede recibir actualizaciones sin cambiar su estado general de juego cerrado. Las líneas naturales de evolución son más skins, nuevos escenarios o zonas con jugabilidades diferenciadas, enemigos comunes adicionales, bosses, balance, pulido audiovisual, mejoras técnicas y ampliaciones puntuales del add-on de feria.
 
 ## Estructura general
 
@@ -57,7 +61,7 @@ Por esta razon, la feria se documenta como add-on de leaderboard host y no como 
 - `Assets/Content/`: arte, audio, prefabs y animaciones runtime.
 - `Assets/Scenes/`: escenas del juego.
 - `Assets/StreamingAssets/db/`: semillas JSON de persistencia local.
-- `Docs/`: documentación técnica, diseño, cierre de entrega y guía de feria.
+- `Docs/`: documentación técnica, diseño, estado del producto base y guía de feria.
 - `Tools/FairServer/`: servidor opcional para leaderboard de feria.
 
 ## Orden recomendado de lectura
