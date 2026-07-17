@@ -33,8 +33,10 @@ public class OptionsMenuManager : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private float fadeDuration = 0.3f;
 
+    // Autoridad: coordina apertura/cierre, eventos de controles y aplicacion a Unity.
+    // La seleccion de resoluciones queda en OptionsResolutionPolicy y la vista solo refleja valores.
     private Action onClosedCallback;
-    private Resolution[] resolutions;
+    private DisplayResolutionOption[] resolutionOptions = new DisplayResolutionOption[0];
     private Coroutine animationRoutine;
     private bool isOpen;
 
@@ -49,20 +51,10 @@ public class OptionsMenuManager : MonoBehaviour
         ResolveUiReferences();
         NormalizeRenderableScale();
 
-        if (backButton != null)
-        {
-            backButton.onClick.AddListener(Close);
-        }
-
-        // Setup the dropdown before we load saved settings
         SetupResolutionDropdown();
         LoadSavedSettings();
+        WireSettingsEvents();
 
-        // Add listeners so the game updates immediately when the player tweaks a setting
-        if (volumeSlider != null) volumeSlider.onValueChanged.AddListener(SetVolume);
-        if (resolutionDropdown != null) resolutionDropdown.onValueChanged.AddListener(SetResolution);
-        if (fullscreenToggle != null) fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
-        
         if (!isOpen)
         {
             SetVisible(false);
@@ -106,7 +98,7 @@ public class OptionsMenuManager : MonoBehaviour
             return;
         }
 
-        SaveResolutionPreference(resolutions[resolutionIndex], resolutionIndex);
+        SaveResolutionPreference(resolutionOptions[resolutionIndex], resolutionIndex);
         ApplyDisplaySettings();
     }
 
@@ -114,14 +106,13 @@ public class OptionsMenuManager : MonoBehaviour
     {
         if (resolutionDropdown == null) return;
 
-        resolutions = BuildUniqueResolutionList();
+        resolutionOptions = BuildUniqueResolutionList();
         resolutionDropdown.ClearOptions();
 
         List<string> options = new List<string>();
-        for (int i = 0; i < resolutions.Length; i++)
+        for (int i = 0; i < resolutionOptions.Length; i++)
         {
-            string option = resolutions[i].width + " x " + resolutions[i].height;
-            options.Add(option);
+            options.Add(resolutionOptions[i].ToString());
         }
 
         resolutionDropdown.AddOptions(options);
@@ -157,7 +148,7 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void ApplyDisplaySettings()
     {
-        if (resolutions == null || resolutions.Length == 0)
+        if (resolutionOptions == null || resolutionOptions.Length == 0)
         {
             return;
         }
@@ -166,109 +157,92 @@ public class OptionsMenuManager : MonoBehaviour
             ? resolutionDropdown.value
             : GetPreferredResolutionIndex();
 
-        resolutionIndex = Mathf.Clamp(resolutionIndex, 0, resolutions.Length - 1);
-        Resolution resolution = resolutions[resolutionIndex];
+        resolutionIndex = Mathf.Clamp(resolutionIndex, 0, resolutionOptions.Length - 1);
+        DisplayResolutionOption resolution = resolutionOptions[resolutionIndex];
         bool isFullscreen = fullscreenToggle != null
             ? fullscreenToggle.isOn
             : PlayerPrefs.GetInt(FullscreenPrefsKey, 1) == 1;
         FullScreenMode targetMode = isFullscreen ? fullscreenMode : FullScreenMode.Windowed;
 
-        Screen.SetResolution(resolution.width, resolution.height, targetMode);
+        Screen.SetResolution(resolution.Width, resolution.Height, targetMode);
         SaveResolutionPreference(resolution, resolutionIndex);
         PlayerPrefs.SetInt(FullscreenPrefsKey, isFullscreen ? 1 : 0);
         PlayerPrefs.Save();
     }
 
-    private Resolution[] BuildUniqueResolutionList()
+    private DisplayResolutionOption[] BuildUniqueResolutionList()
     {
-        Resolution[] source = Screen.resolutions;
+        return OptionsResolutionPolicy.BuildUniqueResolutionList(
+            ConvertResolutionOptions(Screen.resolutions),
+            new DisplayResolutionOption(Screen.width, Screen.height));
+    }
+
+    private static DisplayResolutionOption[] ConvertResolutionOptions(Resolution[] source)
+    {
         if (source == null || source.Length == 0)
         {
-            return new[]
-            {
-                new Resolution
-                {
-                    width = Mathf.Max(1, Screen.width),
-                    height = Mathf.Max(1, Screen.height)
-                }
-            };
+            return new DisplayResolutionOption[0];
         }
 
-        List<Resolution> unique = new List<Resolution>();
+        DisplayResolutionOption[] options = new DisplayResolutionOption[source.Length];
         for (int i = 0; i < source.Length; i++)
         {
-            Resolution candidate = source[i];
-            int existingIndex = unique.FindIndex(resolution =>
-                resolution.width == candidate.width
-                && resolution.height == candidate.height);
-
-            if (existingIndex >= 0)
-            {
-                unique[existingIndex] = candidate;
-                continue;
-            }
-
-            unique.Add(candidate);
+            options[i] = new DisplayResolutionOption(source[i].width, source[i].height);
         }
 
-        unique.Sort((left, right) =>
-        {
-            int widthComparison = left.width.CompareTo(right.width);
-            return widthComparison != 0
-                ? widthComparison
-                : left.height.CompareTo(right.height);
-        });
-
-        return unique.ToArray();
+        return options;
     }
 
     private int GetPreferredResolutionIndex()
     {
-        if (resolutions == null || resolutions.Length == 0)
-        {
-            return 0;
-        }
-
-        if (!PlayerPrefs.HasKey(ResolutionWidthPrefsKey) && PlayerPrefs.HasKey(ResolutionIndexPrefsKey))
-        {
-            return Mathf.Clamp(PlayerPrefs.GetInt(ResolutionIndexPrefsKey), 0, resolutions.Length - 1);
-        }
-
-        int targetWidth = PlayerPrefs.GetInt(ResolutionWidthPrefsKey, Mathf.Max(1, Screen.width));
-        int targetHeight = PlayerPrefs.GetInt(ResolutionHeightPrefsKey, Mathf.Max(1, Screen.height));
-        return FindClosestResolutionIndex(targetWidth, targetHeight);
+        bool hasSavedSize = PlayerPrefs.HasKey(ResolutionWidthPrefsKey);
+        return OptionsResolutionPolicy.ResolvePreferredIndex(
+            resolutionOptions,
+            hasSavedSize,
+            PlayerPrefs.GetInt(ResolutionWidthPrefsKey, Mathf.Max(1, Screen.width)),
+            PlayerPrefs.GetInt(ResolutionHeightPrefsKey, Mathf.Max(1, Screen.height)),
+            PlayerPrefs.HasKey(ResolutionIndexPrefsKey),
+            PlayerPrefs.GetInt(ResolutionIndexPrefsKey, 0),
+            new DisplayResolutionOption(Screen.width, Screen.height));
     }
 
-    private int FindClosestResolutionIndex(int targetWidth, int targetHeight)
-    {
-        int closestIndex = 0;
-        int closestDistance = int.MaxValue;
-        for (int i = 0; i < resolutions.Length; i++)
-        {
-            int distance = Mathf.Abs(resolutions[i].width - targetWidth)
-                + Mathf.Abs(resolutions[i].height - targetHeight);
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestIndex = i;
-            }
-        }
-
-        return closestIndex;
-    }
-
-    private void SaveResolutionPreference(Resolution resolution, int resolutionIndex)
+    private void SaveResolutionPreference(DisplayResolutionOption resolution, int resolutionIndex)
     {
         PlayerPrefs.SetInt(ResolutionIndexPrefsKey, resolutionIndex);
-        PlayerPrefs.SetInt(ResolutionWidthPrefsKey, resolution.width);
-        PlayerPrefs.SetInt(ResolutionHeightPrefsKey, resolution.height);
+        PlayerPrefs.SetInt(ResolutionWidthPrefsKey, resolution.Width);
+        PlayerPrefs.SetInt(ResolutionHeightPrefsKey, resolution.Height);
     }
 
     private bool IsValidResolutionIndex(int resolutionIndex)
     {
-        return resolutions != null
-            && resolutionIndex >= 0
-            && resolutionIndex < resolutions.Length;
+        return OptionsResolutionPolicy.IsValidResolutionIndex(resolutionOptions, resolutionIndex);
+    }
+
+    private void WireSettingsEvents()
+    {
+        if (backButton != null)
+        {
+            backButton.onClick.RemoveListener(Close);
+            backButton.onClick.AddListener(Close);
+        }
+
+        if (volumeSlider != null)
+        {
+            volumeSlider.onValueChanged.RemoveListener(SetVolume);
+            volumeSlider.onValueChanged.AddListener(SetVolume);
+        }
+
+        if (resolutionDropdown != null)
+        {
+            resolutionDropdown.onValueChanged.RemoveListener(SetResolution);
+            resolutionDropdown.onValueChanged.AddListener(SetResolution);
+        }
+
+        if (fullscreenToggle != null)
+        {
+            fullscreenToggle.onValueChanged.RemoveListener(SetFullscreen);
+            fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
+        }
     }
 
     // --- ANIMATION & VISIBILITY ---
@@ -380,8 +354,8 @@ public class OptionsMenuManager : MonoBehaviour
             ? rootTransform.GetComponentInParent<Canvas>(true)
             : GetComponentInParent<Canvas>(true);
 
-        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
-        RestoreScaleIfCollapsed(rootTransform);
+        MenuHierarchyResolver.RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
+        MenuHierarchyResolver.RestoreScaleIfCollapsed(rootTransform);
         NormalizeCanvasLayer(ownerCanvas);
         NormalizeBackground(ownerCanvas);
     }
@@ -405,7 +379,7 @@ public class OptionsMenuManager : MonoBehaviour
             return;
         }
 
-        RestoreScaleIfCollapsed(background.transform);
+        MenuHierarchyResolver.RestoreScaleIfCollapsed(background.transform);
 
         if (menuRoot != null && background.transform.parent == menuRoot.transform)
         {
@@ -427,7 +401,7 @@ public class OptionsMenuManager : MonoBehaviour
         }
 
         Transform menuRootTransform = menuRoot != null ? menuRoot.transform : null;
-        Transform menuBackground = FindDirectChildTransform(menuRootTransform, BackgroundNames);
+        Transform menuBackground = MenuHierarchyResolver.FindDirectChildTransform(menuRootTransform, BackgroundNames);
         if (menuBackground != null)
         {
             background = menuBackground.gameObject;
@@ -446,45 +420,7 @@ public class OptionsMenuManager : MonoBehaviour
             return;
         }
 
-        Transform existingLayer = FindDirectChildTransform(canvasTransform, BackgroundNames);
+        Transform existingLayer = MenuHierarchyResolver.FindDirectChildTransform(canvasTransform, BackgroundNames);
         background = existingLayer != null ? existingLayer.gameObject : null;
-    }
-
-    private static void RestoreScaleIfCollapsed(Transform target)
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        Vector3 localScale = target.localScale;
-        if (Mathf.Approximately(localScale.x, 0f)
-            || Mathf.Approximately(localScale.y, 0f)
-            || Mathf.Approximately(localScale.z, 0f))
-        {
-            target.localScale = Vector3.one;
-        }
-    }
-
-    private static Transform FindDirectChildTransform(Transform root, params string[] names)
-    {
-        if (root == null || names == null || names.Length == 0)
-        {
-            return null;
-        }
-
-        for (int childIndex = 0; childIndex < root.childCount; childIndex++)
-        {
-            Transform child = root.GetChild(childIndex);
-            for (int nameIndex = 0; nameIndex < names.Length; nameIndex++)
-            {
-                if (child.name == names[nameIndex])
-                {
-                    return child;
-                }
-            }
-        }
-
-        return null;
     }
 }

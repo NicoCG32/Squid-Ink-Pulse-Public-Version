@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Globalization;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -35,6 +33,8 @@ public class GameOverMenuManager : MonoBehaviour
     [SerializeField] private float zigzagDuration = 0.35f;
     [SerializeField] private float zigzagDelay = 0.08f;
 
+    // Autoridad: coordina sesion, lore de derrota y navegacion; la politica de
+    // presentacion, el formateo de score y la resolucion UI se delegan.
     private RectTransform[] animatedElements = new RectTransform[0];
     private Vector2[] originalPositions = new Vector2[0];
     private Coroutine gameOverPresentationRoutine;
@@ -98,20 +98,26 @@ public class GameOverMenuManager : MonoBehaviour
 
     private void ApplyState(GameSessionState state)
     {
-        if (state == GameSessionState.GameOver)
-        {
-            ShowAfterDefeatComic();
-        }
-        else
-        {
-            gameOverMenuShownForCurrentState = false;
-            if (gameOverPresentationRoutine != null)
-            {
-                StopCoroutine(gameOverPresentationRoutine);
-                gameOverPresentationRoutine = null;
-            }
+        GameOverPresentationAction action = GameOverPresentationPolicy.ResolveSessionState(
+            state,
+            gameOverMenuShownForCurrentState,
+            gameOverPresentationRoutine != null);
 
-            HideImmediate();
+        switch (action)
+        {
+            case GameOverPresentationAction.PlayDefeatComicThenShow:
+                ShowAfterDefeatComic();
+                break;
+            case GameOverPresentationAction.HideImmediate:
+                gameOverMenuShownForCurrentState = false;
+                if (gameOverPresentationRoutine != null)
+                {
+                    StopCoroutine(gameOverPresentationRoutine);
+                    gameOverPresentationRoutine = null;
+                }
+
+                HideImmediate();
+                break;
         }
     }
 
@@ -211,12 +217,12 @@ public class GameOverMenuManager : MonoBehaviour
 
         retryButton ??= UiButtonContract.FindButton(uiRoot, "ReintentarBoton", "BotonReintentar");
         menuButton ??= UiButtonContract.FindButton(uiRoot, "MenuBoton", "BotonMenu");
-        obtainedScoreText ??= FindChildTextByContract(uiRoot, "PuntajeObtenido");
-        bestScoreText ??= FindChildTextByContract(uiRoot, "MaximoPuntaje", "MejorPuntaje", "BestScore");
+        obtainedScoreText ??= MenuHierarchyResolver.FindChildTextByContract(uiRoot, "PuntajeObtenido");
+        bestScoreText ??= MenuHierarchyResolver.FindChildTextByContract(uiRoot, "MaximoPuntaje", "MejorPuntaje", "BestScore");
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
-            animatedDecorations = FindChildRectTransforms(uiRoot, "GameOverDecoration");
+            animatedDecorations = MenuHierarchyResolver.FindChildRectTransforms(uiRoot, "GameOverDecoration");
         }
 
         if (animatedButtons == null || animatedButtons.Length == 0)
@@ -224,7 +230,7 @@ public class GameOverMenuManager : MonoBehaviour
             animatedButtons = UiButtonContract.FindButtonRootRects(uiRoot, "ReintentarBoton", "MenuBoton");
             if (animatedButtons.Length == 0)
             {
-                animatedButtons = FindChildRectTransforms(uiRoot, "BotonReintentar", "BotonMenu");
+                animatedButtons = MenuHierarchyResolver.FindChildRectTransforms(uiRoot, "BotonReintentar", "BotonMenu");
             }
         }
     }
@@ -255,7 +261,7 @@ public class GameOverMenuManager : MonoBehaviour
     {
         if (targetText != null)
         {
-            targetText.text = $"{prefix}{score}";
+            targetText.text = GameOverScoreText.Format(prefix, score);
         }
     }
 
@@ -311,104 +317,4 @@ public class GameOverMenuManager : MonoBehaviour
         button.onClick.AddListener(action);
     }
 
-    private T FindChildComponent<T>(Transform root, string childName) where T : Component
-    {
-        if (root == null)
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int i = 0; i < children.Length; i++)
-        {
-            if (children[i].name == childName && children[i].TryGetComponent(out T component))
-            {
-                return component;
-            }
-        }
-
-        return null;
-    }
-
-    private RectTransform[] FindChildRectTransforms(Transform root, params string[] childNames)
-    {
-        if (root == null || childNames == null || childNames.Length == 0)
-        {
-            return new RectTransform[0];
-        }
-
-        RectTransform[] results = new RectTransform[childNames.Length];
-        int count = 0;
-        for (int i = 0; i < childNames.Length; i++)
-        {
-            RectTransform rectTransform = FindChildComponent<RectTransform>(root, childNames[i]);
-            if (rectTransform != null)
-            {
-                results[count] = rectTransform;
-                count++;
-            }
-        }
-
-        if (count == results.Length)
-        {
-            return results;
-        }
-
-        RectTransform[] compact = new RectTransform[count];
-        for (int i = 0; i < count; i++)
-        {
-            compact[i] = results[i];
-        }
-
-        return compact;
-    }
-
-    private TMP_Text FindChildTextByContract(Transform root, params string[] contractNames)
-    {
-        if (root == null || contractNames == null || contractNames.Length == 0)
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int i = 0; i < children.Length; i++)
-        {
-            if (!children[i].TryGetComponent(out TMP_Text text))
-            {
-                continue;
-            }
-
-            string normalizedChildName = NormalizeContractName(children[i].name);
-            for (int contractIndex = 0; contractIndex < contractNames.Length; contractIndex++)
-            {
-                if (normalizedChildName == NormalizeContractName(contractNames[contractIndex]))
-                {
-                    return text;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static string NormalizeContractName(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return string.Empty;
-        }
-
-        string decomposed = value.Normalize(NormalizationForm.FormD);
-        StringBuilder builder = new StringBuilder(decomposed.Length);
-        for (int i = 0; i < decomposed.Length; i++)
-        {
-            char character = decomposed[i];
-            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark && !char.IsWhiteSpace(character))
-            {
-                builder.Append(character);
-            }
-        }
-
-        return builder.ToString().Normalize(NormalizationForm.FormC).ToUpperInvariant();
-    }
 }

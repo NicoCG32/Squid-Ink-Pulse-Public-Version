@@ -30,6 +30,8 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private float zigzagDuration = 0.35f;
     [SerializeField] private float zigzagDelay = 0.08f;
 
+    // Autoridad: coordina entrada, sesion y navegacion; la politica de transicion y
+    // la resolucion de jerarquia UI se delegan a clases sin estado de MonoBehaviour.
     private bool isPaused;
     private bool isAnimating;
     private RectTransform[] animatedElements = new RectTransform[0];
@@ -127,19 +129,14 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        // Hide the pause menu temporarily
-        SetVisible(false); 
-        
-        // Open options, and pass a callback to run when Options closes
-        optionsMenu.Open(OnOptionsClosed); 
+        SetVisible(false);
+        optionsMenu.Open(OnOptionsClosed);
     }
 
-    // This runs when the user clicks "Back" in the Options menu
     private void OnOptionsClosed()
     {
-        // Bring the pause menu back
         SetVisible(true);
-        StartCoroutine(AnimateIn()); 
+        StartCoroutine(AnimateIn());
     }
 
     public void IrAlMenu()
@@ -160,33 +157,30 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        if (nextState == GameSessionState.GameOver)
-        {
-            StopAllCoroutines();
-            isAnimating = false;
-            isPaused = false;
-            SetVisible(false);
-            return;
-        }
+        PauseMenuPresentationAction action = PauseMenuPresentationPolicy.ResolveSessionTransition(
+            previousState,
+            nextState,
+            isPaused,
+            isAnimating);
 
-        if (isAnimating)
+        switch (action)
         {
-            return;
-        }
-
-        if (nextState == GameSessionState.Paused && !isPaused)
-        {
-            isPaused = true;
-            NormalizeRenderableScale();
-            SetMenuRootActive(true);
-            StartCoroutine(AnimateIn());
-            return;
-        }
-
-        if (previousState == GameSessionState.Paused && nextState == GameSessionState.Playing && isPaused)
-        {
-            isPaused = false;
-            StartCoroutine(AnimateOut());
+            case PauseMenuPresentationAction.HideImmediate:
+                StopAllCoroutines();
+                isAnimating = false;
+                isPaused = false;
+                SetVisible(false);
+                break;
+            case PauseMenuPresentationAction.ShowAnimated:
+                isPaused = true;
+                NormalizeRenderableScale();
+                SetMenuRootActive(true);
+                StartCoroutine(AnimateIn());
+                break;
+            case PauseMenuPresentationAction.HideAnimated:
+                isPaused = false;
+                StartCoroutine(AnimateOut());
+                break;
         }
     }
 
@@ -278,7 +272,7 @@ public class PauseMenuManager : MonoBehaviour
 
         if (animatedDecorations == null || animatedDecorations.Length == 0)
         {
-            animatedDecorations = FindChildRectTransforms(uiRoot, "PauseDecoration");
+            animatedDecorations = MenuHierarchyResolver.FindChildRectTransforms(uiRoot, "PauseDecoration");
         }
 
         if (animatedButtons == null || animatedButtons.Length == 0)
@@ -291,7 +285,7 @@ public class PauseMenuManager : MonoBehaviour
 
             if (animatedButtons.Length == 0)
             {
-                animatedButtons = FindChildRectTransforms(
+                animatedButtons = MenuHierarchyResolver.FindChildRectTransforms(
                     uiRoot,
                     "BotonReanudar",
                     "BotonOpciones",
@@ -386,58 +380,6 @@ public class PauseMenuManager : MonoBehaviour
         button.onClick.AddListener(action);
     }
 
-    private T FindChildComponent<T>(Transform root, string childName) where T : Component
-    {
-        if (root == null)
-        {
-            return null;
-        }
-
-        Transform[] children = root.GetComponentsInChildren<Transform>(includeInactive: true);
-        for (int i = 0; i < children.Length; i++)
-        {
-            if (children[i].name == childName && children[i].TryGetComponent(out T component))
-            {
-                return component;
-            }
-        }
-
-        return null;
-    }
-
-    private RectTransform[] FindChildRectTransforms(Transform root, params string[] childNames)
-    {
-        if (root == null || childNames == null || childNames.Length == 0)
-        {
-            return new RectTransform[0];
-        }
-
-        RectTransform[] results = new RectTransform[childNames.Length];
-        int count = 0;
-        for (int i = 0; i < childNames.Length; i++)
-        {
-            RectTransform rectTransform = FindChildComponent<RectTransform>(root, childNames[i]);
-            if (rectTransform != null)
-            {
-                results[count] = rectTransform;
-                count++;
-            }
-        }
-
-        if (count == results.Length)
-        {
-            return results;
-        }
-
-        RectTransform[] compact = new RectTransform[count];
-        for (int i = 0; i < count; i++)
-        {
-            compact[i] = results[i];
-        }
-
-        return compact;
-    }
-
     private T FindInScene<T>() where T : Component
     {
         UnityEngine.SceneManagement.Scene scene = gameObject.scene;
@@ -466,23 +408,7 @@ public class PauseMenuManager : MonoBehaviour
             ? rootTransform.GetComponentInParent<Canvas>(true)
             : GetComponentInParent<Canvas>(true);
 
-        RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
-        RestoreScaleIfCollapsed(rootTransform);
-    }
-
-    private static void RestoreScaleIfCollapsed(Transform target)
-    {
-        if (target == null)
-        {
-            return;
-        }
-
-        Vector3 localScale = target.localScale;
-        if (Mathf.Approximately(localScale.x, 0f)
-            || Mathf.Approximately(localScale.y, 0f)
-            || Mathf.Approximately(localScale.z, 0f))
-        {
-            target.localScale = Vector3.one;
-        }
+        MenuHierarchyResolver.RestoreScaleIfCollapsed(ownerCanvas != null ? ownerCanvas.transform : null);
+        MenuHierarchyResolver.RestoreScaleIfCollapsed(rootTransform);
     }
 }

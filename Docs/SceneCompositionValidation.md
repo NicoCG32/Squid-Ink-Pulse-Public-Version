@@ -57,6 +57,7 @@ Estas busquedas quedan documentadas como deuda controlada. No deben multiplicars
 | `PufferfishEnemy` | `FindGameObjectWithTag(Player)` | entidad spawneada | Igual que `FishingRodEnemy`; debe migrar gradualmente a contexto inyectado. |
 | `InkPulseController` | `FindFirstObjectByType<ChargeBar>` | fallback de compatibilidad | El HUD debe venir desde `GameUIRoot`; se mantiene como respaldo mientras se refactoriza UI. |
 | `InkPulseMusicCrossfader` | `FindFirstObjectByType<InkPulseController>` | fallback de compatibilidad | AudioRoot debe recibir referencia explicita en una tarea posterior. |
+| `PauseMenuManager` | busqueda local de `OptionsMenuManager` en la escena cargada | fallback de compatibilidad UI | Los prefabs `GameRoot_*` aun no serializan `optionsMenu`; la busqueda queda acotada a roots de la escena activa y debe eliminarse cuando `GameUIRoot` exponga o serialice el menu de opciones. |
 | `ScenePortal` | `FindFirstObjectByType<SceneFlowController>` | fallback de entidad spawneada | El portal nace desde `LevelSpawner`; idealmente recibira contexto de escena al instanciarse. |
 | `FlappyBossController` | `FindFirstObjectByType<LevelSpawner>` | fallback de boss | Boss abisal necesita suspender/reanudar spawner; debe recibir contexto desde `BossEventDirector`. |
 | `FairModeMenuManager` | `FindFirstObjectByType<EventSystem>` | bootstrap opcional de feria | Modo feria es opcional y crea UI auxiliar solo si falta infraestructura. |
