@@ -13,6 +13,7 @@ Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse c
 - [WorldScale.md](WorldScale.md) - escala canonica entre pixeles, unidades de mundo y boundaries.
 - [AnimationStandards.md](AnimationStandards.md) - reglas y pautas de animaciones runtime.
 - [Testing.md](Testing.md) - base mínima de pruebas EditMode y ejecución batch.
+- [MobilePort.md](MobilePort.md) - contrato, alcance y matriz de validación del port móvil Android.
 
 ## Sistemas de juego
 

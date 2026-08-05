@@ -40,10 +40,12 @@ Alcance inicial esperado:
 - Controles táctiles para movimiento, Ink-Pulse, pausa, tiendas y menús.
 - UI legible y operable en pantallas pequeñas y distintas relaciones de aspecto.
 - Revisión de rendimiento, memoria, tiempos de carga y consumo de batería.
-- Build Android como primera plataforma móvil candidata; iOS queda sujeto a disponibilidad de entorno de compilación.
+- Build Android como primera plataforma móvil; iOS queda sujeto a una iniciativa posterior y a disponibilidad de entorno de compilación.
 - Mantener la experiencia principal: progresión, zonas, enemigos, bosses, tiendas, skins, comics, audio y persistencia local.
 
 Este port debe tratarse como actualización mayor sobre el producto base cerrado, no como requisito pendiente para que el juego exista.
+
+El alcance, las decisiones de plataforma y la matriz de validación se definen en [Docs/MobilePort.md](Docs/MobilePort.md).
 
 ## Add-on de feria
 

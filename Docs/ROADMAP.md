@@ -63,7 +63,12 @@ El producto base queda cerrado con estos componentes integrados:
 
 ## Actualizaciones posteriores posibles
 
-Las siguientes líneas no condicionan que el juego base exista o sea jugable. Quedan registradas como posibles actualizaciones posteriores:
+Las siguientes líneas no condicionan que el juego base exista o sea jugable. Quedan registradas como posibles actualizaciones posteriores. La prioridad vigente es el port móvil definido en [MobilePort.md](MobilePort.md):
+
+0. Port móvil Android.
+   - Adaptar entrada, UI, persistencia, ciclo de vida y build sin duplicar la base del juego.
+   - Mantener Windows como regresión durante la implementación.
+   - Validar en hardware real antes de declarar una build candidata.
 
 1. Contenido nuevo.
    - Agregar más skins.
