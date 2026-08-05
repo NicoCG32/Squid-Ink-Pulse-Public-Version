@@ -93,16 +93,16 @@ public class PauseMenuManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (session == null || menuRoot == null || isAnimating)
-        {
-            return;
-        }
+        PauseMenuCommandAction action = PauseMenuCommandPolicy.ResolveToggle(
+            session != null ? (GameSessionState?)session.CurrentState : null,
+            menuRoot != null,
+            isAnimating);
 
-        if (session.IsPlaying)
+        if (action == PauseMenuCommandAction.RequestPause)
         {
             session.RequestPause();
         }
-        else if (session.IsPaused)
+        else if (action == PauseMenuCommandAction.RequestResume)
         {
             Reanudar();
         }

@@ -76,7 +76,7 @@ public static class PlayerProfileRepository
             "unlockables catalog seed",
             out seedCatalog);
 
-        UnlockablesCatalogSaveData selectedCatalog = SelectCatalog(runtimeCatalog, seedCatalog);
+        UnlockablesCatalogSaveData selectedCatalog = UnlockablesCatalogSelectionPolicy.Select(runtimeCatalog, seedCatalog);
         if (selectedCatalog == null)
         {
             selectedCatalog = UnlockablesCatalogSaveData.CreateDefault();
@@ -158,18 +158,6 @@ public static class PlayerProfileRepository
 
         data.version = LeaderboardVersion;
         JsonSaveFile.Save(PersistentDbPaths.LocalLeaderboardPath, data, NormalizeLeaderboard, "local leaderboard");
-    }
-
-    private static UnlockablesCatalogSaveData SelectCatalog(
-        UnlockablesCatalogSaveData runtimeCatalog,
-        UnlockablesCatalogSaveData seedCatalog)
-    {
-        if (seedCatalog != null && (runtimeCatalog == null || seedCatalog.version > runtimeCatalog.version))
-        {
-            return seedCatalog;
-        }
-
-        return runtimeCatalog ?? seedCatalog;
     }
 
     private static bool ShouldUseTransientEditorPlayModeProfileSaves()

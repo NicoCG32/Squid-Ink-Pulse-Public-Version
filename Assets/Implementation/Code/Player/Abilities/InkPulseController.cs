@@ -157,11 +157,12 @@ public class InkPulseController : MonoBehaviour
 
     private bool CanActivatePulse()
     {
-        return IsGameplayActive()
-            && !activationSuppressed
-            && !InGameShopManager.BlocksInkPulseActivation
-            && !IsPulseActive
-            && IsCharged;
+        return InkPulseActivationPolicy.CanActivate(
+            IsGameplayActive(),
+            activationSuppressed,
+            InGameShopManager.BlocksInkPulseActivation,
+            IsPulseActive,
+            IsCharged);
     }
 
     private void UpdatePulseTimer()
