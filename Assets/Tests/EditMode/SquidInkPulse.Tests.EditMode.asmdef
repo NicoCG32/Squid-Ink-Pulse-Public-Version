@@ -3,6 +3,7 @@
   "rootNamespace": "SquidInkPulse.Tests.EditMode",
   "references": [
     "SquidInkPulse.Runtime",
+    "SquidInkPulse.Mobile.Editor",
     "Unity.TextMeshPro"
   ],
   "includePlatforms": [

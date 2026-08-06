@@ -130,6 +130,40 @@ El add-on de feria no condiciona el port inicial. En Android debe quedar deshabi
 
 La orientación, identificador, versión mínima, arquitectura, backend de scripting y nivel de calidad deben fijarse en configuración versionada y comprobarse mediante una validación automática de Editor. No deben quedar como decisiones manuales del equipo que genera la build.
 
+## Auditor de preparación Android
+
+`AndroidReadinessAuditor` inspecciona la configuración sin modificarla. Comprueba:
+
+- versión exacta de Unity y disponibilidad de Android Build Support;
+- escenas habilitadas y su orden;
+- Input System activo;
+- Company Name e identificador Android;
+- orientación landscape y rotaciones permitidas;
+- ARM64 e IL2CPP;
+- presencia de las cuatro semillas de persistencia.
+
+Desde Unity se ejecuta mediante:
+
+```text
+Tools > Squid Ink Pulse > Audit Android Readiness
+```
+
+Desde la raíz del repositorio en PowerShell, con el proyecto cerrado en otras instancias de Unity:
+
+```powershell
+New-Item -ItemType Directory -Force "$PWD\TestResults" | Out-Null
+
+& 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
+  -batchmode `
+  -nographics `
+  -quit `
+  -projectPath "$PWD" `
+  -executeMethod AndroidReadinessAuditor.RunAndroidReadinessAudit `
+  -logFile "$PWD\TestResults\android-readiness.log"
+```
+
+La salida distingue `INFO`, `WARNING` y `ERROR`. En menú, los errores se informan sin corregir valores. En batch, cualquier `ERROR` produce código de salida distinto de cero para bloquear una build o integración incompatible. `TestResults/` permanece ignorado por Git.
+
 ## Rendimiento y tamaño
 
 No se prescribe una optimización de arte por anticipado. Primero debe medirse en hardware real:
