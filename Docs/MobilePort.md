@@ -8,7 +8,7 @@ El primer objetivo de plataforma es Android. iOS queda como una extensión poste
 
 ## Estado
 
-La iniciativa se encuentra en su fase de contrato y baseline. Todavía no existe una build móvil aceptada del producto. La base Windows continúa siendo la referencia funcional durante toda la implementación.
+La iniciativa completó su fase de contrato y baseline. Todavía no existe una build móvil aceptada del producto. La referencia técnica Windows y su smoke interactivo aprobado están registrados en [MobileBaseline.md](MobileBaseline.md).
 
 ## Alcance del primer port
 
@@ -199,7 +199,7 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 | Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente | Obligatorio para bootstrap |
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
 | Teléfono Android de referencia media | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio si está disponible |
-| PC de regresión Windows | Equipo de desarrollo | Windows | Por registrar | 1920x1080 como referencia inicial | Disponible; especificaciones pendientes | Obligatorio |
+| PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.
 
