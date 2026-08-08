@@ -17,10 +17,5 @@ public static class PersistentDbPaths
     public static string PlayerRecordsPath => Path.Combine(RuntimeDbDirectory, PlayerRecordsFileName);
     public static string LocalLeaderboardPath => Path.Combine(RuntimeDbDirectory, LocalLeaderboardFileName);
 
-    public static string StreamingUnlockablesCatalogPath => Path.Combine(StreamingDbDirectory, UnlockablesCatalogFileName);
-    public static string StreamingPlayerProfilePath => Path.Combine(StreamingDbDirectory, PlayerProfileFileName);
-    public static string StreamingPlayerRecordsPath => Path.Combine(StreamingDbDirectory, PlayerRecordsFileName);
-    public static string StreamingLocalLeaderboardPath => Path.Combine(StreamingDbDirectory, LocalLeaderboardFileName);
-
     public static string LegacyPlayerProfilePath => Path.Combine(Application.persistentDataPath, PlayerProfileFileName);
 }

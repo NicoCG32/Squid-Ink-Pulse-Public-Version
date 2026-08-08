@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace SquidInkPulse.Tests.EditMode
 {
@@ -168,11 +169,10 @@ namespace SquidInkPulse.Tests.EditMode
         public void LoadOrCreate_UsesNormalizedDefault_WhenRuntimeAndSeedAreMissing()
         {
             string runtimePath = Path.Combine(temporaryDirectory, "runtime-profile.json");
-            string seedPath = Path.Combine(temporaryDirectory, "missing-seed.json");
 
             PlayerProfileSaveData loaded = JsonSaveFile.LoadOrCreate(
                 runtimePath,
-                seedPath,
+                null,
                 PlayerProfileSaveData.CreateDefault,
                 data => data.Normalize(),
                 "mobile baseline profile");
@@ -187,21 +187,88 @@ namespace SquidInkPulse.Tests.EditMode
         public void LoadOrCreate_PrefersExistingRuntimeData_OverSeed()
         {
             string runtimePath = Path.Combine(temporaryDirectory, "runtime-records.json");
-            string seedPath = Path.Combine(temporaryDirectory, "seed-records.json");
             PlayerRecordsSaveData runtimeRecords = new() { totalShrimps = 25 };
             PlayerRecordsSaveData seedRecords = new() { totalShrimps = 5 };
+            bool seedRequested = false;
 
             JsonSaveFile.Save(runtimePath, runtimeRecords, data => data.Normalize(), "runtime records");
-            JsonSaveFile.Save(seedPath, seedRecords, data => data.Normalize(), "seed records");
 
             PlayerRecordsSaveData loaded = JsonSaveFile.LoadOrCreate(
                 runtimePath,
-                seedPath,
+                () =>
+                {
+                    seedRequested = true;
+                    return JsonUtility.ToJson(seedRecords);
+                },
                 PlayerRecordsSaveData.CreateDefault,
                 data => data.Normalize(),
                 "mobile baseline records");
 
             Assert.That(loaded.totalShrimps, Is.EqualTo(25));
+            Assert.That(seedRequested, Is.False);
+        }
+
+        [Test]
+        public void LoadOrCreate_UsesSeedText_WithoutASeedFilesystemPath()
+        {
+            string runtimePath = Path.Combine(temporaryDirectory, "runtime-records.json");
+            PlayerRecordsSaveData seedRecords = new() { totalShrimps = 17 };
+            IJsonSeedProvider provider = new InMemoryJsonSeedProvider(
+                "seed-records.json",
+                JsonUtility.ToJson(seedRecords));
+
+            PlayerRecordsSaveData loaded = JsonSaveFile.LoadOrCreate(
+                runtimePath,
+                () => provider.TryGetSeedText("seed-records.json", out string seedText)
+                    ? seedText
+                    : null,
+                PlayerRecordsSaveData.CreateDefault,
+                data => data.Normalize(),
+                "provider-backed records");
+
+            Assert.That(loaded.totalShrimps, Is.EqualTo(17));
+            Assert.That(File.Exists(runtimePath), Is.True);
+        }
+
+        [Test]
+        public void FileSystemSeedProvider_PreservesDirectoryBasedSeedLoading()
+        {
+            const string seedFileName = "seed-records.json";
+            string seedPath = Path.Combine(temporaryDirectory, seedFileName);
+            PlayerRecordsSaveData seedRecords = new() { totalShrimps = 9 };
+            File.WriteAllText(seedPath, JsonUtility.ToJson(seedRecords));
+            IJsonSeedProvider provider = new FileSystemJsonSeedProvider(temporaryDirectory);
+
+            bool found = provider.TryGetSeedText(seedFileName, out string seedText);
+            bool deserialized = JsonSaveFile.TryDeserialize(
+                seedText,
+                (PlayerRecordsSaveData data) => data.Normalize(),
+                "filesystem seed",
+                out PlayerRecordsSaveData loaded);
+
+            Assert.That(found, Is.True);
+            Assert.That(deserialized, Is.True);
+            Assert.That(loaded.totalShrimps, Is.EqualTo(9));
+        }
+
+        private sealed class InMemoryJsonSeedProvider : IJsonSeedProvider
+        {
+            private readonly string seedFileName;
+            private readonly string seedText;
+
+            public InMemoryJsonSeedProvider(string seedFileName, string seedText)
+            {
+                this.seedFileName = seedFileName;
+                this.seedText = seedText;
+            }
+
+            public bool TryGetSeedText(string requestedSeedFileName, out string requestedSeedText)
+            {
+                requestedSeedText = requestedSeedFileName == seedFileName
+                    ? seedText
+                    : null;
+                return requestedSeedText != null;
+            }
         }
     }
 }

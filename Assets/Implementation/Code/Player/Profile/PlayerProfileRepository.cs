@@ -10,6 +10,8 @@ public static class PlayerProfileRepository
     public const int UnlockablesCatalogVersion = 8;
     public const int LeaderboardVersion = 1;
 
+    private static readonly IJsonSeedProvider SeedProvider = ResolveSeedProvider();
+
     public static string ProfilePath => PersistentDbPaths.PlayerProfilePath;
     public static string RecordsPath => PersistentDbPaths.PlayerRecordsPath;
     public static string UnlockablesCatalogPath => PersistentDbPaths.UnlockablesCatalogPath;
@@ -27,7 +29,7 @@ public static class PlayerProfileRepository
         EnsureMigratedFromVersion2Profile();
         PlayerProfileSaveData data = JsonSaveFile.LoadOrCreate(
             PersistentDbPaths.PlayerProfilePath,
-            PersistentDbPaths.StreamingPlayerProfilePath,
+            () => GetSeedText(PersistentDbPaths.PlayerProfileFileName),
             PlayerProfileSaveData.CreateDefault,
             NormalizeProfile,
             "player profile");
@@ -46,7 +48,7 @@ public static class PlayerProfileRepository
         EnsureMigratedFromLegacyProfile();
         PlayerRecordsSaveData data = JsonSaveFile.LoadOrCreate(
             PersistentDbPaths.PlayerRecordsPath,
-            PersistentDbPaths.StreamingPlayerRecordsPath,
+            () => GetSeedText(PersistentDbPaths.PlayerRecordsFileName),
             PlayerRecordsSaveData.CreateDefault,
             NormalizeRecords,
             "player records");
@@ -70,8 +72,8 @@ public static class PlayerProfileRepository
             out runtimeCatalog);
 
         UnlockablesCatalogSaveData seedCatalog = null;
-        JsonSaveFile.TryLoad(
-            PersistentDbPaths.StreamingUnlockablesCatalogPath,
+        JsonSaveFile.TryDeserialize(
+            GetSeedText(PersistentDbPaths.UnlockablesCatalogFileName),
             NormalizeUnlockablesCatalog,
             "unlockables catalog seed",
             out seedCatalog);
@@ -90,7 +92,7 @@ public static class PlayerProfileRepository
     {
         LocalLeaderboardSaveData data = JsonSaveFile.LoadOrCreate(
             PersistentDbPaths.LocalLeaderboardPath,
-            PersistentDbPaths.StreamingLocalLeaderboardPath,
+            () => GetSeedText(PersistentDbPaths.LocalLeaderboardFileName),
             LocalLeaderboardSaveData.CreateDefault,
             NormalizeLeaderboard,
             "local leaderboard");
@@ -167,6 +169,18 @@ public static class PlayerProfileRepository
 #else
         return false;
 #endif
+    }
+
+    private static IJsonSeedProvider ResolveSeedProvider()
+    {
+        return new FileSystemJsonSeedProvider(PersistentDbPaths.StreamingDbDirectory);
+    }
+
+    private static string GetSeedText(string seedFileName)
+    {
+        return SeedProvider.TryGetSeedText(seedFileName, out string seedText)
+            ? seedText
+            : null;
     }
 
     private static void EnsureMigratedFromLegacyProfile()

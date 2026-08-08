@@ -6,7 +6,7 @@ public static class JsonSaveFile
 {
     public static T LoadOrCreate<T>(
         string path,
-        string seedPath,
+        Func<string> getSeedJson,
         Func<T> createDefault,
         Action<T> normalize,
         string context)
@@ -17,7 +17,8 @@ public static class JsonSaveFile
             return data;
         }
 
-        if (TryLoad(seedPath, normalize, $"{context} seed", out data))
+        string seedJson = getSeedJson?.Invoke();
+        if (TryDeserialize(seedJson, normalize, $"{context} seed", out data))
         {
             Save(path, data, normalize, context);
             return data;
@@ -53,6 +54,34 @@ public static class JsonSaveFile
         catch (Exception exception)
         {
             Debug.LogWarning($"[JsonSaveFile] Could not load {context} at {path}. {exception.Message}");
+            data = null;
+            return false;
+        }
+    }
+
+    public static bool TryDeserialize<T>(string json, Action<T> normalize, string context, out T data)
+        where T : class
+    {
+        data = null;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return false;
+        }
+
+        try
+        {
+            data = JsonUtility.FromJson<T>(json);
+            if (data == null)
+            {
+                throw new InvalidOperationException("JSON deserialized to null.");
+            }
+
+            normalize?.Invoke(data);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"[JsonSaveFile] Could not deserialize {context}. {exception.Message}");
             data = null;
             return false;
         }
