@@ -2,6 +2,20 @@ using System.Collections.Generic;
 
 public static class OptionsResolutionPolicy
 {
+    public static bool SupportsResolutionSelection(bool isMobilePlatform)
+    {
+        return !isMobilePlatform;
+    }
+
+    public static DisplayResolutionOption ResolveMobileLandscapeResolution(int width, int height)
+    {
+        int safeWidth = ClampDimension(width);
+        int safeHeight = ClampDimension(height);
+        return new DisplayResolutionOption(
+            System.Math.Max(safeWidth, safeHeight),
+            System.Math.Min(safeWidth, safeHeight));
+    }
+
     public static DisplayResolutionOption[] BuildUniqueResolutionList(
         IReadOnlyList<DisplayResolutionOption> source,
         DisplayResolutionOption fallback)

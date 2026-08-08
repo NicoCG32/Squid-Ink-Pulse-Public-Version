@@ -40,6 +40,9 @@ public class OptionsMenuManager : MonoBehaviour
     private Coroutine animationRoutine;
     private bool isOpen;
 
+    private bool SupportsResolutionSelection =>
+        OptionsResolutionPolicy.SupportsResolutionSelection(Application.isMobilePlatform);
+
     private void Awake()
     {
         ResolveUiReferences();
@@ -51,7 +54,11 @@ public class OptionsMenuManager : MonoBehaviour
         ResolveUiReferences();
         NormalizeRenderableScale();
 
-        SetupResolutionDropdown();
+        if (SupportsResolutionSelection)
+        {
+            SetupResolutionDropdown();
+        }
+
         LoadSavedSettings();
         WireSettingsEvents();
 
@@ -87,13 +94,18 @@ public class OptionsMenuManager : MonoBehaviour
 
     public void SetFullscreen(bool isFullscreen)
     {
+        if (!SupportsResolutionSelection)
+        {
+            return;
+        }
+
         PlayerPrefs.SetInt(FullscreenPrefsKey, isFullscreen ? 1 : 0);
         ApplyDisplaySettings();
     }
 
     public void SetResolution(int resolutionIndex)
     {
-        if (!IsValidResolutionIndex(resolutionIndex))
+        if (!SupportsResolutionSelection || !IsValidResolutionIndex(resolutionIndex))
         {
             return;
         }
@@ -136,6 +148,12 @@ public class OptionsMenuManager : MonoBehaviour
         GlobalAudioSettings.SetMasterVolume(savedVolume, save: false);
         GlobalAudioSettings.ApplyToMixer(audioMixer, masterVolumeParameter, savedVolume);
 
+        if (!SupportsResolutionSelection)
+        {
+            RestoreMobileLandscapeResolution();
+            return;
+        }
+
         if (fullscreenToggle != null)
         {
             // Default to fullscreen (1)
@@ -148,7 +166,9 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void ApplyDisplaySettings()
     {
-        if (resolutionOptions == null || resolutionOptions.Length == 0)
+        if (!SupportsResolutionSelection
+            || resolutionOptions == null
+            || resolutionOptions.Length == 0)
         {
             return;
         }
@@ -168,6 +188,24 @@ public class OptionsMenuManager : MonoBehaviour
         SaveResolutionPreference(resolution, resolutionIndex);
         PlayerPrefs.SetInt(FullscreenPrefsKey, isFullscreen ? 1 : 0);
         PlayerPrefs.Save();
+    }
+
+    private static void RestoreMobileLandscapeResolution()
+    {
+        DisplayResolutionOption targetResolution =
+            OptionsResolutionPolicy.ResolveMobileLandscapeResolution(Screen.width, Screen.height);
+
+        if (Screen.width == targetResolution.Width
+            && Screen.height == targetResolution.Height
+            && Screen.fullScreenMode == FullScreenMode.FullScreenWindow)
+        {
+            return;
+        }
+
+        Screen.SetResolution(
+            targetResolution.Width,
+            targetResolution.Height,
+            FullScreenMode.FullScreenWindow);
     }
 
     private DisplayResolutionOption[] BuildUniqueResolutionList()

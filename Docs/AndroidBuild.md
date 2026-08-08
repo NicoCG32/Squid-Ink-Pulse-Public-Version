@@ -158,7 +158,7 @@ El mismo APK se instaló y abrió el 8 de agosto de 2026. No se registran númer
 | Crashes / ANR | Sin `FATAL EXCEPTION`, señal nativa ni ANR observados |
 | Orientación capturada | Landscape; screenshot 2712x1220 |
 
-`MainMenu` se renderizó y permaneció como actividad en primer plano. La captura mostró, sin embargo, el contenido comprimido en una franja central con grandes bandas grises arriba y abajo. El defecto no impide comprobar el bootstrap, pero bloquea considerar aceptada la presentación móvil y debe corregirse durante la adaptación de resolución, Canvas y UI.
+`MainMenu` se renderizó y permaneció como actividad en primer plano. La captura inicial de bootstrap mostró, sin embargo, el contenido comprimido en una franja central con grandes bandas grises arriba y abajo. La causa se corrigió posteriormente como bloqueo prioritario del port; la evidencia actual se describe en la sección siguiente.
 
 Logcat del primer arranque registró:
 
@@ -177,6 +177,19 @@ El probe de red demuestra que el add-on de feria todavía no está inerte en And
 - los permisos deben revisarse antes de una candidata. Este corte registra su presencia, pero no elimina dependencias ni atribuye su origen sin una inspección separada;
 - el SDK local no incluye Emulator/AVD; el bootstrap se verificó en el teléfono físico descrito arriba.
 
+### Corrección de resolución y encuadre de `MainMenu`
+
+La causa del contenido comprimido era `OptionsMenuManager`: durante `Start` aplicaba controles de resolución de escritorio aunque el panel de opciones estuviera cerrado. Android informó la pantalla física como `1220x2712`, y esa medida portrait se guardó mediante `Screen.SetResolution` sobre una ventana landscape de `2712x1220`.
+
+La corrección:
+
+- no ofrece ni aplica selección de resolución o fullscreen de escritorio en plataformas móviles;
+- normaliza la resolución móvil existente al formato landscape y usa `FullScreenWindow`, por lo que también recupera instalaciones que ya guardaron la medida portrait incorrecta;
+- escala el canvas raíz de `MainMenu` por altura en móvil para mantener visibles los controles verticales;
+- extiende sólo el fondo decorativo al rect completo para evitar bandas laterales sin alterar la escala segura de botones y logo.
+
+La actualización se instaló con `adb install -r` sobre los PlayerPrefs defectuosos. Tras abrirla, los valores internos de Unity cambiaron de `1220x2712`/`ExclusiveFullScreen` a `2712x1220`/`FullScreenWindow`. La captura final ocupa toda la pantalla sin las bandas observadas, `Opciones` abre y regresa mediante touch físico, el proceso permanece activo y logcat filtrado no registra errores Unity ni AndroidRuntime. La suite EditMode aprobó `154/154`, la composición canónica de escenas fue válida y el smoke Windows a 1280x720 permaneció receptivo sin excepciones compartidas.
+
 ## Criterio de cierre
 
-La puerta de `mobile/01-android-bootstrap` está satisfecha: el APK reproducible se instaló y abrió `MainMenu` dos veces en Android sin crash bloqueante. Esto no acepta todavía touch, persistencia empaquetada, layout, safe area, ciclo de vida, aislamiento de feria ni rendimiento sostenido; esas puertas pertenecen a las ramas posteriores del port.
+La puerta de `mobile/01-android-bootstrap` está satisfecha: el APK reproducible se instaló y abrió `MainMenu` dos veces en Android sin crash bloqueante. El defecto puntual de resolución y encuadre observado durante ese bootstrap también está corregido y validado. Esto no acepta todavía gameplay mediante touch, adaptación integral de opciones y safe area, ciclo de vida, aislamiento de feria ni rendimiento sostenido; esas puertas pertenecen a las ramas posteriores del port.

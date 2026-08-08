@@ -4,6 +4,33 @@ namespace SquidInkPulse.Tests.EditMode
 {
     public sealed class OptionsResolutionPolicyTests
     {
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        public void SupportsResolutionSelection_DisablesDesktopResolutionControlsOnMobile(
+            bool isMobilePlatform,
+            bool expected)
+        {
+            Assert.That(
+                OptionsResolutionPolicy.SupportsResolutionSelection(isMobilePlatform),
+                Is.EqualTo(expected));
+        }
+
+        [TestCase(2712, 1220, 2712, 1220)]
+        [TestCase(1220, 2712, 2712, 1220)]
+        [TestCase(0, -10, 1, 1)]
+        public void ResolveMobileLandscapeResolution_UsesLongSideAsWidth(
+            int width,
+            int height,
+            int expectedWidth,
+            int expectedHeight)
+        {
+            DisplayResolutionOption result =
+                OptionsResolutionPolicy.ResolveMobileLandscapeResolution(width, height);
+
+            Assert.That(result.Width, Is.EqualTo(expectedWidth));
+            Assert.That(result.Height, Is.EqualTo(expectedHeight));
+        }
+
         [Test]
         public void BuildUniqueResolutionList_RemovesDuplicatesAndSortsByWidthThenHeight()
         {

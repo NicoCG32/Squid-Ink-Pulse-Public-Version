@@ -59,9 +59,25 @@ public class MainMenu : MonoBehaviour
 
     private void Awake()
     {
+        ConfigureCanvasScalingForPlatform();
         ResolveUiReferences();
         BindRuntimeTutorialButtons();
         CloseTutorialImmediate();
+    }
+
+    private void ConfigureCanvasScalingForPlatform()
+    {
+        if (!Application.isMobilePlatform)
+        {
+            return;
+        }
+
+        CanvasScaler canvasScaler = GetComponent<CanvasScaler>();
+        if (canvasScaler != null
+            && canvasScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+        {
+            canvasScaler.matchWidthOrHeight = 1f;
+        }
     }
 
     private void OnEnable()
