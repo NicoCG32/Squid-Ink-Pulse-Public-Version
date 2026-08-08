@@ -10,6 +10,8 @@ El wrapper C# automático del Input System permanece deshabilitado. Los consumid
 
 `SquidInkPulseGameplayInputReader` ya es la frontera única entre el Input System y el dominio. `SquidInkPulseInputRuntime` apaga el asset project-wide antes de la primera escena; `SquidInkPulseGameplayInputScope`, incorporado al prefab del jugador, crea y habilita el lector sólo mientras existe gameplay. El lector expone la posición continua, solicitudes discretas y el esquema de control vigente sin referenciar controladores concretos.
 
+El mapa `Gameplay` permanece habilitado mientras vive el scope, también durante pausa y tienda: `TogglePause` debe poder reanudar con `timeScale = 0` y `BuyShopOffer` debe poder comprar durante la oferta. Los consumidores drenan las solicitudes y sus reglas de dominio deciden si producen efecto. Al desactivar el scope se dispone el lector, se deshabilita `Gameplay`, se limpia su estado y se impide que eventos pendientes alcancen la escena siguiente.
+
 `PlayerMovement`, `InkPulseController`, `PauseMenuManager`, `PlayerGadgetInventory` e `InGameShopManager` ya consumen el lector semántico. Los bindings continúan siendo mouse/teclado, por lo que este cierre conserva el comportamiento Windows pero todavía no hace operativo el gameplay mediante touch.
 
 La tecla `B` de la tienda temporal queda clasificada como atajo de producto exclusivo de escritorio y se expresa mediante `Gameplay/BuyShopOffer`, con un único binding Keyboard&Mouse y ninguno Touch. `InGameShopManager` consume la solicitud y la dirige a la misma autoridad `BuyCurrentOffer()` usada por `buyButton.onClick`; el botón `Comprar` es la vía móvil. Las únicas lecturas directas de teclado que permanecen están en el código secreto de menú y pertenecen a entrada de texto, no a gameplay.
@@ -34,7 +36,7 @@ Cada solicitud se emite sólo durante la fase `performed`; mantener o liberar un
 
 `GameplayCommandInputBinding` aplica el mismo buffer de una solicitud a pausa y compra, y mantiene buffers independientes para los dos slots. Los controladores consumen y limpian esos flags al comienzo de cada `Update`, antes de sus guards, por lo que una pulsación durante animación, pausa, tienda cerrada o bloqueo de tienda no queda latente. `PlayerGadgetInventory.TryUseSlot1()` y `TryUseSlot2()` son las operaciones públicas para botones futuros y conservan dentro de sí todas las reglas de sesión, tienda, tipo activo, posesión, efecto y consumo. `InGameShopManager` conserva `BuyCurrentOffer()` como autoridad común para el comando Keyboard&Mouse y el botón UI.
 
-`CurrentControlScheme` y `ControlSchemeChanged` centralizan el dispositivo activo. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Así `Keyboard&Mouse`, `Gamepad` y el futuro input Touch no requieren condicionales repartidos por controladores.
+`CurrentControlScheme` y `ControlSchemeChanged` centralizan el último esquema que produjo una acción `Gameplay`; no representan el dispositivo global ni las interacciones exclusivas del asset UI. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Touch usado sólo por UI no modifica este valor. Cuando la rama touch inyecte comandos semánticos de gameplay, podrá resolver su esquema sin condicionales repartidos por controladores.
 
 ## Mapa `Gameplay`
 
@@ -61,6 +63,8 @@ Touch pertenece por ahora al mapa `UI`:
 
 La superficie de movimiento y los botones de Ink-Pulse, pausa y gadgets deberán inyectar comandos desde regiones explícitas. La superficie rechazará gestos iniciados sobre botones; los botones no alimentarán movimiento. Esa integración no se simula mediante un tap global en el asset.
 
+Esta exclusión es hoy absoluta para Touch porque `Gameplay` no tiene bindings touchscreen. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. La exclusión integral de los futuros controles touch se valida cuando existan esas regiones explícitas.
+
 ## Compatibilidad de interfaz
 
 El mapa `UI` conserva estas acciones requeridas por `InputSystemUIInputModule`:
@@ -69,7 +73,7 @@ El mapa `UI` conserva estas acciones requeridas por `InputSystemUIInputModule`:
 - `Point`, `Click`, `RightClick`, `MiddleClick` y `ScrollWheel`;
 - `TrackedDevicePosition` y `TrackedDeviceOrientation`.
 
-Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mantienen. Normalizar grupos vacíos no cambia los dispositivos asociados.
+Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mantienen. Normalizar grupos vacíos no cambia los dispositivos asociados. Los cinco `InputSystemUIInputModule` canónicos —dos escenas de menú y tres prefabs jugables— continúan apuntando al `DefaultInputActions` del paquete, no al asset project-wide propio.
 
 ## Validación
 
@@ -91,8 +95,12 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 - una sola solicitud por pulsación para los cinco comandos discretos;
 - coalescencia por frame de click izquierdo y `Space`, desuscripción idempotente y recreación notificada del scope;
 - buffers independientes de pausa, slots y compra, incluidos P+`Escape` y Q+W simultáneos, limpieza y Dispose idempotente;
-- cambio centralizado de `Keyboard&Mouse` a `Gamepad`;
+- touch positivo recibido por `DefaultInputActions.UI/Point` y `UI/Click` sin comando, posición ni cambio de esquema en `Gameplay`;
+- cambio centralizado `Keyboard&Mouse → Gamepad → Keyboard&Mouse` sólo mediante acciones de gameplay;
+- referencias completas de los cinco módulos UI canónicos al asset separado del paquete;
 - descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update.
+
+`GameplayPauseInputPlayModeTests` comprueba además el timing real de pausa: `Gameplay` permanece activo con `timeScale = 0`, una pulsación de Ink-Pulse se recibe y consume sin ejecutar ni quedar latente, y una pulsación nueva después de reanudar produce exactamente un pulso.
 
 `PlayerVerticalMovementPolicyTests` caracteriza la migración del primer consumidor: prioridad y consumo temporal del impulso de Jellyfish, reanudación del objetivo del jugador, movimiento sin overshoot, ausencia de movimiento sin objetivo y acumulación `max/max` de impulsos repetidos.
 

@@ -2,21 +2,22 @@
 
 ## Alcance actual
 
-La base inicial contiene cinco pruebas EditMode deterministas. Cubren cálculo de precios y normalización de perfil, leaderboard y mejoras permanentes. No existen todavía pruebas PlayMode ni una meta de cobertura.
+La suite automatizada combina pruebas EditMode deterministas con una prueba PlayMode focalizada. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android y entrada mediante dispositivos simulados. PlayMode protege el timing de una solicitud de Ink-Pulse recibida durante pausa y confirma que se consume sin ejecutar ni reaparecer al reanudar.
 
 Las pruebas viven en:
 
 ```text
 Assets/Tests/EditMode/
+Assets/Tests/PlayMode/
 ```
 
-El código runtime se compila en una única asamblea `SquidInkPulse.Runtime`. Esta frontera existe para que la asamblea de tests pueda referenciar el código de producción; no representa todavía una división arquitectónica por dominios.
+El código runtime se compila en `SquidInkPulse.Runtime`. Las asambleas de tests referencian esa frontera sin incluir pruebas en los builds normales. La rama de contrato de entrada usa además `Unity.InputSystem.TestFramework` para aislar dispositivos y estado global.
 
 ## Ejecución desde Unity
 
 1. Abrir `Window > General > Test Runner`.
-2. Seleccionar `EditMode`.
-3. Presionar `Run All`.
+2. Ejecutar `EditMode` y luego `PlayMode`.
+3. Confirmar que ambas pestañas terminan sin fallos, omitidas ni inconclusas.
 
 ## Ejecución batch en Windows
 
@@ -34,6 +35,21 @@ Cerrar antes cualquier instancia de Unity que tenga abierto el proyecto y ejecut
 ```
 
 El proceso debe devolver código `0`. El XML informa cantidad de pruebas ejecutadas, aprobadas, fallidas y omitidas.
+
+Ejecutar PlayMode en un segundo proceso, después de EditMode:
+
+```powershell
+& 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
+  -batchmode `
+  -nographics `
+  -projectPath "$PWD" `
+  -runTests `
+  -testPlatform PlayMode `
+  -testResults "$PWD\TestResults\playmode-results.xml" `
+  -logFile "$PWD\TestResults\playmode-unity.log"
+```
+
+Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
 

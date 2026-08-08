@@ -212,33 +212,70 @@ namespace SquidInkPulse.Tests.EditMode
         }
 
         [Test]
-        public void GameplayRuntime_RecreatesReaderAndNotifiesWhenScopeToggles()
+        public void GameplayRuntime_OwnsMapsAndDropsOldStateWhenScopeToggles()
         {
             var observedReaders = new List<SquidInkPulseGameplayInputReader>();
             void HandleGameplayChanged(SquidInkPulseGameplayInputReader changedReader) =>
                 observedReaders.Add(changedReader);
 
             InputActionAsset previousProjectWideActions = InputSystem.actions;
-            InputSystem.actions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsAssetPath);
+            InputActionAsset projectWideActions =
+                AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsAssetPath);
+            InputActionMap projectGameplay = projectWideActions.FindActionMap(
+                SquidInkPulseInputContract.GameplayMap,
+                throwIfNotFound: true);
+            InputActionMap projectUi = projectWideActions.FindActionMap(
+                SquidInkPulseInputContract.UiMap,
+                throwIfNotFound: true);
+            InputSystem.actions = projectWideActions;
             SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayChanged;
             var root = new GameObject("GameplayInputScopeLifecycleTest");
 
             try
             {
+                projectWideActions.Enable();
+                Assert.That(projectGameplay.enabled, Is.True);
+                Assert.That(projectUi.enabled, Is.True);
+
                 SquidInkPulseGameplayInputScope scope =
                     root.AddComponent<SquidInkPulseGameplayInputScope>();
                 InvokeScopeLifecycle(scope, "OnEnable");
                 SquidInkPulseGameplayInputReader firstReader = SquidInkPulseInputRuntime.Gameplay;
 
                 Assert.That(firstReader, Is.Not.Null);
+                Assert.That(firstReader.IsEnabled, Is.True);
+                Assert.That(projectGameplay.enabled, Is.True);
+                Assert.That(projectUi.enabled, Is.False);
+
+                int oldReaderRequests = 0;
+                firstReader.GadgetSlot1Requested += () => oldReaderRequests++;
+                AdvanceInputTime();
+                Move(mouse.position, new Vector2(640f, 360f));
+                Assert.That(
+                    firstReader.CurrentControlScheme,
+                    Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse));
+                Press(keyboard.qKey, queueEventOnly: true);
+                Move(mouse.position, new Vector2(900f, 600f), queueEventOnly: true);
+
                 InvokeScopeLifecycle(scope, "OnDisable");
                 Assert.That(SquidInkPulseInputRuntime.Gameplay, Is.Null);
+                Assert.That(firstReader.IsEnabled, Is.False);
+                Assert.That(firstReader.HasSteerPosition, Is.False);
+                Assert.That(firstReader.CurrentControlScheme, Is.Empty);
+                Assert.That(projectGameplay.enabled, Is.False);
+                Assert.That(projectUi.enabled, Is.False);
+
+                InputSystem.Update();
+                Assert.That(oldReaderRequests, Is.Zero);
 
                 InvokeScopeLifecycle(scope, "OnEnable");
                 SquidInkPulseGameplayInputReader secondReader = SquidInkPulseInputRuntime.Gameplay;
 
                 Assert.That(secondReader, Is.Not.Null);
                 Assert.That(secondReader, Is.Not.SameAs(firstReader));
+                Assert.That(secondReader.IsEnabled, Is.True);
+                Assert.That(projectGameplay.enabled, Is.True);
+                Assert.That(projectUi.enabled, Is.False);
                 Assert.That(observedReaders, Has.Count.EqualTo(3));
                 Assert.That(observedReaders[0], Is.SameAs(firstReader));
                 Assert.That(observedReaders[1], Is.Null);
@@ -255,7 +292,76 @@ namespace SquidInkPulse.Tests.EditMode
 
                 UnityEngine.Object.DestroyImmediate(root);
                 SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayChanged;
+                projectWideActions.Disable();
                 InputSystem.actions = previousProjectWideActions;
+            }
+        }
+
+        [Test]
+        public void CanonicalUiTouchPress_IsReceivedByUiOnly_AndLeavesGameplayUntouched()
+        {
+            var defaultUiActions = new DefaultInputActions();
+            Touchscreen touchscreen = InputSystem.AddDevice<Touchscreen>();
+            int uiPresses = 0;
+            int uiPointEvents = 0;
+            int gameplayRequests = 0;
+            Vector2 lastUiPoint = Vector2.zero;
+            InputDevice lastUiDevice = null;
+
+            defaultUiActions.UI.Click.performed += context =>
+            {
+                if (context.ReadValueAsButton())
+                {
+                    uiPresses++;
+                    lastUiDevice = context.control.device;
+                }
+            };
+            defaultUiActions.UI.Point.performed += context =>
+            {
+                uiPointEvents++;
+                lastUiPoint = context.ReadValue<Vector2>();
+                lastUiDevice = context.control.device;
+            };
+            reader.InkPulseRequested += () => gameplayRequests++;
+            reader.PauseToggleRequested += () => gameplayRequests++;
+            reader.GadgetSlot1Requested += () => gameplayRequests++;
+            reader.GadgetSlot2Requested += () => gameplayRequests++;
+            reader.ShopPurchaseRequested += () => gameplayRequests++;
+
+            try
+            {
+                reader.Enable();
+                defaultUiActions.UI.Enable();
+                AdvanceInputTime();
+                Vector2 mousePosition = new(320f, 240f);
+                Move(mouse.position, mousePosition);
+
+                Assert.That(
+                    reader.CurrentControlScheme,
+                    Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse));
+
+                AdvanceInputTime();
+                Vector2 touchPosition = new(780f, 420f);
+                BeginTouch(1, touchPosition, screen: touchscreen);
+
+                Assert.That(uiPresses, Is.EqualTo(1));
+                Assert.That(uiPointEvents, Is.GreaterThan(0));
+                Assert.That(lastUiPoint, Is.EqualTo(touchPosition));
+                Assert.That(lastUiDevice, Is.SameAs(touchscreen));
+                Assert.That(gameplayRequests, Is.Zero);
+                Assert.That(reader.SteerPosition, Is.EqualTo(mousePosition));
+                Assert.That(
+                    reader.CurrentControlScheme,
+                    Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse));
+
+                EndTouch(1, touchPosition, screen: touchscreen);
+                Assert.That(uiPresses, Is.EqualTo(1));
+                Assert.That(gameplayRequests, Is.Zero);
+            }
+            finally
+            {
+                defaultUiActions.UI.Disable();
+                UnityEngine.Object.DestroyImmediate(defaultUiActions.asset);
             }
         }
 
@@ -328,7 +434,7 @@ namespace SquidInkPulse.Tests.EditMode
         }
 
         [Test]
-        public void ControlScheme_ChangesOnlyWhenPerformedDeviceSchemeChanges()
+        public void ControlScheme_ChangesOnlyWhenPerformedGameplayDeviceSchemeChanges()
         {
             InputAction activateInkPulse = FindMap(SquidInkPulseInputContract.GameplayMap).FindAction(
                 SquidInkPulseInputContract.Gameplay.ActivateInkPulse,
@@ -345,15 +451,17 @@ namespace SquidInkPulse.Tests.EditMode
             Release(keyboard.spaceKey);
             Press(gamepad.buttonSouth);
             Release(gamepad.buttonSouth);
+            Move(mouse.position, new Vector2(300f, 400f));
 
             Assert.That(observedSchemes, Is.EqualTo(new[]
             {
                 SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse,
-                SquidInkPulseInputContract.ControlSchemes.Gamepad
+                SquidInkPulseInputContract.ControlSchemes.Gamepad,
+                SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse
             }));
             Assert.That(
                 reader.CurrentControlScheme,
-                Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.Gamepad));
+                Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse));
         }
 
         [Test]
