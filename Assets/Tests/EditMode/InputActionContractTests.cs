@@ -34,7 +34,8 @@ namespace SquidInkPulse.Tests.EditMode
                     SquidInkPulseInputContract.Gameplay.ActivateInkPulse,
                     SquidInkPulseInputContract.Gameplay.TogglePause,
                     SquidInkPulseInputContract.Gameplay.UseGadgetSlot1,
-                    SquidInkPulseInputContract.Gameplay.UseGadgetSlot2
+                    SquidInkPulseInputContract.Gameplay.UseGadgetSlot2,
+                    SquidInkPulseInputContract.Gameplay.BuyShopOffer
                 }));
             Assert.That(inputActions.FindActionMap("Player", throwIfNotFound: false), Is.Null);
             Assert.That(gameplay.FindAction("Attack", throwIfNotFound: false), Is.Null);
@@ -79,6 +80,12 @@ namespace SquidInkPulse.Tests.EditMode
                 InputActionType.Button,
                 "Button",
                 "<Keyboard>/w");
+            AssertAction(
+                gameplay,
+                SquidInkPulseInputContract.Gameplay.BuyShopOffer,
+                InputActionType.Button,
+                "Button",
+                "<Keyboard>/b");
 
             Assert.That(
                 gameplay.bindings.Select(binding => binding.groups),

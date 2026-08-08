@@ -13,6 +13,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
     private readonly InputAction togglePause;
     private readonly InputAction useGadgetSlot1;
     private readonly InputAction useGadgetSlot2;
+    private readonly InputAction buyShopOffer;
 
     private bool isEnabled;
     private bool isDisposed;
@@ -30,6 +31,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
     public event Action PauseToggleRequested;
     public event Action GadgetSlot1Requested;
     public event Action GadgetSlot2Requested;
+    public event Action ShopPurchaseRequested;
     public event Action<string> ControlSchemeChanged;
 
     public SquidInkPulseGameplayInputReader(InputActionAsset inputActions)
@@ -46,6 +48,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         togglePause = FindGameplayAction(SquidInkPulseInputContract.Gameplay.TogglePause);
         useGadgetSlot1 = FindGameplayAction(SquidInkPulseInputContract.Gameplay.UseGadgetSlot1);
         useGadgetSlot2 = FindGameplayAction(SquidInkPulseInputContract.Gameplay.UseGadgetSlot2);
+        buyShopOffer = FindGameplayAction(SquidInkPulseInputContract.Gameplay.BuyShopOffer);
     }
 
     public void Enable()
@@ -194,6 +197,10 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         else if (context.action == useGadgetSlot2)
         {
             GadgetSlot2Requested?.Invoke();
+        }
+        else if (context.action == buyShopOffer)
+        {
+            ShopPurchaseRequested?.Invoke();
         }
     }
 

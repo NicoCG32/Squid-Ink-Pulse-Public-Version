@@ -97,7 +97,8 @@ Prefab de vista:
 - `PauseMenuManager` puede resolver automaticamente `PauseCanvas`, `CanvasGroup`, botones y elementos animados si la vista existe como hija del manager.
 
 Input:
-- `P` o `Esc` alternan el menú de pausa.
+- `P` o `Esc` alimentan `Gameplay/TogglePause`; `PauseMenuManager` consume una solicitud por frame y conserva `TogglePause()`/`PauseMenuCommandPolicy` como autoridad.
+- La suscripción se reemplaza mediante `GameplayChanged` y se dispone con el lector exacto, evitando comandos de otra escena o de una recreación anterior del scope.
 
 Contrato de eventos:
 - Los `OnClick` persistentes configurados en Inspector no deben apagarse en runtime.
@@ -169,6 +170,7 @@ Reglas:
 - `timerText` es opcional mientras el prefab de vista no exponga un nodo visible de contador.
 - El contador usa tiempo real cuando `pauseGameplayWhileOpen` esta activo.
 - Los textos `B` y `Precio` pulsan para llamar la atencion.
+- `B` queda clasificada como atajo de producto exclusivo de Keyboard&Mouse y se recibe mediante `Gameplay/BuyShopOffer`. No se añade a Touch ni a un tap global; el botón `Comprar` es la vía móvil y comparte `BuyCurrentOffer()`.
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
 - `Comprar` debe tener componente `Button`. `InGameShopManager` registra en runtime la accion `BuyCurrentOffer` sobre la referencia serializada, sin depender de una busqueda jerarquica.
 - `InGameShopManager` no debe desactivar listeners persistentes del Inspector.

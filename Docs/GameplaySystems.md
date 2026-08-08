@@ -202,7 +202,7 @@ Responsabilidad:
 - Almacenar gadgets en slots segun orden de adquisicion.
 - Modelar posesion unica con `HasGadget`, no con contadores ni stacks.
 - Mostrar tecla solo cuando el gadget del slot es activo.
-- Activar `Gadget1` con `Q` y `Gadget2` con `W`.
+- Activar `Gadget1` con `Q` y `Gadget2` con `W` mediante `Gameplay/UseGadgetSlot1` y `Gameplay/UseGadgetSlot2`.
 - Persistir entre portales mediante `RuntimeGadgetInventory`.
 - Reiniciarse cuando `GameSessionController` entra en `GameSessionState.GameOver`.
 - Separar compras de run de desbloqueos permanentes: el inventario guarda lo comprado en la run; `RunGadgetUnlockService` solo decide si ese gadget puede aparecer en la tienda temporal.
@@ -218,6 +218,7 @@ Reglas de slot:
 - Los pasivos ocupan slot visual, pero no muestran tecla.
 - Ningun gadget es stackable.
 - Todo gadget comprado durante la run es de un solo uso: al consumirse libera su slot y desaparece del HUD.
+- `TryUseSlot1()` y `TryUseSlot2()` son las operaciones públicas compartidas con futuros botones touch. Ambas validan sesión activa, bloqueo de tienda, gadget activo y poseído, éxito del efecto y consumo; no se permite que la UI llame directamente a `RuntimeGadgetInventory.TryConsume()`.
 
 ## Tienda temporal de suministros
 
@@ -243,6 +244,7 @@ Reglas:
 - La tienda tiene duracion ajustable por `offerDurationSeconds`.
 - Por defecto congela gameplay mientras el contador avanza en tiempo real.
 - La compra se intenta con `B` o click sobre el boton `Comprar`.
+- `B` es un atajo de producto exclusivo de escritorio expresado por `Gameplay/BuyShopOffer`, con binding sólo Keyboard&Mouse y ninguno Touch. `InGameShopManager` consume esa solicitud; la vía móvil de UI es el botón `Comprar` y ambas llaman al mismo `BuyCurrentOffer()`.
 - `SinSaldo` aparece solo despues de intentar comprar sin camarones suficientes.
 - El precio se calcula desde score: `((score / 100000) + 1) * aleatorio(1, 2) * precioBaseMinimo`, con parámetros equivalentes en `InGameShopManager`.
 - Si el gadget ya existe en inventario, no se compra de nuevo.

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DisallowMultipleComponent]
 public class PlayerGadgetInventory : MonoBehaviour
@@ -14,6 +13,9 @@ public class PlayerGadgetInventory : MonoBehaviour
     [SerializeField] private bool startWithInkBottle = false;
     [SerializeField] private Sprite startingShellShieldIcon = null;
     [SerializeField] private Sprite startingInkBottleIcon = null;
+
+    private GameplayCommandInputBinding slot1InputBinding;
+    private GameplayCommandInputBinding slot2InputBinding;
 
     private void Awake()
     {
@@ -31,20 +33,30 @@ public class PlayerGadgetInventory : MonoBehaviour
 
     private void Update()
     {
-        if (session == null || !session.IsPlaying || Keyboard.current == null || InGameShopManager.BlocksInkPulseActivation)
+        bool useSlot1Requested = slot1InputBinding?.TryConsumeRequest() ?? false;
+        bool useSlot2Requested = slot2InputBinding?.TryConsumeRequest() ?? false;
+
+        if (useSlot1Requested)
         {
-            return;
+            TryUseSlot1();
         }
 
-        if (Keyboard.current.qKey.wasPressedThisFrame)
+        if (useSlot2Requested)
         {
-            TryUseActiveSlot(0);
+            TryUseSlot2();
         }
+    }
 
-        if (Keyboard.current.wKey.wasPressedThisFrame)
-        {
-            TryUseActiveSlot(1);
-        }
+    private void OnEnable()
+    {
+        SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayInputChanged;
+        HandleGameplayInputChanged(SquidInkPulseInputRuntime.Gameplay);
+    }
+
+    private void OnDisable()
+    {
+        SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayInputChanged;
+        HandleGameplayInputChanged(null);
     }
 
     public bool TryConsumeShellShield()
@@ -57,8 +69,23 @@ public class PlayerGadgetInventory : MonoBehaviour
         return RuntimeGadgetInventory.Acquire(gadget, icon, iconTint);
     }
 
+    public bool TryUseSlot1()
+    {
+        return TryUseActiveSlot(0);
+    }
+
+    public bool TryUseSlot2()
+    {
+        return TryUseActiveSlot(1);
+    }
+
     private bool TryUseActiveSlot(int slotIndex)
     {
+        if (session == null || !session.IsPlaying || InGameShopManager.BlocksInkPulseActivation)
+        {
+            return false;
+        }
+
         GadgetId gadget = RuntimeGadgetInventory.GetSlot(slotIndex);
         if (!GadgetCatalog.IsActive(gadget) || !RuntimeGadgetInventory.HasGadget(gadget))
         {
@@ -77,6 +104,26 @@ public class PlayerGadgetInventory : MonoBehaviour
         }
 
         return RuntimeGadgetInventory.TryConsume(gadget);
+    }
+
+    private void HandleGameplayInputChanged(SquidInkPulseGameplayInputReader inputReader)
+    {
+        slot1InputBinding?.Dispose();
+        slot2InputBinding?.Dispose();
+        slot1InputBinding = null;
+        slot2InputBinding = null;
+
+        if (inputReader == null)
+        {
+            return;
+        }
+
+        slot1InputBinding = new GameplayCommandInputBinding(
+            inputReader,
+            SquidInkPulseGameplayCommand.UseGadgetSlot1);
+        slot2InputBinding = new GameplayCommandInputBinding(
+            inputReader,
+            SquidInkPulseGameplayCommand.UseGadgetSlot2);
     }
 
     private void GrantStartingInventoryIfNeeded()

@@ -10,6 +10,7 @@ public static class SquidInkPulseInputContract
         public const string TogglePause = "TogglePause";
         public const string UseGadgetSlot1 = "UseGadgetSlot1";
         public const string UseGadgetSlot2 = "UseGadgetSlot2";
+        public const string BuyShopOffer = "BuyShopOffer";
     }
 
     public static class Ui

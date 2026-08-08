@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -36,6 +35,7 @@ public class PauseMenuManager : MonoBehaviour
     private bool isAnimating;
     private RectTransform[] animatedElements = new RectTransform[0];
     private Vector2[] originalPositions = new Vector2[0];
+    private GameplayCommandInputBinding pauseInputBinding;
 
     private void Awake()
     {
@@ -53,6 +53,9 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnEnable()
     {
+        SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayInputChanged;
+        HandleGameplayInputChanged(SquidInkPulseInputRuntime.Gameplay);
+
         if (session == null)
         {
             Debug.LogError("[PauseMenuManager] Falta asignar GameSessionController en el Inspector.", this);
@@ -67,12 +70,7 @@ public class PauseMenuManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current == null || isAnimating)
-        {
-            return;
-        }
-
-        if (Keyboard.current.pKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (pauseInputBinding?.TryConsumeRequest() ?? false)
         {
             TogglePause();
         }
@@ -80,6 +78,9 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnDisable()
     {
+        SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayInputChanged;
+        HandleGameplayInputChanged(null);
+
         if (session != null)
         {
             session.StateChanged -= HandleSessionStateChanged;
@@ -106,6 +107,16 @@ public class PauseMenuManager : MonoBehaviour
         {
             Reanudar();
         }
+    }
+
+    private void HandleGameplayInputChanged(SquidInkPulseGameplayInputReader inputReader)
+    {
+        pauseInputBinding?.Dispose();
+        pauseInputBinding = inputReader != null
+            ? new GameplayCommandInputBinding(
+                inputReader,
+                SquidInkPulseGameplayCommand.TogglePause)
+            : null;
     }
 
     public void Reanudar()

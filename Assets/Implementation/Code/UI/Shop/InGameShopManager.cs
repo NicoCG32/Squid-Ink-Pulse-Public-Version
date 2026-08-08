@@ -3,7 +3,6 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -61,6 +60,7 @@ public class InGameShopManager : MonoBehaviour
     private Coroutine pendingWorldShopRoutine;
     private InGameShopOpenSource currentShopOpenSource = InGameShopOpenSource.Timed;
     private bool currentShopPurchased;
+    private GameplayCommandInputBinding purchaseInputBinding;
 
     public static InGameShopManager Instance => instance;
     public static bool HasInstance => instance != null;
@@ -89,8 +89,21 @@ public class InGameShopManager : MonoBehaviour
         WarnIfMissingReferences();
     }
 
+    private void OnEnable()
+    {
+        SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayInputChanged;
+        HandleGameplayInputChanged(SquidInkPulseInputRuntime.Gameplay);
+    }
+
+    private void OnDisable()
+    {
+        SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayInputChanged;
+        HandleGameplayInputChanged(null);
+    }
+
     private void Update()
     {
+        bool purchaseRequested = purchaseInputBinding?.TryConsumeRequest() ?? false;
         ResolveReferences();
 
         if (!isOpen)
@@ -110,7 +123,7 @@ public class InGameShopManager : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
+        if (purchaseRequested)
         {
             BuyCurrentOffer();
         }
@@ -445,6 +458,16 @@ public class InGameShopManager : MonoBehaviour
             buyButton,
             insufficientFundsText,
             timerText);
+    }
+
+    private void HandleGameplayInputChanged(SquidInkPulseGameplayInputReader inputReader)
+    {
+        purchaseInputBinding?.Dispose();
+        purchaseInputBinding = inputReader != null
+            ? new GameplayCommandInputBinding(
+                inputReader,
+                SquidInkPulseGameplayCommand.BuyShopOffer)
+            : null;
     }
 
     private void PrepareOverlayPresenter()

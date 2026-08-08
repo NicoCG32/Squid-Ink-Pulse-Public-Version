@@ -172,8 +172,10 @@ namespace SquidInkPulse.Tests.EditMode
 
             AssertSingleEventPerPress(keyboard.spaceKey, handler => reader.InkPulseRequested += handler);
             AssertSingleEventPerPress(keyboard.pKey, handler => reader.PauseToggleRequested += handler);
+            AssertSingleEventPerPress(keyboard.escapeKey, handler => reader.PauseToggleRequested += handler);
             AssertSingleEventPerPress(keyboard.qKey, handler => reader.GadgetSlot1Requested += handler);
             AssertSingleEventPerPress(keyboard.wKey, handler => reader.GadgetSlot2Requested += handler);
+            AssertSingleEventPerPress(keyboard.bKey, handler => reader.ShopPurchaseRequested += handler);
         }
 
         [Test]
@@ -254,6 +256,74 @@ namespace SquidInkPulse.Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(root);
                 SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayChanged;
                 InputSystem.actions = previousProjectWideActions;
+            }
+        }
+
+        [Test]
+        public void GameplayCommandBindings_BufferIndependently_AndDisposeIdempotently()
+        {
+            var pauseBinding = new GameplayCommandInputBinding(
+                reader,
+                SquidInkPulseGameplayCommand.TogglePause);
+            var slot1Binding = new GameplayCommandInputBinding(
+                reader,
+                SquidInkPulseGameplayCommand.UseGadgetSlot1);
+            var slot2Binding = new GameplayCommandInputBinding(
+                reader,
+                SquidInkPulseGameplayCommand.UseGadgetSlot2);
+            var shopBinding = new GameplayCommandInputBinding(
+                reader,
+                SquidInkPulseGameplayCommand.BuyShopOffer);
+
+            try
+            {
+                reader.Enable();
+                AdvanceInputTime();
+                Press(keyboard.pKey);
+                Press(keyboard.escapeKey);
+                Press(keyboard.qKey);
+                Press(keyboard.wKey);
+                Press(keyboard.bKey);
+
+                Assert.That(pauseBinding.TryConsumeRequest(), Is.True);
+                Assert.That(pauseBinding.TryConsumeRequest(), Is.False);
+                Assert.That(slot1Binding.TryConsumeRequest(), Is.True);
+                Assert.That(slot1Binding.TryConsumeRequest(), Is.False);
+                Assert.That(slot2Binding.TryConsumeRequest(), Is.True);
+                Assert.That(slot2Binding.TryConsumeRequest(), Is.False);
+                Assert.That(shopBinding.TryConsumeRequest(), Is.True);
+                Assert.That(shopBinding.TryConsumeRequest(), Is.False);
+
+                Release(keyboard.pKey);
+                Release(keyboard.escapeKey);
+                Release(keyboard.qKey);
+                Release(keyboard.wKey);
+                Release(keyboard.bKey);
+
+                pauseBinding.Dispose();
+                slot1Binding.Dispose();
+                slot2Binding.Dispose();
+                shopBinding.Dispose();
+                pauseBinding.Dispose();
+                slot1Binding.Dispose();
+                slot2Binding.Dispose();
+                shopBinding.Dispose();
+
+                Press(keyboard.pKey);
+                Press(keyboard.qKey);
+                Press(keyboard.wKey);
+                Press(keyboard.bKey);
+                Assert.That(pauseBinding.TryConsumeRequest(), Is.False);
+                Assert.That(slot1Binding.TryConsumeRequest(), Is.False);
+                Assert.That(slot2Binding.TryConsumeRequest(), Is.False);
+                Assert.That(shopBinding.TryConsumeRequest(), Is.False);
+            }
+            finally
+            {
+                pauseBinding.Dispose();
+                slot1Binding.Dispose();
+                slot2Binding.Dispose();
+                shopBinding.Dispose();
             }
         }
 
