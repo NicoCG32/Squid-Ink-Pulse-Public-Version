@@ -6,6 +6,13 @@ using System.Linq;
 public static class AndroidDevelopmentBuildRules
 {
     public const string DefaultOutputRelativePath = "Build/AndroidDevelopment/SquidInkPulse-development.apk";
+    public const string AndroidSupportUnavailableMessage =
+        "Android Build Support no esta disponible para este Editor de Unity.";
+
+    public static string GetAndroidSupportError(bool isAndroidSupportAvailable)
+    {
+        return isAndroidSupportAvailable ? null : AndroidSupportUnavailableMessage;
+    }
 
     public static string[] FindMissingRequiredScenes(IEnumerable<string> enabledScenes)
     {
@@ -25,13 +32,20 @@ public static class AndroidDevelopmentBuildRules
             return false;
         }
 
-        string normalizedProjectRoot = Path.GetFullPath(projectRoot);
-        string buildRoot = Path.GetFullPath(Path.Combine(normalizedProjectRoot, "Build"));
-        string normalizedOutput = Path.GetFullPath(outputPath);
-        string buildRootWithSeparator = buildRoot.TrimEnd(
-            Path.DirectorySeparatorChar,
-            Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        try
+        {
+            string normalizedProjectRoot = Path.GetFullPath(projectRoot);
+            string buildRoot = Path.GetFullPath(Path.Combine(normalizedProjectRoot, "Build"));
+            string normalizedOutput = Path.GetFullPath(outputPath);
+            string buildRootWithSeparator = buildRoot.TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
-        return normalizedOutput.StartsWith(buildRootWithSeparator, StringComparison.OrdinalIgnoreCase);
+            return normalizedOutput.StartsWith(buildRootWithSeparator, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 }

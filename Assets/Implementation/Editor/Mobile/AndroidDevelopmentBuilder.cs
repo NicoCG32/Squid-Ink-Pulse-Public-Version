@@ -28,10 +28,11 @@ public static class AndroidDevelopmentBuilder
                 $"La salida Android debe permanecer bajo Build/: {AndroidDevelopmentBuildRules.DefaultOutputRelativePath}");
         }
 
-        if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Android, BuildTarget.Android))
+        string androidSupportError = AndroidDevelopmentBuildRules.GetAndroidSupportError(
+            BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Android, BuildTarget.Android));
+        if (androidSupportError != null)
         {
-            throw new BuildFailedException(
-                "Android Build Support no esta disponible para este Editor de Unity.");
+            throw new BuildFailedException(androidSupportError);
         }
 
         string[] enabledScenes = EditorBuildSettings.scenes
