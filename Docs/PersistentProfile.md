@@ -29,6 +29,7 @@ Application.persistentDataPath/db/
 - `Assets/Implementation/Code/Player/Profile/FileSystemJsonSeedProvider.cs`
 - `Assets/Implementation/Code/Player/Profile/ResourcesJsonSeedProvider.cs`
 - `Assets/Implementation/Code/Player/Profile/JsonSaveFile.cs`
+- `Assets/Implementation/Code/Player/Profile/PlayerProfileMigration.cs`
 - `Assets/Implementation/Code/Player/Profile/PlayerProfileRepository.cs`
 - `Assets/Implementation/Code/Player/Profile/PersistentPlayerProfile.cs`
 - `Assets/Implementation/Code/Player/Profile/LocalLeaderboardRepository.cs`
@@ -307,6 +308,8 @@ Application.persistentDataPath/player-profile.json
 ```
 
 `PlayerProfileRepository` lo convierte automaticamente cuando faltan los nuevos archivos en `Application.persistentDataPath/db/`.
+
+`PlayerProfileMigration` ejecuta estas conversiones con rutas y callbacks de guardado explícitos. Producción le entrega las rutas de `PersistentDbPaths`; las pruebas usan directorios temporales, por lo que caracterizar legacy, v2 y corrupción no toca el perfil local del equipo de desarrollo.
 
 Mapeo desde formato monolitico legacy:
 - `wallet.totalShrimps` pasa a `player-records.json.totalShrimps`.
