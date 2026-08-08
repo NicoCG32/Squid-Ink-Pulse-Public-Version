@@ -8,7 +8,7 @@ El primer objetivo de plataforma es Android. iOS queda como una extensión poste
 
 ## Estado
 
-La iniciativa completó su fase de contrato y baseline. Todavía no existe una build móvil aceptada del producto. La referencia técnica Windows y su smoke interactivo aprobado están registrados en [MobileBaseline.md](MobileBaseline.md).
+La iniciativa completó su fase de contrato, baseline y bootstrap Android. El APK Development reproducible se instaló y abrió `MainMenu` dos veces en un POCO X6 5G sin crash bloqueante. Todavía no existe una build móvil aceptada del producto: se observaron layout comprimido y un probe de feria a `localhost:8080`, y aún faltan touch, persistencia empaquetada, safe area, ciclo de vida y rendimiento. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
 
 ## Alcance del primer port
 
@@ -164,6 +164,12 @@ New-Item -ItemType Directory -Force "$PWD\TestResults" | Out-Null
 
 La salida distingue `INFO`, `WARNING` y `ERROR`. En menú, los errores se informan sin corregir valores. En batch, cualquier `ERROR` produce código de salida distinto de cero para bloquear una build o integración incompatible. `TestResults/` permanece ignorado por Git.
 
+## Build de desarrollo Android
+
+`AndroidDevelopmentBuilder` genera un APK Development reproducible desde menú o batch, valida Android Build Support y las escenas obligatorias, confina la salida bajo `Build/` y registra versión de Unity, commit, target, escenas, duración, resultado y tamaño.
+
+El comando completo, la instalación mediante ADB, la captura de logcat y la evidencia del primer artefacto se mantienen en [AndroidBuild.md](AndroidBuild.md). Una compilación correcta no equivale a un arranque aceptado: la puerta de bootstrap exige instalar el mismo APK y observar `MainMenu` en Android.
+
 ## Rendimiento y tamaño
 
 No se prescribe una optimización de arte por anticipado. Primero debe medirse en hardware real:
@@ -196,9 +202,9 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 
 | Cupo | Modelo | Sistema | RAM | Resolución | Estado | Condición de candidata |
 | --- | --- | --- | --- | --- | --- | --- |
-| Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente | Obligatorio para bootstrap |
+| Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente; bootstrap cubierto en teléfono | Obligatorio antes de candidata final |
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
-| Teléfono Android de referencia media | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio si está disponible |
+| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap aprobado; layout, touch y run pendientes | Obligatorio; validación final pendiente |
 | PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.

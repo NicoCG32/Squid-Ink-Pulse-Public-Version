@@ -15,6 +15,7 @@ Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse c
 - [Testing.md](Testing.md) - base mínima de pruebas EditMode y ejecución batch.
 - [MobilePort.md](MobilePort.md) - contrato, alcance y matriz de validación del port móvil Android.
 - [MobileBaseline.md](MobileBaseline.md) - referencia Windows reproducible anterior a los cambios del port.
+- [AndroidBuild.md](AndroidBuild.md) - generación reproducible, instalación ADB y evidencia del APK Development.
 
 ## Sistemas de juego
 
