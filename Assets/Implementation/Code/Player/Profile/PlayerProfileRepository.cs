@@ -173,7 +173,13 @@ public static class PlayerProfileRepository
 
     private static IJsonSeedProvider ResolveSeedProvider()
     {
-        return new FileSystemJsonSeedProvider(PersistentDbPaths.StreamingDbDirectory);
+#if UNITY_EDITOR
+        return new FileSystemJsonSeedProvider(PersistentDbPaths.EditorSeedDirectory);
+#elif UNITY_STANDALONE_WIN
+        return new FileSystemJsonSeedProvider(PersistentDbPaths.WindowsBuildSeedDirectory);
+#else
+        return new ResourcesJsonSeedProvider(PersistentDbPaths.SeedResourcesDirectoryName);
+#endif
     }
 
     private static string GetSeedText(string seedFileName)

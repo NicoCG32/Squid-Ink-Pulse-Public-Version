@@ -7,11 +7,11 @@ La persistencia permanente se organiza como una pequena base JSON local. No es u
 Hay dos ubicaciones:
 
 ```text
-Assets/StreamingAssets/db/
+Assets/Implementation/Resources/PersistentDbSeeds/
 Application.persistentDataPath/db/
 ```
 
-`StreamingAssets/db` contiene semillas incluidas en el build. `persistentDataPath/db` contiene los archivos reales de guardado durante runtime. En un build, no se debe escribir dentro de `StreamingAssets`.
+`Resources/PersistentDbSeeds` es la fuente única de semillas incluidas en el build. `ResourcesJsonSeedProvider` las obtiene como `TextAsset` en Android sin tratar el APK como un directorio ordinario. `persistentDataPath/db` contiene los archivos reales de guardado durante runtime y es la única ubicación escribible de esta base.
 
 ## Archivos
 
@@ -25,6 +25,9 @@ Application.persistentDataPath/db/
 ## Scripts
 
 - `Assets/Implementation/Code/Player/Profile/PersistentDbPaths.cs`
+- `Assets/Implementation/Code/Player/Profile/IJsonSeedProvider.cs`
+- `Assets/Implementation/Code/Player/Profile/FileSystemJsonSeedProvider.cs`
+- `Assets/Implementation/Code/Player/Profile/ResourcesJsonSeedProvider.cs`
 - `Assets/Implementation/Code/Player/Profile/JsonSaveFile.cs`
 - `Assets/Implementation/Code/Player/Profile/PlayerProfileRepository.cs`
 - `Assets/Implementation/Code/Player/Profile/PersistentPlayerProfile.cs`
@@ -221,15 +224,15 @@ Comportamiento de compra permanente:
 - Comprar/usar una skin ya poseida intenta equiparla y actualiza `skins.equippedSkinId`.
 - Comprar/usar una skin ya equipada, siempre que no sea `skin.default`, la deselecciona y vuelve a equipar `skin.default`.
 - Cuando un jugador equipado entra a gameplay, `PlayerSkinApplier` consulta `equippedSkinId`, carga `playerSkinPrefabResourcePath`, instancia el prefab bajo `BabySquid/SkinMount` y entrega sus tres visuales a `PlayerVisualStateController`.
-- La compra no debe guardarse dentro de `StreamingAssets`; durante runtime se escribe en `Application.persistentDataPath/db/`.
-- Para pruebas limpias en Editor, borrar o reemplazar `Application.persistentDataPath/db/` restaura la semilla incluida en `Assets/StreamingAssets/db/`.
+- La compra no debe guardarse dentro de `Resources`; durante runtime se escribe en `Application.persistentDataPath/db/`.
+- Para pruebas limpias en Editor, borrar o reemplazar `Application.persistentDataPath/db/` restaura la semilla incluida en `Assets/Implementation/Resources/PersistentDbSeeds/`.
 
 ## Reinicio local controlado
 
 En Windows, con la configuración actual de `ProjectSettings`, `Application.persistentDataPath` resuelve a:
 
 ```text
-C:\Users\<usuario>\AppData\LocalLow\DefaultCompany\Squid Ink-Pulse
+C:\Users\<usuario>\AppData\LocalLow\Yeco Works\Squid Ink-Pulse
 ```
 
 El proyecto incluye un script para hacer este reinicio sin tocar las semillas del repositorio:
@@ -251,7 +254,7 @@ REINICIAR_DATOS_JUEGO.bat
 REINICIAR_DATOS_JUEGO.ps1
 ```
 
-Estos scripts son para equipos de prueba fuera del repo. Toman las semillas limpias desde `<NombreDelJuego>_Data/StreamingAssets/db/` y limpian solo la persistencia local de ese usuario Windows.
+Estos scripts son para equipos de prueba fuera del repo. El postprocesador copia las semillas canónicas de `Resources/PersistentDbSeeds` a `<NombreDelJuego>_Data/StreamingAssets/db/`; esa copia es un derivado del build para el reset Windows, no una segunda fuente editable. Los scripts limpian sólo la persistencia local de ese usuario Windows.
 
 Para una versión compilada local, la prueba normal parte desde `Build/Squid Ink-Pulse.exe` o desde la carpeta de salida elegida al compilar. Si se necesita limpiar datos del equipo de desarrollo antes o despues de probar ese ejecutable, usar `Tools/CleanPersistentData.bat` desde el repositorio.
 
@@ -260,7 +263,7 @@ Comportamiento por defecto:
 - respalda la persistencia actual en `Application.persistentDataPath/_backups/clean-YYYYMMDD-HHMMSS`;
 - borra `Application.persistentDataPath/db/`;
 - borra el legacy `Application.persistentDataPath/player-profile.json` si existe;
-- recrea `Application.persistentDataPath/db/` copiando los JSON limpios desde `Assets/StreamingAssets/db/`;
+- recrea `Application.persistentDataPath/db/` copiando los JSON limpios desde la fuente canónica `Assets/Implementation/Resources/PersistentDbSeeds/` cuando se ejecuta desde el repo;
 - no borra `PlayerPrefs`, por lo que opciones de pantalla/volumen y URL de feria se conservan.
 
 Opciones utiles:
@@ -271,7 +274,7 @@ Opciones utiles:
 .\Tools\CleanPersistentData.ps1 -WhatIf
 ```
 
-`-IncludePlayerPrefs` tambien borra la clave `HKCU\Software\DefaultCompany\Squid Ink-Pulse`, por lo que debe usarse solo si se quiere limpiar opciones y residuos externos al progreso.
+`-IncludePlayerPrefs` tambien borra la clave `HKCU\Software\Yeco Works\Squid Ink-Pulse`, por lo que debe usarse solo si se quiere limpiar opciones y residuos externos al progreso.
 
 Para reiniciar el progreso local sin tocar las semillas del repositorio:
 
@@ -282,7 +285,7 @@ Para reiniciar el progreso local sin tocar las semillas del repositorio:
 Reinicio aplicado el 2026-06-30 en el equipo de trabajo:
 
 ```text
-C:\Users\cythg\AppData\LocalLow\DefaultCompany\Squid Ink-Pulse\db
+C:\Users\<usuario>\AppData\LocalLow\Yeco Works\Squid Ink-Pulse\db
 ```
 
 Resultado verificado:
@@ -319,10 +322,10 @@ Mapeo desde `player-profile.json` versión 2:
 
 La persistencia de cierre debe conservar semillas legibles para:
 
-- `Assets/StreamingAssets/db/unlockables-catalog.json`
-- `Assets/StreamingAssets/db/player-profile.json`
-- `Assets/StreamingAssets/db/player-records.json`
-- `Assets/StreamingAssets/db/local-leaderboard.json`
+- `Assets/Implementation/Resources/PersistentDbSeeds/unlockables-catalog.json`
+- `Assets/Implementation/Resources/PersistentDbSeeds/player-profile.json`
+- `Assets/Implementation/Resources/PersistentDbSeeds/player-records.json`
+- `Assets/Implementation/Resources/PersistentDbSeeds/local-leaderboard.json`
 
 Tambien debe contener `skin.default`, `gadget.shell_shield`, `gadget.ink_bottle`, `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
 

@@ -56,10 +56,10 @@ public static class AndroidReadinessRules
 
     public static readonly string[] ExpectedSeedPaths =
     {
-        "Assets/StreamingAssets/db/player-profile.json",
-        "Assets/StreamingAssets/db/player-records.json",
-        "Assets/StreamingAssets/db/unlockables-catalog.json",
-        "Assets/StreamingAssets/db/local-leaderboard.json"
+        "Assets/Implementation/Resources/PersistentDbSeeds/player-profile.json",
+        "Assets/Implementation/Resources/PersistentDbSeeds/player-records.json",
+        "Assets/Implementation/Resources/PersistentDbSeeds/unlockables-catalog.json",
+        "Assets/Implementation/Resources/PersistentDbSeeds/local-leaderboard.json"
     };
 
     private static readonly Regex ApplicationIdentifierPattern = new(

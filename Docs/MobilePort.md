@@ -75,7 +75,7 @@ El port debe conservar por dispositivo:
 - records y leaderboard local;
 - comics cuya visualización se persiste.
 
-Los archivos runtime continúan bajo `Application.persistentDataPath/db/`. Las semillas empaquetadas no deben asumirse como archivos ordinarios cuando la aplicación se ejecuta dentro de un APK; la implementación deberá utilizar un proveedor compatible con Android y mantener una fuente única de datos.
+Los archivos runtime continúan bajo `Application.persistentDataPath/db/`. La fuente única de semillas vive en `Assets/Implementation/Resources/PersistentDbSeeds/`: Android las obtiene como `TextAsset` mediante `ResourcesJsonSeedProvider`, sin aplicar `File.Exists` ni `File.ReadAllText` sobre el APK. Editor conserva lectura directa de la fuente y los builds Windows reciben una copia derivada para sus scripts de reset.
 
 La ausencia de red no debe impedir el arranque ni el gameplay local.
 

@@ -20,7 +20,7 @@
 - `Assets/Content/Art/Environments/ShopMenu/Fondo.png`: fondo ambiental de la escena `ShopMenu`; los botones y decoraciones de tienda permanecen en `Assets/Content/Art/UI/ShopMenu/`.
 - `Assets/Content/Animations/`: animaciones runtime.
 - `Assets/Scenes/`: escenas del juego.
-- `Assets/StreamingAssets/db/`: semillas JSON incluidas en build para catalogo, perfil, records y leaderboard local.
+- `Assets/Implementation/Resources/PersistentDbSeeds/`: semillas JSON incluidas en build para catalogo, perfil, records y leaderboard local.
 
 ## Codigo por dominio
 
@@ -76,5 +76,5 @@ La arquitectura formal esta definida en [SoftwareArchitecture.md](SoftwareArchit
 - Las entidades runtime deben recibir contexto desde managers/controladores o resolver infraestructura por contrato.
 - Los boundaries se definen por nodos de escena, no por campos en componentes.
 - Todo asset nuevo debe incluir su `.meta`.
-- Los JSON persistentes deben organizarse bajo `db`: semillas en `Assets/StreamingAssets/db` y runtime en `Application.persistentDataPath/db`.
+- Los JSON persistentes separan la fuente empaquetada en `Assets/Implementation/Resources/PersistentDbSeeds` del estado runtime en `Application.persistentDataPath/db`.
 - Si una regla puede expresarse como cálculo puro, selector o configurador, no debe vivir dentro de un `MonoBehaviour` por conveniencia.

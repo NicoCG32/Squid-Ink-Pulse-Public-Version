@@ -195,7 +195,7 @@ Reglas:
 - Los catalogos evitan strings locales repetidos.
 - Los perfiles/tuning son datos; no ejecutan gameplay.
 - La persistencia JSON vive en `PlayerProfileRepository`; gameplay no escribe JSON directamente.
-- `Assets/StreamingAssets/db` contiene semillas incluidas en build; `Application.persistentDataPath/db` contiene datos escritos en runtime.
+- `Assets/Implementation/Resources/PersistentDbSeeds` contiene la fuente única de semillas; `IJsonSeedProvider` abstrae su lectura y `Application.persistentDataPath/db` contiene datos escritos en runtime.
 - `player-profile.json` guarda decisiones del jugador: skins, mejoras permanentes y gadgets de run habilitados por hitos.
 - `player-records.json` guarda economia y records; `local-leaderboard.json` guarda ranking local.
 - `unlockables-catalog.json` separa tres grupos: `skins`, `permanentUpgrades` y `runGadgets`.

@@ -113,7 +113,12 @@ namespace SquidInkPulse.Tests.EditMode
 
         private static UnlockablesCatalogSaveData LoadRuntimeCatalog()
         {
-            string catalogPath = Path.Combine(Application.dataPath, "StreamingAssets", "db", "unlockables-catalog.json");
+            string catalogPath = Path.Combine(
+                Application.dataPath,
+                "Implementation",
+                "Resources",
+                PersistentDbPaths.SeedResourcesDirectoryName,
+                PersistentDbPaths.UnlockablesCatalogFileName);
             Assert.That(File.Exists(catalogPath), Is.True, $"No existe catalogo runtime: {catalogPath}");
 
             UnlockablesCatalogSaveData catalog = JsonUtility.FromJson<UnlockablesCatalogSaveData>(File.ReadAllText(catalogPath));

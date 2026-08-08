@@ -2,7 +2,7 @@
 param(
     [switch]$NoBackup,
     [switch]$IncludePlayerPrefs,
-    [string]$CompanyName = "DefaultCompany",
+    [string]$CompanyName = "Yeco Works",
     [string]$ProductName = "Squid Ink-Pulse"
 )
 
@@ -30,7 +30,7 @@ function Assert-PathWithin {
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$seedDbPath = Join-Path $repoRoot "Assets\StreamingAssets\db"
+$seedDbPath = Join-Path $repoRoot "Assets\Implementation\Resources\PersistentDbSeeds"
 
 if (-not (Test-Path -LiteralPath $seedDbPath -PathType Container)) {
     throw "No existe la base semilla: $seedDbPath"

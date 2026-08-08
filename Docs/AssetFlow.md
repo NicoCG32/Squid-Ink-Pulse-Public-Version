@@ -43,7 +43,7 @@ Regla:
 - `Prefabs/Shop/`: `DealerFish` y `DealerFish_ZonaAbisopelagica`.
 - `Prefabs/Portals/`: `ScenePortal`.
 
-Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanente se define por id en `Assets/StreamingAssets/db/unlockables-catalog.json/runGadgets`; su posesion durante una partida vive en `RuntimeGadgetInventory`.
+Los prefabs de gadgets representan mercancia de run. Su disponibilidad permanente se define por id en `Assets/Implementation/Resources/PersistentDbSeeds/unlockables-catalog.json/runGadgets`; su posesion durante una partida vive en `RuntimeGadgetInventory`.
 - `Prefabs/Collectibles/`: camarones normales y x10.
 - `Prefabs/Core/Audio/`: `AudioRoot_*` por zona jugable.
 - `Prefabs/Core/Camera/`: `CameraRig_*` por zona jugable.

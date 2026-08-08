@@ -76,7 +76,7 @@ Por esta razón, si se abre el juego o se genera un build sin servidor de feria 
 - `Assets/Implementation/Config/`: configuración técnica y perfiles reutilizables.
 - `Assets/Content/`: prefabs, arte, audio, animaciones y contenido runtime.
 - `Assets/Scenes/`: escenas principales del juego.
-- `Assets/StreamingAssets/db/`: semillas JSON para perfil, records, catálogo y ranking local.
+- `Assets/Implementation/Resources/PersistentDbSeeds/`: fuente única de semillas JSON para perfil, records, catálogo y ranking local.
 - `Docs/`: documentación técnica, arquitectura, sistemas y feria.
 - `Tools/FairServer/`: servidor opcional para leaderboard de feria.
 - `Packages/`: manifiesto y bloqueo de dependencias Unity.
@@ -183,7 +183,7 @@ El resultado esperado es que el host mantenga y muestre el leaderboard del event
 
 ## Persistencia local
 
-El juego carga datos base desde `Assets/StreamingAssets/db/` y guarda el progreso real en `Application.persistentDataPath/db/`. La persistencia local incluye:
+El juego carga datos base desde `Assets/Implementation/Resources/PersistentDbSeeds/` mediante un proveedor de `TextAsset` compatible con Android y guarda el progreso real en `Application.persistentDataPath/db/`. La persistencia local incluye:
 
 - Perfil del jugador.
 - Camarones acumulados.
@@ -193,7 +193,7 @@ El juego carga datos base desde `Assets/StreamingAssets/db/` y guarda el progres
 - Catálogo de desbloqueables.
 - Ranking local.
 
-Para restablecer una sesión limpia de pruebas, cerrar el juego y eliminar la carpeta `db` ubicada dentro de `Application.persistentDataPath`. Al iniciar nuevamente, el juego recrea los archivos desde las semillas incluidas en `Assets/StreamingAssets/db/`.
+Para restablecer una sesión limpia de pruebas, cerrar el juego y eliminar la carpeta `db` ubicada dentro de `Application.persistentDataPath`. Al iniciar nuevamente, el juego recrea los archivos desde las semillas empaquetadas en `Resources`.
 
 Desde el repositorio, el reinicio recomendado es:
 

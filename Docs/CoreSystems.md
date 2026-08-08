@@ -45,7 +45,7 @@ Archivos:
 - `Assets/Implementation/Code/Player/Profile/PermanentUpgradeEffectResolver.cs`
 
 Responsabilidad:
-- Cargar semillas desde `Assets/StreamingAssets/db`.
+- Cargar semillas desde `Assets/Implementation/Resources/PersistentDbSeeds` mediante un proveedor de texto compatible con la plataforma.
 - Crear y guardar archivos reales en `Application.persistentDataPath/db`.
 - Persistir perfil logico en `player-profile.json`.
 - Persistir economía y records en `player-records.json`.

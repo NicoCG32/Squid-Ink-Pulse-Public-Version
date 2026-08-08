@@ -60,7 +60,7 @@ El producto base puede recibir actualizaciones sin cambiar su estado general de 
 - `Assets/Implementation/Code/`: lógica de juego, UI, boss, cámara, spawn, feria opcional y utilidades.
 - `Assets/Content/`: arte, audio, prefabs y animaciones runtime.
 - `Assets/Scenes/`: escenas del juego.
-- `Assets/StreamingAssets/db/`: semillas JSON de persistencia local.
+- `Assets/Implementation/Resources/PersistentDbSeeds/`: fuente única de semillas JSON de persistencia local.
 - `Docs/`: documentación técnica, diseño, estado del producto base y guía de feria.
 - `Tools/FairServer/`: servidor opcional para leaderboard de feria.
 

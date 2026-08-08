@@ -31,6 +31,7 @@ public sealed class FairBuildReadmePostprocessor : IPostprocessBuildWithReport
 
         Directory.CreateDirectory(buildDirectory);
         string executableName = ResolveExecutableName(report.summary.outputPath);
+        CopySeedDefaults(buildDirectory, executableName);
         string readmePath = Path.Combine(buildDirectory, ReadmeFileName);
         string resetScriptPath = Path.Combine(buildDirectory, ResetDataScriptFileName);
         string resetBatchPath = Path.Combine(buildDirectory, ResetDataBatchFileName);
@@ -41,6 +42,37 @@ public sealed class FairBuildReadmePostprocessor : IPostprocessBuildWithReport
 
         Debug.Log($"[FairBuildReadmePostprocessor] README de servidor generado: {readmePath}");
         Debug.Log($"[FairBuildReadmePostprocessor] Script de reinicio generado: {resetBatchPath}");
+    }
+
+    private static void CopySeedDefaults(string buildDirectory, string executableName)
+    {
+        string dataDirectoryName = $"{Path.GetFileNameWithoutExtension(executableName)}_Data";
+        string destinationDirectory = Path.Combine(
+            buildDirectory,
+            dataDirectoryName,
+            "StreamingAssets",
+            PersistentDbPaths.DbDirectoryName);
+        string[] seedFileNames =
+        {
+            PersistentDbPaths.PlayerProfileFileName,
+            PersistentDbPaths.PlayerRecordsFileName,
+            PersistentDbPaths.UnlockablesCatalogFileName,
+            PersistentDbPaths.LocalLeaderboardFileName
+        };
+
+        Directory.CreateDirectory(destinationDirectory);
+        foreach (string seedFileName in seedFileNames)
+        {
+            string sourcePath = Path.Combine(PersistentDbPaths.EditorSeedDirectory, seedFileName);
+            if (!File.Exists(sourcePath))
+            {
+                throw new BuildFailedException($"Falta la semilla requerida para el build Windows: {sourcePath}");
+            }
+
+            File.Copy(sourcePath, Path.Combine(destinationDirectory, seedFileName), overwrite: true);
+        }
+
+        Debug.Log($"[FairBuildReadmePostprocessor] Semillas de reset copiadas: {destinationDirectory}");
     }
 
     private static bool IsWindowsStandalone(BuildTarget target)

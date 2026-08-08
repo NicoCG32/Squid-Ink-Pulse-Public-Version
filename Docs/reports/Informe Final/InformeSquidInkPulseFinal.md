@@ -1421,7 +1421,7 @@ La estructura general del proyecto diferencia claramente entre implementación t
 | Assets/Implementation/ | Contiene el código C#, configuraciones técnicas y herramientas de editor. |
 | Assets/Content/ | Agrupa prefabs, arte, audio y animaciones utilizados durante la ejecución. |
 | Assets/Scenes/ | Contiene las escenas jugables y de menú. |
-| Assets/StreamingAssets/db/ | Almacena semillas JSON utilizadas para perfil, catálogo y récords. |
+| Assets/Implementation/Resources/PersistentDbSeeds/ | Almacena la fuente única de semillas JSON utilizadas para perfil, catálogo y récords. |
 | Docs/ | Contiene la documentación técnica viva del proyecto. |
 | Packages/ y ProjectSettings/ | Mantienen la configuración base del proyecto Unity. |
 
