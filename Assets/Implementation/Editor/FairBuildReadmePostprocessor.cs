@@ -17,7 +17,7 @@ public sealed class FairBuildReadmePostprocessor : IPostprocessBuildWithReport
 
     public void OnPostprocessBuild(BuildReport report)
     {
-        if (report == null)
+        if (report == null || !IsWindowsStandalone(report.summary.platform))
         {
             return;
         }
@@ -41,6 +41,12 @@ public sealed class FairBuildReadmePostprocessor : IPostprocessBuildWithReport
 
         Debug.Log($"[FairBuildReadmePostprocessor] README de servidor generado: {readmePath}");
         Debug.Log($"[FairBuildReadmePostprocessor] Script de reinicio generado: {resetBatchPath}");
+    }
+
+    private static bool IsWindowsStandalone(BuildTarget target)
+    {
+        return target == BuildTarget.StandaloneWindows ||
+            target == BuildTarget.StandaloneWindows64;
     }
 
     private static string ResolveBuildDirectory(string outputPath)
