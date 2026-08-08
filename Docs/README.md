@@ -16,6 +16,7 @@ Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse c
 - [MobilePort.md](MobilePort.md) - contrato, alcance y matriz de validación del port móvil Android.
 - [MobileBaseline.md](MobileBaseline.md) - referencia Windows reproducible anterior a los cambios del port.
 - [AndroidBuild.md](AndroidBuild.md) - generación reproducible, instalación ADB y evidencia del APK Development.
+- [Input.md](Input.md) - acciones semánticas, bindings de escritorio y separación segura entre UI y gameplay touch.
 
 ## Sistemas de juego
 

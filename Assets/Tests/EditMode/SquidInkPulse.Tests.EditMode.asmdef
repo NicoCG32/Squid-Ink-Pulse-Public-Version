@@ -4,6 +4,7 @@
   "references": [
     "SquidInkPulse.Runtime",
     "SquidInkPulse.Mobile.Editor",
+    "Unity.InputSystem",
     "Unity.TextMeshPro"
   ],
   "includePlatforms": [

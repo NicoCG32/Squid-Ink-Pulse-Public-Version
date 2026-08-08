@@ -11,6 +11,7 @@
 
 - `Assets/Implementation/Code/`: código C# organizado por dominio.
 - `Assets/Implementation/Config/`: configuración técnica.
+- `Assets/Implementation/Config/Input/`: asset versionado del Input System con mapas `Gameplay` y `UI`.
 - `Assets/Implementation/Config/Spawning/`: assets `ZoneSpawnProfile` por zona (`ZonaEpipelagicaSpawnProfile`, `ZonaAbisopelagicaSpawnProfile`).
 - `Assets/Implementation/Editor/`: soporte de build final. Actualmente contiene el postprocesador que genera instrucciones y scripts de reinicio para builds de feria.
 - `Assets/Content/Prefabs/`: prefabs runtime.
@@ -25,6 +26,7 @@
 ## Codigo por dominio
 
 - `Assets/Implementation/Code/Core/`: sesión, escenas, cámara y utilidades de mundo.
+- `Assets/Implementation/Code/Input/`: nombres y contrato semántico compartido de acciones; el lector runtime se incorpora de forma incremental.
 - `Assets/Implementation/Code/Audio/`: musica dinamica, crossfade de Ink-Pulse, progresión de pitch del soundtrack y volumen maestro global.
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Player/Profile/`: persistencia JSON local, catalogo de desbloqueables, perfil, records, skins, economia permanente y leaderboard local.
