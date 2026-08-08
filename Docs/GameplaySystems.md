@@ -62,8 +62,10 @@ Responsabilidad:
 - Exponer duracion y tiempo restante para que animaciones puedan ajustarse al estado `Active`.
 
 Input:
-- Click izquierdo o tecla `Space` intentan activar el pulso.
-- Ambos inputs pasan por la misma comprobacion: no activan durante tienda, portal, muerte, Game Over ni antes de `Ready`.
+- `InkPulseController` ya no consulta dispositivos. `InkPulseInputBinding` recibe `Gameplay/ActivateInkPulse`, conserva una solicitud por frame y el controlador llama a `TryActivatePulse()` al comienzo de su `Update`.
+- Los bindings de escritorio siguen siendo click izquierdo y tecla `Space`; ambos producen una solicitud por pulsación y pasan por la misma comprobación de dominio.
+- La solicitud no activa durante tienda, portal, muerte, Game Over ni antes de `Ready`.
+- El binding se dispone usando la referencia exacta del lector suscrito y se reemplaza mediante `GameplayChanged` si se recrea sólo el scope, por lo que no retiene callbacks entre escenas ni queda unido a un lector obsoleto.
 
 Estados:
 - `Idle`

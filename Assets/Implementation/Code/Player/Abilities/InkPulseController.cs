@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DisallowMultipleComponent]
 public class InkPulseController : MonoBehaviour
@@ -20,6 +19,7 @@ public class InkPulseController : MonoBehaviour
     private float pulseTimer;
     private bool runtimeStateRestored;
     private bool activationSuppressed;
+    private InkPulseInputBinding inputBinding;
 
     public float ChargeRate => Mathf.Max(0f, chargeRate + PermanentUpgradeEffectResolver.InkPulseRechargeRateBonus);
     public float PulseDuration => pulseDuration * PermanentUpgradeEffectResolver.InkPulseDurationMultiplier;
@@ -47,10 +47,14 @@ public class InkPulseController : MonoBehaviour
     private void OnEnable()
     {
         RuntimeInkPulseState.Changed += HandleRuntimeInkPulseChanged;
+        SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayInputChanged;
+        HandleGameplayInputChanged(SquidInkPulseInputRuntime.Gameplay);
     }
 
     private void OnDisable()
     {
+        SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayInputChanged;
+        HandleGameplayInputChanged(null);
         RuntimeInkPulseState.Changed -= HandleRuntimeInkPulseChanged;
     }
 
@@ -67,13 +71,18 @@ public class InkPulseController : MonoBehaviour
     private void Update()
     {
         ResolveReferences();
+        bool activationRequested = inputBinding?.TryConsumeActivationRequest() ?? false;
 
         if (!IsGameplayActive())
         {
             return;
         }
 
-        HandleActivationInput();
+        if (activationRequested)
+        {
+            TryActivatePulse();
+        }
+
         UpdatePulseTimer();
     }
 
@@ -144,14 +153,14 @@ public class InkPulseController : MonoBehaviour
         activationSuppressed = suppressed;
     }
 
-    private void HandleActivationInput()
+    private void HandleGameplayInputChanged(SquidInkPulseGameplayInputReader inputReader)
     {
-        bool mousePressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
-        bool spacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        inputBinding?.Dispose();
+        inputBinding = null;
 
-        if (mousePressed || spacePressed)
+        if (inputReader != null)
         {
-            TryActivatePulse();
+            inputBinding = new InkPulseInputBinding(inputReader);
         }
     }
 

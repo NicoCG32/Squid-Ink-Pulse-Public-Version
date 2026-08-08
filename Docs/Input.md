@@ -10,7 +10,7 @@ El wrapper C# automático del Input System permanece deshabilitado. Los consumid
 
 `SquidInkPulseGameplayInputReader` ya es la frontera única entre el Input System y el dominio. `SquidInkPulseInputRuntime` apaga el asset project-wide antes de la primera escena; `SquidInkPulseGameplayInputScope`, incorporado al prefab del jugador, crea y habilita el lector sólo mientras existe gameplay. El lector expone la posición continua, solicitudes discretas y el esquema de control vigente sin referenciar controladores concretos.
 
-`PlayerMovement` ya consume la posición semántica del lector. `InkPulseController`, pausa e inventario todavía leen mouse o teclado directamente y se migrarán en cortes posteriores. El binding de movimiento continúa siendo `<Mouse>/position`, por lo que este corte conserva el comportamiento Windows pero todavía no hace operativo el gameplay mediante touch.
+`PlayerMovement` ya consume la posición semántica del lector e `InkPulseController` consume `InkPulseRequested`. Pausa e inventario todavía leen teclado directamente y se migrarán en cortes posteriores. Los bindings continúan siendo mouse/teclado, por lo que estos cortes conservan el comportamiento Windows pero todavía no hacen operativo el gameplay mediante touch.
 
 Los `InputSystemUIInputModule` canónicos continúan usando las acciones UI predeterminadas del paquete de Unity. El mapa `UI` versionado conserva los mismos nombres, tipos y controles requeridos para permitir una migración atómica posterior. Unity habilita automáticamente todo asset configurado como project-wide al entrar en Play Mode; el bootstrap corrige ese estado mediante `InputActionAsset.Disable()` y cada scope habilita exclusivamente `Gameplay`, evitando una segunda copia activa de `UI`.
 
@@ -26,6 +26,8 @@ Los comandos discretos se entregan inmediatamente mediante:
 - `GadgetSlot2Requested`.
 
 Cada solicitud se emite sólo durante la fase `performed`; mantener o liberar un botón no repite el comando. El lector no conserva flags ni colas de comandos discretos: deshabilitarlo desuscribe el mapa y limpia posición y esquema. Al habilitar un ciclo nuevo fija una barrera temporal y rechaza eventos encolados antes o durante esa transición. Destruir el prefab del jugador dispone el lector y libera sus suscriptores, de modo que una solicitud de una escena no se reproduzca en la siguiente.
+
+`InkPulseInputBinding` recibe `InkPulseRequested`, conserva como máximo una solicitud pendiente y la entrega al siguiente `InkPulseController.Update`, donde se llama a `TryActivatePulse()`. Esto preserva el orden del polling original y combina click+`Space` simultáneos en un único intento. La clase conserva la referencia exacta al lector al que se suscribió y la libera de forma idempotente. `SquidInkPulseInputRuntime.GameplayChanged` permite reemplazar el binding si el scope se recrea mientras el controlador sigue habilitado. Las reglas de sesión, carga, pulso activo, tienda y transición de portal permanecen en `InkPulseActivationPolicy` y en el controlador; el lector sólo solicita la acción.
 
 `CurrentControlScheme` y `ControlSchemeChanged` centralizan el dispositivo activo. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Así `Keyboard&Mouse`, `Gamepad` y el futuro input Touch no requieren condicionales repartidos por controladores.
 
@@ -81,6 +83,7 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 - actualización y limpieza de la posición continua;
 - estado inicial, reactivación, desconexión y reconexión del mouse, incluida la coordenada `(0,0)`;
 - una sola solicitud por pulsación para los cuatro comandos discretos;
+- coalescencia por frame de click izquierdo y `Space`, desuscripción idempotente y recreación notificada del scope;
 - cambio centralizado de `Keyboard&Mouse` a `Gamepad`;
 - descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update.
 

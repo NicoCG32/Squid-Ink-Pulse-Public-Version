@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public static class SquidInkPulseInputRuntime
 {
     public static SquidInkPulseGameplayInputReader Gameplay { get; private set; }
+    public static event Action<SquidInkPulseGameplayInputReader> GameplayChanged;
 
     private static UnityEngine.Object gameplayOwner;
 
@@ -14,6 +15,7 @@ public static class SquidInkPulseInputRuntime
         Gameplay?.Dispose();
         Gameplay = null;
         gameplayOwner = null;
+        GameplayChanged = null;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -65,7 +67,10 @@ public static class SquidInkPulseInputRuntime
             Gameplay = null;
             gameplayOwner = null;
             Debug.LogException(exception);
+            return;
         }
+
+        GameplayChanged?.Invoke(Gameplay);
     }
 
     internal static void DeactivateGameplayScope(UnityEngine.Object owner)
@@ -75,8 +80,10 @@ public static class SquidInkPulseInputRuntime
             return;
         }
 
-        Gameplay?.Dispose();
+        SquidInkPulseGameplayInputReader previousGameplay = Gameplay;
         Gameplay = null;
         gameplayOwner = null;
+        previousGameplay?.Dispose();
+        GameplayChanged?.Invoke(null);
     }
 }

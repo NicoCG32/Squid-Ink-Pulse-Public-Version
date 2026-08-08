@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -176,6 +177,87 @@ namespace SquidInkPulse.Tests.EditMode
         }
 
         [Test]
+        public void InkPulseInputBinding_CoalescesRequestsPerFrame_AndUnsubscribesIdempotently()
+        {
+            var binding = new InkPulseInputBinding(reader);
+
+            try
+            {
+                reader.Enable();
+                AdvanceInputTime();
+                Press(mouse.leftButton);
+                Press(keyboard.spaceKey);
+                Assert.That(binding.TryConsumeActivationRequest(), Is.True);
+                Assert.That(binding.TryConsumeActivationRequest(), Is.False);
+                Release(mouse.leftButton);
+                Release(keyboard.spaceKey);
+
+                AdvanceInputTime();
+                Press(keyboard.spaceKey);
+                Assert.That(binding.TryConsumeActivationRequest(), Is.True);
+                Release(keyboard.spaceKey);
+
+                binding.Dispose();
+                binding.Dispose();
+                Press(keyboard.spaceKey);
+                Release(keyboard.spaceKey);
+                Assert.That(binding.TryConsumeActivationRequest(), Is.False);
+            }
+            finally
+            {
+                binding.Dispose();
+            }
+        }
+
+        [Test]
+        public void GameplayRuntime_RecreatesReaderAndNotifiesWhenScopeToggles()
+        {
+            var observedReaders = new List<SquidInkPulseGameplayInputReader>();
+            void HandleGameplayChanged(SquidInkPulseGameplayInputReader changedReader) =>
+                observedReaders.Add(changedReader);
+
+            InputActionAsset previousProjectWideActions = InputSystem.actions;
+            InputSystem.actions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsAssetPath);
+            SquidInkPulseInputRuntime.GameplayChanged += HandleGameplayChanged;
+            var root = new GameObject("GameplayInputScopeLifecycleTest");
+
+            try
+            {
+                SquidInkPulseGameplayInputScope scope =
+                    root.AddComponent<SquidInkPulseGameplayInputScope>();
+                InvokeScopeLifecycle(scope, "OnEnable");
+                SquidInkPulseGameplayInputReader firstReader = SquidInkPulseInputRuntime.Gameplay;
+
+                Assert.That(firstReader, Is.Not.Null);
+                InvokeScopeLifecycle(scope, "OnDisable");
+                Assert.That(SquidInkPulseInputRuntime.Gameplay, Is.Null);
+
+                InvokeScopeLifecycle(scope, "OnEnable");
+                SquidInkPulseGameplayInputReader secondReader = SquidInkPulseInputRuntime.Gameplay;
+
+                Assert.That(secondReader, Is.Not.Null);
+                Assert.That(secondReader, Is.Not.SameAs(firstReader));
+                Assert.That(observedReaders, Has.Count.EqualTo(3));
+                Assert.That(observedReaders[0], Is.SameAs(firstReader));
+                Assert.That(observedReaders[1], Is.Null);
+                Assert.That(observedReaders[2], Is.SameAs(secondReader));
+            }
+            finally
+            {
+                if (SquidInkPulseInputRuntime.Gameplay != null)
+                {
+                    InvokeScopeLifecycle(
+                        root.GetComponent<SquidInkPulseGameplayInputScope>(),
+                        "OnDisable");
+                }
+
+                UnityEngine.Object.DestroyImmediate(root);
+                SquidInkPulseInputRuntime.GameplayChanged -= HandleGameplayChanged;
+                InputSystem.actions = previousProjectWideActions;
+            }
+        }
+
+        [Test]
         public void ControlScheme_ChangesOnlyWhenPerformedDeviceSchemeChanges()
         {
             InputAction activateInkPulse = FindMap(SquidInkPulseInputContract.GameplayMap).FindAction(
@@ -243,6 +325,17 @@ namespace SquidInkPulse.Tests.EditMode
         private InputActionMap FindMap(string mapName)
         {
             return inputActions.FindActionMap(mapName, throwIfNotFound: true);
+        }
+
+        private static void InvokeScopeLifecycle(
+            SquidInkPulseGameplayInputScope scope,
+            string methodName)
+        {
+            MethodInfo lifecycleMethod = typeof(SquidInkPulseGameplayInputScope).GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(lifecycleMethod, Is.Not.Null);
+            lifecycleMethod.Invoke(scope, null);
         }
 
         private void AssertSingleEventPerPress(ButtonControl button, Action<Action> subscribe)
