@@ -5,6 +5,7 @@
     "SquidInkPulse.Runtime",
     "SquidInkPulse.Mobile.Editor",
     "Unity.InputSystem",
+    "Unity.InputSystem.TestFramework",
     "Unity.TextMeshPro"
   ],
   "includePlatforms": [

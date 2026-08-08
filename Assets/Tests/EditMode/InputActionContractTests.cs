@@ -188,6 +188,10 @@ namespace SquidInkPulse.Tests.EditMode
 
             Assert.That(action.type, Is.EqualTo(type), actionName);
             Assert.That(action.expectedControlType, Is.EqualTo(expectedControlType), actionName);
+            if (type == InputActionType.Button)
+            {
+                Assert.That(action.wantsInitialStateCheck, Is.False, actionName);
+            }
             Assert.That(
                 action.bindings.Select(binding => binding.path),
                 Is.EquivalentTo(expectedPaths),

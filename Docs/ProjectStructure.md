@@ -26,7 +26,7 @@
 ## Codigo por dominio
 
 - `Assets/Implementation/Code/Core/`: sesión, escenas, cámara y utilidades de mundo.
-- `Assets/Implementation/Code/Input/`: nombres y contrato semántico compartido de acciones; el lector runtime se incorpora de forma incremental.
+- `Assets/Implementation/Code/Input/`: contrato semántico, lector runtime único y bootstrap project-wide de entrada.
 - `Assets/Implementation/Code/Audio/`: musica dinamica, crossfade de Ink-Pulse, progresión de pitch del soundtrack y volumen maestro global.
 - `Assets/Implementation/Code/Player/`: movimiento, Ink-Pulse, interacciones e inventario.
 - `Assets/Implementation/Code/Player/Profile/`: persistencia JSON local, catalogo de desbloqueables, perfil, records, skins, economia permanente y leaderboard local.

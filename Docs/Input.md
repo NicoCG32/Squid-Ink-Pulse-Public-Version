@@ -8,9 +8,24 @@ El wrapper C# automático del Input System permanece deshabilitado. Los consumid
 
 ## Estado actual
 
-El asset ya define el mapa semántico y sus bindings de escritorio, pero los controladores de gameplay todavía leen mouse o teclado directamente. La migración de `PlayerMovement`, `InkPulseController`, pausa e inventario se realizará mediante un lector único en cortes posteriores. Por tanto, este contrato no implica todavía gameplay operativo mediante touch.
+`SquidInkPulseGameplayInputReader` ya es la frontera única entre el Input System y el dominio. `SquidInkPulseInputRuntime` apaga el asset project-wide antes de la primera escena; `SquidInkPulseGameplayInputScope`, incorporado al prefab del jugador, crea y habilita el lector sólo mientras existe gameplay. El lector expone la posición continua, solicitudes discretas y el esquema de control vigente sin referenciar movimiento, habilidades, pausa ni inventario.
 
-Los `InputSystemUIInputModule` canónicos continúan usando las acciones UI predeterminadas del paquete de Unity. El mapa `UI` versionado conserva los mismos nombres, tipos y controles requeridos para permitir una migración atómica posterior. Mientras ambos existan, el futuro lector de gameplay debe habilitar sólo `Gameplay`; no debe activar una segunda copia de `UI`.
+Los controladores de gameplay todavía leen mouse o teclado directamente; su migración se realizará en cortes posteriores. Por tanto, incorporar el lector conserva el comportamiento Windows actual y todavía no hace operativo el gameplay mediante touch.
+
+Los `InputSystemUIInputModule` canónicos continúan usando las acciones UI predeterminadas del paquete de Unity. El mapa `UI` versionado conserva los mismos nombres, tipos y controles requeridos para permitir una migración atómica posterior. Unity habilita automáticamente todo asset configurado como project-wide al entrar en Play Mode; el bootstrap corrige ese estado mediante `InputActionAsset.Disable()` y cada scope habilita exclusivamente `Gameplay`, evitando una segunda copia activa de `UI`.
+
+## API del lector
+
+El estado continuo se consulta mediante `SteerPosition`. Los comandos discretos se entregan inmediatamente mediante:
+
+- `InkPulseRequested`;
+- `PauseToggleRequested`;
+- `GadgetSlot1Requested`;
+- `GadgetSlot2Requested`.
+
+Cada solicitud se emite sólo durante la fase `performed`; mantener o liberar un botón no repite el comando. El lector no conserva flags ni colas de comandos discretos: deshabilitarlo desuscribe el mapa y limpia posición y esquema. Al habilitar un ciclo nuevo fija una barrera temporal y rechaza eventos encolados antes o durante esa transición. Destruir el prefab del jugador dispone el lector y libera sus suscriptores, de modo que una solicitud de una escena no se reproduzca en la siguiente.
+
+`CurrentControlScheme` y `ControlSchemeChanged` centralizan el dispositivo activo. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Así `Keyboard&Mouse`, `Gamepad` y el futuro input Touch no requieren condicionales repartidos por controladores.
 
 ## Mapa `Gameplay`
 
@@ -57,4 +72,13 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 - tipos requeridos por `InputSystemUIInputModule`;
 - unicidad de IDs de mapas, acciones y bindings.
 
-Las pruebas con dispositivos simulados, consumo único, habilitación/deshabilitación de mapas y cambio de esquema pertenecen al lector runtime. La sensación de control y el multitouch final se validan además en hardware real.
+`GameplayInputReaderTests` clona el asset y aísla el Input System mediante dispositivos simulados. Comprueba:
+
+- normalización desde el autoarranque project-wide a sólo `Gameplay`;
+- habilitación y deshabilitación idempotentes;
+- actualización y limpieza de la posición continua;
+- una sola solicitud por pulsación para los cuatro comandos discretos;
+- cambio centralizado de `Keyboard&Mouse` a `Gamepad`;
+- descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update.
+
+La sensación de control, las regiones touch explícitas y el multitouch final se validan además en hardware real.

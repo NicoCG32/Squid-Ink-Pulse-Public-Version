@@ -17,7 +17,7 @@ Responsabilidad:
 - Cambiar velocidad y tilt durante Ink-Pulse.
 - Opcionalmente elegir una Y inicial aleatoria dentro de `PlayerBoundaries`.
 
-El contrato semántico `Gameplay/SteerPosition` ya está definido en [Input.md](Input.md), pero `PlayerMovement` conserva temporalmente la lectura directa del mouse hasta que el lector runtime asuma la conversión y sus reglas de prioridad. Definir la acción no altera todavía el control Windows.
+El contrato semántico `Gameplay/SteerPosition` y el lector runtime único ya están definidos en [Input.md](Input.md), pero `PlayerMovement` conserva temporalmente la lectura directa del mouse hasta su migración. Incorporar el lector no altera todavía el control Windows.
 
 Contrato de límites:
 - No usa `minY` ni `maxY` serializados.

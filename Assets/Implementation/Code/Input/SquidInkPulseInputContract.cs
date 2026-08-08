@@ -29,6 +29,7 @@ public static class SquidInkPulseInputContract
     public static class ControlSchemes
     {
         public const string KeyboardAndMouse = "Keyboard&Mouse";
+        public const string Gamepad = "Gamepad";
         public const string Touch = "Touch";
     }
 }

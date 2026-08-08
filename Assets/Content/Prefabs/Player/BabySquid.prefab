@@ -52,6 +52,7 @@ GameObject:
   - component: {fileID: 91848125989527962}
   - component: {fileID: 2064638859687598346}
   - component: {fileID: 9205342505854168325}
+  - component: {fileID: 7042969131374226257}
   m_Layer: 6
   m_Name: BabySquid
   m_TagString: Player
@@ -59,6 +60,18 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &7042969131374226257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359294933100634562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c15793fc5e1e4b82aa796f9c86c01e04, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SquidInkPulseGameplayInputScope
 --- !u!4 &2029474209125323509
 Transform:
   m_ObjectHideFlags: 0
