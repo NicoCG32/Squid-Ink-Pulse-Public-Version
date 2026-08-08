@@ -2,6 +2,7 @@ using System;
 
 public enum SquidInkPulseGameplayCommand
 {
+    ActivateInkPulse,
     TogglePause,
     UseGadgetSlot1,
     UseGadgetSlot2,
@@ -52,6 +53,9 @@ public sealed class GameplayCommandInputBinding : IDisposable
     {
         switch (command)
         {
+            case SquidInkPulseGameplayCommand.ActivateInkPulse:
+                inputReader.InkPulseRequested += HandleRequested;
+                break;
             case SquidInkPulseGameplayCommand.TogglePause:
                 inputReader.PauseToggleRequested += HandleRequested;
                 break;
@@ -73,6 +77,9 @@ public sealed class GameplayCommandInputBinding : IDisposable
     {
         switch (command)
         {
+            case SquidInkPulseGameplayCommand.ActivateInkPulse:
+                inputReader.InkPulseRequested -= HandleRequested;
+                break;
             case SquidInkPulseGameplayCommand.TogglePause:
                 inputReader.PauseToggleRequested -= HandleRequested;
                 break;

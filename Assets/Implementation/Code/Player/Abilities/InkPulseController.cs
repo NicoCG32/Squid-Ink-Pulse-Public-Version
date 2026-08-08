@@ -29,6 +29,7 @@ public class InkPulseController : MonoBehaviour
     public float PulseVisualRatio => IsPulseActive ? CalculatePulseVisualRatio() : ChargeRatio;
     public bool IsCharged => currentCharge >= maxCharge;
     public bool IsPulseActive { get; private set; }
+    public bool IsActivationSuppressed => activationSuppressed;
     public InkPulseState CurrentState { get; private set; } = InkPulseState.Idle;
     public InkPulseState CurrentChargeState => CurrentState;
 

@@ -947,6 +947,52 @@ namespace SquidInkPulse.Tests.EditMode
             Assert.That(scopes[0].gameObject, Is.SameAs(playerPrefab));
         }
 
+        [Test]
+        public void TouchCommands_EmitOnlyTheirSemanticRequest_AndMarkTouchScheme()
+        {
+            int inkPulseRequests = 0;
+            int pauseRequests = 0;
+            int slot1Requests = 0;
+            int slot2Requests = 0;
+            reader.InkPulseRequested += () => inkPulseRequests++;
+            reader.PauseToggleRequested += () => pauseRequests++;
+            reader.GadgetSlot1Requested += () => slot1Requests++;
+            reader.GadgetSlot2Requested += () => slot2Requests++;
+
+            Assert.That(
+                reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.ActivateInkPulse),
+                Is.False);
+            reader.Enable();
+
+            Assert.That(
+                reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.ActivateInkPulse),
+                Is.True);
+            Assert.That((inkPulseRequests, pauseRequests, slot1Requests, slot2Requests),
+                Is.EqualTo((1, 0, 0, 0)));
+
+            reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.TogglePause);
+            Assert.That((inkPulseRequests, pauseRequests, slot1Requests, slot2Requests),
+                Is.EqualTo((1, 1, 0, 0)));
+
+            reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.UseGadgetSlot1);
+            Assert.That((inkPulseRequests, pauseRequests, slot1Requests, slot2Requests),
+                Is.EqualTo((1, 1, 1, 0)));
+
+            reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.UseGadgetSlot2);
+            Assert.That((inkPulseRequests, pauseRequests, slot1Requests, slot2Requests),
+                Is.EqualTo((1, 1, 1, 1)));
+            Assert.That(
+                reader.CurrentControlScheme,
+                Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.Touch));
+
+            reader.Disable();
+            Assert.That(
+                reader.TryRequestTouchCommand(SquidInkPulseGameplayCommand.TogglePause),
+                Is.False);
+            Assert.That((inkPulseRequests, pauseRequests, slot1Requests, slot2Requests),
+                Is.EqualTo((1, 1, 1, 1)));
+        }
+
         private InputActionMap FindMap(string mapName)
         {
             return inputActions.FindActionMap(mapName, throwIfNotFound: true);

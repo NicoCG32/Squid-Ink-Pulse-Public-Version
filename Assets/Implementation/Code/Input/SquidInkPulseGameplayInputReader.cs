@@ -186,6 +186,38 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         return true;
     }
 
+    public bool TryRequestTouchCommand(SquidInkPulseGameplayCommand command)
+    {
+        if (!IsEnabled)
+        {
+            return false;
+        }
+
+        UpdateLogicalControlScheme(SquidInkPulseInputContract.ControlSchemes.Touch);
+        switch (command)
+        {
+            case SquidInkPulseGameplayCommand.ActivateInkPulse:
+                InkPulseRequested?.Invoke();
+                break;
+            case SquidInkPulseGameplayCommand.TogglePause:
+                PauseToggleRequested?.Invoke();
+                break;
+            case SquidInkPulseGameplayCommand.UseGadgetSlot1:
+                GadgetSlot1Requested?.Invoke();
+                break;
+            case SquidInkPulseGameplayCommand.UseGadgetSlot2:
+                GadgetSlot2Requested?.Invoke();
+                break;
+            case SquidInkPulseGameplayCommand.BuyShopOffer:
+                ShopPurchaseRequested?.Invoke();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(command), command, null);
+        }
+
+        return true;
+    }
+
     private InputAction FindGameplayAction(string actionName)
     {
         return gameplay.FindAction(actionName, throwIfNotFound: true);

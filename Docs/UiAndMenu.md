@@ -40,6 +40,10 @@ Archivos:
 - `Assets/Implementation/Code/UI/Touch/TouchSteeringCaptureState.cs`
 - `Assets/Implementation/Code/UI/Touch/TouchSteeringAvailabilityPolicy.cs`
 - `Assets/Implementation/Code/UI/Touch/TouchSteeringUiPolicy.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchGameplayCommandButton.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchGameplayControlsController.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchGameplayControlsPolicy.cs`
+- `Assets/Content/Prefabs/UI/Touch/TouchControls.prefab`
 
 La política muestra la futura capa de controles en Android y la oculta en players desktop o plataformas aún fuera del port. El override `showInEditor` es serializado por instancia, está apagado por defecto y sólo tiene efecto en Windows, macOS o Linux Editor; no usa `EditorPrefs`, `PlayerPrefs`, símbolos de compilación ni detección de hardware touch.
 
@@ -47,7 +51,9 @@ El controller debe vivir en un objeto padre activo y gobernar un root descendien
 
 `TouchSteeringSurface` define ya la región de movimiento sin consultar `Touchscreen.current` ni añadir bindings globales. Sólo acepta pointer Touch del módulo UI, conserva un único dueño, ignora Down sobre controles interactivos y cancela ante sesión no jugable, tienda, overlay, pérdida de foco o lifecycle del lector. Un overlay que no pause ni cambie sesión/tienda debe llamar `SetOverlayInteractionAllowed(false)` antes de interceptar raycasts.
 
-Todavía no existe prefab ni integración con `GameUIRoot`. Al componerlo se reutilizan Canvas, `GraphicRaycaster` y EventSystem existentes: la `Image` transparente full-stretch debe quedar por encima de gráficos decorativos que aún reciben raycast, pero por debajo de botones y overlays. El routing real y el orden de raycast se validan al montar los controles; los botones, layout y referencias de escena siguen pendientes.
+`TouchControls.prefab` ya compone la superficie full-stretch y cuatro botones accesibles de 160 a 240 unidades de Canvas. La superficie es el primer sibling; los hit targets de pausa, Ink-Pulse y gadgets quedan encima, mientras textos y estados visuales no reciben raycast. El prefab no posee Canvas, `GraphicRaycaster`, EventSystem ni Collider. Cada botón muestra una etiqueta de estado explícita y sólo uno de sus pointers puede despachar al lector semántico.
+
+El prefab todavía no está integrado en `GameUIRoot` en este corte. Al montarlo se reutilizan Canvas, `GraphicRaycaster` y EventSystem existentes y se debe conservar la precedencia de pausa, Game Over, tienda y comics. El routing real del módulo UI con multitouch y la validación física quedan para Play Mode y hardware.
 
 ## Menú principal
 

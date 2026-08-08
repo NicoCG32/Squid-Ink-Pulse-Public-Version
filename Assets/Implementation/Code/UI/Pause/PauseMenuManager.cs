@@ -37,6 +37,11 @@ public class PauseMenuManager : MonoBehaviour
     private Vector2[] originalPositions = new Vector2[0];
     private GameplayCommandInputBinding pauseInputBinding;
 
+    public bool CanTogglePauseNow => PauseMenuCommandPolicy.ResolveToggle(
+        session != null ? (GameSessionState?)session.CurrentState : null,
+        menuRoot != null,
+        isAnimating) != PauseMenuCommandAction.None;
+
     private void Awake()
     {
         ResolveUiReferences();
