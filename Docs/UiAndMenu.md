@@ -31,6 +31,16 @@ Prefabs UI:
 - Si el destino vive dentro del mismo prefab, un `OnClick` persistente es valido y auditable.
 - Si el destino vive en escena, la conexión debe quedar visible por Inspector o como referencia serializada del manager; cualquier cableado runtime debe ser respaldo defensivo documentado, no el contrato principal.
 
+## Visibilidad de controles touch
+
+Archivos:
+- `Assets/Implementation/Code/UI/Touch/TouchControlsVisibilityPolicy.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchControlsVisibilityController.cs`
+
+La política muestra la futura capa de controles en Android y la oculta en players desktop o plataformas aún fuera del port. El override `showInEditor` es serializado por instancia, está apagado por defecto y sólo tiene efecto en Windows, macOS o Linux Editor; no usa `EditorPrefs`, `PlayerPrefs`, símbolos de compilación ni detección de hardware touch.
+
+El controller debe vivir en un objeto padre activo y gobernar un root descendiente distinto. Rechaza referencias al propio owner, a sus ancestros o a objetos ajenos; recalcula en `OnEnable` para restaurar la decisión al reactivar el owner. En este corte no existe aún un prefab de controles ni integración con `GameUIRoot`: superficie, botones, layout y cableado pertenecen a los cortes touch posteriores.
+
 ## Menú principal
 
 Archivo: `Assets/Implementation/Code/MainMenu/MainMenu.cs`

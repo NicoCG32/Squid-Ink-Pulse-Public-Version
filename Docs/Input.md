@@ -65,6 +65,12 @@ La superficie de movimiento y los botones de Ink-Pulse, pausa y gadgets deberán
 
 Esta exclusión es hoy absoluta para Touch porque `Gameplay` no tiene bindings touchscreen. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. La exclusión integral de los futuros controles touch se valida cuando existan esas regiones explícitas.
 
+## Visibilidad de controles touch
+
+`TouchControlsVisibilityPolicy` decide si la futura capa de controles debe mostrarse sin consultar dispositivos ni usar símbolos de preprocesador. El player Android la muestra; los players desktop y las plataformas aún fuera del port la ocultan incluso si quedó serializado el override de desarrollo. Dentro de Windows, macOS o Linux Editor permanece oculta por defecto y cada instancia puede activar `showInEditor` para previsualizarla sin generar un APK.
+
+`TouchControlsVisibilityController` aplica esa decisión a un root descendiente distinto y la recalcula en `OnEnable`, por lo que el objeto que gobierna la visibilidad no se desactiva a sí mismo ni puede apagar una UI ajena. El componente todavía no está montado en escenas ni prefabs: este corte no crea superficie de movimiento, botones, bindings touchscreen de gameplay ni soporte multitouch. Esas responsabilidades comienzan en los controles touch posteriores.
+
 ## Compatibilidad de interfaz
 
 El mapa `UI` conserva estas acciones requeridas por `InputSystemUIInputModule`:
