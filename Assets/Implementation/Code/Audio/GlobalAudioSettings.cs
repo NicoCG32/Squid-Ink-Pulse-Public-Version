@@ -35,7 +35,7 @@ public static class GlobalAudioSettings
         if (save)
         {
             PlayerPrefs.SetFloat(VolumePrefsKey, normalizedVolume);
-            PlayerPrefs.Save();
+            PlayerPreferencesCheckpoint.CommitChanges();
         }
 
         MasterVolumeChanged?.Invoke(normalizedVolume);

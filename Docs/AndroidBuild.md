@@ -190,6 +190,16 @@ La corrección:
 
 La actualización se instaló con `adb install -r` sobre los PlayerPrefs defectuosos. Tras abrirla, los valores internos de Unity cambiaron de `1220x2712`/`ExclusiveFullScreen` a `2712x1220`/`FullScreenWindow`. La captura final ocupa toda la pantalla sin las bandas observadas, `Opciones` abre y regresa mediante touch físico, el proceso permanece activo y logcat filtrado no registra errores Unity ni AndroidRuntime. La suite EditMode aprobó `154/154`, la composición canónica de escenas fue válida y el smoke Windows a 1280x720 permaneció receptivo sin excepciones compartidas.
 
+### Checkpoint de preferencias al abandonar primer plano
+
+La persistencia permanente JSON ya escribe de forma inmediata y atómica; por ello el checkpoint de ciclo de vida no vuelve a serializar perfil, records, catálogo ni leaderboard, y tampoco captura estado transitorio de una run. Las preferencias conocidas conservan su confirmación inmediata y cualquier cambio que permanezca pendiente se vacía una sola vez al recibir pausa o pérdida de foco en un player móvil.
+
+La APK actualizada se instaló sobre los datos existentes y se comprobó en el mismo POCO X6 5G con este recorrido: modificar el volumen, volver a `MainMenu`, enviar la aplicación a segundo plano, terminar el proceso y reabrirla. `MasterVolume` reapareció con el valor modificado (`0.3565277`); `player-profile.json`, `player-records.json` y `unlockables-catalog.json` conservaron sus SHA-256 previos, mientras `local-leaderboard.json` siguió ausente por su creación diferida. El proceso y la actividad regresaron al primer plano y logcat filtrado registró cero errores `Unity:E` y `AndroidRuntime:E`.
+
+La validación complementaria aprobó `159/159` pruebas EditMode, auditor Android con `0` errores, `0` advertencias y `10` datos, composición canónica válida y APK de 514.213.206 bytes. El build Windows compartido permaneció receptivo a 1280x720 y no registró excepciones.
+
 ## Criterio de cierre
 
-La puerta de `mobile/01-android-bootstrap` está satisfecha: el APK reproducible se instaló y abrió `MainMenu` dos veces en Android sin crash bloqueante. El defecto puntual de resolución y encuadre observado durante ese bootstrap también está corregido y validado. Esto no acepta todavía gameplay mediante touch, adaptación integral de opciones y safe area, ciclo de vida, aislamiento de feria ni rendimiento sostenido; esas puertas pertenecen a las ramas posteriores del port.
+La puerta de `mobile/01-android-bootstrap` está satisfecha: el APK reproducible se instaló y abrió `MainMenu` dos veces en Android sin crash bloqueante. El defecto puntual de resolución y encuadre observado durante ese bootstrap también está corregido y validado.
+
+La puerta de `mobile/02-mobile-persistence` también está satisfecha: instalación limpia, actualización sobre datos existentes, recuperación/migración y suspensión con reapertura conservan el contrato local. Esto no acepta todavía gameplay mediante touch, adaptación integral de opciones y safe area, comportamiento completo de Back/reanudación, aislamiento de feria ni rendimiento sostenido; esas puertas pertenecen a las ramas posteriores del port.

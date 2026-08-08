@@ -58,7 +58,7 @@ public static class FairModeSettings
     public static void SaveServerBaseUrl(string serverBaseUrl)
     {
         PlayerPrefs.SetString(ServerBaseUrlPrefsKey, NormalizeBaseUrl(serverBaseUrl));
-        PlayerPrefs.Save();
+        PlayerPreferencesCheckpoint.CommitChanges();
     }
 
     private static string NormalizeBaseUrl(string value)

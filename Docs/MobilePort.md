@@ -8,7 +8,7 @@ El primer objetivo de plataforma es Android. iOS queda como una extensión poste
 
 ## Estado
 
-La iniciativa completó contrato, baseline, bootstrap Android, empaquetado inicial de persistencia y cobertura de migración/corrupción. El defecto que comprimía `MainMenu` por aplicar una resolución portrait de escritorio en Android quedó corregido y validado en un POCO X6 5G: el menú ocupa el frame landscape completo, `Opciones` abre y regresa mediante touch y Windows conserva su comportamiento. Todavía no existe una build móvil aceptada del producto: persiste el probe de feria a `localhost:8080`, y aún faltan gameplay touch, adaptación integral de opciones y safe area, ciclo de vida y rendimiento. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
+La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. En un POCO X6 5G se validaron actualización sobre datos existentes, suspensión, cierre forzado y reapertura sin perder la opción modificada ni alterar los JSON permanentes. El defecto que comprimía `MainMenu` por aplicar una resolución portrait de escritorio también quedó corregido; el menú ocupa el frame landscape completo, `Opciones` abre y regresa mediante touch y Windows conserva su comportamiento. Todavía no existe una build móvil aceptada del producto: persiste el probe de feria a `localhost:8080`, y aún faltan gameplay touch, adaptación integral de opciones y safe area, el resto del ciclo de vida y rendimiento. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
 
 ## Alcance del primer port
 
@@ -204,7 +204,7 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 | --- | --- | --- | --- | --- | --- | --- |
 | Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente; bootstrap cubierto en teléfono | Obligatorio antes de candidata final |
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
-| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia inicial y encuadre de `MainMenu` aprobados; gameplay touch y run pendientes | Obligatorio; validación final pendiente |
+| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia móvil, suspensión/reapertura y encuadre de `MainMenu` aprobados; gameplay touch y run pendientes | Obligatorio; validación final pendiente |
 | PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.

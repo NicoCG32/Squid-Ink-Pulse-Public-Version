@@ -49,6 +49,7 @@ Responsabilidad:
 Archivos:
 - `Assets/Implementation/Code/UI/Options/OptionsMenuManager.cs`
 - `Assets/Implementation/Code/Audio/GlobalAudioSettings.cs`
+- `Assets/Implementation/Code/Core/Lifecycle/MobilePersistenceCheckpoint.cs`
 
 Prefab de vista:
 - `Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab`
@@ -73,6 +74,8 @@ Reglas:
 - `GlobalAudioSettings` aplica el volumen guardado antes de cargar escena mediante `AudioListener.volume`; por eso el control afecta audio con mixer y audio sin mixer.
 - Si existe un `AudioMixer` con parametro expuesto, `OptionsMenuManager` tambien sincroniza ese parametro para conservar compatibilidad con mezclas futuras.
 - El slider de volumen guarda `MasterVolume` en `PlayerPrefs`. No debe escribir en `player-profile.json`, `player-records.json` ni `local-leaderboard.json`.
+- Las escrituras conocidas de volumen, URL de feria y opciones de escritorio se confirman inmediatamente mediante `PlayerPreferencesCheckpoint`. Cualquier preferencia que permanezca pendiente se vacía una sola vez cuando el player móvil entra en pausa o pierde el foco.
+- El checkpoint de `PlayerPrefs` no serializa estado transitorio de una run ni vuelve a guardar la base JSON: sus repositorios conservan su política de escritura inmediata y atómica.
 
 ## Pausa
 
