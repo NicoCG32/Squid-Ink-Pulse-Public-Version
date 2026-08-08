@@ -66,7 +66,7 @@ BabySquid
 ```
 
 Reglas:
-- El prefab conserva componentes internos del jugador: `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController`, `Rigidbody2D`, `CircleCollider2D`, `GrazeDetector` y visuales.
+- El prefab conserva componentes internos del jugador: `SquidInkPulseGameplayInputScope`, `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController`, `Rigidbody2D`, `CircleCollider2D`, `GrazeDetector` y visuales.
 - El prefab base no serializa referencias a `GameSession`, cámara, HUD, progression director ni boundaries.
 - Cada instancia de escena llamada `Squid` debe tener asignadas en Inspector sus referencias externas: `GameSession`, `RunProgressionDirector`, `Main Camera` y `ChargeBar`.
 - Los componentes conservan resolucion runtime como respaldo defensivo, no como fuente primaria de cableado.
@@ -156,7 +156,7 @@ La entrega conserva estos puntos en las dos escenas jugables: prefabs obligatori
 | `PlayerBoundaries` | hijos con `Collider2D` | Limites verticales del jugador. |
 | `CameraBoundaries` | hijos con `Collider2D` | Limites verticales de cámara. |
 | `GameUIRoot` | `GameUIRoot` | Contrato de composicion de UI jugable: referencia EventSystem, HUD, vistas prefab y managers, sin gobernar estados ni gameplay. |
-| `Squid` | Instancia de `BabySquid.prefab`; `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController` | Control completo del jugador sin copia manual por escena. |
+| `Squid` | Instancia de `BabySquid.prefab`; `SquidInkPulseGameplayInputScope`, `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController` | Control completo del jugador sin copia manual por escena. |
 | `GrazeZone` | `GrazeDetector` | Carga de Ink-Pulse por proximidad a amenazas. |
 | `SquidVisual` | `SpriteRenderer`, `Animator` | Sprite del calamar y animación de movimiento. |
 | `InkPulseVisual` | `SpriteRenderer`, `Animator` | Sprite largo del impulso de tinta; visible solo cuando `PlayerVisualStateController` selecciona Ink-Pulse. |
@@ -193,7 +193,7 @@ La entrega conserva estos puntos en las dos escenas jugables: prefabs obligatori
 
 | Prefab | Script esperado | Tag esperado | Layer esperada |
 | --- | --- | --- | --- |
-| `BabySquid` | `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController` | `Player` | `Player` |
+| `BabySquid` | `SquidInkPulseGameplayInputScope`, `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerGadgetInventory`, `PlayerStateController`, `PlayerVisualStateController` | `Player` | `Player` |
 | `PezGlobo` | `PufferfishEnemy` | `EnemyPezGlobo` | `Enemy` |
 | `Mina` | ninguno por ahora | `EnemyMina` | `Enemy` |
 | `CanaPescar` | `FishingRodEnemy` | `EnemyCanaPescar` | `Enemy` |

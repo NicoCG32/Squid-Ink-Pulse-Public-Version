@@ -12,12 +12,16 @@ Prefab canónico: `Assets/Content/Prefabs/Player/BabySquid.prefab`
 
 Responsabilidad:
 - Mover al jugador en horizontal con avance continuo.
-- Ajustar la posición vertical segun input del mouse.
+- Ajustar la posición vertical según el objetivo semántico de entrada.
 - Aplicar límites verticales usando `PlayerBoundaries`.
 - Cambiar velocidad y tilt durante Ink-Pulse.
 - Opcionalmente elegir una Y inicial aleatoria dentro de `PlayerBoundaries`.
 
-El contrato semántico `Gameplay/SteerPosition` y el lector runtime único ya están definidos en [Input.md](Input.md), pero `PlayerMovement` conserva temporalmente la lectura directa del mouse hasta su migración. Incorporar el lector no altera todavía el control Windows.
+`PlayerMovement` consume `Gameplay/SteerPosition` mediante el lector runtime descrito en [Input.md](Input.md). La posición continúa expresada en píxeles de pantalla; el controlador conserva el límite pantalla→mundo mediante `Camera.ScreenToWorldPoint` y aplica la misma velocidad, clamp y actualización de tilt que el control Windows original.
+
+`PlayerVerticalMovementPolicy` mantiene pura la decisión entre objetivo del jugador e impulso externo. Un impulso de Jellyfish activo tiene prioridad durante toda su ventana, incluso contra un objetivo opuesto o mientras el jugador está en el límite superior. El último paso usa sólo el tiempo restante; el objetivo del jugador se retoma en el frame siguiente. Solicitudes repetidas conservan por separado la mayor velocidad y la ventana más larga.
+
+Si el lector todavía no recibió una posición válida, no existe objetivo vertical. `(0,0)` sigue siendo una coordenada válida y no se usa como sentinel. `SteerPosition` conserva por ahora sólo el binding de mouse; la superficie touch se agrega en el corte móvil correspondiente.
 
 Contrato de límites:
 - No usa `minY` ni `maxY` serializados.

@@ -72,7 +72,7 @@ flowchart TD
 | `SSCarnageManager` | `BossEventDirector` | Disparar evento del SS Carnage y cue de cámara. |
 | `Portals` | ninguno | Contenedor para instancias runtime de `ScenePortal`. |
 | `Player` | ninguno | Contenedor del jugador. |
-| `Squid` | Instancia de `Assets/Content/Prefabs/Player/BabySquid.prefab`; `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `PlayerVisualStateController`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador sin copia manual por escena. |
+| `Squid` | Instancia de `Assets/Content/Prefabs/Player/BabySquid.prefab`; scope de input, `PlayerMovement`, `InkPulseController`, `ShrimpCollector`, `PlayerCollision`, `PlayerStateController`, `PlayerGadgetInventory`, `PlayerVisualStateController`, `Rigidbody2D`, `CircleCollider2D` | Control completo del jugador sin copia manual por escena. |
 | `GrazeZone` | `GrazeDetector` | Carga del Ink-Pulse por proximidad. |
 | `SquidVisual` | `SpriteRenderer`, `Animator` con `Squid.controller` | Cuerpo visible del jugador y animación de movimiento. |
 | `InkPulseVisual` | `SpriteRenderer`, `Animator` con `InkPulseVisual.controller` | Efecto largo de Ink-Pulse, visible solo cuando `PlayerVisualStateController` selecciona Ink-Pulse. |

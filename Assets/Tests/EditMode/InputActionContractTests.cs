@@ -192,6 +192,10 @@ namespace SquidInkPulse.Tests.EditMode
             {
                 Assert.That(action.wantsInitialStateCheck, Is.False, actionName);
             }
+            else if (type == InputActionType.Value)
+            {
+                Assert.That(action.wantsInitialStateCheck, Is.True, actionName);
+            }
             Assert.That(
                 action.bindings.Select(binding => binding.path),
                 Is.EquivalentTo(expectedPaths),

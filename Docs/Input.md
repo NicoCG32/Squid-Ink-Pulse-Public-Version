@@ -8,15 +8,17 @@ El wrapper C# automático del Input System permanece deshabilitado. Los consumid
 
 ## Estado actual
 
-`SquidInkPulseGameplayInputReader` ya es la frontera única entre el Input System y el dominio. `SquidInkPulseInputRuntime` apaga el asset project-wide antes de la primera escena; `SquidInkPulseGameplayInputScope`, incorporado al prefab del jugador, crea y habilita el lector sólo mientras existe gameplay. El lector expone la posición continua, solicitudes discretas y el esquema de control vigente sin referenciar movimiento, habilidades, pausa ni inventario.
+`SquidInkPulseGameplayInputReader` ya es la frontera única entre el Input System y el dominio. `SquidInkPulseInputRuntime` apaga el asset project-wide antes de la primera escena; `SquidInkPulseGameplayInputScope`, incorporado al prefab del jugador, crea y habilita el lector sólo mientras existe gameplay. El lector expone la posición continua, solicitudes discretas y el esquema de control vigente sin referenciar controladores concretos.
 
-Los controladores de gameplay todavía leen mouse o teclado directamente; su migración se realizará en cortes posteriores. Por tanto, incorporar el lector conserva el comportamiento Windows actual y todavía no hace operativo el gameplay mediante touch.
+`PlayerMovement` ya consume la posición semántica del lector. `InkPulseController`, pausa e inventario todavía leen mouse o teclado directamente y se migrarán en cortes posteriores. El binding de movimiento continúa siendo `<Mouse>/position`, por lo que este corte conserva el comportamiento Windows pero todavía no hace operativo el gameplay mediante touch.
 
 Los `InputSystemUIInputModule` canónicos continúan usando las acciones UI predeterminadas del paquete de Unity. El mapa `UI` versionado conserva los mismos nombres, tipos y controles requeridos para permitir una migración atómica posterior. Unity habilita automáticamente todo asset configurado como project-wide al entrar en Play Mode; el bootstrap corrige ese estado mediante `InputActionAsset.Disable()` y cada scope habilita exclusivamente `Gameplay`, evitando una segunda copia activa de `UI`.
 
 ## API del lector
 
-El estado continuo se consulta mediante `SteerPosition`. Los comandos discretos se entregan inmediatamente mediante:
+`HasSteerPosition` indica si el ciclo actual dispone de un control continuo válido; `SteerPosition` entrega esa posición en píxeles de pantalla. Al habilitarse, el lector siembra de inmediato el valor del control resuelto, incluso si el mouse está en `(0,0)`. Esa coordenada es válida y no representa ausencia de input. Al perderse el dispositivo se invalida el objetivo; una reconexión vuelve a sembrar su estado sin reutilizar la última posición del dispositivo anterior.
+
+Los comandos discretos se entregan inmediatamente mediante:
 
 - `InkPulseRequested`;
 - `PauseToggleRequested`;
@@ -77,8 +79,11 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 - normalización desde el autoarranque project-wide a sólo `Gameplay`;
 - habilitación y deshabilitación idempotentes;
 - actualización y limpieza de la posición continua;
+- estado inicial, reactivación, desconexión y reconexión del mouse, incluida la coordenada `(0,0)`;
 - una sola solicitud por pulsación para los cuatro comandos discretos;
 - cambio centralizado de `Keyboard&Mouse` a `Gamepad`;
 - descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update.
+
+`PlayerVerticalMovementPolicyTests` caracteriza la migración del primer consumidor: prioridad y consumo temporal del impulso de Jellyfish, reanudación del objetivo del jugador, movimiento sin overshoot, ausencia de movimiento sin objetivo y acumulación `max/max` de impulsos repetidos.
 
 La sensación de control, las regiones touch explícitas y el multitouch final se validan además en hardware real.

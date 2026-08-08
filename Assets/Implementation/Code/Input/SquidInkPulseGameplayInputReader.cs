@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 
 public sealed class SquidInkPulseGameplayInputReader : IDisposable
@@ -15,11 +16,13 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
 
     private bool isEnabled;
     private bool isDisposed;
+    private bool hasSteerPosition;
     private Vector2 currentSteerPosition;
     private string currentControlScheme = string.Empty;
     private double minimumAcceptedEventTime;
 
     public bool IsEnabled => isEnabled && gameplay.enabled;
+    public bool HasSteerPosition => IsEnabled && hasSteerPosition;
     public Vector2 SteerPosition => IsEnabled ? currentSteerPosition : Vector2.zero;
     public string CurrentControlScheme => currentControlScheme;
 
@@ -61,16 +64,19 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         if (!isEnabled)
         {
             gameplay.actionTriggered += OnGameplayActionTriggered;
+            InputSystem.onDeviceChange += OnInputDeviceChange;
         }
 
         try
         {
             gameplay.Enable();
             isEnabled = true;
+            InitializeSteerPositionFromResolvedControl();
         }
         catch
         {
             gameplay.actionTriggered -= OnGameplayActionTriggered;
+            InputSystem.onDeviceChange -= OnInputDeviceChange;
             gameplay.Disable();
             isEnabled = false;
             throw;
@@ -86,6 +92,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
 
         isEnabled = false;
         gameplay.actionTriggered -= OnGameplayActionTriggered;
+        InputSystem.onDeviceChange -= OnInputDeviceChange;
         gameplay.Disable();
         ResetTransientState();
     }
@@ -106,25 +113,62 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         return gameplay.FindAction(actionName, throwIfNotFound: true);
     }
 
+    private void InitializeSteerPositionFromResolvedControl()
+    {
+        foreach (InputControl control in steerPosition.controls)
+        {
+            if (control is Vector2Control vector2Control && control.device.added)
+            {
+                currentSteerPosition = vector2Control.ReadValue();
+                hasSteerPosition = true;
+                return;
+            }
+        }
+
+        currentSteerPosition = Vector2.zero;
+        hasSteerPosition = false;
+    }
+
     private void OnGameplayActionTriggered(InputAction.CallbackContext context)
     {
-        if (!isEnabled || context.time <= minimumAcceptedEventTime)
+        if (!isEnabled)
         {
             return;
         }
 
         if (context.action == steerPosition)
         {
+            if (context.time <= minimumAcceptedEventTime)
+            {
+                // A queued event from the previous lifecycle must not leave the
+                // continuous cache stale after it updates the underlying control.
+                InitializeSteerPositionFromResolvedControl();
+                return;
+            }
+
             if (context.performed)
             {
+                hasSteerPosition = true;
                 currentSteerPosition = context.ReadValue<Vector2>();
                 UpdateControlScheme(context.control?.device);
             }
             else if (context.canceled)
             {
-                currentSteerPosition = Vector2.zero;
+                // Position is a Value action, so returning to the valid screen
+                // coordinate (0, 0) is reported as canceled. Device removal can
+                // also cancel it, so availability must be resolved again.
+                InitializeSteerPositionFromResolvedControl();
+                if (hasSteerPosition)
+                {
+                    UpdateControlScheme(context.control?.device);
+                }
             }
 
+            return;
+        }
+
+        if (context.time <= minimumAcceptedEventTime)
+        {
             return;
         }
 
@@ -150,6 +194,27 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         else if (context.action == useGadgetSlot2)
         {
             GadgetSlot2Requested?.Invoke();
+        }
+    }
+
+    private void OnInputDeviceChange(InputDevice device, InputDeviceChange change)
+    {
+        if (!isEnabled)
+        {
+            return;
+        }
+
+        switch (change)
+        {
+            case InputDeviceChange.Added:
+            case InputDeviceChange.Reconnected:
+            case InputDeviceChange.Enabled:
+            case InputDeviceChange.Removed:
+            case InputDeviceChange.Disconnected:
+            case InputDeviceChange.Disabled:
+            case InputDeviceChange.ConfigurationChanged:
+                InitializeSteerPositionFromResolvedControl();
+                break;
         }
     }
 
@@ -188,6 +253,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
 
     private void ResetTransientState()
     {
+        hasSteerPosition = false;
         currentSteerPosition = Vector2.zero;
         currentControlScheme = string.Empty;
     }

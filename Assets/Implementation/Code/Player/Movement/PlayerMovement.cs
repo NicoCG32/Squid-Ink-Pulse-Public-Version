@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
@@ -108,15 +107,15 @@ public class PlayerMovement : MonoBehaviour
 
     public void ApplyExternalVerticalImpulse(float verticalVelocity, float durationSeconds)
     {
-        float safeVelocity = Mathf.Max(0f, verticalVelocity);
-        float safeDuration = Mathf.Max(0f, durationSeconds);
-        if (safeVelocity <= 0f || safeDuration <= 0f)
-        {
-            return;
-        }
+        PlayerVerticalImpulseState impulse = PlayerVerticalMovementPolicy.ApplyImpulse(
+            new PlayerVerticalImpulseState(
+                externalVerticalImpulseVelocity,
+                externalVerticalImpulseRemainingSeconds),
+            verticalVelocity,
+            durationSeconds);
 
-        externalVerticalImpulseVelocity = Mathf.Max(externalVerticalImpulseVelocity, safeVelocity);
-        externalVerticalImpulseRemainingSeconds = Mathf.Max(externalVerticalImpulseRemainingSeconds, safeDuration);
+        externalVerticalImpulseVelocity = impulse.Velocity;
+        externalVerticalImpulseRemainingSeconds = impulse.RemainingSeconds;
     }
 
     private void ResetRuntimeState()
@@ -132,46 +131,49 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        float nextX = transform.position.x + currentHorizontalSpeed * Time.deltaTime;
-        float nextY;
-        if (!TryResolveExternalImpulseY(out nextY))
+        bool hasPlayerTarget = TryResolvePlayerTargetY(out float playerTargetY);
+        PlayerVerticalMovementStep verticalStep = PlayerVerticalMovementPolicy.Resolve(
+            transform.position.y,
+            hasPlayerTarget,
+            playerTargetY,
+            currentVerticalSpeed,
+            new PlayerVerticalImpulseState(
+                externalVerticalImpulseVelocity,
+                externalVerticalImpulseRemainingSeconds),
+            Time.deltaTime);
+
+        externalVerticalImpulseVelocity = verticalStep.ExternalImpulse.Velocity;
+        externalVerticalImpulseRemainingSeconds = verticalStep.ExternalImpulse.RemainingSeconds;
+
+        if (!verticalStep.HasMovement)
         {
-            if (gameplayCamera == null || Mouse.current == null)
-            {
-                return;
-            }
-
-            Vector2 mousePos = Mouse.current.position.ReadValue();
-            Vector3 mouseWithDepth = new Vector3(mousePos.x, mousePos.y, gameplayCamera.nearClipPlane + 10f);
-            Vector3 worldMousePos = gameplayCamera.ScreenToWorldPoint(mouseWithDepth);
-            worldMousePos.z = 0f;
-
-            nextY = Mathf.MoveTowards(transform.position.y, worldMousePos.y, currentVerticalSpeed * Time.deltaTime);
+            return;
         }
 
-        nextY = Mathf.Clamp(nextY, minY, maxY);
+        float nextX = transform.position.x + currentHorizontalSpeed * Time.deltaTime;
+        float nextY = Mathf.Clamp(verticalStep.NextY, minY, maxY);
 
         transform.position = new Vector3(nextX, nextY, 0f);
     }
 
-    private bool TryResolveExternalImpulseY(out float nextY)
+    private bool TryResolvePlayerTargetY(out float targetY)
     {
-        nextY = transform.position.y;
-        if (externalVerticalImpulseRemainingSeconds <= 0f || externalVerticalImpulseVelocity <= 0f)
+        targetY = transform.position.y;
+        SquidInkPulseGameplayInputReader inputReader = SquidInkPulseInputRuntime.Gameplay;
+        if (gameplayCamera == null
+            || inputReader == null
+            || !inputReader.HasSteerPosition)
         {
             return false;
         }
 
-        float appliedDuration = Mathf.Min(Time.deltaTime, externalVerticalImpulseRemainingSeconds);
-        nextY = transform.position.y + externalVerticalImpulseVelocity * appliedDuration;
-        externalVerticalImpulseRemainingSeconds -= Time.deltaTime;
-
-        if (externalVerticalImpulseRemainingSeconds <= 0f)
-        {
-            externalVerticalImpulseRemainingSeconds = 0f;
-            externalVerticalImpulseVelocity = 0f;
-        }
-
+        Vector2 screenPosition = inputReader.SteerPosition;
+        Vector3 screenPositionWithDepth = new Vector3(
+            screenPosition.x,
+            screenPosition.y,
+            gameplayCamera.nearClipPlane + 10f);
+        Vector3 worldPosition = gameplayCamera.ScreenToWorldPoint(screenPositionWithDepth);
+        targetY = worldPosition.y;
         return true;
     }
 

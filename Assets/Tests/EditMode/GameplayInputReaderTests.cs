@@ -84,15 +84,82 @@ namespace SquidInkPulse.Tests.EditMode
         public void SteerPosition_TracksLatestValue_AndClearsWhenDisabled()
         {
             reader.Enable();
+            Assert.That(reader.HasSteerPosition, Is.True);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
             AdvanceInputTime();
 
             Move(mouse.position, new Vector2(320f, 240f));
+            Assert.That(reader.HasSteerPosition, Is.True);
             Assert.That(reader.SteerPosition, Is.EqualTo(new Vector2(320f, 240f)));
 
             Move(mouse.position, new Vector2(987f, 654f));
             Assert.That(reader.SteerPosition, Is.EqualTo(new Vector2(987f, 654f)));
 
+            Move(mouse.position, Vector2.zero);
+            Assert.That(reader.HasSteerPosition, Is.True);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
             reader.Disable();
+            Assert.That(reader.HasSteerPosition, Is.False);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void SteerPosition_UsesTheMouseStatePresentBeforeEnable()
+        {
+            Move(mouse.position, new Vector2(640f, 360f));
+
+            reader.Enable();
+
+            Assert.That(reader.HasSteerPosition, Is.True);
+            Assert.That(reader.SteerPosition, Is.EqualTo(new Vector2(640f, 360f)));
+        }
+
+        [Test]
+        public void SteerPosition_ReenableAcceptsAnExistingMouseAtZero()
+        {
+            reader.Enable();
+            reader.Disable();
+
+            reader.Enable();
+
+            Assert.That(reader.HasSteerPosition, Is.True);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void SteerPosition_DeviceRemovalInvalidatesTarget_AndHotAddRestoresZero()
+        {
+            reader.Enable();
+            AdvanceInputTime();
+            Move(mouse.position, new Vector2(640f, 360f));
+
+            InputSystem.RemoveDevice(mouse);
+
+            Assert.That(reader.HasSteerPosition, Is.False);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+            mouse = InputSystem.AddDevice<Mouse>();
+
+            Assert.That(reader.HasSteerPosition, Is.True);
+            Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void SteerPosition_QueuedBeforeReenableReconcilesWithoutKeepingStaleValue()
+        {
+            reader.Enable();
+            AdvanceInputTime();
+            Move(mouse.position, new Vector2(640f, 360f));
+            Move(mouse.position, Vector2.zero, queueEventOnly: true);
+
+            reader.Disable();
+            reader.Enable();
+            Assert.That(reader.SteerPosition, Is.EqualTo(new Vector2(640f, 360f)));
+
+            InputSystem.Update();
+
+            Assert.That(reader.HasSteerPosition, Is.True);
             Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
         }
 
