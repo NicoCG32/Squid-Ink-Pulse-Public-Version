@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con una prueba PlayMode focalizada. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android y entrada mediante dispositivos simulados. PlayMode protege el timing de una solicitud de Ink-Pulse recibida durante pausa y confirma que se consume sin ejecutar ni reaparecer al reanudar.
+La suite automatizada combina pruebas EditMode deterministas con una prueba PlayMode focalizada. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados y el ownership de la superficie touch. PlayMode protege el timing de una solicitud de Ink-Pulse recibida durante pausa y confirma que se consume sin ejecutar ni reaparecer al reanudar.
 
 Las pruebas viven en:
 
@@ -50,6 +50,8 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 ```
 
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
+
+Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. No afirman que el orden real de `GraphicRaycaster` ya esté integrado: ese gate requiere el prefab, las escenas y el test PlayMode posterior.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
 

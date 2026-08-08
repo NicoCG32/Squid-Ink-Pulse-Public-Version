@@ -31,15 +31,23 @@ Prefabs UI:
 - Si el destino vive dentro del mismo prefab, un `OnClick` persistente es valido y auditable.
 - Si el destino vive en escena, la conexión debe quedar visible por Inspector o como referencia serializada del manager; cualquier cableado runtime debe ser respaldo defensivo documentado, no el contrato principal.
 
-## Visibilidad de controles touch
+## Controles touch
 
 Archivos:
 - `Assets/Implementation/Code/UI/Touch/TouchControlsVisibilityPolicy.cs`
 - `Assets/Implementation/Code/UI/Touch/TouchControlsVisibilityController.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchSteeringSurface.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchSteeringCaptureState.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchSteeringAvailabilityPolicy.cs`
+- `Assets/Implementation/Code/UI/Touch/TouchSteeringUiPolicy.cs`
 
 La política muestra la futura capa de controles en Android y la oculta en players desktop o plataformas aún fuera del port. El override `showInEditor` es serializado por instancia, está apagado por defecto y sólo tiene efecto en Windows, macOS o Linux Editor; no usa `EditorPrefs`, `PlayerPrefs`, símbolos de compilación ni detección de hardware touch.
 
-El controller debe vivir en un objeto padre activo y gobernar un root descendiente distinto. Rechaza referencias al propio owner, a sus ancestros o a objetos ajenos; recalcula en `OnEnable` para restaurar la decisión al reactivar el owner. En este corte no existe aún un prefab de controles ni integración con `GameUIRoot`: superficie, botones, layout y cableado pertenecen a los cortes touch posteriores.
+El controller debe vivir en un objeto padre activo y gobernar un root descendiente distinto. Rechaza referencias al propio owner, a sus ancestros o a objetos ajenos; recalcula en `OnEnable` para restaurar la decisión al reactivar el owner.
+
+`TouchSteeringSurface` define ya la región de movimiento sin consultar `Touchscreen.current` ni añadir bindings globales. Sólo acepta pointer Touch del módulo UI, conserva un único dueño, ignora Down sobre controles interactivos y cancela ante sesión no jugable, tienda, overlay, pérdida de foco o lifecycle del lector. Un overlay que no pause ni cambie sesión/tienda debe llamar `SetOverlayInteractionAllowed(false)` antes de interceptar raycasts.
+
+Todavía no existe prefab ni integración con `GameUIRoot`. Al componerlo se reutilizan Canvas, `GraphicRaycaster` y EventSystem existentes: la `Image` transparente full-stretch debe quedar por encima de gráficos decorativos que aún reciben raycast, pero por debajo de botones y overlays. El routing real y el orden de raycast se validan al montar los controles; los botones, layout y referencias de escena siguen pendientes.
 
 ## Menú principal
 

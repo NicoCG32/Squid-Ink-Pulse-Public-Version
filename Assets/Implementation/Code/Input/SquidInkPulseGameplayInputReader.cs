@@ -17,14 +17,22 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
 
     private bool isEnabled;
     private bool isDisposed;
-    private bool hasSteerPosition;
-    private Vector2 currentSteerPosition;
+    private bool hasDeviceSteerPosition;
+    private Vector2 currentDeviceSteerPosition;
+    private UnityEngine.Object touchSteeringOwner;
+    private int touchSteeringPointerId;
+    private bool hasTouchSteering;
+    private Vector2 currentTouchSteerPosition;
     private string currentControlScheme = string.Empty;
     private double minimumAcceptedEventTime;
 
     public bool IsEnabled => isEnabled && gameplay.enabled;
-    public bool HasSteerPosition => IsEnabled && hasSteerPosition;
-    public Vector2 SteerPosition => IsEnabled ? currentSteerPosition : Vector2.zero;
+    public bool HasSteerPosition => IsEnabled && (hasTouchSteering || hasDeviceSteerPosition);
+    public Vector2 SteerPosition => IsEnabled
+        ? hasTouchSteering
+            ? currentTouchSteerPosition
+            : currentDeviceSteerPosition
+        : Vector2.zero;
     public string CurrentControlScheme => currentControlScheme;
 
     public event Action InkPulseRequested;
@@ -111,6 +119,73 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         isDisposed = true;
     }
 
+    public bool TryBeginTouchSteering(
+        UnityEngine.Object owner,
+        int pointerId,
+        Vector2 screenPosition)
+    {
+        if (!IsEnabled || owner == null)
+        {
+            return false;
+        }
+
+        if (hasTouchSteering
+            && (!ReferenceEquals(touchSteeringOwner, owner)
+                || touchSteeringPointerId != pointerId))
+        {
+            return false;
+        }
+
+        touchSteeringOwner = owner;
+        touchSteeringPointerId = pointerId;
+        currentTouchSteerPosition = screenPosition;
+        hasTouchSteering = true;
+        UpdateLogicalControlScheme(SquidInkPulseInputContract.ControlSchemes.Touch);
+        return true;
+    }
+
+    public bool TryUpdateTouchSteering(
+        UnityEngine.Object owner,
+        int pointerId,
+        Vector2 screenPosition)
+    {
+        if (!IsEnabled
+            || !hasTouchSteering
+            || !ReferenceEquals(touchSteeringOwner, owner)
+            || touchSteeringPointerId != pointerId)
+        {
+            return false;
+        }
+
+        currentTouchSteerPosition = screenPosition;
+        UpdateLogicalControlScheme(SquidInkPulseInputContract.ControlSchemes.Touch);
+        return true;
+    }
+
+    public bool TryEndTouchSteering(UnityEngine.Object owner, int pointerId)
+    {
+        if (!hasTouchSteering
+            || !ReferenceEquals(touchSteeringOwner, owner)
+            || touchSteeringPointerId != pointerId)
+        {
+            return false;
+        }
+
+        ClearTouchSteering();
+        return true;
+    }
+
+    public bool CancelTouchSteering(UnityEngine.Object owner)
+    {
+        if (!hasTouchSteering || !ReferenceEquals(touchSteeringOwner, owner))
+        {
+            return false;
+        }
+
+        ClearTouchSteering();
+        return true;
+    }
+
     private InputAction FindGameplayAction(string actionName)
     {
         return gameplay.FindAction(actionName, throwIfNotFound: true);
@@ -122,14 +197,14 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         {
             if (control is Vector2Control vector2Control && control.device.added)
             {
-                currentSteerPosition = vector2Control.ReadValue();
-                hasSteerPosition = true;
+                currentDeviceSteerPosition = vector2Control.ReadValue();
+                hasDeviceSteerPosition = true;
                 return;
             }
         }
 
-        currentSteerPosition = Vector2.zero;
-        hasSteerPosition = false;
+        currentDeviceSteerPosition = Vector2.zero;
+        hasDeviceSteerPosition = false;
     }
 
     private void OnGameplayActionTriggered(InputAction.CallbackContext context)
@@ -151,9 +226,12 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
 
             if (context.performed)
             {
-                hasSteerPosition = true;
-                currentSteerPosition = context.ReadValue<Vector2>();
-                UpdateControlScheme(context.control?.device);
+                hasDeviceSteerPosition = true;
+                currentDeviceSteerPosition = context.ReadValue<Vector2>();
+                if (!hasTouchSteering)
+                {
+                    UpdateControlScheme(context.control?.device);
+                }
             }
             else if (context.canceled)
             {
@@ -161,7 +239,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
                 // coordinate (0, 0) is reported as canceled. Device removal can
                 // also cancel it, so availability must be resolved again.
                 InitializeSteerPositionFromResolvedControl();
-                if (hasSteerPosition)
+                if (hasDeviceSteerPosition && !hasTouchSteering)
                 {
                     UpdateControlScheme(context.control?.device);
                 }
@@ -249,20 +327,39 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
             }
         }
 
-        if (!resolvedScheme.HasValue || resolvedScheme.Value.name == currentControlScheme)
+        if (!resolvedScheme.HasValue)
         {
             return;
         }
 
-        currentControlScheme = resolvedScheme.Value.name;
+        UpdateLogicalControlScheme(resolvedScheme.Value.name);
+    }
+
+    private void UpdateLogicalControlScheme(string schemeName)
+    {
+        if (string.IsNullOrEmpty(schemeName) || schemeName == currentControlScheme)
+        {
+            return;
+        }
+
+        currentControlScheme = schemeName;
         ControlSchemeChanged?.Invoke(currentControlScheme);
     }
 
     private void ResetTransientState()
     {
-        hasSteerPosition = false;
-        currentSteerPosition = Vector2.zero;
+        hasDeviceSteerPosition = false;
+        currentDeviceSteerPosition = Vector2.zero;
+        ClearTouchSteering();
         currentControlScheme = string.Empty;
+    }
+
+    private void ClearTouchSteering()
+    {
+        touchSteeringOwner = null;
+        touchSteeringPointerId = 0;
+        hasTouchSteering = false;
+        currentTouchSteerPosition = Vector2.zero;
     }
 
     private void ThrowIfDisposed()

@@ -12,7 +12,7 @@ El wrapper C# automático del Input System permanece deshabilitado. Los consumid
 
 El mapa `Gameplay` permanece habilitado mientras vive el scope, también durante pausa y tienda: `TogglePause` debe poder reanudar con `timeScale = 0` y `BuyShopOffer` debe poder comprar durante la oferta. Los consumidores drenan las solicitudes y sus reglas de dominio deciden si producen efecto. Al desactivar el scope se dispone el lector, se deshabilita `Gameplay`, se limpia su estado y se impide que eventos pendientes alcancen la escena siguiente.
 
-`PlayerMovement`, `InkPulseController`, `PauseMenuManager`, `PlayerGadgetInventory` e `InGameShopManager` ya consumen el lector semántico. Los bindings continúan siendo mouse/teclado, por lo que este cierre conserva el comportamiento Windows pero todavía no hace operativo el gameplay mediante touch.
+`PlayerMovement`, `InkPulseController`, `PauseMenuManager`, `PlayerGadgetInventory` e `InGameShopManager` ya consumen el lector semántico. Los bindings del asset continúan siendo mouse/teclado. La nueva `TouchSteeringSurface` puede inyectar el objetivo vertical desde una región UI explícita sin añadir un binding global `<Touchscreen>`; todavía no está montada en prefabs ni escenas, por lo que el gameplay Android aún no es operable mediante touch en una build.
 
 La tecla `B` de la tienda temporal queda clasificada como atajo de producto exclusivo de escritorio y se expresa mediante `Gameplay/BuyShopOffer`, con un único binding Keyboard&Mouse y ninguno Touch. `InGameShopManager` consume la solicitud y la dirige a la misma autoridad `BuyCurrentOffer()` usada por `buyButton.onClick`; el botón `Comprar` es la vía móvil. Las únicas lecturas directas de teclado que permanecen están en el código secreto de menú y pertenecen a entrada de texto, no a gameplay.
 
@@ -21,6 +21,8 @@ Los `InputSystemUIInputModule` canónicos continúan usando las acciones UI pred
 ## API del lector
 
 `HasSteerPosition` indica si el ciclo actual dispone de un control continuo válido; `SteerPosition` entrega esa posición en píxeles de pantalla. Al habilitarse, el lector siembra de inmediato el valor del control resuelto, incluso si el mouse está en `(0,0)`. Esa coordenada es válida y no representa ausencia de input. Al perderse el dispositivo se invalida el objetivo; una reconexión vuelve a sembrar su estado sin reutilizar la última posición del dispositivo anterior.
+
+La superficie explícita usa `TryBeginTouchSteering`, `TryUpdateTouchSteering`, `TryEndTouchSteering` y `CancelTouchSteering`. El lector concede un único ownership exacto por pareja `(owner, pointerId)`: otro dedo o superficie no puede reemplazar, mover ni liberar al propietario. Mientras existe captura, su posición touch tiene prioridad y el mouse sólo actualiza un fallback oculto. Al liberar o cancelar, reaparece el último mouse válido si existe; nunca queda retenida la última coordenada touch. Si no existe fallback, `HasSteerPosition` pasa a `false`, incluso cuando la última posición legítima fue `(0,0)`.
 
 Los comandos discretos se entregan inmediatamente mediante:
 
@@ -36,7 +38,7 @@ Cada solicitud se emite sólo durante la fase `performed`; mantener o liberar un
 
 `GameplayCommandInputBinding` aplica el mismo buffer de una solicitud a pausa y compra, y mantiene buffers independientes para los dos slots. Los controladores consumen y limpian esos flags al comienzo de cada `Update`, antes de sus guards, por lo que una pulsación durante animación, pausa, tienda cerrada o bloqueo de tienda no queda latente. `PlayerGadgetInventory.TryUseSlot1()` y `TryUseSlot2()` son las operaciones públicas para botones futuros y conservan dentro de sí todas las reglas de sesión, tienda, tipo activo, posesión, efecto y consumo. `InGameShopManager` conserva `BuyCurrentOffer()` como autoridad común para el comando Keyboard&Mouse y el botón UI.
 
-`CurrentControlScheme` y `ControlSchemeChanged` centralizan el último esquema que produjo una acción `Gameplay`; no representan el dispositivo global ni las interacciones exclusivas del asset UI. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Touch usado sólo por UI no modifica este valor. Cuando la rama touch inyecte comandos semánticos de gameplay, podrá resolver su esquema sin condicionales repartidos por controladores.
+`CurrentControlScheme` y `ControlSchemeChanged` centralizan el último esquema que produjo una acción `Gameplay`; no representan el dispositivo global ni las interacciones exclusivas del asset UI. La resolución intenta primero emparejar todos los dispositivos disponibles con los esquemas del asset y exige incluir el control que produjo la acción; si el conjunto está incompleto, usa el primer esquema que soporte ese dispositivo. Touch usado sólo por UI no modifica este valor. Una captura aceptada por `TouchSteeringSurface` sí publica el esquema lógico `Touch`; actualizaciones del mismo dedo no repiten el evento y una acción efectiva posterior de mouse/teclado puede devolverlo a `Keyboard&Mouse`.
 
 ## Mapa `Gameplay`
 
@@ -55,21 +57,23 @@ El GUID del asset y el ID del mapa se conservan. Las primeras cinco entradas reu
 
 No existe ningún binding directo `<Touchscreen>` bajo `Gameplay`. En particular, no se permite enlazar `primaryTouch/tap` a Ink-Pulse: un tap general también puede ser un click de UI o comenzar sobre otro control.
 
-Touch pertenece por ahora al mapa `UI`:
+La entrada cruda Touch pertenece por ahora al mapa `UI`:
 
 - `Point` recibe `<Touchscreen>/touch*/position`;
 - `Click` recibe `<Touchscreen>/touch*/press`;
 - `Submit` y `Cancel` conservan el contrato estándar de interfaz.
 
-La superficie de movimiento y los botones de Ink-Pulse, pausa y gadgets deberán inyectar comandos desde regiones explícitas. La superficie rechazará gestos iniciados sobre botones; los botones no alimentarán movimiento. Esa integración no se simula mediante un tap global en el asset.
+`TouchSteeringSurface` ya implementa el canal explícito de movimiento. Recibe `PointerEventData.position` en píxeles de pantalla, sólo acepta eventos que `InputSystemUIInputModule` clasifica como `Touch` y captura un único `pointerId`. Un segundo dedo, un drag sin Down aceptado y un gesto iniciado sobre `Selectable` u otro handler interactivo quedan inertes. Los botones de Ink-Pulse, pausa y gadgets se añaden después y tampoco se simulan mediante un tap global en el asset.
 
-Esta exclusión es hoy absoluta para Touch porque `Gameplay` no tiene bindings touchscreen. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. La exclusión integral de los futuros controles touch se valida cuando existan esas regiones explícitas.
+La exclusión permanece estructural en el asset: ningún Touchscreen dispara por sí mismo una acción `Gameplay`; sólo una región explícita puede traducirlo a semántica. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. El routing real entre superficie y botones mediante `GraphicRaycaster` se valida en Play Mode y hardware al montar el prefab.
+
+La superficie cancela ownership al pausar, entrar en Game Over, abrir la tienda, bloquear un overlay mediante `SetOverlayInteractionAllowed(false)`, perder foco, suspender la app, desactivarse o recibir un lector nuevo. También rechaza movimiento cuando `timeScale` no avanza. Reanudar o cerrar el overlay no readquiere un dedo todavía apoyado: hace falta un Down nuevo. La regla temporal de tienda reutiliza actualmente `InGameShopManager.BlocksInkPulseActivation`, incluida su breve gracia de cierre, para evitar click-through.
 
 ## Visibilidad de controles touch
 
 `TouchControlsVisibilityPolicy` decide si la futura capa de controles debe mostrarse sin consultar dispositivos ni usar símbolos de preprocesador. El player Android la muestra; los players desktop y las plataformas aún fuera del port la ocultan incluso si quedó serializado el override de desarrollo. Dentro de Windows, macOS o Linux Editor permanece oculta por defecto y cada instancia puede activar `showInEditor` para previsualizarla sin generar un APK.
 
-`TouchControlsVisibilityController` aplica esa decisión a un root descendiente distinto y la recalcula en `OnEnable`, por lo que el objeto que gobierna la visibilidad no se desactiva a sí mismo ni puede apagar una UI ajena. El componente todavía no está montado en escenas ni prefabs: este corte no crea superficie de movimiento, botones, bindings touchscreen de gameplay ni soporte multitouch. Esas responsabilidades comienzan en los controles touch posteriores.
+`TouchControlsVisibilityController` aplica esa decisión a un root descendiente distinto y la recalcula en `OnEnable`, por lo que el objeto que gobierna la visibilidad no se desactiva a sí mismo ni puede apagar una UI ajena. El controller y `TouchSteeringSurface` todavía no están montados en escenas ni prefabs. El próximo prefab debe usar una `Image` transparente full-stretch con raycast habilitado, ubicarla por encima de decoración no interactiva y por debajo de botones y overlays; no debe crear otro Canvas, `GraphicRaycaster` ni EventSystem. Los botones pertenecen al corte posterior y el montaje en ambas zonas activas al siguiente.
 
 ## Compatibilidad de interfaz
 
@@ -104,10 +108,13 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 - touch positivo recibido por `DefaultInputActions.UI/Point` y `UI/Click` sin comando, posición ni cambio de esquema en `Gameplay`;
 - cambio centralizado `Keyboard&Mouse → Gamepad → Keyboard&Mouse` sólo mediante acciones de gameplay;
 - referencias completas de los cinco módulos UI canónicos al asset separado del paquete;
-- descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update.
+- descarte de un comando encolado aunque el lector vuelva a habilitarse antes del siguiente update;
+- ownership touch por owner e ID opaco, prioridad sobre mouse, fallback limpio, `(0,0)` válido y esquema lógico estable;
+- segundo dedo incapaz de reemplazar o liberar al primero, rechazo de UI interactiva y drag sin Down;
+- cancelación sin replay ante pausa, tienda, overlay, `timeScale = 0`, foco, suspensión, cambio de lector y desactivación.
 
 `GameplayPauseInputPlayModeTests` comprueba además el timing real de pausa: `Gameplay` permanece activo con `timeScale = 0`, una pulsación de Ink-Pulse se recibe y consume sin ejecutar ni quedar latente, y una pulsación nueva después de reanudar produce exactamente un pulso.
 
 `PlayerVerticalMovementPolicyTests` caracteriza la migración del primer consumidor: prioridad y consumo temporal del impulso de Jellyfish, reanudación del objetivo del jugador, movimiento sin overshoot, ausencia de movimiento sin objetivo y acumulación `max/max` de impulsos repetidos.
 
-La sensación de control, las regiones touch explícitas y el multitouch final se validan además en hardware real.
+El routing real de `InputSystemUIInputModule` + `GraphicRaycaster`, la sensación de control y el multitouch final se validan al montar el prefab y además en hardware real.

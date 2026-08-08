@@ -4,8 +4,10 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.UI;
 
 namespace SquidInkPulse.Tests.EditMode
 {
@@ -162,6 +164,451 @@ namespace SquidInkPulse.Tests.EditMode
 
             Assert.That(reader.HasSteerPosition, Is.True);
             Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void TouchSteering_OwnsOnePointer_PrioritizesTouch_AndFallsBackToMouse()
+        {
+            var firstOwner = new GameObject("FirstTouchSteeringOwner");
+            var secondOwner = new GameObject("SecondTouchSteeringOwner");
+            var observedSchemes = new List<string>();
+            reader.ControlSchemeChanged += observedSchemes.Add;
+
+            try
+            {
+                reader.Enable();
+                AdvanceInputTime();
+                Vector2 initialMousePosition = new(120f, 240f);
+                Move(mouse.position, initialMousePosition);
+
+                Vector2 firstTouchPosition = new(800f, 500f);
+                Assert.That(
+                    reader.TryBeginTouchSteering(firstOwner, 101, firstTouchPosition),
+                    Is.True);
+                Assert.That(reader.HasSteerPosition, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstTouchPosition));
+                Assert.That(
+                    reader.CurrentControlScheme,
+                    Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.Touch));
+
+                Vector2 competingPosition = new(20f, 30f);
+                Assert.That(
+                    reader.TryBeginTouchSteering(secondOwner, 202, competingPosition),
+                    Is.False);
+                Assert.That(
+                    reader.TryUpdateTouchSteering(secondOwner, 202, competingPosition),
+                    Is.False);
+                Assert.That(reader.TryEndTouchSteering(secondOwner, 202), Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstTouchPosition));
+
+                Vector2 latestMousePosition = new(360f, 640f);
+                Move(mouse.position, latestMousePosition);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstTouchPosition));
+                Assert.That(
+                    reader.CurrentControlScheme,
+                    Is.EqualTo(SquidInkPulseInputContract.ControlSchemes.Touch));
+
+                Vector2 latestTouchPosition = new(900f, 700f);
+                Assert.That(
+                    reader.TryUpdateTouchSteering(firstOwner, 101, latestTouchPosition),
+                    Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(latestTouchPosition));
+                Assert.That(reader.TryEndTouchSteering(firstOwner, 101), Is.True);
+                Assert.That(reader.HasSteerPosition, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(latestMousePosition));
+                Assert.That(observedSchemes, Is.EqualTo(new[]
+                {
+                    SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse,
+                    SquidInkPulseInputContract.ControlSchemes.Touch
+                }));
+
+                Move(mouse.position, new Vector2(400f, 700f));
+                Assert.That(observedSchemes, Is.EqualTo(new[]
+                {
+                    SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse,
+                    SquidInkPulseInputContract.ControlSchemes.Touch,
+                    SquidInkPulseInputContract.ControlSchemes.KeyboardAndMouse
+                }));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(firstOwner);
+                UnityEngine.Object.DestroyImmediate(secondOwner);
+            }
+        }
+
+        [Test]
+        public void TouchSteering_ZeroIsValid_AndClearDoesNotRetainItWithoutFallback()
+        {
+            InputSystem.RemoveDevice(mouse);
+            var owner = new GameObject("ZeroTouchSteeringOwner");
+
+            try
+            {
+                reader.Enable();
+                Assert.That(reader.HasSteerPosition, Is.False);
+
+                Assert.That(reader.TryBeginTouchSteering(owner, -1, Vector2.zero), Is.True);
+                Assert.That(reader.HasSteerPosition, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                Assert.That(reader.CancelTouchSteering(owner), Is.True);
+                Assert.That(reader.HasSteerPosition, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+                Assert.That(reader.CancelTouchSteering(owner), Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void TouchSteering_DisableDropsOwnership_AndLateCleanupIsHarmless()
+        {
+            var owner = new GameObject("LifecycleTouchSteeringOwner");
+
+            try
+            {
+                reader.Enable();
+                Assert.That(
+                    reader.TryBeginTouchSteering(owner, 17, new Vector2(500f, 600f)),
+                    Is.True);
+
+                reader.Disable();
+
+                Assert.That(reader.HasSteerPosition, Is.False);
+                Assert.That(reader.TryEndTouchSteering(owner, 17), Is.False);
+                Assert.That(reader.CancelTouchSteering(owner), Is.False);
+                Assert.That(
+                    reader.TryUpdateTouchSteering(owner, 17, new Vector2(700f, 800f)),
+                    Is.False);
+
+                reader.Enable();
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+                Assert.That(
+                    reader.TryBeginTouchSteering(owner, 17, new Vector2(700f, 800f)),
+                    Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void TouchSteeringSurface_CancelsOnGameplayGates_AndNeverAdoptsAStaleDrag()
+        {
+            var sessionRoot = new GameObject("TouchSteeringSession");
+            var surfaceRoot = new GameObject("TouchSteeringSurface", typeof(RectTransform));
+            var eventSystemRoot = new GameObject("TouchSteeringEventSystem");
+            GameSessionController session = sessionRoot.AddComponent<GameSessionController>();
+            TouchSteeringSurface surface = surfaceRoot.AddComponent<TouchSteeringSurface>();
+            EventSystem eventSystem = eventSystemRoot.AddComponent<EventSystem>();
+            FieldInfo blockedUntilFrameField = typeof(InGameShopManager).GetField(
+                "inkPulseActivationBlockedUntilFrame",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(blockedUntilFrameField, Is.Not.Null);
+            int previousBlockedUntilFrame = (int)blockedUntilFrameField.GetValue(null);
+            SquidInkPulseGameplayInputReader replacementReader = null;
+
+            try
+            {
+                blockedUntilFrameField.SetValue(null, -1);
+                InvokePrivate(session, "Awake");
+                Assert.That(GameSessionController.Instance, Is.SameAs(session));
+
+                reader.Enable();
+                InvokePrivate(surface, "HandleGameplayInputChanged", reader);
+                InvokePrivate(surface, "BindSession", session);
+
+                var buttonRoot = new GameObject(
+                    "InteractiveTouchButton",
+                    typeof(RectTransform),
+                    typeof(UnityEngine.UI.Button));
+                buttonRoot.transform.SetParent(surfaceRoot.transform, false);
+                PointerEventData blockedDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 5,
+                    position: new Vector2(300f, 200f),
+                    raycastTarget: buttonRoot);
+                surface.OnPointerDown(blockedDown);
+                blockedDown.position = new Vector2(500f, 300f);
+                surface.OnDrag(blockedDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData nonTouchDown = new PointerEventData(eventSystem)
+                {
+                    pointerId = -1,
+                    position = new Vector2(600f, 350f),
+                    button = PointerEventData.InputButton.Left
+                };
+                surface.OnPointerDown(nonTouchDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+
+                PointerEventData firstDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 11,
+                    position: new Vector2(700f, 400f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(firstDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstDown.position));
+
+                PointerEventData secondPointer = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 22,
+                    position: new Vector2(1300f, 800f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(secondPointer);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstDown.position));
+                secondPointer.position = new Vector2(1600f, 900f);
+                surface.OnDrag(secondPointer);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstDown.position));
+                surface.OnPointerUp(secondPointer);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstDown.position));
+
+                firstDown.position = new Vector2(850f, 520f);
+                surface.OnDrag(firstDown);
+                Assert.That(reader.SteerPosition, Is.EqualTo(firstDown.position));
+
+                Time.timeScale = 0f;
+                firstDown.position = new Vector2(880f, 560f);
+                surface.OnDrag(firstDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+                Time.timeScale = 1f;
+                surface.OnDrag(firstDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+
+                PointerEventData pauseDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 30,
+                    position: new Vector2(950f, 620f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(pauseDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                session.RequestPause();
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+                PointerEventData pausedDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 31,
+                    position: new Vector2(970f, 630f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(pausedDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                session.RequestResume();
+                pauseDown.position = new Vector2(980f, 640f);
+                surface.OnDrag(pauseDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData freshDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 33,
+                    position: new Vector2(1000f, 650f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(freshDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+
+                InvokePrivate(
+                    surface,
+                    "HandleShopStateChanged",
+                    ShopEventState.Closed,
+                    ShopEventState.Offering);
+                Assert.That(surface.HasActivePointer, Is.False);
+                blockedUntilFrameField.SetValue(null, int.MaxValue);
+                PointerEventData shopBlockedDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 34,
+                    position: new Vector2(1050f, 680f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(shopBlockedDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                freshDown.position = new Vector2(1100f, 700f);
+                surface.OnDrag(freshDown);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+                blockedUntilFrameField.SetValue(null, -1);
+
+                PointerEventData overlayDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 44,
+                    position: new Vector2(1200f, 720f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(overlayDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                surface.SetOverlayInteractionAllowed(false);
+                Assert.That(surface.HasActivePointer, Is.False);
+                PointerEventData overlayBlockedDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 45,
+                    position: new Vector2(1230f, 730f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(overlayBlockedDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                overlayDown.position = new Vector2(1250f, 740f);
+                surface.OnDrag(overlayDown);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                surface.SetOverlayInteractionAllowed(true);
+                PointerEventData focusDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 55,
+                    position: new Vector2(1400f, 780f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(focusDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                InvokePrivate(surface, "OnApplicationFocus", false);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData appPauseDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 66,
+                    position: new Vector2(1450f, 800f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(appPauseDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                InvokePrivate(surface, "OnApplicationPause", true);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(reader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData rebindDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 77,
+                    position: new Vector2(1500f, 820f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(rebindDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+
+                reader.Dispose();
+                InvokePrivate(surface, "HandleGameplayInputChanged", (object)null);
+                Assert.That(surface.HasActivePointer, Is.False);
+
+                replacementReader = new SquidInkPulseGameplayInputReader(inputActions);
+                replacementReader.Enable();
+                InvokePrivate(surface, "HandleGameplayInputChanged", replacementReader);
+                rebindDown.position = new Vector2(1550f, 840f);
+                surface.OnDrag(rebindDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(replacementReader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData lifecycleDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 88,
+                    position: new Vector2(1600f, 860f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(lifecycleDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(replacementReader.SteerPosition, Is.EqualTo(lifecycleDown.position));
+
+                InvokePrivate(surface, "OnDisable");
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(replacementReader.SteerPosition, Is.EqualTo(Vector2.zero));
+            }
+            finally
+            {
+                blockedUntilFrameField.SetValue(null, previousBlockedUntilFrame);
+                InvokePrivate(surface, "OnDisable");
+                replacementReader?.Dispose();
+                UnityEngine.Object.DestroyImmediate(surfaceRoot);
+                UnityEngine.Object.DestroyImmediate(eventSystemRoot);
+                UnityEngine.Object.DestroyImmediate(sessionRoot);
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void TouchSteeringSurface_RebindsThroughTheRealGameplayScopeLifecycle()
+        {
+            InputActionAsset previousProjectWideActions = InputSystem.actions;
+            InputActionAsset projectWideActions =
+                AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsAssetPath);
+            var sessionRoot = new GameObject("TouchSteeringScopeSession");
+            var scopeRoot = new GameObject("TouchSteeringScopeOwner");
+            var surfaceRoot = new GameObject("TouchSteeringScopeSurface", typeof(RectTransform));
+            var eventSystemRoot = new GameObject("TouchSteeringScopeEventSystem");
+            GameSessionController session = sessionRoot.AddComponent<GameSessionController>();
+            SquidInkPulseGameplayInputScope scope =
+                scopeRoot.AddComponent<SquidInkPulseGameplayInputScope>();
+            TouchSteeringSurface surface = surfaceRoot.AddComponent<TouchSteeringSurface>();
+            EventSystem eventSystem = eventSystemRoot.AddComponent<EventSystem>();
+            FieldInfo blockedUntilFrameField = typeof(InGameShopManager).GetField(
+                "inkPulseActivationBlockedUntilFrame",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(blockedUntilFrameField, Is.Not.Null);
+            int previousBlockedUntilFrame = (int)blockedUntilFrameField.GetValue(null);
+
+            try
+            {
+                blockedUntilFrameField.SetValue(null, -1);
+                InputSystem.actions = projectWideActions;
+                InvokePrivate(session, "Awake");
+                InvokePrivate(surface, "OnDisable");
+                InvokePrivate(surface, "OnEnable");
+
+                InvokeScopeLifecycle(scope, "OnEnable");
+                SquidInkPulseGameplayInputReader firstReader = SquidInkPulseInputRuntime.Gameplay;
+                Assert.That(firstReader, Is.Not.Null);
+
+                PointerEventData firstDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 101,
+                    position: new Vector2(800f, 500f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(firstDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(firstReader.SteerPosition, Is.EqualTo(firstDown.position));
+
+                InvokeScopeLifecycle(scope, "OnDisable");
+                Assert.That(firstReader.IsEnabled, Is.False);
+                Assert.That(SquidInkPulseInputRuntime.Gameplay, Is.Null);
+                Assert.That(surface.HasActivePointer, Is.False);
+
+                InvokeScopeLifecycle(scope, "OnEnable");
+                SquidInkPulseGameplayInputReader secondReader = SquidInkPulseInputRuntime.Gameplay;
+                Assert.That(secondReader, Is.Not.Null);
+                Assert.That(secondReader, Is.Not.SameAs(firstReader));
+                Assert.That(secondReader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                firstDown.position = new Vector2(900f, 600f);
+                surface.OnDrag(firstDown);
+                Assert.That(surface.HasActivePointer, Is.False);
+                Assert.That(secondReader.SteerPosition, Is.EqualTo(Vector2.zero));
+
+                PointerEventData freshDown = CreatePointerEvent(
+                    eventSystem,
+                    pointerId: 202,
+                    position: new Vector2(1000f, 650f),
+                    raycastTarget: surfaceRoot);
+                surface.OnPointerDown(freshDown);
+                Assert.That(surface.HasActivePointer, Is.True);
+                Assert.That(secondReader.SteerPosition, Is.EqualTo(freshDown.position));
+            }
+            finally
+            {
+                InvokePrivate(surface, "OnDisable");
+                if (SquidInkPulseInputRuntime.Gameplay != null)
+                {
+                    InvokeScopeLifecycle(scope, "OnDisable");
+                }
+
+                projectWideActions.Disable();
+                InputSystem.actions = previousProjectWideActions;
+                blockedUntilFrameField.SetValue(null, previousBlockedUntilFrame);
+                UnityEngine.Object.DestroyImmediate(surfaceRoot);
+                UnityEngine.Object.DestroyImmediate(eventSystemRoot);
+                UnityEngine.Object.DestroyImmediate(scopeRoot);
+                UnityEngine.Object.DestroyImmediate(sessionRoot);
+                Time.timeScale = 1f;
+            }
         }
 
         [Test]
@@ -514,6 +961,40 @@ namespace SquidInkPulse.Tests.EditMode
                 BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(lifecycleMethod, Is.Not.Null);
             lifecycleMethod.Invoke(scope, null);
+        }
+
+        private static void InvokePrivate(object target, string methodName, params object[] arguments)
+        {
+            MethodInfo method = target.GetType().GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, $"No se encontro {target.GetType().Name}.{methodName}.");
+            method.Invoke(target, arguments);
+        }
+
+        private static PointerEventData CreatePointerEvent(
+            EventSystem eventSystem,
+            int pointerId,
+            Vector2 position,
+            GameObject raycastTarget = null)
+        {
+            var eventData = new ExtendedPointerEventData(eventSystem)
+            {
+                pointerId = pointerId,
+                position = position,
+                button = PointerEventData.InputButton.Left,
+                pointerType = UIPointerType.Touch
+            };
+
+            if (raycastTarget != null)
+            {
+                eventData.pointerPressRaycast = new RaycastResult
+                {
+                    gameObject = raycastTarget
+                };
+            }
+
+            return eventData;
         }
 
         private void AssertSingleEventPerPress(ButtonControl button, Action<Action> subscribe)
