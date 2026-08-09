@@ -10,6 +10,8 @@ El primer objetivo de plataforma es Android. iOS queda como una extensión poste
 
 La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. La entrada ya cuenta con acciones semánticas y un lector runtime único que evita activar una segunda copia de `UI`, emite una solicitud por interacción y centraliza el esquema de control. Movimiento, Ink-Pulse, pausa, slots de gadgets y el atajo de compra `B` ya consumen el lector y conservan sus reglas; `B` sigue siendo Keyboard&Mouse-only y el botón `Comprar` es la vía móvil. La capa touch está montada en ambas zonas, el autoscroll avanza aunque no exista un dedo y la UI jugable preserva el alto de referencia dentro de una raíz derivada de `Screen.safeArea`. PlayMode recorre el módulo UI real y recrea controles/reader al cargar Abisopelágica. En un POCO X6 5G se validaron instalación actualizada, arranque, gameplay y encuadre extra-wide; la revisión física detectó y corrigió el acoplamiento inicial del avance al primer toque y el recorte vertical de HUD/menús. Todavía no existe una candidata móvil aceptada: persiste el probe de feria a `localhost:8080`, y aún faltan cerrar una run completa, adaptación integral de opciones/Back, orientación landscape opuesta y rendimiento sostenido. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md), el contrato de entrada en [Input.md](Input.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
 
+Todas las zonas comparten un único contrato dimensional de HUD y gameplay. Epipelágica y Abisopelágica son las primeras consumidoras, pero cualquier `GameRoot_Zona*` futuro debe heredar los mismos Canvas, safe area, controles y prefabs HUD; sólo las dinámicas, enemigos, arte de zona o mecánicas de jefe pueden divergir. El port no acepta correcciones visuales copiadas por zona que creen layouts incompatibles.
+
 ## Alcance del primer port
 
 ### Gameplay
@@ -216,7 +218,7 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 | --- | --- | --- | --- | --- | --- | --- |
 | Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente; bootstrap cubierto en teléfono | Obligatorio antes de candidata final |
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
-| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia móvil, suspensión/reapertura y encuadre de `MainMenu` aprobados; gameplay touch y run pendientes | Obligatorio; validación final pendiente |
+| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso | Obligatorio; validación final pendiente |
 | PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.

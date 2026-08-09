@@ -57,6 +57,8 @@ El controller debe vivir en un objeto padre activo y gobernar un root descendien
 
 Los cinco Canvas de gameplay usan referencia 1920×1080 y `matchWidthOrHeight = 1`: preservan el alto lógico en 19.5:9/20:9 y absorben el ancho adicional lateralmente. Esto evita que HUD, pausa, Game Over, tienda o cómic se recorten arriba/abajo; en 16:9 la escala efectiva no cambia. `GameRoot_ZonaTutorial` no recibe esta integración mientras siga fuera del producto activo.
 
+La política dimensional es común a todas las zonas, incluidas las futuras: cada `GameRoot_Zona*` debe reutilizar el mismo HUD base, referencia 1920×1080, escalado por altura, raíz segura y controles. Una zona puede cambiar dinámica, enemigos, arte ambiental o mecánicas de jefe, pero no crear una política paralela de anchors, safe area o tamaños. Las diferencias visuales deben resolverse mediante contenido/prefabs compartidos y overrides mínimos justificados.
+
 Las pruebas deterministas verifican fuente anidada, cantidad de controles, raíz segura, escala por altura, referencias previas del HUD y ausencia de EventSystem o módulo duplicado. PlayMode ejerce el routing real de `InputSystemUIInputModule` con touchscreen virtual y el reemplazo Epipelágica→Abisopelágica; ergonomía multitouch y recorrido completo continúan requiriendo hardware.
 
 ## Menú principal
@@ -71,6 +73,11 @@ Responsabilidad:
 - Cargar `Assets/Scenes/ShopMenu/ShopMenu.unity` desde el boton de tienda.
 - Mostrar el comic de inicio mediante `LoreComicPresenter.PlayGameStartIfAvailable()` antes de cargar gameplay cuando exista `LoreComicRoot` activo.
 - Escuchar el código de muestra `SONICYNOTA7` sin campo de texto y acreditar camarones de prueba para probar tienda. El código no se consume: cada ingreso completo suma otros `676700` camarones. El atajo se usa desde `MainMenu` y tambien desde `ShopMenu` cuando la escena conserva el componente de navegación de menú.
+
+Contrato responsive del menú:
+- `ComicsTutorial` y sus tres Canvas de página usan referencia 1920×1080 con `matchWidthOrHeight = 1`. En formatos 19.5:9/20:9 conservan el alto de autoría y absorben el ancho adicional, evitando que viñetas, textos o el botón siguiente se recorten arriba o abajo.
+- El `Character` animado es decoración del Main Menu. Se ancla al centro del borde derecho con pivote horizontal `0.75` y offset X cero: tres cuartas partes quedan dentro del frame y el cuarto derecho, donde convergen los tentáculos animados, permanece fuera en cualquier ancho landscape.
+- Estos ajustes no cambian navegación, hitboxes ni el layout de los demás botones del menú.
 
 ## OptionsMenu global
 
@@ -249,6 +256,8 @@ ShopMenu
 - El `Image` del hijo `Button` es una hitbox blanca con alpha `0`; no es arte ni debe recolorearse.
 - Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este contrato permite reemplazar el SFX de tienda sin tocar la jerarquía ni los sprites.
 - La autoria visual de cada owner `*Boton` pertenece a la escena: posición, tamano, sprites, layout, escala, color y jerarquía no se modifican por código.
+- `LetreroMejoras` y `LetreroAspectos` son imágenes decorativas 3:1 de 300×100 unidades, ancladas al borde derecho y con `preserveAspect`. No usan anchors stretch ni deltas negativos, por lo que conservan tamaño y margen en 16:9, 19.5:9 y 20:9.
+- El fondo principal de `ShopMenu` todavía conserva autoría 16:9 y deja bandas grises laterales en el POCO 20:9. La deuda se limita al fondo/overscan y se corregirá por separado; no debe resolverse estirando de nuevo los letreros ni alterando sus controles.
 - Los cuatro slots superiores estan reservados, en este orden, para `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
 - Las descripciones de mejoras deben ser cortas y con tono de tienda del juego, sin tildes ni caracteres especiales:
   - Tinta Persistente: "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo."

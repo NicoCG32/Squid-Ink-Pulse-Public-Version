@@ -216,3 +216,12 @@ El 8 de agosto de 2026 se generó e instaló mediante `adb install -r` una APK D
 - APK final con ajuste textual: 514.308.880 bytes, SHA-256 `A073C7629FB4FD7D1B8CA0B8FBCBF7BEA4201EDDC362FD2D4DF01FD70CC75594`, instalación `Success`, proceso activo y cero coincidencias críticas de crash.
 
 La captura posterior mostró score, gadgets, barra Ink-Pulse y cuatro botones completos dentro del frame 2712x1220; `INK-PULSO` cabe sin recorte. Esta evidencia no sustituye completar una run en ambas orientaciones landscape ni la medición sostenida de rendimiento.
+
+## Evidencia de pulido responsive de menús
+
+Una actualización posterior corrigió tres defectos acotados observados en el mismo POCO: los Canvas del cómic `¿Cómo Jugar?` ahora preservan el alto 1080; `LetreroMejoras` y `LetreroAspectos` mantienen proporción 3:1 y anclaje derecho; el `Character` decorativo del Main Menu fija su pivote 0.75 sobre el borde derecho para mostrar sólo sus tres cuartas partes útiles.
+
+- Suite EditMode: `246/246`; composición canónica válida.
+- APK Development: 514.308.880 bytes, SHA-256 `FC06FA2ED77B2CD2ED8982FE32E42BBBCF6568CB29FD5162AEDE0A3CA040B2DF`.
+- Instalación actualizada y arranque correctos; proceso activo y cero coincidencias críticas de crash.
+- Revisión física aceptada para los tres ajustes. Las bandas grises laterales del fondo 16:9 de `ShopMenu` permanecen como deuda visual independiente.

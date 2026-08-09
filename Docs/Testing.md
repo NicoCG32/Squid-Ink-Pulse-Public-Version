@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con dos pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa y también ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica.
+La suite automatizada combina pruebas EditMode deterministas con dos pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa y también ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica.
 
 Las pruebas viven en:
 
@@ -52,6 +52,8 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
 Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, la etiqueta `INK-PULSO`, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. El contrato de GameRoot exige una instancia anidada del mismo prefab en Epipelágica y Abisopelágica, cero en tutorial, referencias HUD intactas, una sola raíz de safe area y ningún EventSystem o módulo de entrada adicional. PlayMode confirma el primer raycast efectivo, steering, Ink-Pulse, pausa y recreación del reader al cargar Abisopelágica. Esto no sustituye la ergonomía multitouch, la orientación opuesta ni una run completa en hardware.
+
+`MobileMenuLayoutContractTests` congela las decisiones que dependen del formato: los cuatro Canvas del cómic `Cómo Jugar` preservan los 1080 de alto, `Character` mantiene exactamente 3/4 de su ancho dentro del borde derecho y los letreros de categorías de `ShopMenu` conservan proporción 3:1 y margen derecho sin stretch.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
 
