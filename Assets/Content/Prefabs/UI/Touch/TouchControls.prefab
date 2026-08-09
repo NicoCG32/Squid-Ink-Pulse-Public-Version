@@ -2043,7 +2043,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PULSO
+  m_text: INK-PULSO
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 66acf449c090a6f44872f0804661222d, type: 2}
   m_sharedMaterial: {fileID: -7624617195445399225, guid: 66acf449c090a6f44872f0804661222d, type: 2}

@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con una prueba PlayMode focalizada. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados y el ownership de la superficie touch. PlayMode protege el timing de una solicitud de Ink-Pulse recibida durante pausa y confirma que se consume sin ejecutar ni reaparecer al reanudar.
+La suite automatizada combina pruebas EditMode deterministas con dos pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa y también ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica.
 
 Las pruebas viven en:
 
@@ -51,7 +51,7 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
-Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. El contrato de GameRoot exige una instancia anidada del mismo prefab en Epipelágica y Abisopelágica, cero en tutorial, referencias HUD intactas y ningún EventSystem o módulo de entrada adicional. Esto no sustituye el routing real de `GraphicRaycaster`, la transición por portal ni el test físico posterior.
+Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, la etiqueta `INK-PULSO`, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. El contrato de GameRoot exige una instancia anidada del mismo prefab en Epipelágica y Abisopelágica, cero en tutorial, referencias HUD intactas, una sola raíz de safe area y ningún EventSystem o módulo de entrada adicional. PlayMode confirma el primer raycast efectivo, steering, Ink-Pulse, pausa y recreación del reader al cargar Abisopelágica. Esto no sustituye la ergonomía multitouch, la orientación opuesta ni una run completa en hardware.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
 

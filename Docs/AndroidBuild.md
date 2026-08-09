@@ -202,4 +202,17 @@ La validación complementaria aprobó `159/159` pruebas EditMode, auditor Androi
 
 La puerta de `mobile/01-android-bootstrap` está satisfecha: el APK reproducible se instaló y abrió `MainMenu` dos veces en Android sin crash bloqueante. El defecto puntual de resolución y encuadre observado durante ese bootstrap también está corregido y validado.
 
-La puerta de `mobile/02-mobile-persistence` también está satisfecha: instalación limpia, actualización sobre datos existentes, recuperación/migración y suspensión con reapertura conservan el contrato local. Esto no acepta todavía gameplay mediante touch, adaptación integral de opciones y safe area, comportamiento completo de Back/reanudación, aislamiento de feria ni rendimiento sostenido; esas puertas pertenecen a las ramas posteriores del port.
+La puerta de `mobile/02-mobile-persistence` también está satisfecha: instalación limpia, actualización sobre datos existentes, recuperación/migración y suspensión con reapertura conservan el contrato local. La integración touch y el primer encuadre extra-wide se documentan a continuación; todavía quedan una run física completa, adaptación integral de opciones y Back/reanudación, aislamiento de feria, orientación landscape opuesta y rendimiento sostenido.
+
+## Evidencia de integración touch y encuadre extra-wide
+
+El 8 de agosto de 2026 se generó e instaló mediante `adb install -r` una APK Development con controles touch integrados en ambas zonas. La primera validación física encontró dos defectos: el avance horizontal esperaba el primer objetivo vertical y los Canvas de gameplay reducían su alto lógico en 20:9, recortando HUD y Game Over. Ambos se corrigieron antes de aceptar el gate.
+
+- `PlayerMovementFramePolicy` mantiene el autoscroll aunque no exista mouse o dedo; el input sólo guía Y.
+- HUD y TouchControls viven bajo un `SafeAreaRoot` gobernado por `Screen.safeArea`.
+- HUD, pausa, Game Over, tienda y cómic usan referencia 1920x1080 con match por altura.
+- El botón de habilidad conserva el nombre de producto `INK-PULSO`.
+- Suite final previa al último artefacto: EditMode `243/243` y PlayMode `2/2`; el segundo PlayMode usa `InputSystemUIInputModule`, touchscreen virtual y cambio Epipelágica→Abisopelágica.
+- APK final con ajuste textual: 514.308.880 bytes, SHA-256 `A073C7629FB4FD7D1B8CA0B8FBCBF7BEA4201EDDC362FD2D4DF01FD70CC75594`, instalación `Success`, proceso activo y cero coincidencias críticas de crash.
+
+La captura posterior mostró score, gadgets, barra Ink-Pulse y cuatro botones completos dentro del frame 2712x1220; `INK-PULSO` cabe sin recorte. Esta evidencia no sustituye completar una run en ambas orientaciones landscape ni la medición sostenida de rendimiento.

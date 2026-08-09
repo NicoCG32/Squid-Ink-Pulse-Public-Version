@@ -1,5 +1,59 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1322984458351428637
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7427514792228415396}
+  - component: {fileID: 2408902806382693066}
+  m_Layer: 0
+  m_Name: SafeAreaRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7427514792228415396
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322984458351428637}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2449378708577988226}
+  - {fileID: 9104776218441488250}
+  - {fileID: 5591500467263407779}
+  - {fileID: 2514225549489641382}
+  - {fileID: 3438863068290025553}
+  m_Father: {fileID: 4917184018794414876}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2408902806382693066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1322984458351428637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
+  target: {fileID: 0}
 --- !u!1 &1586379721656894477
 GameObject:
   m_ObjectHideFlags: 0
@@ -252,11 +306,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2449378708577988226}
-  - {fileID: 9104776218441488250}
-  - {fileID: 5591500467263407779}
-  - {fileID: 2514225549489641382}
-  - {fileID: 3438863068290025553}
+  - {fileID: 7427514792228415396}
   m_Father: {fileID: 5147154966027924917}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -304,7 +354,7 @@ MonoBehaviour:
   m_ScaleFactor: 2
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -1448,7 +1498,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4917184018794414876}
+    m_TransformParent: {fileID: 7427514792228415396}
     m_Modifications:
     - target: {fileID: 3482678447593839946, guid: 235b6fe544295fc46acdea9d586ab251, type: 3}
       propertyPath: m_Name
@@ -1550,7 +1600,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4917184018794414876}
+    m_TransformParent: {fileID: 7427514792228415396}
     m_Modifications:
     - target: {fileID: 1142607414, guid: 9a8bc750cdf34e90a2c2a438804e85c3, type: 3}
       propertyPath: m_Name
@@ -1663,7 +1713,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4917184018794414876}
+    m_TransformParent: {fileID: 7427514792228415396}
     m_Modifications:
     - target: {fileID: 1909532242, guid: 6e35090614624a899fcc95ccb0ad6ca6, type: 3}
       propertyPath: m_Name
@@ -2366,7 +2416,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4917184018794414876}
+    m_TransformParent: {fileID: 7427514792228415396}
     m_Modifications:
     - target: {fileID: 1106420625, guid: 2982c3322df740e398cc7161ac27f35f, type: 3}
       propertyPath: m_Name
@@ -2479,7 +2529,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 4917184018794414876}
+    m_TransformParent: {fileID: 7427514792228415396}
     m_Modifications:
     - target: {fileID: 1060873969, guid: 5a176e376cdb419dab744563c742b726, type: 3}
       propertyPath: m_Name

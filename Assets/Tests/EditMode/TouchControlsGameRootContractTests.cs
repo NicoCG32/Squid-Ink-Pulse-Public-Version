@@ -48,10 +48,16 @@ namespace SquidInkPulse.Tests.EditMode
 
                 GameUIRoot uiRoot = gameRoot.GetComponentInChildren<GameUIRoot>(true);
                 Assert.That(uiRoot, Is.Not.Null, path);
-                Assert.That(controller.transform.parent, Is.SameAs(uiRoot.HudRoot), path);
+                SafeAreaAdapter[] safeAreaAdapters =
+                    gameRoot.GetComponentsInChildren<SafeAreaAdapter>(true);
+                Assert.That(safeAreaAdapters, Has.Length.EqualTo(1), path);
+                Transform safeAreaRoot = safeAreaAdapters[0].transform;
+                Assert.That(safeAreaRoot.parent, Is.SameAs(uiRoot.HudRoot), path);
+                Assert.That(uiRoot.HudRoot.childCount, Is.EqualTo(1), path);
+                Assert.That(controller.transform.parent, Is.SameAs(safeAreaRoot), path);
                 Assert.That(
                     controller.transform.GetSiblingIndex(),
-                    Is.EqualTo(uiRoot.HudRoot.childCount - 1),
+                    Is.EqualTo(safeAreaRoot.childCount - 1),
                     path);
 
                 Assert.That(gameRoot.GetComponentsInChildren<TouchControlsVisibilityController>(true), Has.Length.EqualTo(1));

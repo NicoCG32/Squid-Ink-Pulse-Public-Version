@@ -35,6 +35,8 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - Cada escena jugable tiene un unico `GameSessionController`, `RunProgressionDirector`, `SceneFlowController`, `LevelSpawner` y `GameUIRoot`.
 - `LevelSpawner.zoneSpawnProfile` esta asignado.
 - `GameUIRoot` tiene asignadas sus referencias serializadas de composicion, HUD y managers.
+- Cada GameRoot activo contiene un unico `SafeAreaRoot` bajo HUD; todos los elementos HUD y la instancia touch canónica viven dentro de esa raíz, sin Canvas o EventSystem adicionales.
+- Los cinco Canvas de gameplay conservan referencia 1920x1080 y escala por altura para no reducir el frame vertical en relaciones extra-wide.
 - `InGameShopManager` tiene asignadas sus referencias serializadas de tienda temporal: sesion, root, `CanvasGroup`, icono, textos, boton de compra, mensaje de saldo y ofertas con `GadgetShopItem`.
 - Existe exactamente un objeto con tag `Player`.
 - `Boundaries` contiene `PlayerBoundaries` y `CameraBoundaries`, cada uno con `TopBoundary` y `BottomBoundary` con `Collider2D`.

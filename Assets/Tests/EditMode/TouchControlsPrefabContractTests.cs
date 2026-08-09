@@ -122,6 +122,10 @@ namespace SquidInkPulse.Tests.EditMode
                 Assert.That(status.text, Is.Not.Empty);
                 Assert.That(action.raycastTarget, Is.False);
                 Assert.That(status.raycastTarget, Is.False);
+                if (commandButton.Command == SquidInkPulseGameplayCommand.ActivateInkPulse)
+                {
+                    Assert.That(action.text, Is.EqualTo("INK-PULSO"));
+                }
             }
 
             Assert.That(commands, Is.EquivalentTo(new[]

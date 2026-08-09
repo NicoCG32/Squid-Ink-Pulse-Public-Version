@@ -145,15 +145,14 @@ public class PlayerMovement : MonoBehaviour
         externalVerticalImpulseVelocity = verticalStep.ExternalImpulse.Velocity;
         externalVerticalImpulseRemainingSeconds = verticalStep.ExternalImpulse.RemainingSeconds;
 
-        if (!verticalStep.HasMovement)
-        {
-            return;
-        }
-
-        float nextX = transform.position.x + currentHorizontalSpeed * Time.deltaTime;
-        float nextY = Mathf.Clamp(verticalStep.NextY, minY, maxY);
-
-        transform.position = new Vector3(nextX, nextY, 0f);
+        Vector2 nextPosition = PlayerMovementFramePolicy.ResolveNextPosition(
+            transform.position,
+            currentHorizontalSpeed,
+            verticalStep,
+            minY,
+            maxY,
+            Time.deltaTime);
+        transform.position = new Vector3(nextPosition.x, nextPosition.y, 0f);
     }
 
     private bool TryResolvePlayerTargetY(out float targetY)

@@ -217,9 +217,15 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         }
 
         GameUIRoot uiRoot = gameRoot.GetComponentInChildren<GameUIRoot>(true);
-        if (uiRoot == null || controllers[0].transform.parent != uiRoot.HudRoot)
+        SafeAreaAdapter[] safeAreaAdapters =
+            gameRoot.GetComponentsInChildren<SafeAreaAdapter>(true);
+        if (uiRoot == null
+            || safeAreaAdapters.Length != 1
+            || safeAreaAdapters[0].transform.parent != uiRoot.HudRoot
+            || controllers[0].transform.parent != safeAreaAdapters[0].transform)
         {
-            failures.Add($"{prefabPath}: TouchControls debe vivir directamente bajo GameUIRoot/HUD.");
+            failures.Add(
+                $"{prefabPath}: HUD debe contener un SafeAreaRoot y TouchControls debe vivir directamente bajo esa raiz.");
         }
 
         if (controllers[0].GetComponentsInChildren<Canvas>(true).Length > 0

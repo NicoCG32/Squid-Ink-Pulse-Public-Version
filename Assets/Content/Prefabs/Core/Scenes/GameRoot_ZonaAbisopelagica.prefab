@@ -94,11 +94,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7369091655589276230}
-  - {fileID: 5728498414863877410}
-  - {fileID: 7047148669301759607}
-  - {fileID: 4042069720687736744}
-  - {fileID: 5394974111721283832}
+  - {fileID: 6933885078757328823}
   m_Father: {fileID: 7675068576345896055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -139,14 +135,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 2
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -162,7 +158,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
@@ -212,7 +208,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48299b727cd74391ba0d3f3efae719fe, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::InGameShopManager
   session: {fileID: 8385114469777015562}
   menuRoot: {fileID: 6376525582008317352}
@@ -291,7 +287,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
@@ -306,7 +302,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
@@ -370,7 +366,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11d871653f71db542bb4c145c1fc5fd9, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenuManager
   session: {fileID: 8385114469777015562}
   sceneFlow: {fileID: 5223175585972117897}
@@ -438,7 +434,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b65b064eaac949509750f2c88ea7cc8d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GameUIRoot
   eventSystemRoot: {fileID: 5873529064334142195}
   hudRoot: {fileID: 2700273825629058903}
@@ -527,7 +523,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b07af84e2c697843b42935d38632c48, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: '::'
   zoneSpawnProfile: {fileID: 11400000, guid: 0f832fb832644ba09f87e309c78fea1c, type: 2}
   session: {fileID: 8385114469777015562}
@@ -579,7 +575,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3ea61fa9a57440b8ad5784215689368e, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GameOverMenuManager
   session: {fileID: 8385114469777015562}
   sceneFlow: {fileID: 5223175585972117897}
@@ -600,6 +596,60 @@ MonoBehaviour:
   zigzagOffset: 800
   zigzagDuration: 0.35
   zigzagDelay: 0.08
+--- !u!1 &5968265928501865993
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6933885078757328823}
+  - component: {fileID: 2772734122204681182}
+  m_Layer: 0
+  m_Name: SafeAreaRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6933885078757328823
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5968265928501865993}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7369091655589276230}
+  - {fileID: 5728498414863877410}
+  - {fileID: 7047148669301759607}
+  - {fileID: 4042069720687736744}
+  - {fileID: 5394974111721283832}
+  m_Father: {fileID: 2700273825629058903}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2772734122204681182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5968265928501865993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
+  target: {fileID: 0}
 --- !u!1 &6397072628710812648
 GameObject:
   m_ObjectHideFlags: 0
@@ -642,7 +692,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6e7f0539156349b984e663100e773b01, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::SceneFlowController
   mainMenuSceneName: MainMenu
   mainMenuBuildIndex: 0
@@ -728,7 +778,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c129f8f8d124d31a64e5d135c26e07a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionController
   initialState: 0
   pauseTimeOnGameOver: 1
@@ -745,7 +795,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a42e6d8f0bb42a1b879d94ac52c8a17, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::RunProgressionDirector
   session: {fileID: 8385114469777015562}
   distanceReference: {fileID: 4745410091851838440}
@@ -876,7 +926,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f8f657b7db74fc4b94d3e26e7a24001, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::BossEventDirector
   session: {fileID: 8385114469777015562}
   progression: {fileID: 441845206242388590}
@@ -997,7 +1047,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &1148715121855529676 stripped
 RectTransform:
@@ -1038,7 +1088,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &4042069719680727455
 PrefabInstance:
@@ -1046,7 +1096,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2700273825629058903}
+    m_TransformParent: {fileID: 6933885078757328823}
     m_Modifications:
     - target: {fileID: 1142607414, guid: 9a8bc750cdf34e90a2c2a438804e85c3, type: 3}
       propertyPath: m_Name
@@ -1146,7 +1196,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0557cedad07fba14486a7a0cd949ac8f, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: '::'
 --- !u!224 &4042069720687736744 stripped
 RectTransform:
@@ -1233,7 +1283,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2700273825629058903}
+    m_TransformParent: {fileID: 6933885078757328823}
     m_Modifications:
     - target: {fileID: 1060873969, guid: 5a176e376cdb419dab744563c742b726, type: 3}
       propertyPath: m_Name
@@ -1338,7 +1388,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a610b01458e346fe8304d6f49fdb42c1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GadgetInventoryHud
 --- !u!1001 &6165092568022536644
 PrefabInstance:
@@ -1563,7 +1613,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &6376525582671318922 stripped
 MonoBehaviour:
@@ -1574,7 +1624,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!114 &6376525583049656273 stripped
 MonoBehaviour:
@@ -1585,7 +1635,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &6376525583472081905 stripped
 MonoBehaviour:
@@ -1596,7 +1646,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &8299696301434624049 stripped
 MonoBehaviour:
@@ -1607,7 +1657,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &6769245988098580765
 PrefabInstance:
@@ -1619,7 +1669,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 369777702388079911, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 1359294933100634562, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: m_Name
@@ -1667,35 +1717,35 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2585649670255146471, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 2585649670255146471, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: chargeBar
-      value: 
+      value:
       objectReference: {fileID: 4042069720687736743}
     - target: {fileID: 4703301075637031838, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 5185778903549203899, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 6167042741376344071, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 6167042741376344071, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: progression
-      value: 
+      value:
       objectReference: {fileID: 441845206242388590}
     - target: {fileID: 7985236854323817712, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     - target: {fileID: 9069135335651211952, guid: 81dee5374882e8d4db0fdfaf6255b9bd, type: 3}
       propertyPath: session
-      value: 
+      value:
       objectReference: {fileID: 8385114469777015562}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1725,7 +1775,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d69a0f4b1fb4b4da7d4f1ef8c8fbe21, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::LightGrazeSource
   grazeAnchor: {fileID: 0}
   lightShapeScale: {x: 1, y: 1}
@@ -1739,7 +1789,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2700273825629058903}
+    m_TransformParent: {fileID: 6933885078757328823}
     m_Modifications:
     - target: {fileID: 1909532242, guid: 6e35090614624a899fcc95ccb0ad6ca6, type: 3}
       propertyPath: m_Name
@@ -1839,7 +1889,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a002fa64f76967b46b63d19dd4d2fd75, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreCounterDisplay
 --- !u!224 &7047148669301759607 stripped
 RectTransform:
@@ -1852,7 +1902,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2700273825629058903}
+    m_TransformParent: {fileID: 6933885078757328823}
     m_Modifications:
     - target: {fileID: 1106420625, guid: 2982c3322df740e398cc7161ac27f35f, type: 3}
       propertyPath: m_Name
@@ -1957,7 +2007,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6ec51c3b8b6400ea6a1b95aa2dcdcf8, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ShrimpCounterDisplay
 --- !u!1001 &7759814085915470214
 PrefabInstance:
@@ -2065,7 +2115,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &5210985008205762544 stripped
 MonoBehaviour:
@@ -2076,7 +2126,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!224 &7759814085051826306 stripped
 RectTransform:
@@ -2122,7 +2172,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &8707797808135766735
 PrefabInstance:
@@ -2130,7 +2180,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 2700273825629058903}
+    m_TransformParent: {fileID: 6933885078757328823}
     m_Modifications:
     - target: {fileID: 3482678447593839946, guid: 235b6fe544295fc46acdea9d586ab251, type: 3}
       propertyPath: m_Name
