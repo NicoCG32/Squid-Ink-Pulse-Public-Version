@@ -229,6 +229,40 @@ namespace SquidInkPulse.Tests.EditMode
             }
         }
 
+        [Test]
+        public void ReplacingZoneControls_LeavesOldReaderFrozen_AndDoesNotDuplicateNewCommands()
+        {
+            var firstCounts = CreateCommandCounter(SquidInkPulseInputRuntime.Gameplay);
+            GameObject firstControls = InstantiateVisiblePrefab();
+            ClickAllCommands(firstControls, 100);
+            AssertAllCommandCounts(firstCounts, 1);
+
+            UnityEngine.Object.DestroyImmediate(firstControls);
+            InvokeScope(scope, "OnDisable");
+            InvokeScope(scope, "OnEnable");
+
+            var secondCounts = CreateCommandCounter(SquidInkPulseInputRuntime.Gameplay);
+            GameObject secondControls = InstantiateVisiblePrefab();
+            try
+            {
+                ClickAllCommands(secondControls, 200);
+                AssertAllCommandCounts(firstCounts, 1);
+                AssertAllCommandCounts(secondCounts, 1);
+
+                Transform controlsRoot = secondControls.transform.Find("TouchControls");
+                controlsRoot.gameObject.SetActive(false);
+                controlsRoot.gameObject.SetActive(true);
+                ClickAllCommands(secondControls, 300);
+
+                AssertAllCommandCounts(firstCounts, 1);
+                AssertAllCommandCounts(secondCounts, 2);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(secondControls);
+            }
+        }
+
         private GameObject InstantiateVisiblePrefab()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
@@ -248,6 +282,43 @@ namespace SquidInkPulse.Tests.EditMode
                 position = new Vector2(500f, 500f),
                 pointerCurrentRaycast = new RaycastResult { gameObject = target }
             };
+        }
+
+        private Dictionary<SquidInkPulseGameplayCommand, int> CreateCommandCounter(
+            SquidInkPulseGameplayInputReader targetReader)
+        {
+            var counts = new Dictionary<SquidInkPulseGameplayCommand, int>
+            {
+                [SquidInkPulseGameplayCommand.ActivateInkPulse] = 0,
+                [SquidInkPulseGameplayCommand.TogglePause] = 0,
+                [SquidInkPulseGameplayCommand.UseGadgetSlot1] = 0,
+                [SquidInkPulseGameplayCommand.UseGadgetSlot2] = 0
+            };
+            targetReader.InkPulseRequested += () => counts[SquidInkPulseGameplayCommand.ActivateInkPulse]++;
+            targetReader.PauseToggleRequested += () => counts[SquidInkPulseGameplayCommand.TogglePause]++;
+            targetReader.GadgetSlot1Requested += () => counts[SquidInkPulseGameplayCommand.UseGadgetSlot1]++;
+            targetReader.GadgetSlot2Requested += () => counts[SquidInkPulseGameplayCommand.UseGadgetSlot2]++;
+            return counts;
+        }
+
+        private void ClickAllCommands(GameObject controls, int firstPointerId)
+        {
+            TouchGameplayCommandButton[] buttons =
+                controls.GetComponentsInChildren<TouchGameplayCommandButton>(true);
+            Assert.That(buttons, Has.Length.EqualTo(4));
+            for (int index = 0; index < buttons.Length; index++)
+            {
+                buttons[index].Button.interactable = true;
+                buttons[index].OnPointerDown(CreatePointer(firstPointerId + index, buttons[index].gameObject));
+                buttons[index].OnPointerUp(CreatePointer(firstPointerId + index, buttons[index].gameObject));
+            }
+        }
+
+        private static void AssertAllCommandCounts(
+            Dictionary<SquidInkPulseGameplayCommand, int> counts,
+            int expected)
+        {
+            Assert.That(counts.Values, Is.All.EqualTo(expected));
         }
 
         private static int CountMissingScripts(GameObject root)

@@ -21,7 +21,7 @@ Responsabilidad:
 
 `PlayerVerticalMovementPolicy` mantiene pura la decisión entre objetivo del jugador e impulso externo. Un impulso de Jellyfish activo tiene prioridad durante toda su ventana, incluso contra un objetivo opuesto o mientras el jugador está en el límite superior. El último paso usa sólo el tiempo restante; el objetivo del jugador se retoma en el frame siguiente. Solicitudes repetidas conservan por separado la mayor velocidad y la ventana más larga.
 
-Si el lector todavía no recibió una posición válida, no existe objetivo vertical. `(0,0)` sigue siendo una coordenada válida y no se usa como sentinel. El binding versionado de `SteerPosition` continúa siendo sólo mouse, pero `TouchSteeringSurface` puede inyectar posiciones de pantalla desde un único dedo con prioridad temporal. Al soltar o cancelar vuelve al último mouse válido, o invalida el objetivo si no existe fallback. La superficie aún no está montada en los GameRoot.
+Si el lector todavía no recibió una posición válida, no existe objetivo vertical. `(0,0)` sigue siendo una coordenada válida y no se usa como sentinel. El binding versionado de `SteerPosition` continúa siendo sólo mouse, pero `TouchSteeringSurface` puede inyectar posiciones de pantalla desde un único dedo con prioridad temporal. Al soltar o cancelar vuelve al último mouse válido, o invalida el objetivo si no existe fallback. La superficie vive en la instancia de `TouchControls.prefab` montada bajo el HUD de ambos GameRoot activos.
 
 Contrato de límites:
 - No usa `minY` ni `maxY` serializados.
@@ -218,7 +218,7 @@ Reglas de slot:
 - Los pasivos ocupan slot visual, pero no muestran tecla.
 - Ningun gadget es stackable.
 - Todo gadget comprado durante la run es de un solo uso: al consumirse libera su slot y desaparece del HUD.
-- `TryUseSlot1()` y `TryUseSlot2()` son las operaciones públicas compartidas con futuros botones touch. Ambas validan sesión activa, bloqueo de tienda, gadget activo y poseído, éxito del efecto y consumo; no se permite que la UI llame directamente a `RuntimeGadgetInventory.TryConsume()`.
+- `TryUseSlot1()` y `TryUseSlot2()` son las operaciones públicas compartidas con los botones touch. Ambas validan sesión activa, bloqueo de tienda, gadget activo y poseído, éxito del efecto y consumo; no se permite que la UI llame directamente a `RuntimeGadgetInventory.TryConsume()`.
 
 ## Tienda temporal de suministros
 

@@ -45,7 +45,7 @@ Archivos:
 - `Assets/Implementation/Code/UI/Touch/TouchGameplayControlsPolicy.cs`
 - `Assets/Content/Prefabs/UI/Touch/TouchControls.prefab`
 
-La política muestra la futura capa de controles en Android y la oculta en players desktop o plataformas aún fuera del port. El override `showInEditor` es serializado por instancia, está apagado por defecto y sólo tiene efecto en Windows, macOS o Linux Editor; no usa `EditorPrefs`, `PlayerPrefs`, símbolos de compilación ni detección de hardware touch.
+La política muestra la capa de controles en Android y la oculta en players desktop o plataformas aún fuera del port. El override `showInEditor` es serializado por instancia, está apagado por defecto y sólo tiene efecto en Windows, macOS o Linux Editor; no usa `EditorPrefs`, `PlayerPrefs`, símbolos de compilación ni detección de hardware touch.
 
 El controller debe vivir en un objeto padre activo y gobernar un root descendiente distinto. Rechaza referencias al propio owner, a sus ancestros o a objetos ajenos; recalcula en `OnEnable` para restaurar la decisión al reactivar el owner.
 
@@ -53,7 +53,9 @@ El controller debe vivir en un objeto padre activo y gobernar un root descendien
 
 `TouchControls.prefab` ya compone la superficie full-stretch y cuatro botones accesibles de 160 a 240 unidades de Canvas. La superficie es el primer sibling; los hit targets de pausa, Ink-Pulse y gadgets quedan encima, mientras textos y estados visuales no reciben raycast. El prefab no posee Canvas, `GraphicRaycaster`, EventSystem ni Collider. Cada botón muestra una etiqueta de estado explícita y sólo uno de sus pointers puede despachar al lector semántico.
 
-El prefab todavía no está integrado en `GameUIRoot` en este corte. Al montarlo se reutilizan Canvas, `GraphicRaycaster` y EventSystem existentes y se debe conservar la precedencia de pausa, Game Over, tienda y comics. El routing real del módulo UI con multitouch y la validación física quedan para Play Mode y hardware.
+`GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica` contienen una única instancia anidada del mismo prefab como último hijo de `GameUIRoot/HUD`. De este modo queda por encima de la decoración HUD que aún recibe raycast, no añade Canvas, `GraphicRaycaster` ni EventSystem a la infraestructura existente y hereda automáticamente cambios del prefab fuente. Pausa, Game Over, tienda y comics conservan sus roots y autoridades previas. `GameRoot_ZonaTutorial` no recibe esta integración.
+
+Las pruebas deterministas verifican fuente anidada, cantidad de controles, referencias previas del HUD y ausencia de EventSystem o módulo de entrada duplicado en ambos GameRoot y escenas activas. El routing real de `InputSystemUIInputModule` con multitouch, la transición efectiva por portal y la validación física quedan para Play Mode y hardware.
 
 ## Menú principal
 

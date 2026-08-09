@@ -51,7 +51,7 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
-Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. No afirma todavía que el orden real de `GraphicRaycaster` esté integrado en las zonas: ese gate requiere el montaje en GameRoot y el test PlayMode posterior.
+Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. El contrato de GameRoot exige una instancia anidada del mismo prefab en Epipelágica y Abisopelágica, cero en tutorial, referencias HUD intactas y ningún EventSystem o módulo de entrada adicional. Esto no sustituye el routing real de `GraphicRaycaster`, la transición por portal ni el test físico posterior.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
 

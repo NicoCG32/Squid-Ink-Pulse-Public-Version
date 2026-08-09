@@ -16,6 +16,14 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
     private const string EpipelagicScenePath = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     private const string AbyssopelagicScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
     private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
+    private const string TouchControlsPrefabPath =
+        "Assets/Content/Prefabs/UI/Touch/TouchControls.prefab";
+    private const string EpipelagicGameRootPrefabPath =
+        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab";
+    private const string AbyssopelagicGameRootPrefabPath =
+        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab";
+    private const string TutorialGameRootPrefabPath =
+        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaTutorial.prefab";
 
     private static readonly string[] ExpectedBuildScenes =
     {
@@ -27,8 +35,9 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 
     private static readonly string[] CanonicalPrefabPaths =
     {
-        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab",
-        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab",
+        EpipelagicGameRootPrefabPath,
+        AbyssopelagicGameRootPrefabPath,
+        TouchControlsPrefabPath,
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
@@ -87,6 +96,22 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             }
 
             ValidateMissingScripts(prefab, prefabPath, failures);
+
+            if (prefabPath == EpipelagicGameRootPrefabPath
+                || prefabPath == AbyssopelagicGameRootPrefabPath)
+            {
+                ValidateTouchControlsComposition(prefab, prefabPath, failures);
+            }
+        }
+
+        GameObject tutorialRoot = AssetDatabase.LoadAssetAtPath<GameObject>(TutorialGameRootPrefabPath);
+        if (tutorialRoot != null
+            && (tutorialRoot.GetComponentsInChildren<TouchGameplayControlsController>(true).Length > 0
+                || tutorialRoot.GetComponentsInChildren<TouchControlsVisibilityController>(true).Length > 0
+                || tutorialRoot.GetComponentsInChildren<TouchSteeringSurface>(true).Length > 0
+                || tutorialRoot.GetComponentsInChildren<TouchGameplayCommandButton>(true).Length > 0))
+        {
+            failures.Add("GameRoot_ZonaTutorial debe permanecer sin controles touch durante el port de las zonas activas.");
         }
     }
 
@@ -137,6 +162,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         RequireSingle<GameSessionController>(scene, "GameSessionController", failures);
         RequireSingle<RunProgressionDirector>(scene, "RunProgressionDirector", failures);
         RequireSingle<SceneFlowController>(scene, "SceneFlowController", failures);
+        RequireSingle<TouchGameplayControlsController>(scene, "TouchGameplayControlsController", failures);
+        RequireSingle<TouchSteeringSurface>(scene, "TouchSteeringSurface", failures);
 
         LevelSpawner spawner = RequireSingle<LevelSpawner>(scene, "LevelSpawner", failures);
         if (spawner != null)
@@ -156,6 +183,51 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         ValidateCleanup(scene, zoneName, failures);
         ValidateBoss(scene, zoneName, expectedBossPrefabName, failures);
         ValidateNoFixedSpawnedWorldEvents(scene, zoneName, failures);
+    }
+
+    private static void ValidateTouchControlsComposition(
+        GameObject gameRoot,
+        string prefabPath,
+        List<string> failures)
+    {
+        TouchGameplayControlsController[] controllers =
+            gameRoot.GetComponentsInChildren<TouchGameplayControlsController>(true);
+        TouchControlsVisibilityController[] visibilityControllers =
+            gameRoot.GetComponentsInChildren<TouchControlsVisibilityController>(true);
+        TouchSteeringSurface[] surfaces =
+            gameRoot.GetComponentsInChildren<TouchSteeringSurface>(true);
+        TouchGameplayCommandButton[] commandButtons =
+            gameRoot.GetComponentsInChildren<TouchGameplayCommandButton>(true);
+
+        if (controllers.Length != 1
+            || visibilityControllers.Length != 1
+            || surfaces.Length != 1
+            || commandButtons.Length != 4)
+        {
+            failures.Add(
+                $"{prefabPath}: debe contener exactamente un controller, una visibilidad, una superficie y cuatro botones touch.");
+            return;
+        }
+
+        string sourcePath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(
+            controllers[0].gameObject);
+        if (sourcePath != TouchControlsPrefabPath)
+        {
+            failures.Add($"{prefabPath}: los controles deben ser una instancia anidada de {TouchControlsPrefabPath}; actual: {sourcePath}.");
+        }
+
+        GameUIRoot uiRoot = gameRoot.GetComponentInChildren<GameUIRoot>(true);
+        if (uiRoot == null || controllers[0].transform.parent != uiRoot.HudRoot)
+        {
+            failures.Add($"{prefabPath}: TouchControls debe vivir directamente bajo GameUIRoot/HUD.");
+        }
+
+        if (controllers[0].GetComponentsInChildren<Canvas>(true).Length > 0
+            || controllers[0].GetComponentsInChildren<UnityEngine.UI.GraphicRaycaster>(true).Length > 0
+            || controllers[0].GetComponentsInChildren<EventSystem>(true).Length > 0)
+        {
+            failures.Add($"{prefabPath}: TouchControls no debe duplicar Canvas, GraphicRaycaster ni EventSystem.");
+        }
     }
 
     private static void ValidateGameUIRoot(GameUIRoot uiRoot, string zoneName, List<string> failures)
