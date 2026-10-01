@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con dos pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa y también ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica.
+La suite automatizada combina pruebas EditMode deterministas con cinco pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, y comprueba encuadre y posiciones de spawn en los aspectos móviles.
 
 Las pruebas viven en:
 
@@ -58,6 +58,8 @@ Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEvent
 Las pruebas de HUD, escala y touch consumen el inventario de `MobileGameRootCatalog`, compartido con el validador de composición. El contrato HUD compara geometría y fuente anidada con Epipelágica; seis casos negativos alteran en memoria posición de InkBar, anchor de score, tamaño de controles y escala, rotación u offset de la raíz segura para verificar que se rechazan divergencias. Esas instancias se descargan sin guardar prefabs. La comprobación de escenas carga sus instancias efectivas, incluidas sustituciones locales de elementos HUD. Compilar los tests con un compilador C# externo no equivale a ejecutarlos en Unity ni valida legibilidad en teléfono.
 
 `TestResults/` es un artefacto generado y no debe versionarse.
+
+`MobileCameraFramingPlayModeTests` carga las dos escenas reales en 16:9, 19.5:9 y 20:9. Mantiene al jugador inmóvil y desactiva spawners/progresión para aislar geometría mientras `CameraController` sigue ejecutándose en el PlayerLoop. Comprueba cuerpo y graze en los extremos verticales y el centro, viewport dentro de `CameraBoundaries`, estabilidad al deshabilitar el trigger de graze, vista amplia y regreso a seguimiento. Con el perfil de spawn de cada escena, verifica camarones en la intersección vertical visible, portales/enemigos dentro del rango del jugador y todos los puntos desde el borde derecho de cámara. Estas pruebas aíslan el Input System mediante `InputTestFixture` y restauran el estado aleatorio al muestrear spawn; no certifican una run, rendimiento ni ergonomía.
 
 ## Matriz visual estática del HUD
 

@@ -36,6 +36,8 @@ public class CameraController : MonoBehaviour
     private float activeFeedbackOrthographicOffset;
     private Collider2D topBorder;
     private Collider2D bottomBorder;
+    private Transform framingTarget;
+    private Collider2D framingCollider;
 
     public CameraEventMode CurrentMode { get; private set; } = CameraEventMode.Follow;
     public event Action<CameraEventMode, CameraEventMode> ModeChanged;
@@ -141,6 +143,7 @@ public class CameraController : MonoBehaviour
     private Vector3 CalculateNormalViewPosition()
     {
         Vector3 targetPosition = target.position + offset;
+        targetPosition.x = ClampCameraX(targetPosition.x);
         targetPosition.y = ClampCameraY(targetPosition.y);
         return targetPosition;
     }
@@ -148,6 +151,7 @@ public class CameraController : MonoBehaviour
     private Vector3 CalculateWideViewPosition()
     {
         Vector3 targetPosition = target.position + offset;
+        targetPosition.x = ClampCameraX(targetPosition.x);
         targetPosition.y = CalculateWideViewCenterY();
         return targetPosition;
     }
@@ -286,6 +290,32 @@ public class CameraController : MonoBehaviour
         return fullHeight * 0.5f;
     }
 
+    private float ClampCameraX(float targetX)
+    {
+        if (currentCamera == null || !currentCamera.orthographic || framingCollider == null)
+        {
+            return targetX;
+        }
+
+        Bounds bounds = framingCollider.bounds;
+        if (framingCollider is CircleCollider2D circle)
+        {
+            // Keep a stable envelope even when gameplay disables the graze
+            // trigger temporarily; collider.bounds would then be empty.
+            Vector3 scale = circle.transform.lossyScale;
+            float radius = circle.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            bounds = new Bounds(circle.transform.TransformPoint(circle.offset),
+                new Vector3(radius * 2f, radius * 2f, 0f));
+        }
+
+        float feedbackReserve = enableInkPulseScreenPulse ? inkPulseShakeAmplitude : 0f;
+        float halfWidth = Mathf.Max(0f,
+            currentCamera.orthographicSize * currentCamera.aspect - feedbackReserve - 0.01f);
+        float minX = bounds.max.x - halfWidth;
+        float maxX = bounds.min.x + halfWidth;
+        return minX <= maxX ? Mathf.Clamp(targetX, minX, maxX) : bounds.center.x;
+    }
+
     private float ClampCameraY(float targetY)
     {
         if (topBorder == null || bottomBorder == null || currentCamera == null || !currentCamera.orthographic)
@@ -388,6 +418,15 @@ public class CameraController : MonoBehaviour
         if (inkPulse == null && target != null)
         {
             inkPulse = target.GetComponent<InkPulseController>();
+        }
+
+        if (target != framingTarget)
+        {
+            framingTarget = target;
+            GrazeDetector graze = target != null ? target.GetComponentInChildren<GrazeDetector>(true) : null;
+            framingCollider = graze != null
+                ? graze.GetComponent<Collider2D>()
+                : target != null ? target.GetComponent<Collider2D>() : null;
         }
 
         UpdateInkPulseSubscription();

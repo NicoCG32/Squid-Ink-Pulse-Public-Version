@@ -111,6 +111,18 @@ El 1 de octubre de 2026 se capturó Epipelágica durante una run pausada en el P
 
 El build Windows complementario terminó correctamente y el ejecutable a 1280×720 se mantuvo vivo y responsivo durante un smoke de 15 s, sin excepciones observadas en el log del player. Ese smoke comprueba arranque; no se presenta como una run interactiva de teclado/mouse. La aceptación de este HUD no cierra rendimiento sostenido, ciclo de vida, ambas orientaciones ni el candidato Android completo.
 
+### APK Development del ajuste de cámara — 1 de octubre de 2026
+
+Se recompiló desde `mobile/05-safe-area-hud`, base `d72a31e` más el ajuste local de cámara y sus pruebas. El árbol conservaba también un cambio previo de `TimeManager.asset` fuera del commit de cámara; el APK no se atribuye a un checkout limpio de esa base.
+
+- Resultado: `Succeeded`; 0 errores, 2 advertencias; 229,31 s informados por el builder.
+- Tamaño: 514.324.008 bytes (490,50 MiB).
+- SHA-256: `42C8B6887CA1ED758833D600063CA64A0DD289F4B38355E8A237269B1C6845A7`.
+- EditMode: 255/255; PlayMode: 5/5, sin fallos ni omitidas; composición aprobada en prebuild Android y Windows.
+- Las pruebas de cámara reproducían un recorte izquierdo del graze en Follow estabilizado a 16:9. El ajuste limita el offset sólo cuando hace falta espacio; comprueba ambas zonas, límites verticales, vista amplia/regreso y posiciones de spawn en 16:9, 19.5:9 y 20:9.
+- `adb install -r` terminó con `Success`, conservando datos; actividad del juego en primer plano y captura de MainMenu a 2712×1220. El log filtrado del proceso no mostró excepciones críticas. Esta captura verifica arranque, no una nueva run; la aceptación manual del HUD de ambas zonas corresponde al pase anterior.
+- Build Windows correcto; smoke oculto de arranque durante 15 s, vivo y responsivo, sin excepciones C# observadas. Se solicitó 1280×720 en ventana, pero las opciones guardadas reaplicaron fullscreen y DXGI informó fallback a la resolución del display (3840×2160). Este smoke no certifica el tamaño efectivo de la ventana ni una run interactiva; el encuadre se verifica con PlayMode.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:

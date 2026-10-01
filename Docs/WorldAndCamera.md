@@ -14,8 +14,11 @@ Responsabilidad:
 - Volver de forma interpolada al seguimiento normal.
 - Aplicar un feedback breve de tambaleo y pulso de zoom cuando `InkPulseController` emite `PulseStarted`.
 - Limitar su posición vertical usando exclusivamente `CameraBoundaries`.
+- Limitar el offset horizontal efectivo cuando el viewport recortaría el área de graze del jugador.
 
 `Main Camera` vive bajo una instancia prefab `CameraRig_*` por zona en `Assets/Content/Prefabs/Core/Camera/`. El prefab estabiliza la composicion de cámara, pero las referencias externas siguen siendo contrato de escena: `CameraController` puede resolver el jugador por tag `Player`, `Camera.main` y `CameraBoundaries` en runtime.
+
+El encuadre horizontal conserva el offset del prefab siempre que el collider de `GrazeDetector` quepa completo en el viewport ortográfico. Si no cabe, limita el centro objetivo de cámara según el aspecto y la altura visibles, reservando la amplitud del tambaleo de Ink-Pulse y 0,01 unidades de margen. Usa el collider del jugador como fallback cuando no existe graze. La envolvente circular se calcula desde radio, offset y escala, incluso mientras el trigger está deshabilitado; activar o desactivar graze no debe provocar un salto de encuadre. La corrección afecta el seguimiento y la vista amplia, sin cambiar límites del jugador, velocidades ni reglas de spawn.
 
 Estados de cámara:
 - `Follow`
