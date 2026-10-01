@@ -8,6 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 {
@@ -19,11 +20,11 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
     private const string TouchControlsPrefabPath =
         "Assets/Content/Prefabs/UI/Touch/TouchControls.prefab";
     private const string EpipelagicGameRootPrefabPath =
-        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab";
+        MobileGameRootCatalog.CanonicalGameRootPath;
     private const string AbyssopelagicGameRootPrefabPath =
-        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab";
+        MobileGameRootCatalog.AbyssopelagicGameRootPath;
     private const string TutorialGameRootPrefabPath =
-        "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaTutorial.prefab";
+        MobileGameRootCatalog.TutorialGameRootPath;
 
     private static readonly string[] ExpectedBuildScenes =
     {
@@ -33,16 +34,29 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         ShopMenuScenePath
     };
 
-    private static readonly string[] CanonicalPrefabPaths =
+    private static readonly string[] RequiredProductGameRootPrefabPaths =
     {
         EpipelagicGameRootPrefabPath,
-        AbyssopelagicGameRootPrefabPath,
+        AbyssopelagicGameRootPrefabPath
+    };
+
+    private static readonly string[] FixedCanonicalPrefabPaths =
+    {
         TouchControlsPrefabPath,
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
         "Assets/Content/Prefabs/Shop/DealerFish.prefab",
         "Assets/Content/Prefabs/Shop/DealerFish_ZonaAbisopelagica.prefab"
+    };
+
+    private static readonly string[] ExpectedHudSafeAreaChildren =
+    {
+        "GadgetSlots",
+        "InkBar",
+        "Score",
+        "ShrimpCounter",
+        "TouchControlsOwner"
     };
 
     public int callbackOrder => -80;
@@ -86,7 +100,18 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 
     private static void ValidateCanonicalPrefabs(List<string> failures)
     {
-        foreach (string prefabPath in CanonicalPrefabPaths)
+        string[] productGameRootPrefabPaths = MobileGameRootCatalog.ProductGameRootPaths;
+        foreach (string requiredPath in RequiredProductGameRootPrefabPaths)
+        {
+            if (!productGameRootPrefabPaths.Contains(requiredPath, StringComparer.Ordinal))
+            {
+                failures.Add($"GameRoot de producto requerido no encontrado o excluido del contrato movil: {requiredPath}");
+            }
+        }
+
+        foreach (string prefabPath in productGameRootPrefabPaths
+            .Concat(FixedCanonicalPrefabPaths)
+            .Distinct(StringComparer.Ordinal))
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
@@ -97,10 +122,9 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 
             ValidateMissingScripts(prefab, prefabPath, failures);
 
-            if (prefabPath == EpipelagicGameRootPrefabPath
-                || prefabPath == AbyssopelagicGameRootPrefabPath)
+            if (productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
             {
-                ValidateTouchControlsComposition(prefab, prefabPath, failures);
+                ValidateMobileGameRootComposition(prefab, prefabPath, failures);
             }
         }
 
@@ -176,6 +200,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             ValidateGameUIRoot(uiRoot, zoneName, failures);
             ValidateInGameShopManager(uiRoot.InGameShopManager, zoneName, failures);
+            ValidateMobileGameRootComposition(uiRoot.transform.root.gameObject, scene.path, failures);
         }
 
         RequirePlayer(scene, zoneName, failures);
@@ -185,11 +210,13 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         ValidateNoFixedSpawnedWorldEvents(scene, zoneName, failures);
     }
 
-    private static void ValidateTouchControlsComposition(
+    private static void ValidateMobileGameRootComposition(
         GameObject gameRoot,
         string prefabPath,
         List<string> failures)
     {
+        ValidateGameplayCanvasScaling(gameRoot, prefabPath, failures);
+
         TouchGameplayControlsController[] controllers =
             gameRoot.GetComponentsInChildren<TouchGameplayControlsController>(true);
         TouchControlsVisibilityController[] visibilityControllers =
@@ -227,12 +254,139 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             failures.Add(
                 $"{prefabPath}: HUD debe contener un SafeAreaRoot y TouchControls debe vivir directamente bajo esa raiz.");
         }
+        else
+        {
+            ValidateHudSafeAreaContract(
+                uiRoot,
+                safeAreaAdapters[0],
+                controllers[0],
+                prefabPath,
+                failures);
+            GameObject canonicalRoot = AssetDatabase.LoadAssetAtPath<GameObject>(
+                MobileGameRootCatalog.CanonicalGameRootPath);
+            GameUIRoot canonicalUi = canonicalRoot != null
+                ? canonicalRoot.GetComponentInChildren<GameUIRoot>(true)
+                : null;
+            MobileHudLayoutContract.Validate(
+                canonicalUi != null && canonicalUi.HudRoot != null
+                    ? canonicalUi.HudRoot.Find("SafeAreaRoot")
+                    : null,
+                safeAreaAdapters[0].transform,
+                prefabPath,
+                failures);
+        }
 
         if (controllers[0].GetComponentsInChildren<Canvas>(true).Length > 0
-            || controllers[0].GetComponentsInChildren<UnityEngine.UI.GraphicRaycaster>(true).Length > 0
+            || controllers[0].GetComponentsInChildren<GraphicRaycaster>(true).Length > 0
             || controllers[0].GetComponentsInChildren<EventSystem>(true).Length > 0)
         {
             failures.Add($"{prefabPath}: TouchControls no debe duplicar Canvas, GraphicRaycaster ni EventSystem.");
+        }
+    }
+
+    private static void ValidateGameplayCanvasScaling(
+        GameObject gameRoot,
+        string prefabPath,
+        List<string> failures)
+    {
+        // Las escenas agregan el prefab de opciones: su adaptacion corresponde
+        // al corte de menus, no a los cinco Canvas base del GameRoot jugable.
+        Canvas[] canvases = gameRoot.GetComponentsInChildren<Canvas>(true)
+            .Where(canvas => PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(canvas.gameObject)
+                != "Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab")
+            .ToArray();
+        if (canvases.Length != 5)
+        {
+            failures.Add($"{prefabPath}: debe contener exactamente 5 Canvas de gameplay; actual: {canvases.Length}. "
+                + string.Join(", ", canvases.Select(canvas => $"{canvas.name} ({PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(canvas.gameObject)})")));
+            return;
+        }
+
+        foreach (Canvas canvas in canvases)
+        {
+            CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                failures.Add($"{prefabPath}/{canvas.name}: falta CanvasScaler.");
+                continue;
+            }
+
+            if (scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize
+                || scaler.referenceResolution != new Vector2(1920f, 1080f)
+                || scaler.screenMatchMode != CanvasScaler.ScreenMatchMode.MatchWidthOrHeight
+                || !Mathf.Approximately(scaler.matchWidthOrHeight, 1f))
+            {
+                failures.Add(
+                    $"{prefabPath}/{canvas.name}: debe usar referencia 1920x1080 y preservar el alto en formatos moviles.");
+            }
+        }
+    }
+
+    private static void ValidateHudSafeAreaContract(
+        GameUIRoot uiRoot,
+        SafeAreaAdapter safeAreaAdapter,
+        TouchGameplayControlsController controlsController,
+        string prefabPath,
+        List<string> failures)
+    {
+        Transform safeAreaRoot = safeAreaAdapter.transform;
+        // Target null usa el RectTransform local; un target externo no protege el HUD.
+        if (safeAreaAdapter.Target != null && safeAreaAdapter.Target.transform != safeAreaRoot)
+        {
+            failures.Add($"{prefabPath}: SafeAreaAdapter debe actuar sobre su propio SafeAreaRoot.");
+        }
+        if (uiRoot.HudRoot.childCount != 1
+            || safeAreaRoot.name != "SafeAreaRoot"
+            || safeAreaRoot.parent != uiRoot.HudRoot)
+        {
+            failures.Add($"{prefabPath}: HUD debe tener exactamente un hijo SafeAreaRoot.");
+        }
+
+        if (safeAreaRoot is not RectTransform safeAreaRect
+            || safeAreaRect.anchorMin != Vector2.zero
+            || safeAreaRect.anchorMax != Vector2.one
+            || safeAreaRect.offsetMin != Vector2.zero
+            || safeAreaRect.offsetMax != Vector2.zero)
+        {
+            failures.Add($"{prefabPath}: SafeAreaRoot debe cubrir todo el HUD antes de aplicar safe area runtime.");
+        }
+
+        string[] childNames = safeAreaRoot.Cast<Transform>()
+            .Select(child => child.name)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+        if (!childNames.SequenceEqual(ExpectedHudSafeAreaChildren))
+        {
+            failures.Add(
+                $"{prefabPath}: SafeAreaRoot debe contener solo {string.Join(", ", ExpectedHudSafeAreaChildren)}.");
+        }
+
+        RequireHudReferenceUnderSafeArea(uiRoot.InkBar, safeAreaRoot, $"{prefabPath}/InkBar", failures);
+        RequireHudReferenceUnderSafeArea(uiRoot.GadgetSlots, safeAreaRoot, $"{prefabPath}/GadgetSlots", failures);
+        RequireHudReferenceUnderSafeArea(uiRoot.ShrimpCounter, safeAreaRoot, $"{prefabPath}/ShrimpCounter", failures);
+        RequireHudReferenceUnderSafeArea(uiRoot.ScoreCounter, safeAreaRoot, $"{prefabPath}/ScoreCounter", failures);
+
+        if (controlsController.transform.GetSiblingIndex() != safeAreaRoot.childCount - 1)
+        {
+            failures.Add($"{prefabPath}: TouchControls debe ser el ultimo hijo de SafeAreaRoot.");
+        }
+    }
+
+    private static void RequireHudReferenceUnderSafeArea(
+        Component component,
+        Transform safeAreaRoot,
+        string label,
+        List<string> failures)
+    {
+        if (component == null)
+        {
+            failures.Add($"{label}: referencia HUD no asignada.");
+            return;
+        }
+
+        if (!component.transform.IsChildOf(safeAreaRoot))
+        {
+            failures.Add($"{label}: debe vivir bajo SafeAreaRoot.");
         }
     }
 

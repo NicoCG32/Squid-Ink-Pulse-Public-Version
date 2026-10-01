@@ -55,7 +55,28 @@ Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEvent
 
 `MobileMenuLayoutContractTests` congela las decisiones que dependen del formato: los cuatro Canvas del cómic `Cómo Jugar` preservan los 1080 de alto, `Character` mantiene exactamente 3/4 de su ancho dentro del borde derecho y los letreros de categorías de `ShopMenu` conservan proporción 3:1 y margen derecho sin stretch.
 
+Las pruebas de HUD, escala y touch consumen el inventario de `MobileGameRootCatalog`, compartido con el validador de composición. El contrato HUD compara geometría y fuente anidada con Epipelágica; seis casos negativos alteran en memoria posición de InkBar, anchor de score, tamaño de controles y escala, rotación u offset de la raíz segura para verificar que se rechazan divergencias. Esas instancias se descargan sin guardar prefabs. La comprobación de escenas carga sus instancias efectivas, incluidas sustituciones locales de elementos HUD. Compilar los tests con un compilador C# externo no equivale a ejecutarlos en Unity ni valida legibilidad en teléfono.
+
 `TestResults/` es un artefacto generado y no debe versionarse.
+
+## Matriz visual estática del HUD
+
+`Tools > Squid Ink Pulse > Mobile > Export HUD Preview Matrix` carga las dos escenas de gameplay y exporta doce PNG, una galería HTML y medidas JSON a `TestResults/MobileHudPreview/`. Requiere Edit Mode, escenas sin cambios sin guardar y un dispositivo gráfico disponible. Descarta las modificaciones de previsualización y restaura las escenas abiertas; no guarda escenas ni prefabs.
+
+También puede ejecutarse desde la raíz del repositorio, con el proyecto cerrado en otras instancias de Unity:
+
+```powershell
+& 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
+  -batchmode -quit -projectPath "$PWD" `
+  -executeMethod MobileHudPreviewExporter.Export `
+  -logFile "$PWD\TestResults\hud-preview.log"
+```
+
+Este comando necesita gráficos: omitir `-nographics`. Incluye 1920×1080 (16:9), 2340×1080 (19.5:9), 2400×1080 (20:9), cutouts laterales de 108 px en ambos sentidos y 2712×1220 con inset izquierdo de 122 px. Los cutouts son simulados, no mediciones de un teléfono.
+
+La captura usa la escena de autoría, Canvas sobre cámara y escalado por altura, barra llena y controles touch visibles. Comprueba bounds dentro del área segura y solapamientos entre los cuatro botones; excluye la superficie de steering que ocupa toda la pantalla. Las intersecciones entre contenedores HUD se registran como observaciones que requieren inspeccionar contenido visible: sus rects pueden incluir espacio transparente. Las observaciones TMP distinguen texto fuera de su rect de clipping: `Overflow` permite mostrar glifos fuera del rect. No se ejecutan animaciones, presentación de estados gameplay, routing de entrada ni una run; tampoco se certifican framing dinámico, ergonomía o rendimiento móvil.
+
+`SafeAreaAdapterTests` carga además los prefabs reales con destino serializado sin asignar y exige que `Apply` resuelva el RectTransform local. Este caso protege la semántica de null de objetos Unity, que no equivale siempre a null CLR en el Editor.
 
 ## Servidor de feria
 

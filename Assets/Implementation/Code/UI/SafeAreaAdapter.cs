@@ -60,6 +60,11 @@ public sealed class SafeAreaAdapter : MonoBehaviour
 
     private void ResolveTarget()
     {
-        target ??= GetComponent<RectTransform>();
+        // Serialized Unity references can be an unassigned native object rather
+        // than a CLR null, so use Unity's null check for the local fallback.
+        if (target == null)
+        {
+            target = GetComponent<RectTransform>();
+        }
     }
 }

@@ -1913,17 +1913,17 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5159244167268142758, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
       insertIndex: -1
       addedObject: {fileID: 24272524}
-    - targetCorrespondingSourceObject: {fileID: 4917184018794414876, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 7427514792228415396, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+      insertIndex: 0
       addedObject: {fileID: 1475426457}
-    - targetCorrespondingSourceObject: {fileID: 4917184018794414876, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 7427514792228415396, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+      insertIndex: 1
       addedObject: {fileID: 1652163658}
-    - targetCorrespondingSourceObject: {fileID: 4917184018794414876, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 7427514792228415396, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+      insertIndex: 2
       addedObject: {fileID: 1507574041}
-    - targetCorrespondingSourceObject: {fileID: 4917184018794414876, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
-      insertIndex: -1
+    - targetCorrespondingSourceObject: {fileID: 7427514792228415396, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+      insertIndex: 3
       addedObject: {fileID: 1455607105}
     - targetCorrespondingSourceObject: {fileID: 2387872473881950732, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
       insertIndex: -1
@@ -1941,7 +1941,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
 --- !u!224 &7723967107997133358 stripped
 RectTransform:
-  m_CorrespondingSourceObject: {fileID: 4917184018794414876, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+  m_CorrespondingSourceObject: {fileID: 7427514792228415396, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
   m_PrefabInstance: {fileID: 7723967107997133357}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &7723967107997133359 stripped

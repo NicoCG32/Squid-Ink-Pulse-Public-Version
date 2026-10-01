@@ -1,10 +1,35 @@
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace SquidInkPulse.Tests.EditMode
 {
     public sealed class SafeAreaAdapterTests
     {
+        private static string[] ProductGameRootPaths => MobileGameRootTestCatalog.ProductGameRootPaths;
+
+        [TestCaseSource(nameof(ProductGameRootPaths))]
+        public void Adapter_UnassignedSerializedPrefabTarget_ResolvesItsOwnRect(string prefabPath)
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                SafeAreaAdapter adapter = root.GetComponentInChildren<SafeAreaAdapter>(true);
+                RectTransform rect = adapter.GetComponent<RectTransform>();
+                adapter.Apply(new Rect(108f, 0f, 2292f, 1080f), new Vector2(2400f, 1080f));
+
+                Assert.That(adapter.Target, Is.EqualTo(rect));
+                Assert.That(rect.anchorMin.x, Is.EqualTo(0.045f).Within(0.00001f));
+                Assert.That(rect.anchorMax, Is.EqualTo(Vector2.one));
+                Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
+                Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
         [Test]
         public void Resolve_LeftLandscapeCutout_ProducesNormalizedHorizontalInset()
         {

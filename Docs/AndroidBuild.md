@@ -87,6 +87,30 @@ $Apk = Join-Path $PWD 'Build\AndroidDevelopment\SquidInkPulse-development.apk'
 
 `adb install -r` conserva datos de una instalación compatible. Para probar una instalación realmente limpia se debe desinstalar antes el package; `adb uninstall com.yecoworks.squidinkpulse` elimina también sus datos locales y sólo debe usarse de forma intencional.
 
+### APK Development del contrato HUD común — 30 de septiembre de 2026
+
+Se generó un APK desde `mobile/04-touch-controls`, con base `c182926` y cambios locales de consolidación del HUD aún sin commit. El marcador de commit del builder no identifica por sí solo este árbol modificado.
+
+- Resultado: `Succeeded`; 0 errores, 1 advertencia; 56,58 s informados por el builder.
+- Tamaño: 514.308.880 bytes (490,48 MiB).
+- SHA-256: `93F74572BE290A26206D58AF1D200374D71458E718920566BE4BDC1BBD5CA4B1`.
+- EditMode: 253/253; PlayMode: 2/2; composición de escenas y prefabs aprobada en Unity 6000.3.11f1.
+- Las escenas reubican los elementos HUD locales bajo la raíz segura y alinean la posición de InkBar abisal con el contenedor canónico.
+- En ese primer pase no se instaló: ADB no detectó un dispositivo y se continuó sin hardware. Este artefacto fue sustituido por el rebuild siguiente. Es un APK de desarrollo, sin aceptación como candidata final.
+
+La continuación con matriz visual detectó un fallback defectuoso de `SafeAreaAdapter` al cargar referencias serializadas sin asignar en el Editor. Ahora resuelve el RectTransform local usando la comparación null de Unity; las dos regresiones de prefab fallaron antes del fix y pasan después.
+
+- Rebuild actualizado: `Succeeded`; 0 errores, 2 advertencias; 92,43 s; 514.317.290 bytes (490,49 MiB).
+- SHA-256: `0A0921A1B6D3077BCEB5AA554FE32BCB3343CA293BC307191A3DB8AF4241EC41`.
+- EditMode: 255/255; PlayMode: 2/2; composición aprobada durante prebuild.
+- Matriz de autoría: doce capturas, 96 bounds dentro de safe area y ningún solapamiento entre botones. Las intersecciones de contenedores transparentes y avisos TMP se conservan como observaciones; no equivalen a clipping demostrado.
+- El usuario conectó y autorizó el POCO X6 5G, Android 16, pantalla física 1220×2712. `adb install -r` terminó con `Success`; el APK abrió `MainMenu` en landscape 2712×1220.
+- La inyección `adb shell input tap` fue rechazada por Android por falta de `INJECT_EVENTS`. El recorrido manual y la aceptación del HUD se verifican por separado; la instalación y una captura de menú no certifican una run ni ergonomía.
+
+El 1 de octubre de 2026 se capturó Epipelágica durante una run pausada en el POCO: barra, gadgets, camarones, score y controles completos dentro del frame. El botón de pausa pasó a `REANUDAR`, y el menú de pausa también quedó visible completo. El usuario confirmó que ambas zonas se ven bien y los controles resultan cómodos. La captura directa de este pase corresponde a Epipelágica; la aceptación de Abisopelágica fue manual. No se observan coincidencias críticas en el log filtrado del proceso.
+
+El build Windows complementario terminó correctamente y el ejecutable a 1280×720 se mantuvo vivo y responsivo durante un smoke de 15 s, sin excepciones observadas en el log del player. Ese smoke comprueba arranque; no se presenta como una run interactiva de teclado/mouse. La aceptación de este HUD no cierra rendimiento sostenido, ciclo de vida, ambas orientaciones ni el candidato Android completo.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:

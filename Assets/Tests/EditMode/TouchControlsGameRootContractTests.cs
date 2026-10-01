@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
@@ -14,14 +15,7 @@ namespace SquidInkPulse.Tests.EditMode
     {
         private const string TouchPrefabPath =
             "Assets/Content/Prefabs/UI/Touch/TouchControls.prefab";
-        private const string TutorialGameRootPath =
-            "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaTutorial.prefab";
-
-        private static readonly string[] ActiveGameRootPaths =
-        {
-            "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab",
-            "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab"
-        };
+        private static string[] ProductGameRootPaths => MobileGameRootTestCatalog.ProductGameRootPaths;
 
         private static readonly string[] ActiveScenePaths =
         {
@@ -32,7 +26,7 @@ namespace SquidInkPulse.Tests.EditMode
         [Test]
         public void ActiveGameRoots_ContainOneNestedTouchPrefabUnderHud_WithoutDuplicatingUiInfrastructure()
         {
-            foreach (string path in ActiveGameRootPaths)
+            foreach (string path in ProductGameRootPaths)
             {
                 GameObject gameRoot = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 Assert.That(gameRoot, Is.Not.Null, $"No se pudo cargar {path}.");
@@ -124,6 +118,17 @@ namespace SquidInkPulse.Tests.EditMode
                         controllers[0].GetComponentsInChildren<TouchGameplayCommandButton>(true),
                         Has.Length.EqualTo(4),
                         path);
+                    GameUIRoot uiRoot = controllers[0].GetComponentInParent<GameUIRoot>();
+                    GameObject canonicalRoot = AssetDatabase.LoadAssetAtPath<GameObject>(
+                        MobileGameRootCatalog.CanonicalGameRootPath);
+                    GameUIRoot canonicalUi = canonicalRoot.GetComponentInChildren<GameUIRoot>(true);
+                    var failures = new List<string>();
+                    MobileHudLayoutContract.Validate(
+                        canonicalUi.HudRoot.Find("SafeAreaRoot"),
+                        uiRoot.HudRoot.Find("SafeAreaRoot"),
+                        path,
+                        failures);
+                    Assert.That(failures, Is.Empty, string.Join("\n", failures));
                 }
             }
             finally
@@ -142,7 +147,8 @@ namespace SquidInkPulse.Tests.EditMode
         [Test]
         public void Tutorial_RemainsOutsideBuildAndContainsNoTouchControls()
         {
-            GameObject tutorialRoot = AssetDatabase.LoadAssetAtPath<GameObject>(TutorialGameRootPath);
+            GameObject tutorialRoot = AssetDatabase.LoadAssetAtPath<GameObject>(
+                MobileGameRootTestCatalog.TutorialGameRootPath);
             Assert.That(tutorialRoot, Is.Not.Null);
             Assert.That(
                 tutorialRoot.GetComponentsInChildren<TouchGameplayControlsController>(true),

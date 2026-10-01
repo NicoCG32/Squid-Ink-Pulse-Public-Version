@@ -37,6 +37,11 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - `GameUIRoot` tiene asignadas sus referencias serializadas de composicion, HUD y managers.
 - Cada GameRoot activo contiene un unico `SafeAreaRoot` bajo HUD; todos los elementos HUD y la instancia touch canónica viven dentro de esa raíz, sin Canvas o EventSystem adicionales.
 - Los cinco Canvas de gameplay conservan referencia 1920x1080 y escala por altura para no reducir el frame vertical en relaciones extra-wide.
+- `MobileGameRootCatalog` descubre todos los prefabs `GameRoot_Zona*` bajo la carpeta de composición, excluye tutorial y comparte el inventario con las pruebas. Epipelágica y Abisopelágica siguen siendo obligatorias.
+- `MobileHudLayoutContract` compara los cinco contenedores HUD con el layout de `GameRoot_ZonaEpipelagica`: anchors, posición, tamaño, pivot, escala, rotación y fuente de prefab anidada. La comparación no incluye sprites ni efectos internos de llenado.
+- El contrato móvil se comprueba también sobre las instancias de las escenas jugables, para detectar overrides locales que no aparecen al inspeccionar sólo el prefab. `SafeAreaAdapter` debe actuar sobre su propio `SafeAreaRoot`.
+- La raíz segura debe cubrir el HUD en autoría, sin offsets, escala adicional ni rotación. Las sustituciones locales de InkBar, gadgets, score o camarones también deben vivir bajo esa raíz y cumplir el layout común.
+- El conteo de cinco Canvas base excluye el prefab separado `OptionsMenu`, añadido en las escenas; su adaptación móvil pertenece al contrato de opciones. Los controles touch siguen sin poder añadir infraestructura Canvas propia.
 - `InGameShopManager` tiene asignadas sus referencias serializadas de tienda temporal: sesion, root, `CanvasGroup`, icono, textos, boton de compra, mensaje de saldo y ofertas con `GadgetShopItem`.
 - Existe exactamente un objeto con tag `Player`.
 - `Boundaries` contiene `PlayerBoundaries` y `CameraBoundaries`, cada uno con `TopBoundary` y `BottomBoundary` con `Collider2D`.

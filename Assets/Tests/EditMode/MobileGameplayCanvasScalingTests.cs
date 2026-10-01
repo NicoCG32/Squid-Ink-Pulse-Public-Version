@@ -7,13 +7,9 @@ namespace SquidInkPulse.Tests.EditMode
 {
     public sealed class MobileGameplayCanvasScalingTests
     {
-        private static readonly string[] ActiveGameRootPaths =
-        {
-            "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaEpipelagica.prefab",
-            "Assets/Content/Prefabs/Core/Scenes/GameRoot_ZonaAbisopelagica.prefab"
-        };
+        private static string[] ProductGameRootPaths => MobileGameRootTestCatalog.ProductGameRootPaths;
 
-        [TestCaseSource(nameof(ActiveGameRootPaths))]
+        [TestCaseSource(nameof(ProductGameRootPaths))]
         public void ActiveGameRoot_CanvasesPreserveReferenceHeightOnExtraWideScreens(string prefabPath)
         {
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);

@@ -59,6 +59,10 @@ Los cinco Canvas de gameplay usan referencia 1920×1080 y `matchWidthOrHeight = 
 
 La política dimensional es común a todas las zonas, incluidas las futuras: cada `GameRoot_Zona*` debe reutilizar el mismo HUD base, referencia 1920×1080, escalado por altura, raíz segura y controles. Una zona puede cambiar dinámica, enemigos, arte ambiental o mecánicas de jefe, pero no crear una política paralela de anchors, safe area o tamaños. Las diferencias visuales deben resolverse mediante contenido/prefabs compartidos y overrides mínimos justificados.
 
+El layout de los contenedores `InkBar`, `GadgetSlots`, `Score`, `ShrimpCounter` y `TouchControlsOwner` toma `GameRoot_ZonaEpipelagica` como referencia canónica. `MobileHudLayoutContract` exige la misma geometría y fuente de prefab en las demás zonas y en las instancias de escena. Un cambio común se aplica primero en esa referencia y después en todos sus consumidores; el validador bloquea diferencias pendientes. El modo interno de llenado de InkBar conserva su especialización por zona.
+
+Las escenas jugables conservan sustituciones locales de los cuatro elementos HUD para mantener sus referencias y efectos. Esas instancias se alojan también bajo `SafeAreaRoot`, con el mismo layout que el prefab canónico y TouchControls al final del orden de dibujo; una sustitución local no puede omitir el área segura.
+
 Las pruebas deterministas verifican fuente anidada, cantidad de controles, raíz segura, escala por altura, referencias previas del HUD y ausencia de EventSystem o módulo duplicado. PlayMode ejerce el routing real de `InputSystemUIInputModule` con touchscreen virtual y el reemplazo Epipelágica→Abisopelágica; ergonomía multitouch y recorrido completo continúan requiriendo hardware.
 
 ## Menú principal
@@ -342,7 +346,7 @@ Contrato de barra Ink-Pulse:
 - `ChargeBar` es la fachada consumida por `InkPulseController`. Solo recibe un valor normalizado y lo replica al presenter visual de `InkBar`.
 - `InkBarFillPresenter` es la especializacion visual de la barra actual. No conoce sesión, jugador, Ink-Pulse ni progresión; solo traduce un valor normalizado a layout.
 - `EffectPresentationMode` pertenece al prefab `InkBar`; las escenas no deben elegir variantes distintas de prefab para cambiar la presentación.
-- `ZonaEpipelagica` y `ZonaAbisopelagica` usan `GameRoot/GameUIRoot/HUD/InkBar`.
+- `ZonaEpipelagica` y `ZonaAbisopelagica` usan `GameRoot/GameUIRoot/HUD/SafeAreaRoot/InkBar`.
 
 Prefabs disponibles:
 - `Assets/Content/Prefabs/UI/HUD/InkBar.prefab`: barra Ink-Pulse canonica para todas las zonas.
