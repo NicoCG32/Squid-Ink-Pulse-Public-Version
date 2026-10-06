@@ -21,6 +21,9 @@ namespace SquidInkPulse.Tests.PlayMode
         public override void Setup()
         {
             base.Setup();
+            // Keep simulated event timestamps beyond the Editor's transition
+            // into Play Mode; a clock reset to zero can land in its discard window.
+            currentTime = Time.realtimeSinceStartupAsDouble;
             RuntimeGadgetInventory.ResetForRuntime();
             RuntimeInkPulseState.ResetForRuntime();
             Time.timeScale = 1f;
