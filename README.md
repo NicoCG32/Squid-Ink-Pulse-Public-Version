@@ -109,6 +109,8 @@ Si no está activo el servidor de feria, pueden aparecer warnings rojos por falt
 
 ## Build local
 
+La distribución por plataforma se encuentra en [GitHub Releases](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases): Windows se entrega como ZIP completo y Android como APK beta identificado como prerelease. Los adjuntos del juego son distintos de los ZIP automáticos de código fuente. Instalación, controles, integridad y validación se documentan en [Docs/Distribution.md](Docs/Distribution.md).
+
 La carpeta `Build/` no se versiona en Git. Es un artefacto generado por Unity, puede superar fácilmente el límite de tamaño de GitHub y se puede reconstruir desde el proyecto fuente.
 
 Para evitar la espera de importación, carga de datos y compilación en Unity, también se mantiene un `.zip` con el juego compilado en Google Drive:

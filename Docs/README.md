@@ -4,6 +4,8 @@ Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse c
 
 ## Base del proyecto
 
+- [Distribution.md](Distribution.md) - descarga por plataforma, ZIP Windows, APK beta, checksums y validación de releases.
+
 - [ProjectOverview.md](ProjectOverview.md) - vision general, pilares y estado del producto base.
 - [SoftwareArchitecture.md](SoftwareArchitecture.md) - contrato de capas, dependencias, estados, especializaciones y excepciones.
 - [ProjectStructure.md](ProjectStructure.md) - organizacion de carpetas y criterios.
