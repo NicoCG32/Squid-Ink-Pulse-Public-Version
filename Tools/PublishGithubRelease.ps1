@@ -6,7 +6,9 @@ param(
     [Parameter(Mandatory)][string]$BodyFile,
     [Parameter(Mandatory)][string[]]$AssetPaths,
     [string]$Repository = 'NicoCG32/Squid-Ink-Pulse-Public-Version',
+    [long]$ReleaseId = 0,
     [switch]$Prerelease,
+    [switch]$ReplaceDraftNotes,
     [switch]$Publish
 )
 
@@ -38,8 +40,13 @@ try {
     $repo = Invoke-RestMethod -Uri $api -Headers $headers
     if (-not $repo.permissions.push) { throw 'GitHub write permission is required.' }
     $release = $null
-    try { $release = Invoke-RestMethod -Uri "$api/releases/tags/$Tag" -Headers $headers }
+    $lookupUri = if ($ReleaseId -gt 0) { "$api/releases/$ReleaseId" } else { "$api/releases/tags/$Tag" }
+    try { $release = Invoke-RestMethod -Uri $lookupUri -Headers $headers }
     catch { if ([int]$_.Exception.Response.StatusCode -ne 404) { throw } }
+    if ($ReleaseId -gt 0 -and -not $release) { throw 'The specified draft release was not found.' }
+    if ($ReleaseId -gt 0 -and ($release.name -ne $Name -or $release.target_commitish -ne $TargetCommit)) {
+        throw 'Draft name/source does not match the requested release.'
+    }
     if ($release -and -not $release.draft) { throw 'This tag is already published; do not replace its assets.' }
     if (-not $release) {
         $request = @{ tag_name=$Tag; target_commitish=$TargetCommit; name=$Name; body=$body;
@@ -52,10 +59,15 @@ try {
         $existing = $remoteAssets | Where-Object { $_.name -eq $asset.Name }
         if ($existing) {
             if ($existing.digest -ne "sha256:$localDigest" -or $existing.size -ne $asset.Length) {
-                throw 'Existing draft asset differs; preserve it and investigate.'
+                if (-not $ReplaceDraftNotes -or $asset.Extension -notin @('.txt', '.json', '.md', '.patch')) {
+                    throw 'Existing draft asset differs; preserve it and investigate.'
+                }
+                Invoke-RestMethod -Method Delete -Uri "$api/releases/assets/$($existing.id)" -Headers $headers | Out-Null
             }
-            Write-Output "Verified existing asset: $($asset.Name)"
-            continue
+            else {
+                Write-Output "Verified existing asset: $($asset.Name)"
+                continue
+            }
         }
         Write-Output "Uploading: $($asset.Name) ($($asset.Length) bytes)"
         $encodedName = [Uri]::EscapeDataString($asset.Name)
@@ -66,7 +78,7 @@ try {
         }
         Write-Output "Verified upload: $($asset.Name)"
     }
-    $update = @{ name=$Name; body=$body; prerelease=[bool]$Prerelease; draft=(-not [bool]$Publish);
+    $update = @{ tag_name=$Tag; target_commitish=$TargetCommit; name=$Name; body=$body; prerelease=[bool]$Prerelease; draft=(-not [bool]$Publish);
         make_latest=$(if ($Publish -and -not $Prerelease) { 'true' } else { 'false' }) } | ConvertTo-Json
     $release = Invoke-RestMethod -Method Patch -Uri "$api/releases/$($release.id)" -Headers $headers -Body $update -ContentType 'application/json; charset=utf-8'
     [ordered]@{ id=$release.id; url=$release.html_url; tag=$release.tag_name; draft=$release.draft;

@@ -4,6 +4,8 @@ Windows y Android se distribuyen por separado en [GitHub Releases](https://githu
 
 ## Windows x64
 
+Al 9 de octubre de 2026 está preparado el ZIP candidato `SquidInkPulse-Windows-x64-v1.0.0.zip` (345.942.054 bytes; SHA-256 `e3f131724b199d3683b78598e896f1993c1670836328b6d100db6b37ed422d26`). Fuente de build: `dbc26f337d0373575e304f1fabd476c3e0f8e73a`; Unity 6000.3.11f1, `BuildOptions.None`, 0 errores y 2 advertencias. Pasaron 255 EditMode y 5 PlayMode; composición aprobada. Se extrajo el ZIP, comparó el runtime con el build por hash y observó MainMenu. La release Windows permanece como draft hasta confirmar el recorrido interactivo; no se declara todavía una release estable publicada.
+
 El paquete contiene la carpeta completa del player y un lanzador `JUGAR.cmd`. Descomprimir el ZIP y abrir ese lanzador desde la carpeta extraída; inicia el juego local con `--fair-disabled`, sin buscar un servidor de feria. Mantener juntos el ejecutable, `SquidInkPulse_Data`, DLL y demás carpetas runtime. No requiere Unity instalado.
 
 Controles: mouse para dirigir al jugador; click o Espacio para Ink-Pulse; P/Escape para pausa; Q/W para los gadgets; B para comprar en la tienda de run. Menús y comics usan mouse. El comic de `Cómo Jugar` está disponible desde el menú principal.
@@ -46,3 +48,5 @@ Get-FileHash .\SquidInkPulse-Windows-x64-v1.0.0.zip -Algorithm SHA256
 Comparar con la línea del mismo archivo en `SHA256SUMS.txt`. GitHub limita cada adjunto a menos de 2 GiB; los paquetes deben comprobarse antes de subir. Véase [documentación de GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
 
 Windows se publica como release normal sólo al completar su validación; mientras tanto puede conservarse como draft. Android permanece marcada como prerelease para que no sustituya a Windows como descarga estable más reciente. Conservar las releases anteriores para recuperación.
+
+`Tools/PackageWindowsRelease.ps1` empaqueta el player, lanzador local, guía/créditos y procedencia; excluye símbolos y helpers de reset/feria. `Tools/PublishGithubRelease.ps1` sube primero a draft y comprueba tamaño y digest SHA-256 del servidor. Sólo `-Publish` hace pública la release. No imprime ni guarda credenciales; reutiliza Git Credential Manager. Para retomar un draft, usar `-ReleaseId` porque GitHub puede asignarle una URL/tag temporal `untagged-*`. `-ReplaceDraftNotes` permite sustituir únicamente adjuntos de texto de un draft cuando se actualiza su evidencia; nunca reemplaza binarios ni assets de una release ya publicada.
