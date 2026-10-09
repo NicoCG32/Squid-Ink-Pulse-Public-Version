@@ -109,11 +109,11 @@ Si no está activo el servidor de feria, pueden aparecer warnings rojos por falt
 
 ## Build local
 
-La distribución por plataforma se encuentra en [GitHub Releases](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases): Windows se entrega como ZIP completo y Android como APK beta identificado como prerelease. Los adjuntos del juego son distintos de los ZIP automáticos de código fuente. Instalación, controles, integridad y validación se documentan en [Docs/Distribution.md](Docs/Distribution.md).
+Descargas actuales: [Windows v1.0.0 estable](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.0), ZIP completo para descomprimir y abrir `JUGAR.cmd`; [Android v1.0.0 beta 1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.0-beta.1), APK ARM64 Development identificado como prerelease. Ambos incluyen checksums y procedencia. Los adjuntos del juego son distintos de los ZIP automáticos de código fuente. Instalación, controles y validación se documentan en [Docs/Distribution.md](Docs/Distribution.md).
 
 La carpeta `Build/` no se versiona en Git. Es un artefacto generado por Unity, puede superar fácilmente el límite de tamaño de GitHub y se puede reconstruir desde el proyecto fuente.
 
-Para evitar la espera de importación, carga de datos y compilación en Unity, también se mantiene un `.zip` con el juego compilado en Google Drive:
+Como archivo de la entrega anterior, también se mantiene un `.zip` con el juego compilado en Google Drive. Para la versión actual, usar las releases indicadas arriba:
 
 [Descargar build compilado de Squid Ink-Pulse](https://drive.google.com/drive/folders/18DUVTfJf5QDkqeJ5wqoowFUHdfWjI3YU?usp=sharing)
 
