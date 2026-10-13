@@ -40,6 +40,7 @@ public class MainMenu : MonoBehaviour
 
     [Header("UI Panels")]
     [SerializeField] private OptionsMenuManager optionsMenuPanel;
+    [SerializeField] private GameObject exitButtonRoot;
 
     [Header("Tutorial Comics")]
     [SerializeField] private GameObject tutorialComicsPanel;
@@ -62,6 +63,7 @@ public class MainMenu : MonoBehaviour
     {
         ConfigureCanvasScalingForPlatform();
         ResolveUiReferences();
+        ApplyPlatformPresentation(Application.isMobilePlatform);
         BindRuntimeTutorialButtons();
         CloseTutorialImmediate();
     }
@@ -269,8 +271,16 @@ public class MainMenu : MonoBehaviour
     {
         optionsMenuPanel ??= GetComponentInChildren<OptionsMenuManager>(includeInactive: true);
         optionsMenuPanel ??= FindInScene<OptionsMenuManager>();
+        if (exitButtonRoot == null)
+            exitButtonRoot = FindNamedGameObjectInScene("SalirBoton");
 
         ResolveTutorialReferences();
+    }
+
+    private void ApplyPlatformPresentation(bool isMobilePlatform)
+    {
+        if (exitButtonRoot != null)
+            exitButtonRoot.SetActive(MainMenuPlatformPolicy.CanExitFromMenu(isMobilePlatform));
     }
 
     private void ResolveTutorialReferences()
@@ -875,6 +885,8 @@ public class MainMenu : MonoBehaviour
 
     public void Salir()
     {
+        if (!MainMenuPlatformPolicy.CanExitFromMenu(Application.isMobilePlatform))
+            return;
         if (FairParticipantSession.TryCheckoutAndQuit(this))
         {
             return;
