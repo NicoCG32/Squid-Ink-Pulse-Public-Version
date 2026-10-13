@@ -161,14 +161,17 @@ public static class MobileHudPreviewExporter
             hud.renderMode = RenderMode.ScreenSpaceCamera;
             hud.worldCamera = camera;
             hud.planeDistance = camera.nearClipPlane + 1f;
-            // Preserve the production height-match policy at the requested render size.
+            // Simulate the shared mobile composition policy at the requested size.
             CanvasScaler scaler = hud.GetComponent<CanvasScaler>();
             if (scaler == null || scaler.matchWidthOrHeight != 1f)
             {
                 throw new InvalidOperationException($"{scene.name}: expected HUD height-match scaling.");
             }
             scaler.enabled = false;
-            hud.scaleFactor = format.Height / scaler.referenceResolution.y;
+            float match = MobileCanvasScalePolicy.ResolveMatch(true, format.Width, format.Height,
+                scaler.referenceResolution, scaler.matchWidthOrHeight);
+            hud.scaleFactor = match == 0f ? format.Width / scaler.referenceResolution.x
+                : format.Height / scaler.referenceResolution.y;
             Canvas.ForceUpdateCanvases();
             camera.Render();
             SafeAreaAdapter adapter = ui.HudRoot.GetComponentInChildren<SafeAreaAdapter>(true);

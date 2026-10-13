@@ -13,7 +13,7 @@ namespace SquidInkPulse.Tests.EditMode
         [TestCase(1220, 2712, 1f)]
         public void Mobile_KeepsReferenceCompositionInsideLandscapeViewport(int width, int height, float expected)
         {
-            Assert.That(MobileMenuCanvasScalePolicy.ResolveMatch(true, width, height,
+            Assert.That(MobileCanvasScalePolicy.ResolveMatch(true, width, height,
                 new Vector2(1920f, 1080f), 0.5f), Is.EqualTo(expected));
 
             // Verify the resulting logical viewport contains the authored
@@ -30,7 +30,7 @@ namespace SquidInkPulse.Tests.EditMode
         [TestCase(1f)]
         public void Desktop_PreservesAuthoredMatch(float authored)
         {
-            Assert.That(MobileMenuCanvasScalePolicy.ResolveMatch(false, 2560, 1600,
+            Assert.That(MobileCanvasScalePolicy.ResolveMatch(false, 2560, 1600,
                 new Vector2(1920f, 1080f), authored), Is.EqualTo(authored));
         }
 
@@ -39,7 +39,7 @@ namespace SquidInkPulse.Tests.EditMode
         [TestCase(1920, 1080, 0f, 1080f)]
         public void InvalidDimensions_PreserveAuthoredMatch(int width, int height, float referenceWidth, float referenceHeight)
         {
-            Assert.That(MobileMenuCanvasScalePolicy.ResolveMatch(true, width, height,
+            Assert.That(MobileCanvasScalePolicy.ResolveMatch(true, width, height,
                 new Vector2(referenceWidth, referenceHeight), 0.5f), Is.EqualTo(0.5f));
         }
     }

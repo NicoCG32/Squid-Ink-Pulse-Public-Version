@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public static class MobileMenuCanvasScalePolicy
+public static class MobileCanvasScalePolicy
 {
     public static float ResolveMatch(bool isMobilePlatform, int width, int height,
         Vector2 referenceResolution, float authoredMatch)

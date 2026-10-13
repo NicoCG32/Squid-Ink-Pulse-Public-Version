@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(RectTransform))]
@@ -50,12 +51,27 @@ public sealed class SafeAreaAdapter : MonoBehaviour
         target.anchorMax = anchors.Maximum;
         target.offsetMin = Vector2.zero;
         target.offsetMax = Vector2.zero;
+        ApplyCanvasScaling(screenSize, Application.isMobilePlatform);
 
         lastSafeArea = safeArea;
         lastScreenSize = new Vector2Int(
             Mathf.RoundToInt(screenSize.x),
             Mathf.RoundToInt(screenSize.y));
         hasApplied = true;
+    }
+
+    private void ApplyCanvasScaling(Vector2 screenSize, bool isMobilePlatform)
+    {
+        if (!isMobilePlatform)
+            return;
+        CanvasScaler scaler = GetComponentInParent<CanvasScaler>(true);
+        if (scaler == null || scaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize
+            || scaler.screenMatchMode != CanvasScaler.ScreenMatchMode.MatchWidthOrHeight)
+            return;
+
+        scaler.matchWidthOrHeight = MobileCanvasScalePolicy.ResolveMatch(true,
+            Mathf.RoundToInt(screenSize.x), Mathf.RoundToInt(screenSize.y),
+            scaler.referenceResolution, scaler.matchWidthOrHeight);
     }
 
     private void ResolveTarget()

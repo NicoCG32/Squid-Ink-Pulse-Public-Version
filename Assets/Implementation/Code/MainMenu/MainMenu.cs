@@ -79,7 +79,7 @@ public class MainMenu : MonoBehaviour
         if (canvasScaler != null
             && canvasScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
         {
-            float match = MobileMenuCanvasScalePolicy.ResolveMatch(true, Screen.width, Screen.height,
+            float match = MobileCanvasScalePolicy.ResolveMatch(true, Screen.width, Screen.height,
                 canvasScaler.referenceResolution, canvasScaler.matchWidthOrHeight);
             if (canvasScaler.matchWidthOrHeight != match)
                 canvasScaler.matchWidthOrHeight = match;
