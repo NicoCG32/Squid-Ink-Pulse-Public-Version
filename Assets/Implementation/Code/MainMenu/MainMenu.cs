@@ -41,12 +41,15 @@ public class MainMenu : MonoBehaviour
     [Header("UI Panels")]
     [SerializeField] private OptionsMenuManager optionsMenuPanel;
     [SerializeField] private GameObject exitButtonRoot;
+    [SerializeField] private RectTransform logoRoot;
+    [SerializeField] private RectTransform counterRoot;
 
     [Header("Tutorial Comics")]
     [SerializeField] private GameObject tutorialComicsPanel;
     [SerializeField] private CanvasGroup tutorialComicsCanvasGroup;
     [SerializeField] private GameObject tutorialLayerBlack;
     [SerializeField] private Button tutorialButton;
+    [SerializeField] private RectTransform tutorialButtonRoot;
     [SerializeField] private Button tutorialNextButton;
     [SerializeField] private TutorialComicPage[] tutorialComicPages = Array.Empty<TutorialComicPage>();
 
@@ -273,6 +276,13 @@ public class MainMenu : MonoBehaviour
         optionsMenuPanel ??= FindInScene<OptionsMenuManager>();
         if (exitButtonRoot == null)
             exitButtonRoot = FindNamedGameObjectInScene("SalirBoton");
+        if (logoRoot == null)
+            logoRoot = FindNamedGameObjectInScene("Logo")?.GetComponent<RectTransform>();
+        if (counterRoot == null)
+        {
+            GameObject safeCounter = FindNamedGameObjectInScene("CounterSafeArea");
+            counterRoot = safeCounter != null ? safeCounter.transform.Find("ShrimpCounter") as RectTransform : null;
+        }
 
         ResolveTutorialReferences();
     }
@@ -281,6 +291,30 @@ public class MainMenu : MonoBehaviour
     {
         if (exitButtonRoot != null)
             exitButtonRoot.SetActive(MainMenuPlatformPolicy.CanExitFromMenu(isMobilePlatform));
+
+        if (!isMobilePlatform)
+            return;
+
+        CanvasScaler scaler = GetComponent<CanvasScaler>();
+        if (scaler == null)
+            return;
+
+        AnchorToMobileEdge(tutorialButtonRoot, 0f, scaler.referenceResolution.x);
+        AnchorToMobileEdge(logoRoot, 1f, scaler.referenceResolution.x);
+        AnchorToMobileEdge(counterRoot, 1f, scaler.referenceResolution.x);
+    }
+
+    private static void AnchorToMobileEdge(RectTransform rect, float edge, float referenceWidth)
+    {
+        if (rect == null)
+            return;
+        // Retain the reference composition, with stable margins from the safe
+        // edges instead of center anchors on narrower safe areas.
+        Vector2 position = rect.anchoredPosition;
+        position.x += (rect.anchorMin.x - edge) * referenceWidth;
+        rect.anchorMin = new Vector2(edge, rect.anchorMin.y);
+        rect.anchorMax = new Vector2(edge, rect.anchorMax.y);
+        rect.anchoredPosition = position;
     }
 
     private void ResolveTutorialReferences()
@@ -299,6 +333,8 @@ public class MainMenu : MonoBehaviour
         }
 
         tutorialButton ??= FindButtonUnderNamedObject("ComoJugarBoton");
+        if (tutorialButtonRoot == null)
+            tutorialButtonRoot = FindNamedGameObjectInScene("ComoJugarBoton")?.GetComponent<RectTransform>();
         tutorialNextButton ??= FindButtonUnderNamedObject("Next");
 
         if ((tutorialComicPages == null || tutorialComicPages.Length == 0) && tutorialComicsPanel != null)
