@@ -15,7 +15,7 @@ namespace SquidInkPulse.Tests.PlayMode
             "Assets/Scenes/Game/ZonaEpipelagica.unity",
             "Assets/Scenes/Game/ZonaAbisopelagica.unity"
         };
-        private static readonly float[] Aspects = { 16f / 9f, 19.5f / 9f, 20f / 9f };
+        private static readonly float[] Aspects = { 16f / 9f, 19.5f / 9f, 20f / 9f, 16f / 10f };
 
         public override void Setup()
         {

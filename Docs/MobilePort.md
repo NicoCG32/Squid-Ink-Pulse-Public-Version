@@ -6,6 +6,8 @@ Este documento define el contrato técnico y de producto para portar Squid Ink-P
 
 El primer objetivo de plataforma es Android. iOS queda como una extensión posterior porque requiere un entorno de compilación, firma y validación distinto.
 
+Desde el 12 de octubre de 2026, la validación física activa se realiza en una Redmi Pad Pro (Android 16/API 36, ARM64, 2560×1600 en landscape 16:10, densidad 320 y 7,53 GiB de RAM visibles), por decisión del usuario. El POCO conserva su evidencia histórica; no se necesita conectarlo para continuar este corte. Se añade 16:10 a las comprobaciones de encuadre y HUD y se evita recortar el menú en superficies más estrechas que su composición 16:9. Esto amplía la matriz de trabajo al dispositivo disponible, sin afirmar compatibilidad final con todas las tablets ni sustituir las mediciones pendientes de rendimiento.
+
 ## Estado
 
 La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. La entrada ya cuenta con acciones semánticas y un lector runtime único que evita activar una segunda copia de `UI`, emite una solicitud por interacción y centraliza el esquema de control. Movimiento, Ink-Pulse, pausa, slots de gadgets y el atajo de compra `B` ya consumen el lector y conservan sus reglas; `B` sigue siendo Keyboard&Mouse-only y el botón `Comprar` es la vía móvil. La capa touch está montada en ambas zonas, el autoscroll avanza aunque no exista un dedo y la UI jugable preserva el alto de referencia dentro de una raíz derivada de `Screen.safeArea`. PlayMode recorre el módulo UI real y recrea controles/reader al cargar Abisopelágica. En un POCO X6 5G se validaron instalación actualizada, arranque, gameplay y encuadre extra-wide; la revisión física detectó y corrigió el acoplamiento inicial del avance al primer toque y el recorte vertical de HUD/menús. Todavía no existe una candidata móvil aceptada: persiste el probe de feria a `localhost:8080`, y aún faltan cerrar una run completa, adaptación integral de opciones/Back, orientación landscape opuesta y rendimiento sostenido. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md), el contrato de entrada en [Input.md](Input.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
@@ -205,6 +207,7 @@ La siguiente matriz es el mínimo contractual. Los modelos concretos, versión d
 | --- | --- | --- |
 | Unity Editor 16:9 | Regresión rápida de layout y gameplay | Sin errores y sin referencias rotas |
 | Unity Editor 19.5:9 / 20:9 | Aspect ratio y safe area simulada | Sin recortes ni solapamientos críticos |
+| Unity Editor 16:10 | Composición del menú, cámara y HUD de tablet | Sin recortes ni solapamientos críticos |
 | Emulador Android | Instalación, arranque, escenas y logs | `MainMenu` abre sin red |
 | Teléfono Android de gama baja | Touch, memoria, FPS y suspensión | Cumple presupuesto aceptado |
 | Teléfono Android de gama media | Experiencia objetivo y compatibilidad | Run completa y UI operable |
@@ -220,6 +223,7 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
 | Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso | Obligatorio; validación final pendiente |
 | PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
+| Tablet activa de desarrollo | Redmi Pad Pro (2405CRPFDL) | Android 16, API 36 | 7,53 GiB visibles | 2560×1600 landscape; densidad 320 | Conectada y autorizada; beta conocida instalada sin eliminar datos; revisión de menú/opciones en curso | Dispositivo principal de este corte; no cierra las pruebas de gama baja |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.
 

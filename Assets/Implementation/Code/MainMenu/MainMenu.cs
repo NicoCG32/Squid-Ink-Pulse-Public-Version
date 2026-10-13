@@ -56,6 +56,7 @@ public class MainMenu : MonoBehaviour
     private readonly MainMenuSecretCodeProgress demoShrimpSecretCode = new(DemoShrimpSecretCode);
     private Keyboard demoShrimpTextInputKeyboard;
     private int lastDemoShrimpTextInputFrame = -1;
+    private CanvasScaler platformCanvasScaler;
 
     private void Awake()
     {
@@ -72,11 +73,16 @@ public class MainMenu : MonoBehaviour
             return;
         }
 
-        CanvasScaler canvasScaler = GetComponent<CanvasScaler>();
+        if (platformCanvasScaler == null)
+            platformCanvasScaler = GetComponent<CanvasScaler>();
+        CanvasScaler canvasScaler = platformCanvasScaler;
         if (canvasScaler != null
             && canvasScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
         {
-            canvasScaler.matchWidthOrHeight = 1f;
+            float match = MobileMenuCanvasScalePolicy.ResolveMatch(true, Screen.width, Screen.height,
+                canvasScaler.referenceResolution, canvasScaler.matchWidthOrHeight);
+            if (canvasScaler.matchWidthOrHeight != match)
+                canvasScaler.matchWidthOrHeight = match;
         }
     }
 
@@ -92,6 +98,7 @@ public class MainMenu : MonoBehaviour
 
     private void Update()
     {
+        ConfigureCanvasScalingForPlatform();
         SyncDemoShrimpTextInputKeyboard();
         if (lastDemoShrimpTextInputFrame == Time.frameCount)
         {

@@ -65,7 +65,7 @@ Las pruebas de HUD, escala y touch consumen el inventario de `MobileGameRootCata
 
 ## Matriz visual estática del HUD
 
-`Tools > Squid Ink Pulse > Mobile > Export HUD Preview Matrix` carga las dos escenas de gameplay y exporta doce PNG, una galería HTML y medidas JSON a `TestResults/MobileHudPreview/`. Requiere Edit Mode, escenas sin cambios sin guardar y un dispositivo gráfico disponible. Descarta las modificaciones de previsualización y restaura las escenas abiertas; no guarda escenas ni prefabs.
+`Tools > Squid Ink Pulse > Mobile > Export HUD Preview Matrix` carga las dos escenas de gameplay y exporta catorce PNG, una galería HTML y medidas JSON a `TestResults/MobileHudPreview/`. Requiere Edit Mode, escenas sin cambios sin guardar y un dispositivo gráfico disponible. Descarta las modificaciones de previsualización y restaura las escenas abiertas; no guarda escenas ni prefabs.
 
 También puede ejecutarse desde la raíz del repositorio, con el proyecto cerrado en otras instancias de Unity:
 
@@ -81,6 +81,8 @@ Este comando necesita gráficos: omitir `-nographics`. Incluye 1920×1080 (16:9)
 La captura usa la escena de autoría, Canvas sobre cámara y escalado por altura, barra llena y controles touch visibles. Comprueba bounds dentro del área segura y solapamientos entre los cuatro botones; excluye la superficie de steering que ocupa toda la pantalla. Las intersecciones entre contenedores HUD se registran como observaciones que requieren inspeccionar contenido visible: sus rects pueden incluir espacio transparente. Las observaciones TMP distinguen texto fuera de su rect de clipping: `Overflow` permite mostrar glifos fuera del rect. No se ejecutan animaciones, presentación de estados gameplay, routing de entrada ni una run; tampoco se certifican framing dinámico, ergonomía o rendimiento móvil.
 
 `SafeAreaAdapterTests` carga además los prefabs reales con destino serializado sin asignar y exige que `Apply` resuelva el RectTransform local. Este caso protege la semántica de null de objetos Unity, que no equivale siempre a null CLR en el Editor.
+
+La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de autoría en total. Las pruebas de cámara incluyen ese aspecto además de los tres formatos de teléfono. `MobileMenuCanvasScalePolicyTests` comprueba que el viewport lógico contenga la composición de referencia: ancho para superficies landscape más estrechas que 16:9, altura para las equivalentes o más anchas. Dimensiones portrait iniciales se normalizan a landscape; Windows conserva su match de autoría y los tamaños inválidos no fuerzan un cambio.
 
 ## Servidor de feria
 

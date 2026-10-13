@@ -92,6 +92,7 @@ public static class MobileHudPreviewExporter
             var formats = new[]
             {
                 new Format("16-9", 1920, 1080),
+                new Format("tablet-16-10", 2560, 1600),
                 new Format("19.5-9", 2340, 1080),
                 new Format("20-9", 2400, 1080),
                 new Format("20-9-left-cutout", 2400, 1080, left: 108),

@@ -83,6 +83,8 @@ Contrato responsive del menú:
 - El `Character` animado es decoración del Main Menu. Se ancla al centro del borde derecho con pivote horizontal `0.75` y offset X cero: tres cuartas partes quedan dentro del frame y el cuarto derecho, donde convergen los tentáculos animados, permanece fuera en cualquier ancho landscape.
 - Estos ajustes no cambian navegación, hitboxes ni el layout de los demás botones del menú.
 
+El Canvas de `MainMenu` conserva la composición de referencia en móvil con `MobileMenuCanvasScalePolicy`: match por ancho en una superficie 16:10 de tablet y por altura en 16:9 o formatos más anchos. Se recalcula si cambia la superficie; normaliza las dimensiones iniciales a landscape. En Windows conserva el escalado serializado. Esto no cambia geometría de botones, arte ni el layout de cada zona.
+
 ## OptionsMenu global
 
 Archivos:
