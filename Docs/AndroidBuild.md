@@ -123,6 +123,19 @@ Se recompiló desde `mobile/05-safe-area-hud`, base `d72a31e` más el ajuste loc
 - `adb install -r` terminó con `Success`, conservando datos; actividad del juego en primer plano y captura de MainMenu a 2712×1220. El log filtrado del proceso no mostró excepciones críticas. Esta captura verifica arranque, no una nueva run; la aceptación manual del HUD de ambas zonas corresponde al pase anterior.
 - Build Windows correcto; smoke oculto de arranque durante 15 s, vivo y responsivo, sin excepciones C# observadas. Se solicitó 1280×720 en ventana, pero las opciones guardadas reaplicaron fullscreen y DXGI informó fallback a la resolución del display (3840×2160). Este smoke no certifica el tamaño efectivo de la ventana ni una run interactiva; el encuadre se verifica con PlayMode.
 
+### APK Development de menú/opciones y HUD 16:10 — 12 de octubre de 2026
+
+Se generó desde `mobile/06-main-menu-shop`, código `a5a031d`, conservando fuera de los commits la serialización previa de `TimeManager.asset`. No se atribuye el artefacto a un checkout totalmente limpio.
+
+- `Succeeded`, 245,96 s, 514.323.277 bytes (490,50 MiB), 0 errores y 2 advertencias.
+- SHA-256: `4C52CB226A61D613D334A4F16CBEF0B28D1EB574605B301769C8AA020C5FCF89`.
+- 271/271 EditMode, 5/5 PlayMode, sin omitidas; composición aprobada. Matriz de catorce previews: 112 bounds dentro del área segura, cero fallos; 18 intersecciones de contenedores y 42 observaciones TMP informativas.
+- Instalación `adb install -r` con `Success` en Redmi Pad Pro, Android 16/API 36, 2560×1600 landscape. Menú, Cómo Jugar y contador visibles completos; opciones sólo muestran volumen/regreso. El valor de volumen cambiado a `0.4805011` sobrevivió a cierre forzado, reapertura y apertura de opciones. Se restituyó aproximadamente el nivel previo de 0,75 al finalizar la prueba.
+- Se inició una run, se observó Game Over, se ejecutó retry y se capturó Epipelágica pausada con gadgets, contador, puntuación y controles completos. El usuario confirmó lectura y comodidad del menú, volumen y HUD en la tablet. Abisopelágica queda cubierta por previews y PlayMode; no se afirma una run física completa ni una visita a esa zona en este pase.
+- Log filtrado del proceso sin excepciones críticas observadas. Windows compiló con `BuildOptions.None`, 0 errores/2 advertencias y smoke oculto de arranque de 15 s vivo/responsivo. No se atribuye al smoke una run interactiva ni una medida efectiva de ventana; las opciones guardadas pueden reaplicar fullscreen.
+
+Este APK de desarrollo está instalado para continuar las pruebas; la beta publicada en GitHub sigue siendo el artefacto anterior. Persisten los cortes de menús/safe area, overlays, Back/ciclo de vida, orientación opuesta y rendimiento sostenido.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:

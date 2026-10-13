@@ -223,7 +223,7 @@ Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. L
 | Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
 | Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso | Obligatorio; validación final pendiente |
 | PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
-| Tablet activa de desarrollo | Redmi Pad Pro (2405CRPFDL) | Android 16, API 36 | 7,53 GiB visibles | 2560×1600 landscape; densidad 320 | Conectada y autorizada; beta conocida instalada sin eliminar datos; revisión de menú/opciones en curso | Dispositivo principal de este corte; no cierra las pruebas de gama baja |
+| Tablet activa de desarrollo | Redmi Pad Pro (2405CRPFDL) | Android 16, API 36 | 7,53 GiB visibles | 2560×1600 landscape; densidad 320 | APK actualizado instalado sin eliminar datos; menú/opciones y HUD 16:10 corregidos y aceptados; volumen persiste al reiniciar; Epi pausada capturada | Dispositivo principal de este corte; no cierra las pruebas de gama baja ni la run completa final |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.
 
