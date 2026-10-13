@@ -275,7 +275,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1248894014}
+    m_TransformParent: {fileID: 1034040513}
     m_Modifications:
     - target: {fileID: 1106420625, guid: 2982c3322df740e398cc7161ac27f35f, type: 3}
       propertyPath: m_Name
@@ -633,6 +633,56 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 38845706948fc66458f17dcc73f4b03b, type: 3}
+--- !u!1 &278562271
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 278562272}
+  - component: {fileID: 278562273}
+  m_Layer: 5
+  m_Name: BrandSafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &278562272
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 278562271}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1311762600}
+  m_Father: {fileID: 639570034}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &278562273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 278562271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
+  target: {fileID: 278562272}
 --- !u!1 &293503797
 GameObject:
   m_ObjectHideFlags: 0
@@ -953,7 +1003,7 @@ RectTransform:
   m_Children:
   - {fileID: 399997977}
   - {fileID: 927308860}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1281,7 +1331,7 @@ RectTransform:
   m_Children:
   - {fileID: 1305789288}
   - {fileID: 1451789381}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1657,14 +1707,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1032293584}
-  - {fileID: 1290895327}
-  - {fileID: 436673880}
-  - {fileID: 1933079670}
-  - {fileID: 309095795}
-  - {fileID: 2124815842}
-  - {fileID: 1254638942}
+  - {fileID: 741020222}
   - {fileID: 1581611838}
-  - {fileID: 1311762600}
+  - {fileID: 278562272}
   m_Father: {fileID: 1248894014}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2065,6 +2110,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 715486783}
   m_CullTransparentMesh: 0
+--- !u!1 &741020221
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 741020222}
+  - component: {fileID: 741020223}
+  m_Layer: 5
+  m_Name: NavigationSafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &741020222
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741020221}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1290895327}
+  - {fileID: 436673880}
+  - {fileID: 1933079670}
+  - {fileID: 309095795}
+  - {fileID: 2124815842}
+  - {fileID: 1254638942}
+  m_Father: {fileID: 639570034}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &741020223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741020221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
+  target: {fileID: 741020222}
 --- !u!1001 &794306716
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3090,6 +3190,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032293583}
   m_CullTransparentMesh: 1
+--- !u!1 &1034040512
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1034040513}
+  - component: {fileID: 1034040514}
+  m_Layer: 5
+  m_Name: CounterSafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1034040513
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034040512}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 137764128}
+  m_Father: {fileID: 1248894014}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1034040514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034040512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
+  target: {fileID: 1034040513}
 --- !u!1 &1057291811
 GameObject:
   m_ObjectHideFlags: 0
@@ -3773,7 +3923,7 @@ RectTransform:
   m_Children:
   - {fileID: 1149360058}
   - {fileID: 639570034}
-  - {fileID: 137764128}
+  - {fileID: 1034040513}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3799,10 +3949,14 @@ MonoBehaviour:
   timeDelay: 0.6
   showStartLoreComicBeforePlay: 1
   optionsMenuPanel: {fileID: 1610060790}
+  exitButtonRoot: {fileID: 309095794}
+  logoRoot: {fileID: 1311762600}
+  counterRoot: {fileID: 137764128}
   tutorialComicsPanel: {fileID: 1497149578}
   tutorialComicsCanvasGroup: {fileID: 1497149579}
   tutorialLayerBlack: {fileID: 1540231559}
   tutorialButton: {fileID: 1451789386}
+  tutorialButtonRoot: {fileID: 436673880}
   tutorialNextButton: {fileID: 1951076584}
   tutorialComicPages:
   - root: {fileID: 1952402329}
@@ -3852,7 +4006,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1879450689}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3964,7 +4118,7 @@ RectTransform:
   m_Children:
   - {fileID: 212144221}
   - {fileID: 1057291812}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4114,7 +4268,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 278562272}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6296,7 +6450,7 @@ RectTransform:
   m_Children:
   - {fileID: 627734153}
   - {fileID: 1809551537}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6946,7 +7100,7 @@ RectTransform:
   m_Children:
   - {fileID: 311124277}
   - {fileID: 1221345836}
-  m_Father: {fileID: 639570034}
+  m_Father: {fileID: 741020222}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

@@ -1,6 +1,8 @@
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -11,6 +13,107 @@ namespace SquidInkPulse.Tests.EditMode
     {
         private const string MainMenuScenePath = "Assets/Scenes/MainMenu/MainMenu.unity";
         private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
+
+        [Test]
+        public void MainMenu_SafeAreaProtectsForegroundWithoutAddingInputOrCanvasOwners()
+        {
+            WithScene(MainMenuScenePath, scene =>
+            {
+                Transform panel = Find(scene, "Panel");
+                Transform navigation = Find(scene, "NavigationSafeArea");
+                Transform brand = Find(scene, "BrandSafeArea");
+                Transform counter = Find(scene, "CounterSafeArea");
+                Assert.That(navigation.parent, Is.SameAs(panel));
+                Assert.That(brand.parent, Is.SameAs(panel));
+                Assert.That(Find(scene, "Fondo").parent, Is.SameAs(panel));
+                Assert.That(Find(scene, "Character").parent, Is.SameAs(panel));
+                Assert.That(Find(scene, "Logo").parent, Is.SameAs(brand));
+                Assert.That(Find(scene, "ShrimpCounter").parent, Is.SameAs(counter));
+                string[] buttons = { "JugarBoton", "ComoJugarBoton", "OpcionesBoton", "SalirBoton", "TiendaBoton", "BotonLog" };
+                Canvas.ForceUpdateCanvases();
+                foreach (string name in buttons)
+                {
+                    Transform control = Find(scene, name);
+                    Assert.That(control.parent, Is.SameAs(navigation), name);
+                    // BotonLog is the legacy fair placeholder, not a gameplay button.
+                    if (name == "BotonLog")
+                        continue;
+                    Button button = control.GetComponentInChildren<Button>(true);
+                    Assert.That(button, Is.Not.Null, name);
+                    RectTransform hit = button.transform as RectTransform;
+                    Assert.That(hit.rect.width, Is.GreaterThanOrEqualTo(64f), name);
+                    Assert.That(hit.rect.height, Is.GreaterThanOrEqualTo(64f), name);
+                    Assert.That(button.onClick.GetPersistentEventCount(), Is.GreaterThan(0), name);
+                }
+                foreach (Transform root in new[] { navigation, brand, counter })
+                {
+                    RectTransform rect = root as RectTransform;
+                    SafeAreaAdapter adapter = root.GetComponent<SafeAreaAdapter>();
+                    Assert.That(adapter, Is.Not.Null, root.name);
+                    Assert.That(adapter.Target, Is.SameAs(rect));
+                    Assert.That(rect.anchorMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(rect.anchorMax, Is.EqualTo(Vector2.one));
+                    Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
+                    Assert.That(root.GetComponent<Canvas>(), Is.Null);
+                    Assert.That(root.GetComponent<GraphicRaycaster>(), Is.Null);
+                    Assert.That(root.GetComponent<UnityEngine.EventSystems.EventSystem>(), Is.Null);
+                }
+                Assert.That(navigation.GetSiblingIndex(), Is.LessThan(Find(scene, "Character").GetSiblingIndex()));
+                Assert.That(brand.GetSiblingIndex(), Is.GreaterThan(Find(scene, "Character").GetSiblingIndex()));
+                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true)).Count(), Is.EqualTo(3));
+            });
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void MainMenu_ExitPresentationUsesPlatformPolicy(bool isMobile)
+        {
+            WithScene(MainMenuScenePath, scene =>
+            {
+                MainMenu menu = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<MainMenu>(true)).Single();
+                SerializedObject serialized = new(menu);
+                GameObject exit = serialized.FindProperty("exitButtonRoot").objectReferenceValue as GameObject;
+                Assert.That(exit, Is.SameAs(Find(scene, "SalirBoton").gameObject));
+                RectTransform tutorial = serialized.FindProperty("tutorialButtonRoot").objectReferenceValue as RectTransform;
+                Assert.That(tutorial, Is.SameAs(Find(scene, "ComoJugarBoton")));
+                Vector2 authoredAnchor = tutorial.anchorMin;
+                Vector2 authoredPosition = tutorial.anchoredPosition;
+                RectTransform logo = serialized.FindProperty("logoRoot").objectReferenceValue as RectTransform;
+                RectTransform counter = serialized.FindProperty("counterRoot").objectReferenceValue as RectTransform;
+                Assert.That(logo, Is.SameAs(Find(scene, "Logo")));
+                Assert.That(counter, Is.SameAs(Find(scene, "ShrimpCounter")));
+                Vector2 logoAnchor = logo.anchorMin, logoPosition = logo.anchoredPosition;
+                Vector2 counterAnchor = counter.anchorMin, counterPosition = counter.anchoredPosition;
+                typeof(MainMenu).GetMethod("ApplyPlatformPresentation", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(menu, new object[] { isMobile });
+                Assert.That(exit.activeSelf, Is.EqualTo(!isMobile));
+                Assert.That(Find(scene, "JugarBoton").gameObject.activeSelf, Is.True);
+                Assert.That(Find(scene, "OpcionesBoton").gameObject.activeSelf, Is.True);
+                if (!isMobile)
+                {
+                    Assert.That(tutorial.anchorMin, Is.EqualTo(authoredAnchor));
+                    Assert.That(tutorial.anchoredPosition, Is.EqualTo(authoredPosition));
+                    Assert.That(logo.anchorMin, Is.EqualTo(logoAnchor));
+                    Assert.That(logo.anchoredPosition, Is.EqualTo(logoPosition));
+                    Assert.That(counter.anchorMin, Is.EqualTo(counterAnchor));
+                    Assert.That(counter.anchoredPosition, Is.EqualTo(counterPosition));
+                }
+                else
+                {
+                    Assert.That(tutorial.anchorMin.x, Is.Zero);
+                    Vector2 mobilePosition = tutorial.anchoredPosition;
+                    Assert.That(logo.anchorMin.x, Is.EqualTo(1f));
+                    Assert.That(counter.anchorMin.x, Is.EqualTo(1f));
+                    Vector2 mobileLogoPosition = logo.anchoredPosition, mobileCounterPosition = counter.anchoredPosition;
+                    typeof(MainMenu).GetMethod("ApplyPlatformPresentation", BindingFlags.Instance | BindingFlags.NonPublic)
+                        .Invoke(menu, new object[] { true });
+                    Assert.That(tutorial.anchoredPosition, Is.EqualTo(mobilePosition), "Repeated presentation must not accumulate a shift.");
+                    Assert.That(logo.anchoredPosition, Is.EqualTo(mobileLogoPosition));
+                    Assert.That(counter.anchoredPosition, Is.EqualTo(mobileCounterPosition));
+                }
+            });
+        }
 
         [Test]
         public void MainMenu_TutorialCanvasesPreserveReferenceHeightOnExtraWideScreens()
@@ -39,6 +142,8 @@ namespace SquidInkPulse.Tests.EditMode
                     Assert.That(vignette.sizeDelta, Is.EqualTo(new Vector2(1280f, 720f)));
                     Assert.That(vignette.GetComponent<Image>().preserveAspect, Is.True);
                 }
+                Button next = tutorial.GetComponentsInChildren<Button>(true).Single(button => button.name == "Next");
+                Assert.That(next.targetGraphic.raycastTarget, Is.True);
             });
         }
 

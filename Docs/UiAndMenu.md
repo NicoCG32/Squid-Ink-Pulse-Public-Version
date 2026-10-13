@@ -85,6 +85,10 @@ Contrato responsive del menú:
 
 El Canvas de `MainMenu` conserva la composición de referencia en móvil con `MobileCanvasScalePolicy`: match por ancho en una superficie 16:10 de tablet y por altura en 16:9 o formatos más anchos. Se recalcula si cambia la superficie; normaliza las dimensiones iniciales a landscape. En Windows conserva el escalado serializado. Esto no cambia geometría de botones, arte ni el layout de cada zona.
 
+La escena protege el contenido con tres contenedores full-stretch y `SafeAreaAdapter`: `NavigationSafeArea` para botones, `BrandSafeArea` para el logo y `CounterSafeArea` para camarones. Conservan el orden de dibujo y no añaden Canvas ni EventSystem. Fondo y personaje siguen cubriendo el frame. En móvil, Cómo Jugar se ancla al borde izquierdo seguro, y logo/contador al derecho, conservando sus posiciones de referencia y sin acumular desplazamientos al reaplicar la presentación. Desktop mantiene los anchors y posiciones de autoría.
+
+`MainMenuPlatformPolicy` reserva el botón Salir y su acción para desktop; Android lo oculta y no ejecuta quit desde ese callback. Los botones mantienen los eventos y estados visuales existentes: un Down touch muestra pressed y el click no requiere hover. El Back contextual de Android sigue siendo un corte posterior del port.
+
 El `SafeAreaAdapter` de HUD aplica la misma política al Canvas propietario en móvil. Los scalers de autoría siguen en match por altura y no se reescriben prefabs/escenas; en runtime 16:10 el HUD cambia a ancho para contener gadgets y score dentro del área segura, y vuelve a altura en formatos de teléfono. Las otras capas y Windows conservan su configuración. La matriz visual simula esta selección, sin atribuir a sus PNG una run ni el estado dinámico de puntuación.
 
 ## OptionsMenu global

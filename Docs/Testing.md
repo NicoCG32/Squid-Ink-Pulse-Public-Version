@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con cinco pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, y comprueba encuadre y posiciones de spawn en los aspectos móviles.
+La suite automatizada combina pruebas EditMode deterministas con seis pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda desde MainMenu sin mouse.
 
 Las pruebas viven en:
 
@@ -51,6 +51,8 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
+`MainMenuTouchNavigationPlayModeTests` carga MainMenu y usa touches reales del módulo UI para abrir/cerrar opciones, recorrer las tres páginas de Cómo Jugar y cargar ShopMenu. Comprueba raycast y estado pressed durante Down, sin mouse. Espera una actualización de UI tras mostrar el tutorial antes de comprobar su botón recién activado; no cambia la apariencia ni despacha OnClick directamente.
+
 El fixture de routing touch alinea su reloj simulado con `Time.realtimeSinceStartupAsDouble` al comenzar. Unity descarta eventos fechados durante la transición del Editor a Play Mode; reiniciar el reloj a cero entre fixtures podía colocar touches válidos dentro de ese intervalo y hacer fallar la suite conjunta aunque la prueba aislada pasara. Se conservan los asserts de routing y los tiempos de un frame, sin modificar políticas runtime de foco ni silenciar errores.
 
 `OptionsPlatformPresentationTests` carga el prefab real de opciones: simula la presentación móvil/desktop, comprueba los dos controles de display ocultos sólo en móvil y mantiene visibles volumen/regreso, con valores y posiciones intactos. Reaplica la política y restaura presentación desktop; no guarda el prefab ni escribe preferencias del jugador. Complementa las pruebas puras ya existentes de resolución.
@@ -85,6 +87,10 @@ La captura usa la escena de autoría, Canvas sobre cámara y la política compar
 `SafeAreaAdapterTests` carga además los prefabs reales con destino serializado sin asignar y exige que `Apply` resuelva el RectTransform local. Este caso protege la semántica de null de objetos Unity, que no equivale siempre a null CLR en el Editor.
 
 La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de autoría en total. Las pruebas de cámara incluyen ese aspecto además de los tres formatos de teléfono. `MobileMenuCanvasScalePolicyTests` comprueba que el viewport lógico contenga la composición de referencia: ancho para superficies landscape más estrechas que 16:9, altura para las equivalentes o más anchas. Dimensiones portrait iniciales se normalizan a landscape; Windows conserva su match de autoría y los tamaños inválidos no fuerzan un cambio.
+
+## Matriz visual estática del menú
+
+`Tools > Squid Ink Pulse > Mobile > Export Main Menu Preview Matrix` (o batch `-executeMethod MainMenuPreviewExporter.Export`, con gráficos) exporta seis PNG y `report.json` a `TestResults/MainMenuPreview/`. Cubre 16:9, 20:9, tablet 16:10 y márgenes laterales simulados. Aplica escala/presentación móvil en memoria, oculta opciones/tutorial/Salir y mide los cuatro botones visibles, logo y contador. No guarda la escena; restaura la sesión del Editor. Los 36 bounds complementan los tests de jerarquía y la navegación PlayMode, sin certificar animación, ergonomía ni una run.
 
 ## Servidor de feria
 

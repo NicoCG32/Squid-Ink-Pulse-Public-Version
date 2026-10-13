@@ -421,8 +421,21 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         RequireObjectReference(mainMenu, "tutorialComicsCanvasGroup", "MainMenu.tutorialComicsCanvasGroup", failures);
         RequireObjectReference(mainMenu, "tutorialLayerBlack", "MainMenu.tutorialLayerBlack", failures);
         RequireObjectReference(mainMenu, "tutorialButton", "MainMenu.tutorialButton", failures);
+        RequireObjectReference(mainMenu, "tutorialButtonRoot", "MainMenu.tutorialButtonRoot", failures);
         RequireObjectReference(mainMenu, "tutorialNextButton", "MainMenu.tutorialNextButton", failures);
         RequireMainMenuTutorialPages(mainMenu, expectedCount: 3, failures);
+        RequireObjectReference(mainMenu, "exitButtonRoot", "MainMenu.exitButtonRoot", failures);
+        RequireObjectReference(mainMenu, "logoRoot", "MainMenu.logoRoot", failures);
+        RequireObjectReference(mainMenu, "counterRoot", "MainMenu.counterRoot", failures);
+        foreach (string name in new[] { "NavigationSafeArea", "BrandSafeArea", "CounterSafeArea" })
+        {
+            RectTransform root = mainMenu.GetComponentsInChildren<RectTransform>(true).SingleOrDefault(rect => rect.name == name);
+            if (root == null || root.GetComponent<SafeAreaAdapter>() == null
+                || root.GetComponent<SafeAreaAdapter>().Target != root
+                || root.anchorMin != Vector2.zero || root.anchorMax != Vector2.one
+                || root.offsetMin != Vector2.zero || root.offsetMax != Vector2.zero)
+                failures.Add($"MainMenu.{name} debe conservar una raiz completa con SafeAreaAdapter propio.");
+        }
         RequireSceneNameDoesNotContain(mainMenu, "playSceneName", "tutorial", "MainMenu.playSceneName", failures);
         RequireSceneNameDoesNotContain(mainMenu, "shopMenuSceneName", "tutorial", "MainMenu.shopMenuSceneName", failures);
     }
