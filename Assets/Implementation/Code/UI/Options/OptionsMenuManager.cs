@@ -399,6 +399,16 @@ public class OptionsMenuManager : MonoBehaviour
         MenuHierarchyResolver.RestoreScaleIfCollapsed(rootTransform);
         NormalizeCanvasLayer(ownerCanvas);
         NormalizeBackground(ownerCanvas);
+        ApplyPlatformPresentation(Application.isMobilePlatform);
+    }
+
+    private void ApplyPlatformPresentation(bool isMobilePlatform)
+    {
+        bool showDisplaySettings = OptionsResolutionPolicy.SupportsResolutionSelection(isMobilePlatform);
+        if (resolutionDropdown != null)
+            resolutionDropdown.gameObject.SetActive(showDisplaySettings);
+        if (fullscreenToggle != null)
+            fullscreenToggle.gameObject.SetActive(showDisplaySettings);
     }
 
     private static void NormalizeCanvasLayer(Canvas canvas)

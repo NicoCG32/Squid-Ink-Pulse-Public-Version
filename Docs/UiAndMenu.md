@@ -117,6 +117,7 @@ Reglas:
 - El slider de volumen guarda `MasterVolume` en `PlayerPrefs`. No debe escribir en `player-profile.json`, `player-records.json` ni `local-leaderboard.json`.
 - Las escrituras conocidas de volumen, URL de feria y opciones de escritorio se confirman inmediatamente mediante `PlayerPreferencesCheckpoint`. Cualquier preferencia que permanezca pendiente se vacía una sola vez cuando el player móvil entra en pausa o pierde el foco.
 - El checkpoint de `PlayerPrefs` no serializa estado transitorio de una run ni vuelve a guardar la base JSON: sus repositorios conservan su política de escritura inmediata y atómica.
+- La política `OptionsResolutionPolicy.SupportsResolutionSelection` también gobierna la presentación: en Android/iOS se desactivan los GameObjects completos de resolución y fullscreen, incluidos sus gráficos y etiquetas; volumen y regreso permanecen. Se aplica durante la normalización inicial y al abrir el panel. En Windows se conserva la UI desktop y las mismas claves de preferencias. Ocultar controles no modifica su valor, posición ni referencias serializadas.
 
 ## Pausa
 
