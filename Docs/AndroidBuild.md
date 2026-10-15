@@ -136,6 +136,20 @@ Se generó desde `mobile/06-main-menu-shop`, código `a5a031d`, conservando fuer
 
 Este APK de desarrollo está instalado para continuar las pruebas; la beta publicada en GitHub sigue siendo el artefacto anterior. Persisten los cortes de menús/safe area, overlays, Back/ciclo de vida, orientación opuesta y rendimiento sostenido.
 
+### APK Development de MainMenu seguro y cómics — 15 de octubre de 2026
+
+Fuente `bad3bd1` en `mobile/06-main-menu-shop`, más la serialización entrante de `TimeManager.asset` preservada fuera de commits. Es un APK Development de revisión, no una candidata final ni una actualización de la beta publicada.
+
+- Resultado `Succeeded`, 262,18 s, 514.338.819 bytes, 0 errores/2 advertencias; composición canónica validada.
+- SHA-256: `20F8B7EC56B53B0EBC04296480B05473D8A27A78E4F88ED2AC393EACAA311905`.
+- Suite final: 298/298 EditMode y 6/6 PlayMode, sin omitidas. Matriz MainMenu: 6 capturas/36 bounds dentro; tutorial: 18 capturas/4.428 glifos dentro y Next dentro en todos los formatos, incluidos cutouts simulados a ambos lados.
+- Instalación `adb install -r` con `Success` en Redmi Pad Pro. Se capturaron las tres páginas completas de Cómo Jugar y su regreso al menú mediante taps ADB; desaparece el recorte derecho reproducido en la build anterior. El dimmer sigue cubriendo el frame y no se deforman las viñetas.
+- El pase físico del menú comprobó opciones, tutorial, tienda/regreso, cómic inicial y entrada a Epipelágica/pausa. No incluye compras, visita física a Abisopelágica, orientación opuesta ni una run final completa. La validación actual no reemplaza la aceptación ergonómica previa del usuario ni afirma una nueva aceptación manual del arte del tutorial.
+- Log del proceso del APK corregido sin coincidencias críticas de excepción observadas.
+- Regresión Windows de la misma fuente: `BuildOptions.None`, 26,48 s, 0 errores/2 advertencias y composición aprobada; smoke oculto de 15 s vivo y responsivo, sin excepciones observadas. No certifica una run interactiva ni el tamaño efectivo de la ventana, que puede depender de las preferencias guardadas.
+
+Los controles desktop de opciones permanecen ocultos. El layout seguro de ese panel, los iconos de input del arte tutorial y la adaptación completa de tienda continúan como trabajo posterior; se conserva la UI Windows de autoría.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:
