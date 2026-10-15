@@ -89,6 +89,8 @@ La escena protege el contenido con tres contenedores full-stretch y `SafeAreaAda
 
 `MainMenuPlatformPolicy` reserva el botón Salir y su acción para desktop; Android lo oculta y no ejecuta quit desde ese callback. Los botones mantienen los eventos y estados visuales existentes: un Down touch muestra pressed y el click no requiere hover. El Back contextual de Android sigue siendo un corte posterior del port.
 
+El tutorial gráfico también consume `MobileCanvasScalePolicy`: su Canvas raíz y los tres de página adoptan ancho en 16:10 y altura en teléfono ancho, sin modificar los scalers de autoría ni Windows. `TutorialSafeArea/TutorialContent` contiene las tres páginas y Next, con las referencias y orden originales. `SafeAreaAdapter` delimita el espacio disponible y `MobileReferenceContentFitter` centra/escala uniformemente la composición 1920×1080 dentro de él, incluyendo muescas que estrechan 16:9. El dimmer permanece fuera, cubriendo el frame. El ajuste no genera UI, altera textos ni reactiva el tutorial jugable aislado.
+
 El `SafeAreaAdapter` de HUD aplica la misma política al Canvas propietario en móvil. Los scalers de autoría siguen en match por altura y no se reescriben prefabs/escenas; en runtime 16:10 el HUD cambia a ancho para contener gadgets y score dentro del área segura, y vuelve a altura en formatos de teléfono. Las otras capas y Windows conservan su configuración. La matriz visual simula esta selección, sin atribuir a sus PNG una run ni el estado dinámico de puntuación.
 
 ## OptionsMenu global

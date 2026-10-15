@@ -427,6 +427,13 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         RequireObjectReference(mainMenu, "exitButtonRoot", "MainMenu.exitButtonRoot", failures);
         RequireObjectReference(mainMenu, "logoRoot", "MainMenu.logoRoot", failures);
         RequireObjectReference(mainMenu, "counterRoot", "MainMenu.counterRoot", failures);
+        GameObject tutorialPanel = new SerializedObject(mainMenu).FindProperty("tutorialComicsPanel").objectReferenceValue as GameObject;
+        RectTransform tutorialSafe = tutorialPanel != null ? tutorialPanel.transform.Find("TutorialSafeArea") as RectTransform : null;
+        Transform tutorialContent = tutorialSafe != null ? tutorialSafe.Find("TutorialContent") : null;
+        if (tutorialSafe == null || tutorialSafe.GetComponent<SafeAreaAdapter>() == null
+            || tutorialSafe.GetComponent<SafeAreaAdapter>().Target != tutorialSafe
+            || tutorialContent == null || tutorialContent.GetComponent<MobileReferenceContentFitter>() == null)
+            failures.Add("MainMenu tutorial debe conservar TutorialSafeArea y TutorialContent con ajuste movil de referencia.");
         foreach (string name in new[] { "NavigationSafeArea", "BrandSafeArea", "CounterSafeArea" })
         {
             RectTransform root = mainMenu.GetComponentsInChildren<RectTransform>(true).SingleOrDefault(rect => rect.name == name);

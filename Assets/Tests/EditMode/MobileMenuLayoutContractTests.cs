@@ -61,7 +61,7 @@ namespace SquidInkPulse.Tests.EditMode
                 }
                 Assert.That(navigation.GetSiblingIndex(), Is.LessThan(Find(scene, "Character").GetSiblingIndex()));
                 Assert.That(brand.GetSiblingIndex(), Is.GreaterThan(Find(scene, "Character").GetSiblingIndex()));
-                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true)).Count(), Is.EqualTo(3));
+                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true)).Count(), Is.EqualTo(4));
             });
         }
 
@@ -144,6 +144,62 @@ namespace SquidInkPulse.Tests.EditMode
                 }
                 Button next = tutorial.GetComponentsInChildren<Button>(true).Single(button => button.name == "Next");
                 Assert.That(next.targetGraphic.raycastTarget, Is.True);
+            });
+        }
+
+        [Test]
+        public void MainMenu_TutorialProtectsPagesAndNextInsideSharedSafeContent()
+        {
+            WithScene(MainMenuScenePath, scene =>
+            {
+                Transform tutorial = Find(scene, "ComicsTutorial");
+                RectTransform safe = tutorial.Find("TutorialSafeArea") as RectTransform;
+                RectTransform content = safe.Find("TutorialContent") as RectTransform;
+                Assert.That(tutorial.Find("BlackLayer"), Is.Not.Null, "The dimmer must stay full bleed.");
+                Assert.That(safe.GetComponent<SafeAreaAdapter>().Target, Is.SameAs(safe));
+                Assert.That(content.GetComponent<MobileReferenceContentFitter>(), Is.Not.Null);
+                SerializedObject fitter = new(content.GetComponent<MobileReferenceContentFitter>());
+                Assert.That(fitter.FindProperty("referenceResolution").vector2Value, Is.EqualTo(new Vector2(1920f, 1080f)));
+                foreach (RectTransform root in new[] { safe, content })
+                {
+                    Assert.That(root.anchorMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(root.anchorMax, Is.EqualTo(Vector2.one));
+                    Assert.That(root.offsetMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(root.offsetMax, Is.EqualTo(Vector2.zero));
+                    Assert.That(root.localScale, Is.EqualTo(Vector3.one));
+                    Assert.That(root.GetComponent<Canvas>(), Is.Null);
+                    Assert.That(root.GetComponent<GraphicRaycaster>(), Is.Null);
+                }
+                MainMenu menu = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<MainMenu>(true)).Single();
+                SerializedObject serialized = new(menu);
+                SerializedProperty pages = serialized.FindProperty("tutorialComicPages");
+                for (int i = 0; i < pages.arraySize; i++)
+                {
+                    GameObject page = pages.GetArrayElementAtIndex(i).FindPropertyRelative("root").objectReferenceValue as GameObject;
+                    Assert.That(page.transform.parent, Is.SameAs(content));
+                }
+                Button next = serialized.FindProperty("tutorialNextButton").objectReferenceValue as Button;
+                Assert.That(next.transform.parent, Is.SameAs(content));
+            });
+        }
+
+        [Test]
+        public void MainMenu_TutorialSharesMobileScaleAndReturnsToHeightOnPhone()
+        {
+            WithScene(MainMenuScenePath, scene =>
+            {
+                MainMenu menu = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<MainMenu>(true)).Single();
+                CanvasScaler[] tutorialScalers = Find(scene, "ComicsTutorial").GetComponentsInChildren<CanvasScaler>(true);
+                MethodInfo apply = typeof(MainMenu).GetMethod("ApplyCanvasScaling", BindingFlags.Instance | BindingFlags.NonPublic);
+                apply.Invoke(menu, new object[] { new Vector2(2560f, 1600f), false });
+                foreach (CanvasScaler scaler in tutorialScalers)
+                    Assert.That(scaler.matchWidthOrHeight, Is.EqualTo(1f), "Desktop preserves authored scaling.");
+                apply.Invoke(menu, new object[] { new Vector2(2560f, 1600f), true });
+                foreach (CanvasScaler scaler in tutorialScalers)
+                    Assert.That(scaler.matchWidthOrHeight, Is.Zero, scaler.name);
+                apply.Invoke(menu, new object[] { new Vector2(2400f, 1080f), true });
+                foreach (CanvasScaler scaler in tutorialScalers)
+                    Assert.That(scaler.matchWidthOrHeight, Is.EqualTo(1f), scaler.name);
             });
         }
 

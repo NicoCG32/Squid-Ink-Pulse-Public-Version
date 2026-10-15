@@ -92,6 +92,12 @@ La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de 
 
 `Tools > Squid Ink Pulse > Mobile > Export Main Menu Preview Matrix` (o batch `-executeMethod MainMenuPreviewExporter.Export`, con gráficos) exporta seis PNG y `report.json` a `TestResults/MainMenuPreview/`. Cubre 16:9, 20:9, tablet 16:10 y márgenes laterales simulados. Aplica escala/presentación móvil en memoria, oculta opciones/tutorial/Salir y mide los cuatro botones visibles, logo y contador. No guarda la escena; restaura la sesión del Editor. Los 36 bounds complementan los tests de jerarquía y la navegación PlayMode, sin certificar animación, ergonomía ni una run.
 
+## Matriz visual de Cómo Jugar
+
+`MainMenuTutorialPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Main Menu Tutorial Preview Matrix`) requiere gráficos y genera dieciocho PNG, JSON y galería en `TestResults/MainMenuTutorialPreview/`. Recorre las tres páginas reales en 16:9/20:9, con márgenes laterales simulados en ambos sentidos, y tablet 16:10. Aplica la misma política de escala, área segura y ajuste de referencia móvil sin guardar la escena. Comprueba los quads de glifos TMP emitidos y el hit area de Next contra el área segura; los quads pueden incluir padding SDF. No convierte el overflow del rect de texto en clipping ni certifica legibilidad, arte o routing físico.
+
+`MobileReferenceContentFitterTests` comprueba que la composición completa quepa con márgenes simétricos, conserve proporción al redimensionar y no acumule transformaciones. Desktop y tamaños inválidos preservan la geometría previa. El contrato de escena comprueba la jerarquía segura, las referencias de páginas/Next y la ausencia de Canvas adicional.
+
 ## Servidor de feria
 
 El servidor opcional mantiene su smoke test independiente:
