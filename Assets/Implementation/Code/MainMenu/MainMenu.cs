@@ -60,12 +60,12 @@ public class MainMenu : MonoBehaviour
     private readonly MainMenuSecretCodeProgress demoShrimpSecretCode = new(DemoShrimpSecretCode);
     private Keyboard demoShrimpTextInputKeyboard;
     private int lastDemoShrimpTextInputFrame = -1;
-    private CanvasScaler platformCanvasScaler;
+    private CanvasScaler[] platformCanvasScalers;
 
     private void Awake()
     {
-        ConfigureCanvasScalingForPlatform();
         ResolveUiReferences();
+        ConfigureCanvasScalingForPlatform();
         ApplyPlatformPresentation(Application.isMobilePlatform);
         BindRuntimeTutorialButtons();
         CloseTutorialImmediate();
@@ -73,18 +73,32 @@ public class MainMenu : MonoBehaviour
 
     private void ConfigureCanvasScalingForPlatform()
     {
-        if (!Application.isMobilePlatform)
-        {
+        ApplyCanvasScaling(new Vector2(Screen.width, Screen.height), Application.isMobilePlatform);
+    }
+
+    private void ApplyCanvasScaling(Vector2 screenSize, bool isMobilePlatform)
+    {
+        if (!isMobilePlatform)
             return;
+
+        if (platformCanvasScalers == null)
+        {
+            var scalers = new List<CanvasScaler>();
+            CanvasScaler owner = GetComponent<CanvasScaler>();
+            if (owner != null)
+                scalers.Add(owner);
+            if (tutorialComicsPanel != null)
+                scalers.AddRange(tutorialComicsPanel.GetComponentsInChildren<CanvasScaler>(true));
+            platformCanvasScalers = scalers.ToArray();
         }
 
-        if (platformCanvasScaler == null)
-            platformCanvasScaler = GetComponent<CanvasScaler>();
-        CanvasScaler canvasScaler = platformCanvasScaler;
-        if (canvasScaler != null
-            && canvasScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+        foreach (CanvasScaler canvasScaler in platformCanvasScalers)
         {
-            float match = MobileCanvasScalePolicy.ResolveMatch(true, Screen.width, Screen.height,
+            if (canvasScaler == null || canvasScaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize
+                || canvasScaler.screenMatchMode != CanvasScaler.ScreenMatchMode.MatchWidthOrHeight)
+                continue;
+            float match = MobileCanvasScalePolicy.ResolveMatch(true,
+                Mathf.RoundToInt(screenSize.x), Mathf.RoundToInt(screenSize.y),
                 canvasScaler.referenceResolution, canvasScaler.matchWidthOrHeight);
             if (canvasScaler.matchWidthOrHeight != match)
                 canvasScaler.matchWidthOrHeight = match;
@@ -501,6 +515,9 @@ public class MainMenu : MonoBehaviour
 
         var pageRoots = new List<Transform>();
         Transform tutorialTransform = tutorialComicsPanel.transform;
+        Transform content = tutorialTransform.Find("TutorialSafeArea/TutorialContent");
+        if (content != null)
+            tutorialTransform = content;
         for (int i = 0; i < tutorialTransform.childCount; i++)
         {
             Transform child = tutorialTransform.GetChild(i);
