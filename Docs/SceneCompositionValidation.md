@@ -32,6 +32,7 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - `MainMenu` y `ShopMenu` tienen un unico `EventSystem` y su manager principal.
 - `MainMenu` tiene referencias serializadas para `OptionsMenu`, comics de `Cómo jugar`, boton de tutorial, boton siguiente y paginas del tutorial; `playSceneName` y `shopMenuSceneName` no apuntan a la escena tutorial pendiente.
 - `ShopMenu` tiene cableadas las referencias serializadas de `OutOfGameShopManager`: botones, textos principales, estados visuales del dealer, vistas de slots y gotas del indicador de nivel.
+- `ShopMenu` mantiene los botones y el contador bajo `ShopSafeArea/ShopContent`, con ajuste uniforme móvil; el fondo proporcional permanece fuera. La navegación Cancel referencia MainMenu, opciones y el módulo UI de la escena.
 - Cada escena jugable tiene un unico `GameSessionController`, `RunProgressionDirector`, `SceneFlowController`, `LevelSpawner` y `GameUIRoot`.
 - `LevelSpawner.zoneSpawnProfile` esta asignado.
 - `GameUIRoot` tiene asignadas sus referencias serializadas de composicion, HUD y managers.

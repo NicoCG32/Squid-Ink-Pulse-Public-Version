@@ -507,6 +507,25 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 
     private static void ValidateShopMenu(OutOfGameShopManager shopManager, List<string> failures)
     {
+        Transform panel=shopManager.transform.Find("Panel");
+        RectTransform safe=panel!=null ? panel.Find("ShopSafeArea") as RectTransform : null;
+        Transform content=safe!=null ? safe.Find("ShopContent") : null;
+        if (safe==null || safe.GetComponent<SafeAreaAdapter>()==null
+            || safe.GetComponent<SafeAreaAdapter>().Target!=safe || content==null
+            || content.GetComponent<MobileReferenceContentFitter>()==null)
+            failures.Add("ShopMenu: falta ShopSafeArea/ShopContent con protección móvil.");
+        else
+        {
+            foreach (Button button in shopManager.GetComponentsInChildren<Button>(true))
+                if (!button.transform.IsChildOf(content)) failures.Add($"ShopMenu/{button.name}: botón fuera del contenido seguro.");
+            if (content.Find("ShrimpCounter")==null) failures.Add("ShopMenu: contador fuera del contenido seguro.");
+        }
+        if (panel==null || panel.Find("Fondo")==null || panel.Find("Fondo").GetComponent<MobileBackgroundCover>()==null)
+            failures.Add("ShopMenu: falta cobertura proporcional del fondo móvil.");
+        ShopMenuCancelNavigation navigation=shopManager.GetComponent<ShopMenuCancelNavigation>();
+        if (navigation==null) failures.Add("ShopMenu: falta navegación Cancel móvil.");
+        else foreach (string field in new[] { "menu","options","inputModule" })
+                RequireObjectReference(navigation,field,$"ShopMenu.Cancel.{field}",failures);
         RequireObjectReferenceArray(shopManager, "upgradeSlotButtons", 4, "ShopMenu.upgradeSlotButtons", failures);
         RequireObjectReferenceArray(shopManager, "skinSlotButtons", 4, "ShopMenu.skinSlotButtons", failures);
         RequireObjectReference(shopManager, "purchaseButton", "ShopMenu.purchaseButton", failures);

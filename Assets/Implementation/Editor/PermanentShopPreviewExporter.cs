@@ -38,7 +38,8 @@ public static class PermanentShopPreviewExporter
         try
         {
             var formats = new[] { ("16-9",1920,1080,0,0), ("16-9-left",1920,1080,108,0),
-                ("16-9-right",1920,1080,0,108), ("20-9-left",2400,1080,108,0),
+                ("16-9-right",1920,1080,0,108), ("19-5-9-left",2340,1080,108,0),
+                ("19-5-9-right",2340,1080,0,108), ("20-9-left",2400,1080,108,0),
                 ("20-9-right",2400,1080,0,108), ("tablet-16-10",2560,1600,0,0) };
             foreach (var format in formats)
             {
@@ -98,8 +99,8 @@ public static class PermanentShopPreviewExporter
             foreach (MobileReferenceContentFitter fitter in canvas.GetComponentsInChildren<MobileReferenceContentFitter>(true))
                 fitter.Apply((fitter.transform.parent as RectTransform).rect.size,true);
             // The cover component is optional so the same exporter captures the baseline.
-            Component cover = canvas.GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(item=>item!=null && item.GetType().Name=="MobileBackgroundCover");
-            cover?.GetType().GetMethod("Apply").Invoke(cover,new object[] { ((RectTransform)cover.transform.parent).rect.size,true });
+            MobileBackgroundCover cover=canvas.GetComponentInChildren<MobileBackgroundCover>(true);
+            if (cover!=null) cover.Apply(((RectTransform)cover.transform.parent).rect.size,true);
             Canvas.ForceUpdateCanvases(); camera.Render();
             Transform background=canvas.GetComponentsInChildren<Transform>(true).Single(item=>item.name=="Fondo");
             frame.background=Bounds(background as RectTransform,camera);

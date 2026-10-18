@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con seis pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda desde MainMenu sin mouse.
+La suite automatizada combina pruebas EditMode deterministas con siete pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda desde MainMenu sin mouse.
 
 Las pruebas viven en:
 
@@ -105,6 +105,14 @@ La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de 
 Los tests de opciones inspeccionan prefab y cuatro instancias de escena, incluyendo el Canvas anidado de MainMenu y su ajuste al cambiar el viewport. El validador prebuild comprueba jerarquía, referencias, dimmer y ausencia de Canvas/raycaster extra. El fixture PlayMode del menú añade raycast de fondo en una esquina y ajuste del slider con touchscreen virtual; durante esa comprobación desconecta/restaura sólo el listener de persistencia para no escribir las preferencias del usuario del Editor.
 
 `MobileTutorialCopyTests` protege overrides parciales, reaplicación y retorno a la copia desktop. El contrato de la escena exige instrucciones de arrastre/INK-PULSO y la matriz del tutorial renderiza las variantes móviles reales, conservando las ilustraciones.
+
+## Tienda permanente móvil
+
+`PermanentShopPreviewExporter.Export` genera `TestResults/PermanentShopPreview/index.html` y `report.json` desde la escena real. Cubre ocho formatos: 16:9 sin cutout/con cutout izquierdo/derecho, 19,5:9 y 20:9 con cutout en ambos lados, y tablet 16:10. Comprueba fondo completo, trece hitboxes dentro del área segura y un mínimo diagnóstico de 48 píxeles de preview por lado; esa medida no certifica tamaño físico ni ergonomía. Recorre los nombres, descripciones y precios de las cuatro mejoras y ocho skins visibles del catálogo semilla, midiendo glifos TMP y overflow. Carga sprites mediante el presentador de slots y no carga ni guarda el perfil del usuario. Las capturas son evidencia complementaria: no prueban routing ni compras.
+
+`PermanentShopTouchPlayModeTests` carga ShopMenu y usa touchscreen virtual, raycast real y feedback pressed sin mouse. Recorre compra de mejora/skin, equipar/quitar sin descuento adicional, paginación que limpia selección, falta de saldo y exclusión de una entrada futura sin sprite. La acción Cancel del módulo UI cierra opciones antes de regresar al menú. El fixture inyecta perfil/registros/catálogo en memoria, exige las escrituras transitorias de Editor y restaura el estado al terminar; no acredita fondos ni compra sobre datos del usuario. No se ejecuta en players. La revisión de Back Android físico, orientaciones y ciclo de vida sigue siendo independiente.
+
+`PermanentShopMobileCompositionTests` protege los contenedores, contador, ausencia de infraestructura UI adicional y referencias de navegación; `MobileBackgroundCoverTests` comprueba cobertura proporcional, repetición/redimensionado y preservación de autoría desktop.
 
 ## Servidor de feria
 

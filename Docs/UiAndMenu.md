@@ -263,13 +263,15 @@ Contrato de interaccion actual:
 ShopMenu
 |- Canvas
 |  |- Panel
-|  |  |- arte del mueble y decoracion (autoria visual)
-|  |  `- ShopInteractionRoot
-|  |     |- Upgrade01Boton ... Upgrade04Boton
-|  |     |- Skin01Boton ... Skin04Boton
-|  |     |- SkinAnteriorBoton
-|  |     `- SkinSiguienteBoton
-|  `- ShrimpCounter (instancia del prefab)
+|  |  |- Fondo (cobertura proporcional móvil)
+|  |  `- ShopSafeArea/ShopContent
+|  |     |- decoracion, detalle, Comprar, Volver y Opciones
+|  |     |- ShrimpCounter (instancia del prefab)
+|  |     `- ShopInteractionRoot
+|  |        |- Upgrade01Boton ... Upgrade04Boton
+|  |        |- Skin01Boton ... Skin04Boton
+|  |        |- SkinAnteriorBoton
+|  |        `- SkinSiguienteBoton
 `- OptionsMenu (instancia del prefab global, root de escena)
 ```
 
@@ -278,7 +280,10 @@ ShopMenu
 - Los hitboxes de `ShopInteractionRoot` usan el SFX generico de presion `Assets/Content/Audio/SFX/MainMenu/Splat.mp3`. Este contrato permite reemplazar el SFX de tienda sin tocar la jerarquía ni los sprites.
 - La autoria visual de cada owner `*Boton` pertenece a la escena: posición, tamano, sprites, layout, escala, color y jerarquía no se modifican por código.
 - `LetreroMejoras` y `LetreroAspectos` son imágenes decorativas 3:1 de 300×100 unidades, ancladas al borde derecho y con `preserveAspect`. No usan anchors stretch ni deltas negativos, por lo que conservan tamaño y margen en 16:9, 19.5:9 y 20:9.
-- El fondo principal de `ShopMenu` todavía conserva autoría 16:9 y deja bandas grises laterales en el POCO 20:9. La deuda se limita al fondo/overscan y se corregirá por separado; no debe resolverse estirando de nuevo los letreros ni alterando sus controles.
+- `ShopSafeArea` usa `SafeAreaAdapter`; `ShopContent` encaja uniformemente la composición 1920×1080 con `MobileReferenceContentFitter`. Protege catálogo, detalle, controles y contador; los wrappers conservan geometría stretch/escala 1 en desktop. No añaden Canvas ni EventSystem.
+- `MobileBackgroundCover` mantiene `Fondo` fuera del área segura y cubre todo el viewport móvil conservando la proporción del sprite mediante overscan centrado. El contenido y los letreros no se estiran; Windows conserva su fondo de autoría. El componente sigue cambios de tamaño y sprite sin acumular escala.
+- El nombre de producto habilita auto size sólo en móvil para que nombres como `Botin de Camarones` quepan en su cartel; descripciones, precios, estilos y textos desktop conservan su contrato.
+- `ShopMenuCancelNavigation` escucha la acción Cancel del módulo UI existente sólo en móvil: cierra opciones si está abierto y, desde la tienda, vuelve a MainMenu. No crea otro action map ni activa acciones por su cuenta; los botones touch conservan sus eventos. Este comportamiento acota Back a ShopMenu y no sustituye la revisión global de ciclo de vida/Back.
 - Los cuatro slots superiores estan reservados, en este orden, para `upgrade.ink_pulse_duration`, `upgrade.ink_pulse_recharge_rate`, `upgrade.shrimp_multiplier` y `upgrade.score_multiplier`.
 - Las descripciones de mejoras deben ser cortas y con tono de tienda del juego, sin tildes ni caracteres especiales:
   - Tinta Persistente: "Tu nube aguanta mas: entra, limpia el peligro y sal con estilo."
