@@ -150,6 +150,22 @@ Fuente `bad3bd1` en `mobile/06-main-menu-shop`, más la serialización entrante 
 
 Los controles desktop de opciones permanecen ocultos. El layout seguro de ese panel, los iconos de input del arte tutorial y la adaptación completa de tienda continúan como trabajo posterior; se conserva la UI Windows de autoría.
 
+### Opciones seguras e instrucciones táctiles — 18 de octubre de 2026
+
+Fuente `a3e5b73` en `mobile/06-main-menu-shop`, más la serialización entrante de `TimeManager.asset` preservada fuera de commits. Este corte conserva la UI de escritorio y adapta el prefab compartido de opciones: volumen y Volver viven bajo área segura con escala uniforme, mientras el fondo bloquea toques sobre todo el viewport. El Canvas anidado de MainMenu sigue las medidas del viewport móvil también después del escalado del Canvas raíz.
+
+Los textos móviles de Cómo Jugar indican tocar `INK-PULSO` y arrastrar en pantalla para moverse; las ilustraciones existentes y los textos desktop se conservan. Las variantes vacías mantienen el texto de autoría.
+
+- Suite final de UI: 307/307 EditMode y 6/6 PlayMode, sin omitidas. El recorrido touch comprueba además bloqueo del fondo y cambio del slider mediante el módulo UI real; el test aísla el listener de persistencia para no modificar preferencias del Editor.
+- Matriz de opciones: cuatro escenas por seis formatos, 24 capturas/96 rectángulos/0 fallos, fondo completo y posiciones del handle en 0/0,5/1 dentro del área segura. Incluye tablet 16:10 y cutouts simulados a ambos lados.
+- Matriz tutorial con el texto móvil: 18 capturas/4.242 glifos/0 fuera; Next dentro en todos los formatos.
+- El primer prebuild detectó que el validador contaba el área segura de opciones dentro del contrato del HUD. La comprobación ahora se limita a `HudRoot`; la composición canónica de las cuatro escenas vuelve a pasar sin omitir el contrato independiente de opciones.
+- APK Development: `Succeeded`, 303,29 s, 514.340.948 bytes, 0 errores/2 advertencias; SHA-256 `C845D1CAA10EF02D12C71C2AE67BAD1B7D616B1E02CE7B26BB18296CE9178CD9`. Instalación actualizada `-r` con `Success` en Redmi Pad Pro.
+- Pase físico mediante taps/arrastre ADB: opciones desde MainMenu, ShopMenu y pausa de Epipelágica; slider operativo, fondo bloqueando tienda/Reanudar situados detrás y Volver conservando la pausa. Las tres páginas muestran textos completos y el tercer Next regresa al menú. Se dejó la tablet en MainMenu; log por PID sin coincidencias críticas.
+- Regresión Windows de la misma fuente: `BuildOptions.None`, 31,12 s, 0 errores/2 advertencias y composición aprobada; smoke oculto de 15 s vivo/responsivo, sin excepciones observadas. Las preferencias guardadas reaplicaron fullscreen y Unity usó fallback de resolución; el smoke no certifica una run interactiva ni una ventana efectiva de 1280×720.
+
+La matriz automática incluye Abisopelágica; este pase físico no la visitó ni comprobó compras, Back de Android, orientación opuesta, una run completa o rendimiento sostenido. El APK instalado es de revisión local y no actualiza la beta publicada.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:
