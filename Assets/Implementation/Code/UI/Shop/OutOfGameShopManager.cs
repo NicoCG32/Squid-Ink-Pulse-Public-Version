@@ -90,6 +90,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
         EnsureSlotPresenter();
         NormalizeRenderableScale();
         ConfigureRaycastTargets();
+        ApplyPlatformPresentation(Application.isMobilePlatform);
         hasPurchasedInCurrentMenu = false;
         ApplyShopVisualState(happy: false);
         Refresh();
@@ -117,6 +118,14 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     private void OnValidate()
     {
         EnsureSlotArrays();
+    }
+
+    private void ApplyPlatformPresentation(bool isMobilePlatform)
+    {
+        if (!isMobilePlatform || selectedItemNameText==null) return;
+        selectedItemNameText.fontSizeMax=selectedItemNameText.fontSize;
+        selectedItemNameText.fontSizeMin=Mathf.Min(18f,selectedItemNameText.fontSize);
+        selectedItemNameText.enableAutoSizing=true;
     }
 
     public void SelectUpgradeSlot(int slotIndex)
