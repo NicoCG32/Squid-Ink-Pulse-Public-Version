@@ -42,6 +42,7 @@ Tambien se ejecuta como `IPreprocessBuildWithReport`, antes de compilar un build
 - El contrato móvil se comprueba también sobre las instancias de las escenas jugables, para detectar overrides locales que no aparecen al inspeccionar sólo el prefab. `SafeAreaAdapter` debe actuar sobre su propio `SafeAreaRoot`.
 - La raíz segura debe cubrir el HUD en autoría, sin offsets, escala adicional ni rotación. Las sustituciones locales de InkBar, gadgets, score o camarones también deben vivir bajo esa raíz y cumplir el layout común.
 - El conteo de cinco Canvas base excluye el prefab separado `OptionsMenu`, añadido en las escenas; su adaptación móvil pertenece al contrato de opciones. Los controles touch siguen sin poder añadir infraestructura Canvas propia.
+- El conteo de `SafeAreaAdapter` del HUD se limita a `HudRoot`; el overlay de opciones conserva su propia área segura. El prefab compartido y sus cuatro instancias deben mantener `OptionsSafeArea/OptionsContent`, el ajuste de referencia móvil, los controles dentro de ese contenido y un fondo que bloquee raycasts fuera de él.
 - `InGameShopManager` tiene asignadas sus referencias serializadas de tienda temporal: sesion, root, `CanvasGroup`, icono, textos, boton de compra, mensaje de saldo y ofertas con `GadgetShopItem`.
 - Existe exactamente un objeto con tag `Player`.
 - `Boundaries` contiene `PlayerBoundaries` y `CameraBoundaries`, cada uno con `TopBoundary` y `BottomBoundary` con `Collider2D`.

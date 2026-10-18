@@ -251,7 +251,9 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
 
         GameUIRoot uiRoot = gameRoot.GetComponentInChildren<GameUIRoot>(true);
         SafeAreaAdapter[] safeAreaAdapters =
-            gameRoot.GetComponentsInChildren<SafeAreaAdapter>(true);
+            uiRoot != null && uiRoot.HudRoot != null
+                ? uiRoot.HudRoot.GetComponentsInChildren<SafeAreaAdapter>(true)
+                : Array.Empty<SafeAreaAdapter>();
         if (uiRoot == null
             || safeAreaAdapters.Length != 1
             || safeAreaAdapters[0].transform.parent != uiRoot.HudRoot
