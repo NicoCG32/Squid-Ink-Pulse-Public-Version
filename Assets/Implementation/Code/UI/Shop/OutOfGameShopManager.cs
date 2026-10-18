@@ -38,6 +38,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
     [SerializeField] private TMP_Text selectedItemDescriptionText;
     [SerializeField] private TMP_Text selectedItemPriceText;
     [SerializeField] private TMP_Text selectedItemStateText;
+    [SerializeField] private GameObject mobilePurchaseFeedbackRoot;
     [SerializeField] private TMP_Text skinPageText;
 
     [Header("Dealer Visual State")]
@@ -122,6 +123,7 @@ public sealed class OutOfGameShopManager : MonoBehaviour
 
     private void ApplyPlatformPresentation(bool isMobilePlatform)
     {
+        if (mobilePurchaseFeedbackRoot!=null) mobilePurchaseFeedbackRoot.SetActive(isMobilePlatform);
         if (!isMobilePlatform || selectedItemNameText==null) return;
         selectedItemNameText.fontSizeMax=selectedItemNameText.fontSize;
         selectedItemNameText.fontSizeMin=Mathf.Min(18f,selectedItemNameText.fontSize);
