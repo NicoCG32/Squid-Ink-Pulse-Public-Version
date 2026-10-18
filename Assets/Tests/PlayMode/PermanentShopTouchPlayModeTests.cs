@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -61,6 +62,9 @@ namespace SquidInkPulse.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.1f);
             Assert.That(Mouse.current,Is.Null);
             OutOfGameShopManager shop=Object.FindFirstObjectByType<OutOfGameShopManager>();
+            typeof(OutOfGameShopManager).GetMethod("ApplyPlatformPresentation",BindingFlags.Instance|BindingFlags.NonPublic)
+                .Invoke(shop,new object[] { true });
+            Assert.That(Field<GameObject>(shop,"mobilePurchaseFeedbackRoot").activeInHierarchy,Is.True);
             ShopMenuCancelNavigation navigation=shop.GetComponent<ShopMenuCancelNavigation>();
             Assert.That(navigation,Is.Not.Null);
             typeof(ShopMenuCancelNavigation).GetMethod("BindForPlatform",BindingFlags.Instance|BindingFlags.NonPublic)
@@ -89,14 +93,16 @@ namespace SquidInkPulse.Tests.PlayMode
             Assert.That(PersistentPlayerProfile.EquippedSkinId,Is.EqualTo(PlayerSkinIds.Default),"Purchase does not implicitly equip.");
             yield return Tap(purchase);
             Assert.That(PersistentPlayerProfile.EquippedSkinId,Is.EqualTo(skin.id));
+            Assert.That(Field<TMP_Text>(shop,"selectedItemStateText").text,Is.EqualTo("EQUIPADA"));
             yield return Tap(purchase);
             Assert.That(PersistentPlayerProfile.EquippedSkinId,Is.EqualTo(PlayerSkinIds.Default));
             Assert.That(PersistentPlayerProfile.TotalShrimps,Is.EqualTo(beforeSkin-skin.basePrice),"Equip and remove must not spend again.");
 
-            PersistentPlayerProfile.Records.totalShrimps=0;
+            Assert.That(ShrimpRuntimeWallet.TrySpend(PersistentPlayerProfile.TotalShrimps),Is.True);
             yield return Tap(Field<Button[]>(shop,"upgradeSlotButtons")[1]);
             yield return Tap(purchase);
             Assert.That(Field<string>(shop,"purchaseResultMessage"),Is.EqualTo("SIN CAMARONES"));
+            Assert.That(Field<TMP_Text>(shop,"selectedItemStateText").text,Is.EqualTo("SIN CAMARONES"));
             Assert.That(PersistentPlayerProfile.GetInkPulseRechargeRateLevel(),Is.Zero);
             // A pending catalogue entry has no shop sprite; the existing pager must keep it out.
             var pending=new UnlockableSkinDefinition { id="skin.pending",displayName="Pending" };

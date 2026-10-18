@@ -32,6 +32,12 @@ namespace SquidInkPulse.Tests.EditMode
                 var navigation=new SerializedObject(shop.GetComponent<ShopMenuCancelNavigation>());
                 foreach (string field in new[] { "menu","options","inputModule" })
                     Assert.That(navigation.FindProperty(field).objectReferenceValue,Is.Not.Null,field);
+                var serializedShop=new SerializedObject(shop);
+                GameObject feedback=serializedShop.FindProperty("mobilePurchaseFeedbackRoot").objectReferenceValue as GameObject;
+                Assert.That(feedback,Is.Not.Null);
+                Assert.That(feedback.activeSelf,Is.False,"Authoring and desktop keep the new mobile feedback hidden.");
+                Assert.That(feedback.transform.IsChildOf(content),Is.True);
+                Assert.That(serializedShop.FindProperty("selectedItemStateText").objectReferenceValue,Is.SameAs(feedback.GetComponent<TMPro.TMP_Text>()));
             }
             finally
             {

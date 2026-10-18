@@ -112,7 +112,7 @@ Los tests de opciones inspeccionan prefab y cuatro instancias de escena, incluye
 
 `PermanentShopTouchPlayModeTests` carga ShopMenu y usa touchscreen virtual, raycast real y feedback pressed sin mouse. Recorre compra de mejora/skin, equipar/quitar sin descuento adicional, paginación que limpia selección, falta de saldo y exclusión de una entrada futura sin sprite. La acción Cancel del módulo UI cierra opciones antes de regresar al menú. El fixture inyecta perfil/registros/catálogo en memoria, exige las escrituras transitorias de Editor y restaura el estado al terminar; no acredita fondos ni compra sobre datos del usuario. No se ejecuta en players. La revisión de Back Android físico, orientaciones y ciclo de vida sigue siendo independiente.
 
-`PermanentShopMobileCompositionTests` protege los contenedores, contador, ausencia de infraestructura UI adicional y referencias de navegación; `MobileBackgroundCoverTests` comprueba cobertura proporcional, repetición/redimensionado y preservación de autoría desktop.
+`PermanentShopMobileCompositionTests` protege los contenedores, contador, ausencia de infraestructura UI adicional, referencias de navegación y feedback de compra oculto por defecto. PlayMode comprueba además que el TMP visible refleja `EQUIPADA` y `SIN CAMARONES`; el exporter valida los estados largos dentro del área segura. `MobileBackgroundCoverTests` comprueba cobertura proporcional, repetición/redimensionado y preservación de autoría desktop.
 
 ## Servidor de feria
 

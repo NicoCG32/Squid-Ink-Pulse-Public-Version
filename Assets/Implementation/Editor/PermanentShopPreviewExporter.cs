@@ -148,6 +148,19 @@ public static class PermanentShopPreviewExporter
                 }
                 frame.selectionsChecked++;
             }
+            if (texts.Length==4)
+            {
+                foreach (string state in new[] { "SIN CAMARONES","BLOQUEADO","EQUIPADA","MAX" })
+                {
+                    texts[3].text=state; texts[3].ForceMeshUpdate();
+                    if (texts[3].isTextOverflowing || !Contains(frame.safeArea,Bounds(texts[3].rectTransform,camera)))
+                        frame.failures.Add("Mobile feedback outside safe area or overflowing: "+state);
+                }
+                texts[3].text="SIN CAMARONES"; texts[3].ForceMeshUpdate();
+            }
+            int finalPageStart=((visibleSkins.Length-1)/4)*4;
+            for (int i=0;i<4;i++) presenter.PresentSkinSlot(skinVisuals[i],
+                finalPageStart+i<visibleSkins.Length ? visibleSkins[finalPageStart+i] : null,false,false);
             camera.Render(); RenderTexture.active=texture;
             pixels=new Texture2D(frame.width,frame.height,TextureFormat.RGB24,false);
             pixels.ReadPixels(new Rect(0,0,frame.width,frame.height),0,0); pixels.Apply();

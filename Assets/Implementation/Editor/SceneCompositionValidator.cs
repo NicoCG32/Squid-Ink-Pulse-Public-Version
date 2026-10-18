@@ -532,6 +532,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         RequireObjectReference(shopManager, "selectedItemNameText", "ShopMenu.selectedItemNameText", failures);
         RequireObjectReference(shopManager, "selectedItemDescriptionText", "ShopMenu.selectedItemDescriptionText", failures);
         RequireObjectReference(shopManager, "selectedItemPriceText", "ShopMenu.selectedItemPriceText", failures);
+        RequireObjectReference(shopManager, "selectedItemStateText", "ShopMenu.selectedItemStateText", failures);
+        RequireObjectReference(shopManager, "mobilePurchaseFeedbackRoot", "ShopMenu.mobilePurchaseFeedbackRoot", failures);
         RequireObjectReference(shopManager, "defaultShopVisualState", "ShopMenu.defaultShopVisualState", failures);
         RequireObjectReference(shopManager, "happyShopVisualState", "ShopMenu.happyShopVisualState", failures);
         RequireObjectReference(shopManager, "upgradeLevelIndicatorRoot", "ShopMenu.upgradeLevelIndicatorRoot", failures);
