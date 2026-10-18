@@ -44,6 +44,7 @@ namespace SquidInkPulse.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.4f);
             OptionsMenuManager options = Field<OptionsMenuManager>(menu, "optionsMenuPanel");
             Assert.That(Field<bool>(options, "isOpen"), Is.True);
+            yield return ValidateMobileOptions(menu,options);
             yield return Tap(2, Field<Button>(options, "backButton"));
             yield return new WaitForSecondsRealtime(0.4f);
             Assert.That(Field<bool>(options, "isOpen"), Is.False);
@@ -87,6 +88,54 @@ namespace SquidInkPulse.Tests.PlayMode
                 Assert.That(visuals.PressedState.activeSelf, Is.True, "A touch down must show feedback without hover.");
             EndTouch(id, position, screen: screen);
             yield return null;
+        }
+
+        private IEnumerator ValidateMobileOptions(MainMenu menu,OptionsMenuManager options)
+        {
+            typeof(MainMenu).GetMethod("ApplyCanvasScaling",BindingFlags.Instance|BindingFlags.NonPublic)
+                .Invoke(menu,new object[] { new Vector2(Screen.width,Screen.height),true });
+            typeof(OptionsMenuManager).GetMethod("ApplyPlatformPresentation",BindingFlags.Instance|BindingFlags.NonPublic)
+                .Invoke(options,new object[] { true });
+            yield return null;
+            // Simulate the mobile LateUpdate after CanvasScaler processes the viewport.
+            typeof(OptionsMenuManager).GetMethod("ApplyPlatformPresentation",BindingFlags.Instance|BindingFlags.NonPublic)
+                .Invoke(options,new object[] { true });
+            foreach (SafeAreaAdapter adapter in options.GetComponentsInChildren<SafeAreaAdapter>(true)) adapter.Refresh();
+            Canvas.ForceUpdateCanvases();
+            foreach (MobileReferenceContentFitter fitter in options.GetComponentsInChildren<MobileReferenceContentFitter>(true))
+                fitter.Apply((fitter.transform.parent as RectTransform).rect.size,true);
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForSecondsRealtime(0.1f);
+            GameObject background = Field<GameObject>(options,"background");
+            var hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position=new Vector2(2f,2f) },hits);
+            Assert.That(hits.First().gameObject,Is.SameAs(background),"The full-screen dimmer must block the underlying menu.");
+            Slider volume = Field<Slider>(options,"volumeSlider");
+            float originalValue = volume.value;
+            // Exercise uGUI touch routing without writing the Editor user's preferences.
+            volume.onValueChanged.RemoveListener(options.SetVolume);
+            try
+            {
+                volume.SetValueWithoutNotify(0.25f);
+                RectTransform rect = volume.transform as RectTransform;
+                Canvas canvas = volume.GetComponentInParent<Canvas>().rootCanvas;
+                Camera camera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+                Vector2 position = RectTransformUtility.WorldToScreenPoint(camera,
+                    rect.TransformPoint(new Vector2(rect.rect.xMin+rect.rect.width*0.75f,rect.rect.center.y)));
+                hits.Clear();
+                EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position=position },hits);
+                Assert.That(hits.First().gameObject.GetComponentInParent<Slider>(),Is.SameAs(volume));
+                BeginTouch(100,position,screen:screen);
+                yield return null;
+                EndTouch(100,position,screen:screen);
+                yield return null;
+                Assert.That(volume.value,Is.GreaterThan(0.6f),"A touch must adjust the slider after safe-area layout.");
+            }
+            finally
+            {
+                volume.SetValueWithoutNotify(originalValue);
+                volume.onValueChanged.AddListener(options.SetVolume);
+            }
         }
 
         private static Transform Find(string name) => SceneManager.GetActiveScene().GetRootGameObjects()

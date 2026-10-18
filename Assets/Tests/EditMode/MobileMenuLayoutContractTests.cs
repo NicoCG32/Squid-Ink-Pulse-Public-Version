@@ -61,7 +61,8 @@ namespace SquidInkPulse.Tests.EditMode
                 }
                 Assert.That(navigation.GetSiblingIndex(), Is.LessThan(Find(scene, "Character").GetSiblingIndex()));
                 Assert.That(brand.GetSiblingIndex(), Is.GreaterThan(Find(scene, "Character").GetSiblingIndex()));
-                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true)).Count(), Is.EqualTo(4));
+                Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true))
+                    .Count(adapter => adapter.GetComponentInParent<OptionsMenuManager>(true) == null), Is.EqualTo(4));
             });
         }
 
@@ -180,6 +181,23 @@ namespace SquidInkPulse.Tests.EditMode
                 }
                 Button next = serialized.FindProperty("tutorialNextButton").objectReferenceValue as Button;
                 Assert.That(next.transform.parent, Is.SameAs(content));
+            });
+        }
+
+        [Test]
+        public void MainMenu_MobileInstructionsDescribeTouchAndDesktopCopyIsPreserved()
+        {
+            WithScene(MainMenuScenePath,scene =>
+            {
+                MainMenu menu = scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<MainMenu>(true)).Single();
+                TMPro.TMP_Text[] descriptions = Find(scene,"ComicsTutorial").GetComponentsInChildren<TMPro.TMP_Text>(true);
+                string[] authored = descriptions.Select(text=>text.text).ToArray();
+                MethodInfo apply = typeof(MainMenu).GetMethod("ApplyPlatformPresentation",BindingFlags.Instance|BindingFlags.NonPublic);
+                apply.Invoke(menu,new object[] { true });
+                Assert.That(descriptions.Count(text=>text.text.Contains("INK-PULSO")),Is.EqualTo(2));
+                Assert.That(descriptions.Any(text=>text.text.StartsWith("Arrastra")),Is.True);
+                apply.Invoke(menu,new object[] { false });
+                Assert.That(descriptions.Select(text=>text.text).ToArray(),Is.EqualTo(authored));
             });
         }
 

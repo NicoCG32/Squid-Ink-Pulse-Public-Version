@@ -4068,18 +4068,27 @@ MonoBehaviour:
     - {fileID: 1765673744}
     - {fileID: 304902377}
     - {fileID: 647260601}
+    mobileDescriptionOverrides:
+    - ""
+    - "Cuando la barra esté llena, toca INK-PULSO.\nÚsalo en el momento exacto."
+    - ""
   - root: {fileID: 974645940}
     vignette: {fileID: 1269473979}
     descriptionTexts:
     - {fileID: 1676136047}
     - {fileID: 946368574}
     - {fileID: 885004677}
+    mobileDescriptionOverrides: []
   - root: {fileID: 1741308564}
     vignette: {fileID: 947674721}
     descriptionTexts:
     - {fileID: 351925667}
     - {fileID: 715486785}
     - {fileID: 1454320482}
+    mobileDescriptionOverrides:
+    - ""
+    - "Ante un ataque inevitable,\ntoca INK-PULSO para escapar."
+    - "Arrastra en pantalla para moverte.\nCada segundo cuenta bajo el agua.\nEvita los remolinos."
 --- !u!1 &1254638941
 GameObject:
   m_ObjectHideFlags: 0

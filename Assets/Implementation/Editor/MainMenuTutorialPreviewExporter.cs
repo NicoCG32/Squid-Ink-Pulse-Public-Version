@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using TMPro;
 using UnityEditor;
@@ -131,6 +132,8 @@ public static class MainMenuTutorialPreviewExporter
             throw new InvalidOperationException("The tutorial must own its root Canvas.");
 
         // Use the existing presenter and page references; no duplicate UI or text.
+        typeof(MainMenu).GetMethod("ApplyPlatformPresentation", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(menu, new object[] { true });
         menu.AbrirTutorial();
         for (int i = 0; i < pageIndex; i++)
             menu.AvanzarTutorial();

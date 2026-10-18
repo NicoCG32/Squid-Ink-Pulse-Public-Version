@@ -98,6 +98,14 @@ La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de 
 
 `MobileReferenceContentFitterTests` comprueba que la composición completa quepa con márgenes simétricos, conserve proporción al redimensionar y no acumule transformaciones. Desktop y tamaños inválidos preservan la geometría previa. El contrato de escena comprueba la jerarquía segura, las referencias de páginas/Next y la ausencia de Canvas adicional.
 
+## Matriz de opciones
+
+`OptionsMenuPreviewExporter.Export`, también disponible en `Tools > Squid Ink Pulse > Mobile > Export Options Preview Matrix`, requiere gráficos y genera 24 PNG, galería y JSON bajo `TestResults/OptionsMenuPreview/`. Carga el prefab efectivo en MainMenu, ShopMenu, Epipelágica y Abisopelágica. Cubre 16:9, 20:9 con cutouts laterales y tablet 16:10; comprueba cuatro rects de controles/placas por captura, los extremos y centro del handle de volumen y cobertura completa del fondo. Descarta cambios sin guardar escenas, assets ni preferencias. No certifica animación, routing o ergonomía en hardware.
+
+Los tests de opciones inspeccionan prefab y cuatro instancias de escena, incluyendo el Canvas anidado de MainMenu y su ajuste al cambiar el viewport. El validador prebuild comprueba jerarquía, referencias, dimmer y ausencia de Canvas/raycaster extra. El fixture PlayMode del menú añade raycast de fondo en una esquina y ajuste del slider con touchscreen virtual; durante esa comprobación desconecta/restaura sólo el listener de persistencia para no escribir las preferencias del usuario del Editor.
+
+`MobileTutorialCopyTests` protege overrides parciales, reaplicación y retorno a la copia desktop. El contrato de la escena exige instrucciones de arrastre/INK-PULSO y la matriz del tutorial renderiza las variantes móviles reales, conservando las ilustraciones.
+
 ## Servidor de feria
 
 El servidor opcional mantiene su smoke test independiente:

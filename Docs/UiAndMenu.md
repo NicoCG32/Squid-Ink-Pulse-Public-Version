@@ -89,9 +89,11 @@ La escena protege el contenido con tres contenedores full-stretch y `SafeAreaAda
 
 `MainMenuPlatformPolicy` reserva el botón Salir y su acción para desktop; Android lo oculta y no ejecuta quit desde ese callback. Los botones mantienen los eventos y estados visuales existentes: un Down touch muestra pressed y el click no requiere hover. El Back contextual de Android sigue siendo un corte posterior del port.
 
-El tutorial gráfico también consume `MobileCanvasScalePolicy`: su Canvas raíz y los tres de página adoptan ancho en 16:10 y altura en teléfono ancho, sin modificar los scalers de autoría ni Windows. `TutorialSafeArea/TutorialContent` contiene las tres páginas y Next, con las referencias y orden originales. `SafeAreaAdapter` delimita el espacio disponible y `MobileReferenceContentFitter` centra/escala uniformemente la composición 1920×1080 dentro de él, incluyendo muescas que estrechan 16:9. El dimmer permanece fuera, cubriendo el frame. El ajuste no genera UI, altera textos ni reactiva el tutorial jugable aislado.
+El tutorial gráfico también consume `MobileCanvasScalePolicy`: su Canvas raíz y los tres de página adoptan ancho en 16:10 y altura en teléfono ancho, sin modificar los scalers de autoría ni Windows. `TutorialSafeArea/TutorialContent` contiene las tres páginas y Next, con las referencias y orden originales. `SafeAreaAdapter` delimita el espacio disponible y `MobileReferenceContentFitter` centra/escala uniformemente la composición 1920×1080 dentro de él, incluyendo muescas que estrechan 16:9. El dimmer permanece fuera, cubriendo el frame. El ajuste geométrico no genera UI ni reactiva el tutorial jugable aislado.
 
 El `SafeAreaAdapter` de HUD aplica la misma política al Canvas propietario en móvil. Los scalers de autoría siguen en match por altura y no se reescriben prefabs/escenas; en runtime 16:10 el HUD cambia a ancho para contener gadgets y score dentro del área segura, y vuelve a altura en formatos de teléfono. Las otras capas y Windows conservan su configuración. La matriz visual simula esta selección, sin atribuir a sus PNG una run ni el estado dinámico de puntuación.
+
+Las páginas de Cómo Jugar pueden definir `mobileDescriptionOverrides` junto a sus descripciones: una entrada vacía conserva el texto original. MainMenu aplica esas variantes en móvil y mantiene la copia de autoría en desktop. Las instrucciones móviles indican arrastrar en pantalla y tocar `INK-PULSO`, usando el nombre visible del control. Se conservan las ilustraciones originales; la selección de texto no cambia la geometría ni crea otras páginas.
 
 ## OptionsMenu global
 
@@ -126,6 +128,10 @@ Reglas:
 - Las escrituras conocidas de volumen, URL de feria y opciones de escritorio se confirman inmediatamente mediante `PlayerPreferencesCheckpoint`. Cualquier preferencia que permanezca pendiente se vacía una sola vez cuando el player móvil entra en pausa o pierde el foco.
 - El checkpoint de `PlayerPrefs` no serializa estado transitorio de una run ni vuelve a guardar la base JSON: sus repositorios conservan su política de escritura inmediata y atómica.
 - La política `OptionsResolutionPolicy.SupportsResolutionSelection` también gobierna la presentación: en Android/iOS se desactivan los GameObjects completos de resolución y fullscreen, incluidos sus gráficos y etiquetas; volumen y regreso permanecen. Se aplica durante la normalización inicial y al abrir el panel. En Windows se conserva la UI desktop y las mismas claves de preferencias. Ocultar controles no modifica su valor, posición ni referencias serializadas.
+
+En móvil, `OptionsSafeArea/OptionsContent` protege resolución/fullscreen, volumen y regreso dentro del prefab compartido. Reutiliza `SafeAreaAdapter` y `MobileReferenceContentFitter`, con composición 1920×1080; los controles no aplicables siguen ocultos. El dimmer queda como primer hijo de OptionsPanel, fuera del contenido seguro: cubre todo el viewport y bloquea raycasts al menú inferior, incluidas muescas/márgenes.
+
+MainMenu aloja este Canvas detrás de un Transform normal. Al abrir opciones en móvil y mientras permanece abierto, el manager ajusta ese Canvas anidado al tamaño y centro del Canvas raíz; sólo escribe si cambia. Los Canvas independientes conservan el tamaño gestionado por Unity. La presentación desktop mantiene geometría, controles y preferencias de autoría. Las cuatro escenas consumen el mismo prefab; no hay Canvas, raycaster ni EventSystem adicional.
 
 ## Pausa
 

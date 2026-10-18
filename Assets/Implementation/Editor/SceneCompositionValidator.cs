@@ -17,6 +17,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
     private const string EpipelagicScenePath = "Assets/Scenes/Game/ZonaEpipelagica.unity";
     private const string AbyssopelagicScenePath = "Assets/Scenes/Game/ZonaAbisopelagica.unity";
     private const string ShopMenuScenePath = "Assets/Scenes/ShopMenu/ShopMenu.unity";
+    private const string OptionsMenuPrefabPath = "Assets/Content/Prefabs/UI/Menus/OptionsMenu.prefab";
     private const string TouchControlsPrefabPath =
         "Assets/Content/Prefabs/UI/Touch/TouchControls.prefab";
     private const string EpipelagicGameRootPrefabPath =
@@ -43,6 +44,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
     private static readonly string[] FixedCanonicalPrefabPaths =
     {
         TouchControlsPrefabPath,
+        OptionsMenuPrefabPath,
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
@@ -121,6 +123,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             }
 
             ValidateMissingScripts(prefab, prefabPath, failures);
+            if (prefabPath == OptionsMenuPrefabPath)
+                ValidateOptionsMenu(prefab.GetComponentInChildren<OptionsMenuManager>(true),failures);
 
             if (productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
             {
@@ -145,6 +149,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             ValidateMissingScripts(scene, failures);
+            OptionsMenuManager options = RequireSingle<OptionsMenuManager>(scene,"OptionsMenuManager",failures);
+            if (options != null) ValidateOptionsMenu(options,failures);
 
             if (scenePath == EpipelagicScenePath)
             {
@@ -412,6 +418,37 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             RequireObjectReference(uiRoot, propertyName, $"{zoneName}/GameUIRoot.{propertyName}", failures);
         }
+    }
+
+    private static void ValidateOptionsMenu(OptionsMenuManager manager,List<string> failures)
+    {
+        if (manager == null) { failures.Add("OptionsMenu: falta manager."); return; }
+        string[] controls = { "volumeSlider","resolutionDropdown","fullscreenToggle","backButton" };
+        foreach (string field in controls.Concat(new[] { "menuRoot","background","canvasGroup" }))
+            RequireObjectReference(manager,field,$"OptionsMenu.{field}",failures);
+        var serialized = new SerializedObject(manager);
+        GameObject panel = serialized.FindProperty("menuRoot").objectReferenceValue as GameObject;
+        GameObject background = serialized.FindProperty("background").objectReferenceValue as GameObject;
+        RectTransform safe = panel != null ? panel.transform.Find("OptionsSafeArea") as RectTransform : null;
+        Transform content = safe != null ? safe.Find("OptionsContent") : null;
+        if (safe == null || safe.GetComponent<SafeAreaAdapter>() == null
+            || safe.GetComponent<SafeAreaAdapter>().Target != safe
+            || content == null || content.GetComponent<MobileReferenceContentFitter>() == null)
+        { failures.Add("OptionsMenu: falta contenedor seguro con ajuste de referencia."); return; }
+        Image backdrop = background != null ? background.GetComponent<Image>() : null;
+        if (background == null || background.transform.parent != panel.transform
+            || background.transform.GetSiblingIndex() != 0 || backdrop == null || !backdrop.raycastTarget)
+            failures.Add("OptionsMenu: el fondo debe bloquear raycasts fuera del contenido seguro.");
+        foreach (string field in controls)
+        {
+            Component control = serialized.FindProperty(field).objectReferenceValue as Component;
+            if (control != null && !control.transform.IsChildOf(content))
+                failures.Add($"OptionsMenu.{field}: el control omite OptionsContent.");
+        }
+        Canvas owner = manager.GetComponentInParent<Canvas>(true);
+        if (owner == null || owner.GetComponentsInChildren<Canvas>(true).Length != 1
+            || owner.GetComponentsInChildren<GraphicRaycaster>(true).Length != 1)
+            failures.Add("OptionsMenu: conservar un Canvas y GraphicRaycaster propios.");
     }
 
     private static void ValidateMainMenu(MainMenu mainMenu, List<string> failures)

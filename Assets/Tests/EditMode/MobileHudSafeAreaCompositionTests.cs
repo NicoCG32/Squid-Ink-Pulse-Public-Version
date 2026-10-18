@@ -44,7 +44,7 @@ namespace SquidInkPulse.Tests.EditMode
 
                 Transform safeAreaRoot = uiRoot.HudRoot.GetChild(0);
                 Assert.That(safeAreaRoot.name, Is.EqualTo("SafeAreaRoot"));
-                Assert.That(root.GetComponentsInChildren<SafeAreaAdapter>(true), Has.Length.EqualTo(1));
+                Assert.That(uiRoot.HudRoot.GetComponentsInChildren<SafeAreaAdapter>(true), Has.Length.EqualTo(1));
                 Assert.That(safeAreaRoot.GetComponent<SafeAreaAdapter>(), Is.Not.Null);
                 RectTransform rect = safeAreaRoot as RectTransform;
                 Assert.That(rect, Is.Not.Null);
