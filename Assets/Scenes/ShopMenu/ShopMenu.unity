@@ -491,7 +491,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 37f308cb000f7c54384090a60d25cad3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::OptionsMenuManager
 --- !u!1 &36461694
 GameObject:
@@ -840,7 +840,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fde74658857148a88db4c84be45bb2db, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: SquidInkPulse.Runtime::SafeAreaAdapter
   target: {fileID: 152390254}
 --- !u!1 &170520161
@@ -4447,7 +4447,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a89afc1e8c333746b8417c8eae72eec, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: SquidInkPulse.Runtime::MobileBackgroundCover
 --- !u!1 &1038402583
 GameObject:
@@ -5573,7 +5573,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ffd5caca0af9724d93a728ef65e1676, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: SquidInkPulse.Runtime::ShopMenuCancelNavigation
   menu: {fileID: 1248894015}
   options: {fileID: 26203961}
@@ -8877,7 +8877,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8da72aebc7a7443388b72c57b9c70d19, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: SquidInkPulse.Runtime::MobileReferenceContentFitter
   referenceResolution: {x: 1920, y: 1080}
 --- !u!1 &1933079669
