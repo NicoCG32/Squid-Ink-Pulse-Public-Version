@@ -409,6 +409,15 @@ public class OptionsMenuManager : MonoBehaviour
             resolutionDropdown.gameObject.SetActive(showDisplaySettings);
         if (fullscreenToggle != null)
             fullscreenToggle.gameObject.SetActive(showDisplaySettings);
+
+        if (isMobilePlatform && background != null && background.transform is RectTransform backdrop)
+        {
+            // The dimmer blocks the whole viewport; only controls use safe area.
+            backdrop.anchorMin = Vector2.zero;
+            backdrop.anchorMax = Vector2.one;
+            backdrop.offsetMin = Vector2.zero;
+            backdrop.offsetMax = Vector2.zero;
+        }
     }
 
     private static void NormalizeCanvasLayer(Canvas canvas)

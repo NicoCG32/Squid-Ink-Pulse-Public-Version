@@ -24,6 +24,8 @@ namespace SquidInkPulse.Tests.EditMode
                 Toggle fullscreen = serialized.FindProperty("fullscreenToggle").objectReferenceValue as Toggle;
                 Slider volume = serialized.FindProperty("volumeSlider").objectReferenceValue as Slider;
                 Button back = serialized.FindProperty("backButton").objectReferenceValue as Button;
+                RectTransform backdrop = (serialized.FindProperty("background").objectReferenceValue as GameObject).transform as RectTransform;
+                Vector2 backgroundAnchor = backdrop.anchorMin, backgroundSize = backdrop.sizeDelta;
                 Assert.That(resolution, Is.Not.Null);
                 Assert.That(fullscreen, Is.Not.Null);
                 Assert.That(volume, Is.Not.Null);
@@ -34,6 +36,18 @@ namespace SquidInkPulse.Tests.EditMode
                 bool originalFullscreen = fullscreen.isOn;
 
                 Apply(manager, isMobilePlatform);
+                if (isMobilePlatform)
+                {
+                    Assert.That(backdrop.anchorMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(backdrop.anchorMax, Is.EqualTo(Vector2.one));
+                    Assert.That(backdrop.offsetMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(backdrop.offsetMax, Is.EqualTo(Vector2.zero));
+                }
+                else
+                {
+                    Assert.That(backdrop.anchorMin, Is.EqualTo(backgroundAnchor));
+                    Assert.That(backdrop.sizeDelta, Is.EqualTo(backgroundSize));
+                }
                 Assert.That(resolution.gameObject.activeSelf, Is.EqualTo(!isMobilePlatform));
                 Assert.That(fullscreen.gameObject.activeSelf, Is.EqualTo(!isMobilePlatform));
                 Assert.That(volume.gameObject.activeSelf, Is.True);
