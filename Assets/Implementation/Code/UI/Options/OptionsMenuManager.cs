@@ -39,6 +39,7 @@ public class OptionsMenuManager : MonoBehaviour
     private DisplayResolutionOption[] resolutionOptions = new DisplayResolutionOption[0];
     private Coroutine animationRoutine;
     private bool isOpen;
+    private Canvas sizingCanvas;
 
     private bool SupportsResolutionSelection =>
         OptionsResolutionPolicy.SupportsResolutionSelection(Application.isMobilePlatform);
@@ -76,6 +77,12 @@ public class OptionsMenuManager : MonoBehaviour
         isOpen = true;
         SetVisible(true);
         StartAnimation(AnimateIn());
+    }
+
+    private void LateUpdate()
+    {
+        if (isOpen && Application.isMobilePlatform)
+            NormalizeMobileCanvasBounds();
     }
 
     public void Close()
@@ -404,6 +411,8 @@ public class OptionsMenuManager : MonoBehaviour
 
     private void ApplyPlatformPresentation(bool isMobilePlatform)
     {
+        if (isMobilePlatform)
+            NormalizeMobileCanvasBounds();
         bool showDisplaySettings = OptionsResolutionPolicy.SupportsResolutionSelection(isMobilePlatform);
         if (resolutionDropdown != null)
             resolutionDropdown.gameObject.SetActive(showDisplaySettings);
@@ -418,6 +427,26 @@ public class OptionsMenuManager : MonoBehaviour
             backdrop.offsetMin = Vector2.zero;
             backdrop.offsetMax = Vector2.zero;
         }
+    }
+
+    private void NormalizeMobileCanvasBounds()
+    {
+        if (sizingCanvas == null)
+            sizingCanvas = menuRoot != null ? menuRoot.GetComponentInParent<Canvas>(true)
+                : GetComponentInChildren<Canvas>(true);
+        if (sizingCanvas == null || sizingCanvas.isRootCanvas)
+            return;
+        RectTransform viewport = sizingCanvas.rootCanvas.transform as RectTransform;
+        RectTransform canvasRect = sizingCanvas.transform as RectTransform;
+        if (viewport == null || canvasRect == null)
+            return;
+        // A nested Canvas behind an ordinary Transform has no RectTransform
+        // parent to stretch against. Match its actual root viewport explicitly.
+        Vector2 pivot = new(0.5f,0.5f);
+        Vector3 center = viewport.TransformPoint(viewport.rect.center);
+        if (canvasRect.pivot != pivot) canvasRect.pivot = pivot;
+        if (canvasRect.sizeDelta != viewport.rect.size) canvasRect.sizeDelta = viewport.rect.size;
+        if (canvasRect.position != center) canvasRect.position = center;
     }
 
     private static void NormalizeCanvasLayer(Canvas canvas)
