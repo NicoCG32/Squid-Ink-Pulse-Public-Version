@@ -306,6 +306,9 @@ public class MainMenu : MonoBehaviour
         if (exitButtonRoot != null)
             exitButtonRoot.SetActive(MainMenuPlatformPolicy.CanExitFromMenu(isMobilePlatform));
 
+        foreach (TutorialComicPage page in tutorialComicPages)
+            page?.ApplyPlatformCopy(isMobilePlatform);
+
         if (!isMobilePlatform)
             return;
 
@@ -843,8 +846,29 @@ public class MainMenu : MonoBehaviour
         [SerializeField] private GameObject root;
         [SerializeField] private Image vignette;
         [SerializeField] private TMP_Text[] descriptionTexts = Array.Empty<TMP_Text>();
+        [SerializeField, TextArea] private string[] mobileDescriptionOverrides = Array.Empty<string>();
+        private string[] authoredDescriptionTexts;
 
         public GameObject Root => root;
+
+        public void ApplyPlatformCopy(bool isMobilePlatform)
+        {
+            if (authoredDescriptionTexts == null)
+            {
+                authoredDescriptionTexts = new string[descriptionTexts.Length];
+                for (int i = 0; i < descriptionTexts.Length; i++)
+                    if (descriptionTexts[i] != null) authoredDescriptionTexts[i] = descriptionTexts[i].text;
+            }
+            for (int i = 0; i < descriptionTexts.Length; i++)
+            {
+                TMP_Text text = descriptionTexts[i];
+                if (text == null) continue;
+                string mobileCopy = i < mobileDescriptionOverrides.Length ? mobileDescriptionOverrides[i] : null;
+                string copy = isMobilePlatform && !string.IsNullOrWhiteSpace(mobileCopy)
+                    ? mobileCopy : authoredDescriptionTexts[i];
+                if (text.text != copy) text.SetText(copy);
+            }
+        }
 
         public void TouchInspectorReferences()
         {
