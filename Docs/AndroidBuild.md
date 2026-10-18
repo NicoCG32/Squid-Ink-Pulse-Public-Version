@@ -166,6 +166,19 @@ Los textos móviles de Cómo Jugar indican tocar `INK-PULSO` y arrastrar en pant
 
 La matriz automática incluye Abisopelágica; este pase físico no la visitó ni comprobó compras, Back de Android, orientación opuesta, una run completa o rendimiento sostenido. El APK instalado es de revisión local y no actualiza la beta publicada.
 
+### Tienda permanente segura — 18 de octubre de 2026
+
+Fuente `adc08c6` en `mobile/06-main-menu-shop`, más el `TimeManager.asset` entrante preservado fuera de commits. `ShopSafeArea/ShopContent` protege controles, catálogo, detalle y contador con encaje uniforme 1920×1080. El fondo cubre el viewport móvil mediante overscan proporcional; los nombres de producto usan auto size móvil. Se conservan catálogo, economía, eventos y geometría de escritorio.
+
+- Suite final: 312/312 EditMode y 7/7 PlayMode, sin omitidas.
+- Matriz final: ocho formatos, 104 hitboxes, 96 selecciones y 6.632 glifos, 0 fallos de cobertura, safe area u overflow. Incluye 19,5:9, 20:9, cutouts a ambos lados y tablet 16:10.
+- El recorrido PlayMode usa touch/UI real y un perfil en memoria con guardado transitorio de Editor: compra de mejora y skin, equipar/quitar sin doble descuento, paginación, rechazo por falta de saldo y exclusión de una entrada futura sin sprite. No modifica los fondos ni compras del perfil del usuario.
+- Cancel móvil usa la acción del módulo UI de ShopMenu: cierra opciones primero y vuelve al menú desde tienda. Este cambio no certifica el Back global de otras escenas ni el ciclo de vida completo.
+- La primera revisión física mostró que el resultado `SIN CAMARONES` no tenía un TMP conectado. Se añadió `EstadoCompraMovil` dentro del contenido seguro, oculto en desktop, y se verificó el texto visible en PlayMode y la tablet.
+- APK final Development: `Succeeded`, 81,28 s, 514.351.891 bytes, 0 errores/2 advertencias; composición validada. SHA-256 `BDF9F8028EC059D2B20902ABB649C0F9674689A96D04A636A6D8B3E5493A7E5C`. Instalación actualizada `-r` con `Success` en Redmi Pad Pro.
+- Pase físico: fondo sin bandas, nombre largo completo, selección de mejora/skins, navegación entre ambas páginas y precios, rechazo visible por falta de saldo y contador conservado en 7. Back de Android cierra opciones y después regresa de tienda a MainMenu; log por PID sin coincidencias críticas. Compras exitosas y equipamiento se verificaron en PlayMode con perfil transitorio. La tablet quedó en MainMenu.
+- Regresión Windows de la misma fuente: `BuildOptions.None`, 22,42 s, 0 errores/2 advertencias y composición aprobada; smoke oculto de 15 s vivo/responsivo y sin excepciones observadas. Las preferencias guardadas provocaron fallback de fullscreen; no certifica una run interactiva ni una medida efectiva de ventana. Estos artefactos de revisión no actualizan la beta publicada.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:
