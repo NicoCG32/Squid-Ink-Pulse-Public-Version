@@ -41,6 +41,8 @@ public class OptionsMenuManager : MonoBehaviour
     private bool isOpen;
     private Canvas sizingCanvas;
 
+    public bool IsOpen => isOpen;
+
     private bool SupportsResolutionSelection =>
         OptionsResolutionPolicy.SupportsResolutionSelection(Application.isMobilePlatform);
 
