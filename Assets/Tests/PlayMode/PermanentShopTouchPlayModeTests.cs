@@ -55,6 +55,36 @@ namespace SquidInkPulse.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Desktop_KeepsDisplayOptionsAndReturnsWithTheAuthoredTouchButton()
+        {
+            yield return SceneManager.LoadSceneAsync("Assets/Scenes/ShopMenu/ShopMenu.unity",LoadSceneMode.Single);
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.1f);
+            OutOfGameShopManager shop=Object.FindFirstObjectByType<OutOfGameShopManager>();
+            Assert.That(Field<GameObject>(shop,"mobilePurchaseFeedbackRoot").activeSelf,Is.False);
+            Assert.That(Field<TMP_Text>(shop,"selectedItemNameText").enableAutoSizing,Is.False);
+            yield return Tap(Find("OpcionesBoton"));
+            yield return new WaitForSecondsRealtime(0.4f);
+            OptionsMenuManager options=Object.FindFirstObjectByType<OptionsMenuManager>(FindObjectsInactive.Include);
+            Assert.That(options.IsOpen,Is.True);
+            Assert.That(Field<TMP_Dropdown>(options,"resolutionDropdown").gameObject.activeInHierarchy,Is.True);
+            Assert.That(Field<Toggle>(options,"fullscreenToggle").gameObject.activeInHierarchy,Is.True);
+            yield return Cancel();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.That(options.IsOpen,Is.True,"Mobile Cancel must not intercept the desktop UI action.");
+            Assert.That(SceneManager.GetActiveScene().name,Is.EqualTo("ShopMenu"));
+            yield return Tap(Field<Button>(options,"backButton"));
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.That(options.IsOpen,Is.False);
+            Button back=shop.GetComponentsInChildren<Transform>(true).Single(t=>t.name=="VolverBoton")
+                .GetComponentInChildren<Button>(true);
+            yield return Tap(back);
+            double deadline=Time.realtimeSinceStartupAsDouble+10d;
+            while (SceneManager.GetActiveScene().name!="MainMenu" && Time.realtimeSinceStartupAsDouble<deadline) yield return null;
+            Assert.That(SceneManager.GetActiveScene().name,Is.EqualTo("MainMenu"));
+        }
+
+        [UnityTest]
         public IEnumerator Touch_BuysUpgradePagesSkinsEquipsAndReturnsWithContextualCancel()
         {
             yield return SceneManager.LoadSceneAsync("Assets/Scenes/ShopMenu/ShopMenu.unity",LoadSceneMode.Single);

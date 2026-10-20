@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con siete pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda desde MainMenu sin mouse.
+La suite automatizada combina pruebas EditMode deterministas con ocho pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica en la escena real las opciones de display y la presentación desktop de la tienda.
 
 Las pruebas viven en:
 
@@ -51,7 +51,7 @@ Ejecutar PlayMode en un segundo proceso, después de EditMode:
 
 Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
 
-`MainMenuTouchNavigationPlayModeTests` carga MainMenu y usa touches reales del módulo UI para abrir/cerrar opciones, recorrer las tres páginas de Cómo Jugar y cargar ShopMenu. Comprueba raycast y estado pressed durante Down, sin mouse. Espera una actualización de UI tras mostrar el tutorial antes de comprobar su botón recién activado; no cambia la apariencia ni despacha OnClick directamente.
+`MainMenuTouchNavigationPlayModeTests` carga MainMenu y usa touches reales del módulo UI para abrir/cerrar opciones, recorrer las tres páginas de Cómo Jugar, cargar ShopMenu y volver mediante su botón. Después toca Jugar y el botón explícito del cómic inicial hasta entrar a Epipelágica con HUD activo y `Time.timeScale = 1`; comprueba que el cómic mantiene el tiempo pausado antes de continuar. Comprueba raycast y estado pressed durante Down, sin mouse. Espera la actualización de UI tras activar el tutorial o una escena antes de comprobar los botones recién creados; no cambia la apariencia ni despacha OnClick directamente.
 
 El fixture de routing touch alinea su reloj simulado con `Time.realtimeSinceStartupAsDouble` al comenzar. Unity descarta eventos fechados durante la transición del Editor a Play Mode; reiniciar el reloj a cero entre fixtures podía colocar touches válidos dentro de ese intervalo y hacer fallar la suite conjunta aunque la prueba aislada pasara. Se conservan los asserts de routing y los tiempos de un frame, sin modificar políticas runtime de foco ni silenciar errores.
 
@@ -112,7 +112,21 @@ Los tests de opciones inspeccionan prefab y cuatro instancias de escena, incluye
 
 `PermanentShopTouchPlayModeTests` carga ShopMenu y usa touchscreen virtual, raycast real y feedback pressed sin mouse. Recorre compra de mejora/skin, equipar/quitar sin descuento adicional, paginación que limpia selección, falta de saldo y exclusión de una entrada futura sin sprite. La acción Cancel del módulo UI cierra opciones antes de regresar al menú. El fixture inyecta perfil/registros/catálogo en memoria, exige las escrituras transitorias de Editor y restaura el estado al terminar; no acredita fondos ni compra sobre datos del usuario. No se ejecuta en players. La revisión de Back Android físico, orientaciones y ciclo de vida sigue siendo independiente.
 
+El caso desktop del mismo fixture conserva la presentación de autoría: nombre sin auto size móvil y aviso de compra móvil oculto. Abre opciones desde ShopMenu, exige resolución/fullscreen visibles y comprueba que Escape no active la navegación Cancel exclusiva de móvil. Cierra opciones y regresa a MainMenu mediante los botones existentes; no cambia resolución, fullscreen ni preferencias. Complementa las pruebas de políticas y la compilación/smoke Windows, sin certificar interacción física de teclado/mouse.
+
 `PermanentShopMobileCompositionTests` protege los contenedores, contador, ausencia de infraestructura UI adicional, referencias de navegación y feedback de compra oculto por defecto. PlayMode comprueba además que el TMP visible refleja `EQUIPADA` y `SIN CAMARONES`; el exporter valida los estados largos dentro del área segura. `MobileBackgroundCoverTests` comprueba cobertura proporcional, repetición/redimensionado y preservación de autoría desktop.
+
+La cobertura de menú y tienda se reparte entre verificaciones complementarias:
+
+| Contrato | Evidencia automatizada | Complemento visual/físico |
+| --- | --- | --- |
+| Opciones por plataforma | Política, prefab y cuatro instancias; PlayMode móvil/desktop | Matriz de opciones y volumen en tablet |
+| Tutorial y entrada a run | Touch sin mouse, tres páginas, regreso, Jugar y cómic inicial | Matrices de menú/tutorial y recorrido en tablet |
+| Compra, equipamiento y navegación | Touch, perfil transitorio, rechazo, paginación y Cancel contextual | Selección, precios, rechazo sin saldo y Back Android en tablet |
+| Safe area y referencias | Contratos de escenas/prefabs y validador prebuild | Matrices con cutouts simulados y tablet 16:10 |
+| Regresión Windows | Presentación desktop y opciones de display en escena real | Build standalone y smoke de arranque |
+
+Las matrices no sustituyen routing, los dispositivos virtuales no certifican ergonomía y el smoke de arranque no acredita una run interactiva. La evidencia de builds y tablet, con sus límites, se registra en [AndroidBuild.md](AndroidBuild.md).
 
 ## Servidor de feria
 

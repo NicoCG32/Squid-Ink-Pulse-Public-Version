@@ -179,6 +179,14 @@ Fuente `adc08c6` en `mobile/06-main-menu-shop`, más el `TimeManager.asset` entr
 - Pase físico: fondo sin bandas, nombre largo completo, selección de mejora/skins, navegación entre ambas páginas y precios, rechazo visible por falta de saldo y contador conservado en 7. Back de Android cierra opciones y después regresa de tienda a MainMenu; log por PID sin coincidencias críticas. Compras exitosas y equipamiento se verificaron en PlayMode con perfil transitorio. La tablet quedó en MainMenu.
 - Regresión Windows de la misma fuente: `BuildOptions.None`, 22,42 s, 0 errores/2 advertencias y composición aprobada; smoke oculto de 15 s vivo/responsivo y sin excepciones observadas. Las preferencias guardadas provocaron fallback de fullscreen; no certifica una run interactiva ni una medida efectiva de ventana. Estos artefactos de revisión no actualizan la beta publicada.
 
+### Comprobación integral de menú y tienda — 19 de octubre de 2026
+
+Se amplió la navegación PlayMode hasta regresar de tienda, tocar Jugar, continuar el cómic inicial y entrar a Epipelágica con HUD activo y tiempo normal. Un caso adicional comprueba en ShopMenu la presentación desktop, resolución/fullscreen visibles y ausencia de Cancel móvil al pulsar Escape. Los botones se ejercen mediante el módulo UI real, sin mouse ni llamadas directas a OnClick; no se modifican preferencias de display.
+
+La suite completa aprueba 312/312 EditMode y 8/8 PlayMode, sin omitidas, y el validador de composición confirma escenas/prefabs canónicos. Los contratos, matrices y revisión física se complementan según la [cobertura de pruebas](Testing.md). La prueba de navegación espera la primera actualización de Canvas tras cargar tienda antes de enviar un toque; activar la escena no garantiza que sus gráficos ya estén registrados para raycast.
+
+Este cierre sólo modifica tests y documentación. Código incluido, escenas, prefabs, assets y configuración de producto conservan la fuente `adc08c6` de los artefactos anteriores; `TimeManager.asset` sigue siendo la modificación local preservada con la que se construyeron. Se reutilizan el APK de hash `BDF9F8028EC059D2B20902ABB649C0F9674689A96D04A636A6D8B3E5493A7E5C` instalado en tablet y la build/smoke Windows del 18 de octubre, sin atribuirles una recompilación ni revisión física nuevas. La beta publicada sigue siendo la del 9 de octubre. Overlays de run, Back global, orientación opuesta, ciclo de vida y rendimiento mantienen sus validaciones independientes.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:

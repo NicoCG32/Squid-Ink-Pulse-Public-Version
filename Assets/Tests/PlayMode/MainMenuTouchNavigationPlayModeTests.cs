@@ -32,7 +32,7 @@ namespace SquidInkPulse.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Touch_OpensOptionsNavigatesTutorialAndLoadsShopWithoutMouse()
+        public IEnumerator Touch_TraversesMenusAndStartsRunThroughComicWithoutMouse()
         {
             yield return SceneManager.LoadSceneAsync("Assets/Scenes/MainMenu/MainMenu.unity", LoadSceneMode.Single);
             yield return null;
@@ -66,6 +66,36 @@ namespace SquidInkPulse.Tests.PlayMode
                 yield return null;
             Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("ShopMenu"));
             Assert.That(Time.timeScale, Is.EqualTo(1f));
+            // Scene activation precedes the first Canvas rebuild and UI module update.
+            yield return null;
+            yield return new WaitForSecondsRealtime(0.1f);
+
+            OutOfGameShopManager shop = Object.FindFirstObjectByType<OutOfGameShopManager>();
+            Button returnButton = shop.GetComponentsInChildren<Transform>(true)
+                .Single(item => item.name == "VolverBoton").GetComponentInChildren<Button>(true);
+            yield return Tap(8, returnButton);
+            deadline = Time.realtimeSinceStartupAsDouble + 10d;
+            while (SceneManager.GetActiveScene().name != "MainMenu" && Time.realtimeSinceStartupAsDouble < deadline)
+                yield return null;
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
+            yield return null;
+
+            yield return Tap(9, Find("JugarBoton").GetComponentInChildren<Button>(true));
+            yield return new WaitForSecondsRealtime(0.1f);
+            LoreComicPresenter lore = Object.FindFirstObjectByType<LoreComicPresenter>(FindObjectsInactive.Include);
+            Assert.That(lore, Is.Not.Null);
+            Button continueButton = Field<Button>(lore, "continueButton");
+            Assert.That(continueButton.gameObject.activeInHierarchy, Is.True, "The start comic must require its explicit touch button.");
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("MainMenu"));
+            Assert.That(Time.timeScale, Is.Zero, "The start comic holds gameplay time until acknowledged.");
+            yield return Tap(10, continueButton);
+            deadline = Time.realtimeSinceStartupAsDouble + 10d;
+            while (SceneManager.GetActiveScene().name != "ZonaEpipelagica" && Time.realtimeSinceStartupAsDouble < deadline)
+                yield return null;
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("ZonaEpipelagica"));
+            yield return null;
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            Assert.That(Object.FindFirstObjectByType<GameUIRoot>().HudRoot.gameObject.activeInHierarchy, Is.True);
         }
 
         private IEnumerator Tap(int id, Button button)
