@@ -187,6 +187,18 @@ La suite completa aprueba 312/312 EditMode y 8/8 PlayMode, sin omitidas, y el va
 
 Este cierre sólo modifica tests y documentación. Código incluido, escenas, prefabs, assets y configuración de producto conservan la fuente `adc08c6` de los artefactos anteriores; `TimeManager.asset` sigue siendo la modificación local preservada con la que se construyeron. Se reutilizan el APK de hash `BDF9F8028EC059D2B20902ABB649C0F9674689A96D04A636A6D8B3E5493A7E5C` instalado en tablet y la build/smoke Windows del 18 de octubre, sin atribuirles una recompilación ni revisión física nuevas. La beta publicada sigue siendo la del 9 de octubre. Overlays de run, Back global, orientación opuesta, ciclo de vida y rendimiento mantienen sus validaciones independientes.
 
+### Pausa y Game Over seguros — 23 de octubre de 2026
+
+Fuente `1ede998` en `mobile/07-run-overlays`, más el `TimeManager.asset` local preservado. Ambos prefabs comparten el adaptador de safe area y el encaje uniforme 1920×1080 ya existentes: botones, decoración y puntajes quedan dentro del contenido seguro; los fondos siguen cubriendo el viewport completo. Se conservan posiciones locales de animación, cálculo de score y presentación desktop.
+
+- Suite final: 317/317 EditMode y 10/10 PlayMode, sin omitidas. Los casos nuevos completan diez pausas/reanudaciones por zona, opciones conservando pausa, regreso al menú y tres retries desde Abisopelágica hacia Epipelágica con recuperación de steering. La derrota automatizada usa la frontera real de sesión y espera el cómic/animación; perfil transitorio y spawners aislados, sin afirmar una prueba de física ni una run completa.
+- Matriz de ambas zonas: 32 capturas, 112 rectángulos de controles/textos y 816 glifos, incluidos puntajes hasta `long.MaxValue`, sin fallos de safe area o cobertura. Complementa routing y revisión física; no certifica ergonomía ni animación por sí sola.
+- APK Development: `Succeeded`, 105,33 s, 514.351.912 bytes, 0 errores/2 advertencias y composición validada. SHA-256 `8E1ED73C9F5CE52E4F117B97713B26E43C3C825CD41F2AD75161FB53E780E8E5`. Instalación actualizada `-r` con `Success` en Redmi Pad Pro.
+- Pase físico en Epipelágica: cómic inicial, derrota natural, Game Over completo con puntajes y Reintentar; nueva run pausada, opciones/Volver conservando puntaje, Reanudar y una segunda pausa correctos. Regreso a MainMenu desde pausa y, tras otra derrota natural, desde Game Over. Log del proceso sin coincidencias críticas; tablet dejada en MainMenu. No se modificó el volumen ni se acreditaron fondos de prueba al perfil real.
+- Windows de la misma fuente: `BuildOptions.None`, `Succeeded`, 27,60 s, 0 errores/2 advertencias y composición validada. Smoke oculto de 15 s vivo/responsivo, sin excepciones críticas observadas. Las preferencias guardadas provocaron fallback de fullscreen; no certifica una run interactiva ni una ventana efectiva de 1280×720.
+
+Artefactos actuales en `Build/AndroidDevelopment` y `Build/WindowsRelease`; los anteriores de `adc08c6` quedan preservados bajo `Build/AndroidReview/adc08c6` y `Build/WindowsReview/adc08c6`. Evidencia local ignorada `TestResults/overlays-20261023-*` y galería `RunMenuPreview`. No se afirma visita física a Abisopelágica, orientación opuesta, Back global, ciclo de vida ni rendimiento sostenido. El APK sigue siendo de revisión local; la beta publicada no se actualiza con este pase.
+
 ## Capturar logs
 
 Limpiar el buffer inmediatamente antes de abrir el juego y guardar sólo el log técnico necesario:
