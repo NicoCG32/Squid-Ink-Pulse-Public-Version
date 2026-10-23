@@ -160,6 +160,8 @@ Contrato de eventos:
 - Los `OnClick` persistentes configurados en Inspector no deben apagarse en runtime.
 - El cableado runtime de `PauseMenuManager` es respaldo defensivo y no reemplaza la auditoria visual/serializada del Inspector.
 
+Pausa usa `PauseSafeArea/PauseContent` en el prefab compartido. Botones y decoración viven bajo ese contenido; `FondoBurbuja` permanece fuera para cubrir y bloquear el viewport completo. El adaptador y el ajuste uniforme de referencia 1920×1080 se comparten con las demás pantallas móviles. Desktop conserva stretch de autoría; no se agregan Canvas ni EventSystem, y las referencias de elementos animados conservan sus posiciones locales.
+
 ## Game over
 
 Archivo: `Assets/Implementation/Code/UI/GameOver/GameOverMenuManager.cs`
@@ -171,6 +173,7 @@ Responsabilidad:
 - Esperar el comic de derrota de `LoreComicPresenter.PlayDefeatIfAvailable()` antes de mostrar la vista de Game Over cuando exista una entrada valida.
 
 El overlay oscuro debe comportarse como pantalla completa, no como subventana.
+`Panel` conserva ese fondo completo; `GameOverSafeArea/GameOverContent` protege botones, decoración y ambos textos de puntaje. El ajuste móvil conserva la composición completa dentro del área segura sin modificar el cálculo ni el formato del score. Las dos zonas usan los mismos prefabs y el validador comprueba también sus instancias efectivas.
 `Reintentar` inicia una run nueva desde `SceneFlowController.primaryGameplaySceneName`, por defecto `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 
 Prefab de vista:

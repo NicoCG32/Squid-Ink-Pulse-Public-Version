@@ -1,7 +1,10 @@
 {
   "name": "SquidInkPulse.Mobile.Editor",
   "rootNamespace": "",
-  "references": [],
+  "references": [
+    "SquidInkPulse.Runtime",
+    "UnityEngine.UI"
+  ],
   "includePlatforms": [
     "Editor"
   ],

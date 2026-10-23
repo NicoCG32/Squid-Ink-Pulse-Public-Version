@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con ocho pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de Main Menu/tienda y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica en la escena real las opciones de display y la presentación desktop de la tienda.
+La suite automatizada combina pruebas EditMode deterministas con diez pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de menús y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica opciones desktop de display, diez ciclos de pausa por zona y tres reintentos tras derrota.
 
 Las pruebas viven en:
 
@@ -127,6 +127,14 @@ La cobertura de menú y tienda se reparte entre verificaciones complementarias:
 | Regresión Windows | Presentación desktop y opciones de display en escena real | Build standalone y smoke de arranque |
 
 Las matrices no sustituyen routing, los dispositivos virtuales no certifican ergonomía y el smoke de arranque no acredita una run interactiva. La evidencia de builds y tablet, con sus límites, se registra en [AndroidBuild.md](AndroidBuild.md).
+
+## Pausa y Game Over
+
+`RunMenuSafeAreaCompositionTests` y `RunMenuMobileCompositionContract` verifican prefabs compartidos y las instancias de ambas zonas: jerarquías seguras, encaje 1920×1080, referencias de botones/textos/animación, fondos bloqueantes fuera del contenido seguro y ausencia de infraestructura UI extra. Un caso negativo mueve Reanudar fuera del contenido y exige que el contrato lo rechace. El validador prebuild usa el mismo contrato.
+
+`RunMenuTouchPlayModeTests` carga las escenas reales, usa touchscreen virtual sin mouse y comprueba raycasts efectivos. Repite diez ciclos de pausa/reanudación por zona, abre/cierra opciones manteniendo pausa, vuelve al menú y comprueba recuperación del steering. Declara Game Over mediante la frontera real de sesión, espera el cómic de derrota y la animación originales, reintenta tres veces desde Abisopelágica hacia Epipelágica y termina regresando al menú tras una cuarta derrota. Exige lectores nuevos y anteriores deshabilitados, `Time.timeScale` correcto y entrada funcional después de cada transición. Aísla avance/spawners para probar UI sin depender de colisiones aleatorias; no prueba física de daño ni una run. Perfil y registros usan escrituras transitorias de Editor, con estado restaurado al terminar.
+
+`RunMenuPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Run Menu Preview Matrix`) necesita gráficos y genera 32 PNG, JSON y galería bajo `TestResults/RunMenuPreview/`: dos zonas × dos menús × ocho formatos. Cubre 16:9, 19,5:9, 20:9 con cutouts laterales simulados y tablet 16:10. Comprueba 112 rectángulos de controles/textos, glifos de puntajes hasta `long.MaxValue` y fondos completos. Simula el estado final de reposo, sin animación ni routing; no guarda escenas ni perfil. La revisión física y el smoke standalone siguen siendo independientes.
 
 ## Servidor de feria
 

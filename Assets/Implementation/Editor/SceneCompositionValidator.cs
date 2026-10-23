@@ -45,6 +45,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
     {
         TouchControlsPrefabPath,
         OptionsMenuPrefabPath,
+        "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab",
+        "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab",
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
@@ -125,6 +127,9 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             ValidateMissingScripts(prefab, prefabPath, failures);
             if (prefabPath == OptionsMenuPrefabPath)
                 ValidateOptionsMenu(prefab.GetComponentInChildren<OptionsMenuManager>(true),failures);
+            if (prefabPath == "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab"
+                || prefabPath == "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab")
+                RunMenuMobileCompositionContract.Validate(prefab, prefabPath.EndsWith("/PauseMenu.prefab"), failures);
 
             if (productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
             {
@@ -250,6 +255,11 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         }
 
         GameUIRoot uiRoot = gameRoot.GetComponentInChildren<GameUIRoot>(true);
+        if (uiRoot != null)
+        {
+            RunMenuMobileCompositionContract.Validate(uiRoot.PauseMenuRoot, true, failures);
+            RunMenuMobileCompositionContract.Validate(uiRoot.GameOverMenuRoot, false, failures);
+        }
         SafeAreaAdapter[] safeAreaAdapters =
             uiRoot != null && uiRoot.HudRoot != null
                 ? uiRoot.HudRoot.GetComponentsInChildren<SafeAreaAdapter>(true)
