@@ -22,6 +22,7 @@ namespace SquidInkPulse.Tests.EditMode
                 var price = new GameObject("price", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TMP_Text>();
                 price.transform.SetParent(root.transform);
                 price.fontSize = 90f; price.fontSizeMin = 18f; price.fontSizeMax = 72f; price.enableAutoSizing = false;
+                price.textWrappingMode = TextWrappingModes.Normal;
                 var view = root.AddComponent<InGameShopMobilePresentation>();
                 Set(view, "keyboardHints", new[] { first, second }); Set(view, "mobileBuyLabel", label);
                 Set(view, "mobileTimerRoot", timer); Set(view, "priceText", price);
@@ -34,6 +35,7 @@ namespace SquidInkPulse.Tests.EditMode
                     Assert.That(first.activeSelf || second.activeSelf, Is.False);
                     Assert.That(label.activeSelf && timer.activeSelf, Is.True);
                     Assert.That(price.enableAutoSizing, Is.True);
+                    Assert.That(price.textWrappingMode, Is.EqualTo(TextWrappingModes.NoWrap));
                     Assert.That(price.fontSizeMax, Is.EqualTo(90f));
                 }
                 view.Apply(false);
@@ -41,6 +43,7 @@ namespace SquidInkPulse.Tests.EditMode
                 Assert.That(second.activeSelf, Is.True);
                 Assert.That(label.activeSelf || timer.activeSelf, Is.False);
                 Assert.That(price.enableAutoSizing, Is.False);
+                Assert.That(price.textWrappingMode, Is.EqualTo(TextWrappingModes.Normal));
                 Assert.That(price.fontSize, Is.EqualTo(90f));
                 Assert.That(price.fontSizeMin, Is.EqualTo(18f));
                 Assert.That(price.fontSizeMax, Is.EqualTo(72f));

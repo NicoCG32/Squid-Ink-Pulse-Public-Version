@@ -47,6 +47,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         OptionsMenuPrefabPath,
         "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab",
         "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab",
+        "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab",
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
@@ -130,6 +131,8 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
             if (prefabPath == "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab"
                 || prefabPath == "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab")
                 RunMenuMobileCompositionContract.Validate(prefab, prefabPath.EndsWith("/PauseMenu.prefab"), failures);
+            if (prefabPath == "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab")
+                InGameShopMobileCompositionContract.Validate(prefab, failures);
 
             if (productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
             {
@@ -259,6 +262,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             RunMenuMobileCompositionContract.Validate(uiRoot.PauseMenuRoot, true, failures);
             RunMenuMobileCompositionContract.Validate(uiRoot.GameOverMenuRoot, false, failures);
+            InGameShopMobileCompositionContract.Validate(uiRoot.InGameShopMenuRoot, failures);
         }
         SafeAreaAdapter[] safeAreaAdapters =
             uiRoot != null && uiRoot.HudRoot != null
@@ -512,6 +516,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         RequireObjectReference(shopManager, "buyKeyText", $"{label}.buyKeyText", failures);
         RequireObjectReference(shopManager, "buyButton", $"{label}.buyButton", failures);
         RequireObjectReference(shopManager, "insufficientFundsText", $"{label}.insufficientFundsText", failures);
+        RequireObjectReference(shopManager, "timerText", $"{label}.timerText", failures);
         RequireInGameShopOfferArray(shopManager, $"{label}.offers", failures);
     }
 

@@ -1386,6 +1386,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1060873970, guid: 5a176e376cdb419dab744563c742b726, type: 3}
   m_PrefabInstance: {fileID: 1652163656}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1782888301 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 900072033, guid: fc2a5709a2e64157bd5191e7d3268a5e, type: 3}
+  m_PrefabInstance: {fileID: 588615776}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &1091843852885625065
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1621,6 +1632,10 @@ PrefabInstance:
       propertyPath: priceText
       value:
       objectReference: {fileID: 588615778}
+    - target: {fileID: 630159560581043533, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
+      propertyPath: timerText
+      value:
+      objectReference: {fileID: 1782888301}
     - target: {fileID: 630159560581043533, guid: 50d6415e48d5714409ae25a7c651e812, type: 3}
       propertyPath: buyKeyText
       value:
