@@ -210,7 +210,22 @@ Fuente de presentación `230f7eb` y de layout/wiring/pruebas `698d49d`. La ofert
 
 En la tablet se comprobaron además el cómic inicial, movimiento, pausa, tres derrotas naturales/reintentos y regreso a MainMenu. El log filtrado por PID registró `0` coincidencias críticas. No se alcanzó el contacto con DealerFish en esas runs: la compra física de la tienda queda pendiente dentro del checklist de overlays, con los casos de compra/expiración cubiertos en PlayMode. No se modificaron moneda, spawns ni estados internos para forzarla; el saldo final visible es 33 por recolección normal.
 
-Ambos artefactos corresponden a `698d49d` más el cambio entrante de `TimeManager.asset`, preservado sin commit con SHA-256 `3396F52FDC16D445024E01D7A2D99DB6F0A37569D1D73C0302E9FFB857D90287`. Salidas `Build/AndroidDevelopment` y `Build/WindowsRelease`; evidencia ignorada `TestResults/runshop-20261023-*`. No se afirma visita física a Abisopelágica, orientación opuesta, Back global, ciclo de vida ni rendimiento sostenido. Releases publicadas sin actualizar.
+Ambos artefactos corresponden a `698d49d` más el cambio entrante de `TimeManager.asset`, preservado sin commit con SHA-256 `3396F52FDC16D445024E01D7A2D99DB6F0A37569D1D73C0302E9FFB857D90287`. Preservados bajo `Build/AndroidReview/698d49d` y `Build/WindowsReview/698d49d`; evidencia ignorada `TestResults/runshop-20261023-*`. No se afirma visita física a Abisopelágica, orientación opuesta, Back global, ciclo de vida ni rendimiento sostenido. Releases publicadas sin actualizar.
+
+### Cómics narrativos con área segura — 24–25 de octubre de 2026
+
+Fuente de componentes `201748f` y de integración `df74208`. El prefab compartido protege imagen y botón mediante safe area y contenido de referencia; mantiene la proporción del sprite y separa la imagen del botón visible. El cómic de inicio recibe Submit en «Jugar»; los temporizados retiran la selección del fondo y restauran el foco al cerrar si todavía les pertenece. Se conservan sprites, geometría desktop, persistencia de primera visualización y tiempos: inicio espera confirmación, portal/tienda/derrota terminan automáticamente a los 3 s. Las salidas de tienda sin sprite se omiten.
+
+- EditMode: `334/334`; PlayMode completo: `17/17`, con repetición de los siete casos de tienda/cómics `7/7`, sin fallos ni omitidas. Inicio, portales, tienda con/sin compra y derrota devuelven control una sola vez; los límites y el aislamiento de las fixtures se detallan en `Testing.md`.
+- Matriz Editor: `80` capturas en ocho formatos, `2` solicitudes omitidas por ausencia intencional de sprite y `0` fallos. Galería `TestResults/LoreComicPreview`; incluye cutouts a ambos lados y tablet 16:10. No certifica ergonomía ni navegación en hardware por sí sola.
+- APK Development: `Succeeded`, `276,55 s`, `514.364.710 bytes`, `0 errores/2 advertencias`. SHA-256 `DDFFCF9B560B4A7711F0E2E560776C76C3EF5D97C2EBA46905814E12A2942087`.
+- Windows `None`: `Succeeded`, `30,04 s`, `0 errores/2 advertencias`. Smoke oculto de 15 s vivo/responsivo y `0` coincidencias críticas. No certifica run interactiva ni tamaño efectivo de ventana. Ambos prebuilds aprobaron composición de escenas y prefabs.
+
+El APK se actualizó mediante `adb install -r` en Redmi Pad Pro (Android 16). Perfil, records y catálogo conservaron sus SHA-256 entre antes de instalar y después del primer arranque. La revisión física comprobó el cómic inicial completo, su botón táctil, entrada a Epipelágica, pausa, reanudar con avance del puntaje, nueva pausa y regreso a MainMenu. El log del proceso registró `0` coincidencias críticas; la tablet queda en MainMenu con saldo 33. No se forzó moneda, spawn ni estado de juego.
+
+Los otros consumidores del cómic están cubiertos por PlayMode y la matriz visual; no se visitaron físicamente en este pase. Sigue pendiente la compra por contacto natural con DealerFish dentro de la revisión integral de overlays, además de Abisopelágica física, orientación opuesta, Back, ciclo de vida y rendimiento sostenido.
+
+Artefactos locales en `Build/AndroidDevelopment` y `Build/WindowsRelease`, fuente `df74208` más el mismo `TimeManager.asset` entrante preservado. Evidencia ignorada `TestResults/comics-20261024-*` (EditMode/preview), `TestResults/comics-20261025-*` (gates finales/builds/tablet/Windows) y galería. Estas builds son de revisión; no se actualizan las releases publicadas.
 
 ## Capturar logs
 
