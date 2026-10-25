@@ -183,15 +183,18 @@ namespace SquidInkPulse.Tests.PlayMode
             int id=++pointer; currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
             // Queue into the player loop; an extra manual InputSystem.Update can
             // reset pointer edge state before the scene's EventSystem processes it.
-            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime); yield return null;
+            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            yield return WaitForTouch(id,true);
             currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-            EndTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime); yield return null;
+            EndTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            yield return WaitForTouch(id,false);
         }
         private IEnumerator AssertSteering(string phase)
         {
             Vector2 point=new(Screen.width*0.5f,Screen.height*0.5f); int id=++pointer;
             currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime); yield return null;
+            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            yield return WaitForTouch(id,true);
             try
             {
                 var hits=new List<RaycastResult>();
@@ -212,6 +215,21 @@ namespace SquidInkPulse.Tests.PlayMode
                 currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
                 EndTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
             }
+            yield return WaitForTouch(id,false);
+        }
+        private IEnumerator WaitForTouch(int id,bool pressed)
+        {
+            double deadline=Time.realtimeSinceStartupAsDouble+2d;
+            while ((screen.primaryTouch.touchId.ReadValue()!=id || screen.primaryTouch.press.isPressed!=pressed)
+                && Time.realtimeSinceStartupAsDouble<deadline)
+            {
+                // The mock clock must move beyond the queued event, and the
+                // device must consume it before asserting the EventSystem result.
+                currentTime=Math.Max(currentTime+0.001d,Time.realtimeSinceStartupAsDouble);
+                yield return null;
+            }
+            Assert.That(screen.primaryTouch.touchId.ReadValue(),Is.EqualTo(id),"Queued touch was not delivered.");
+            Assert.That(screen.primaryTouch.press.isPressed,Is.EqualTo(pressed));
             yield return null;
         }
         private static IEnumerator WaitFor(Func<bool> predicate)
