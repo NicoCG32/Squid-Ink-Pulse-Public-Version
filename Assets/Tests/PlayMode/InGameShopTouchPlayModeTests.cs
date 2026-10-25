@@ -180,20 +180,23 @@ namespace SquidInkPulse.Tests.PlayMode
             Vector2 point=RectTransformUtility.WorldToScreenPoint(camera,rect.TransformPoint(rect.rect.center));
             var hits=new List<RaycastResult>(); EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) {position=point},hits);
             Assert.That(hits.FirstOrDefault().gameObject?.GetComponentInParent<Button>(),Is.SameAs(button));
-            int id=++pointer; currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-            // Queue into the player loop; an extra manual InputSystem.Update can
-            // reset pointer edge state before the scene's EventSystem processes it.
-            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            int id=++pointer; SyncInputClock();
+            // Keep event timestamps strictly newer than the device state, process
+            // once, then let the real EventSystem handle the delivered touch.
+            BeginTouch(id,point,queueEventOnly:true,screen:screen);
+            currentTime+=0.02d; InputSystem.Update();
             yield return WaitForTouch(id,true);
-            currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-            EndTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            SyncInputClock();
+            EndTouch(id,point,queueEventOnly:true,screen:screen);
+            currentTime+=0.02d; InputSystem.Update();
             yield return WaitForTouch(id,false);
         }
         private IEnumerator AssertSteering(string phase)
         {
             Vector2 point=new(Screen.width*0.5f,Screen.height*0.5f); int id=++pointer;
-            currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-            BeginTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+            SyncInputClock();
+            BeginTouch(id,point,queueEventOnly:true,screen:screen);
+            currentTime+=0.02d; InputSystem.Update();
             yield return WaitForTouch(id,true);
             try
             {
@@ -212,8 +215,9 @@ namespace SquidInkPulse.Tests.PlayMode
             }
             finally
             {
-                currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
-                EndTouch(id,point,queueEventOnly:true,screen:screen,time:currentTime);
+                SyncInputClock();
+                EndTouch(id,point,queueEventOnly:true,screen:screen);
+                currentTime+=0.02d; InputSystem.Update();
             }
             yield return WaitForTouch(id,false);
         }
@@ -232,6 +236,8 @@ namespace SquidInkPulse.Tests.PlayMode
             Assert.That(screen.primaryTouch.press.isPressed,Is.EqualTo(pressed));
             yield return null;
         }
+        private void SyncInputClock() => currentTime=Math.Max(Math.Max(currentTime,
+            UnityEngine.InputSystem.LowLevel.InputState.currentTime),screen.lastUpdateTime)+0.02d;
         private static IEnumerator WaitFor(Func<bool> predicate)
         {
             double deadline=Time.realtimeSinceStartupAsDouble+6d;
