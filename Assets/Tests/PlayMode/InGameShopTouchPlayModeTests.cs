@@ -22,12 +22,14 @@ namespace SquidInkPulse.Tests.PlayMode
         private int pointer;
         private readonly Dictionary<FieldInfo,object> profileState=new();
         private UnityEngine.Random.State randomState;
+        private static readonly MethodInfo DynamicUpdate=typeof(InputSystem).GetMethod("Update",BindingFlags.Static|BindingFlags.NonPublic,
+            null,new[] {typeof(UnityEngine.InputSystem.LowLevel.InputUpdateType)},null);
         public override void Setup()
         {
             base.Setup();
             if (!Application.isEditor) Assert.Ignore("Transient Editor saves required.");
             Assert.That(PlayerProfileRepository.UsesTransientEditorPlayModeProfileSaves,Is.True);
-            currentTime=Time.realtimeSinceStartupAsDouble;
+            currentTime=PlayerInputTestClock.StartAfterEditorTransition();
             screen=InputSystem.AddDevice<Touchscreen>(); keyboard=InputSystem.AddDevice<Keyboard>(); pointer=0;
             randomState=UnityEngine.Random.state; Time.timeScale=1f;
             foreach (string name in new[] { "currentProfile","currentRecords","currentCatalog","loaded" })
@@ -184,11 +186,11 @@ namespace SquidInkPulse.Tests.PlayMode
             // Keep event timestamps strictly newer than the device state, process
             // once, then let the real EventSystem handle the delivered touch.
             BeginTouch(id,point,queueEventOnly:true,screen:screen);
-            currentTime+=0.02d; InputSystem.Update();
+            currentTime+=0.02d; ProcessPlayerInput();
             yield return WaitForTouch(id,true);
             SyncInputClock();
             EndTouch(id,point,queueEventOnly:true,screen:screen);
-            currentTime+=0.02d; InputSystem.Update();
+            currentTime+=0.02d; ProcessPlayerInput();
             yield return WaitForTouch(id,false);
         }
         private IEnumerator AssertSteering(string phase)
@@ -196,7 +198,7 @@ namespace SquidInkPulse.Tests.PlayMode
             Vector2 point=new(Screen.width*0.5f,Screen.height*0.5f); int id=++pointer;
             SyncInputClock();
             BeginTouch(id,point,queueEventOnly:true,screen:screen);
-            currentTime+=0.02d; InputSystem.Update();
+            currentTime+=0.02d; ProcessPlayerInput();
             yield return WaitForTouch(id,true);
             try
             {
@@ -217,7 +219,7 @@ namespace SquidInkPulse.Tests.PlayMode
             {
                 SyncInputClock();
                 EndTouch(id,point,queueEventOnly:true,screen:screen);
-                currentTime+=0.02d; InputSystem.Update();
+                currentTime+=0.02d; ProcessPlayerInput();
             }
             yield return WaitForTouch(id,false);
         }
@@ -238,6 +240,12 @@ namespace SquidInkPulse.Tests.PlayMode
         }
         private void SyncInputClock() => currentTime=Math.Max(Math.Max(currentTime,
             UnityEngine.InputSystem.LowLevel.InputState.currentTime),screen.lastUpdateTime)+0.02d;
+        private static void ProcessPlayerInput()
+        {
+            // The parameterless SDK update can choose Editor state when unfocused.
+            Assert.That(DynamicUpdate,Is.Not.Null,"InputSystem player-update entry point changed.");
+            DynamicUpdate.Invoke(null,new object[] {UnityEngine.InputSystem.LowLevel.InputUpdateType.Dynamic});
+        }
         private static IEnumerator WaitFor(Func<bool> predicate)
         {
             double deadline=Time.realtimeSinceStartupAsDouble+6d;

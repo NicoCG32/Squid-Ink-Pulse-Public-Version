@@ -48,6 +48,7 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         "Assets/Content/Prefabs/UI/Menus/PauseMenu.prefab",
         "Assets/Content/Prefabs/UI/Menus/GameOverMenu.prefab",
         "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab",
+        "Assets/Content/Prefabs/UI/Menus/LoreComic.prefab",
         "Assets/Content/Prefabs/Player/BabySquid.prefab",
         "Assets/Content/Prefabs/World/CleanUp.prefab",
         "Assets/Content/Prefabs/Portals/ScenePortal.prefab",
@@ -133,6 +134,9 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
                 RunMenuMobileCompositionContract.Validate(prefab, prefabPath.EndsWith("/PauseMenu.prefab"), failures);
             if (prefabPath == "Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab")
                 InGameShopMobileCompositionContract.Validate(prefab, failures);
+            if (prefabPath == "Assets/Content/Prefabs/UI/Menus/LoreComic.prefab"
+                || productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
+                LoreComicMobileCompositionContract.Validate(prefab.GetComponentInChildren<LoreComicPresenter>(true),failures);
 
             if (productGameRootPrefabPaths.Contains(prefabPath, StringComparer.Ordinal))
             {
@@ -157,6 +161,11 @@ public sealed class SceneCompositionValidator : IPreprocessBuildWithReport
         {
             Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             ValidateMissingScripts(scene, failures);
+            if (scenePath != ShopMenuScenePath)
+            {
+                LoreComicPresenter lore = RequireSingle<LoreComicPresenter>(scene,"LoreComicPresenter",failures);
+                if (lore != null) LoreComicMobileCompositionContract.Validate(lore,failures);
+            }
             OptionsMenuManager options = RequireSingle<OptionsMenuManager>(scene,"OptionsMenuManager",failures);
             if (options != null) ValidateOptionsMenu(options,failures);
 

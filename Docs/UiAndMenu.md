@@ -208,6 +208,9 @@ Reglas:
 - Las viñetas viven en `Assets/Content/Art/ComicLore/` separadas por dominio. Se reemplazan desde Inspector o prefab conservando sus `.meta`.
 - Las instalaciones base viven en `MainMenu` y en los prefabs `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica`.
 - Tienda in-game usa tres eventos: `ShopInGameFirst`, `ShopInGameLastPurchased` y `ShopInGameLastNoPurchase`.
+- `Comic/LoreSafeArea/LoreContent` protege la viñeta y `ContinuarBoton`; `Dimmer` sigue cubriendo el viewport completo fuera del área segura. El fitter compartido usa referencia móvil 1920×1080. `LoreComicMobileLayout` reserva espacio para el botón visible y encaja el sprite conservando proporción; desktop conserva la geometría de autoría.
+- `LoreComicContinueFocus` asigna el contexto Submit del EventSystem al botón visible. Mientras un cómic temporizado no tiene botón, limpia la selección del contenido de atrás. La navegación del botón queda temporalmente en `None`; al cerrar restaura la selección anterior sólo si aún conservaba su foco y el destino sigue disponible. No registra otra acción global de input.
+- Inicio conserva espera explícita y duración cero; portal, tienda y derrota conservan sus tres segundos y cierre automático configurado. Se mantienen las reglas de primera visualización y transición. La salida sin compra no tiene sprite configurado: se omite sin marcarla como vista ni retener el tiempo.
 
 ## Tienda temporal
 

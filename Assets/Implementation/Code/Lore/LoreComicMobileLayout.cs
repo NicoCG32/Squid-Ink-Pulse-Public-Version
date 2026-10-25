@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
+[DefaultExecutionOrder(50)]
 [RequireComponent(typeof(RectTransform))]
 public sealed class LoreComicMobileLayout : MonoBehaviour
 {

@@ -11,6 +11,8 @@ public sealed class LoreComicView
     private readonly GameObject continueButtonRoot;
     private readonly Transform ownerTransform;
     private readonly int minimumSortingOrder;
+    private readonly LoreComicContinueFocus inputFocus;
+    private bool isVisible;
 
     public LoreComicView(
         GameObject comicRoot,
@@ -28,6 +30,7 @@ public sealed class LoreComicView
         this.continueButtonRoot = continueButtonRoot;
         this.ownerTransform = ownerTransform;
         this.minimumSortingOrder = minimumSortingOrder;
+        inputFocus = comicRoot != null ? comicRoot.GetComponent<LoreComicContinueFocus>() : null;
     }
 
     public bool HasRoot => comicRoot != null;
@@ -75,6 +78,7 @@ public sealed class LoreComicView
         {
             continueButton.interactable = visible;
         }
+        if (Application.isPlaying) inputFocus?.SetPresented(isVisible, visible);
     }
 
     public void NormalizeRenderableScale()
@@ -105,6 +109,7 @@ public sealed class LoreComicView
 
     private void SetVisible(bool visible, bool showContinue)
     {
+        isVisible = visible;
         if (comicRoot != null && visible && !comicRoot.activeSelf)
         {
             comicRoot.SetActive(true);
