@@ -155,6 +155,7 @@ Prefab de vista:
 Input:
 - `P` o `Esc` alimentan `Gameplay/TogglePause`; `PauseMenuManager` consume una solicitud por frame y conserva `TogglePause()`/`PauseMenuCommandPolicy` como autoridad.
 - La suscripción se reemplaza mediante `GameplayChanged` y se dispone con el lector exacto, evitando comandos de otra escena o de una recreación anterior del scope.
+- La pausa rechaza Toggle/Resume mientras Opciones conserva su contexto, la tienda bloquea input o una sesión Playing tiene el tiempo detenido por un cómic. Las solicitudes se consumen aunque no se ejecuten; no quedan pendientes para cerrar la ventana después.
 
 Contrato de eventos:
 - Los `OnClick` persistentes configurados en Inspector no deben apagarse en runtime.
@@ -211,6 +212,7 @@ Reglas:
 - `Comic/LoreSafeArea/LoreContent` protege la viñeta y `ContinuarBoton`; `Dimmer` sigue cubriendo el viewport completo fuera del área segura. El fitter compartido usa referencia móvil 1920×1080. `LoreComicMobileLayout` reserva espacio para el botón visible y encaja el sprite conservando proporción; desktop conserva la geometría de autoría.
 - `LoreComicContinueFocus` asigna el contexto Submit del EventSystem al botón visible. Mientras un cómic temporizado no tiene botón, limpia la selección del contenido de atrás. La navegación del botón queda temporalmente en `None`; al cerrar restaura la selección anterior sólo si aún conservaba su foco y el destino sigue disponible. No registra otra acción global de input.
 - Inicio conserva espera explícita y duración cero; portal, tienda y derrota conservan sus tres segundos y cierre automático configurado. Se mantienen las reglas de primera visualización y transición. La salida sin compra no tiene sprite configurado: se omite sin marcarla como vista ni retener el tiempo.
+- Un cómic activo conserva su callback: `TryPlay` rechaza solicitudes concurrentes y los cómics ordinarios no toman el contexto de pausa/tienda. La derrota espera a que termine el cómic vigente antes de presentar el suyo; al restaurar tiempo se respeta una sesión que ya haya dejado Playing. Un portal pendiente no carga otra zona después de Game Over.
 
 ## Tienda temporal
 
@@ -238,6 +240,7 @@ Reglas:
 - `Comprar` debe tener componente `Button`. `InGameShopManager` registra en runtime la accion `BuyCurrentOffer` sobre la referencia serializada, sin depender de una busqueda jerarquica.
 - `InGameShopManager` no debe desactivar listeners persistentes del Inspector.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
+- Abrir una oferta exige sesión Playing y tiempo avanzando: no se captura como tiempo previo el cero de otro overlay. Una compra se rechaza desde el momento en que la sesión deja Playing, sin esperar al siguiente Update que cierre la tienda.
 - Las ofertas se filtran por `RunGadgetUnlockService`; un gadget no habilitado por hitos no aparece.
 - Esta tienda es la unica que vende gadgets.
 - La primera salida de tienda desde `DealerFish` muestra comic de compra o no compra segun si se adquirio un gadget; las aperturas posteriores de la run no repiten esos comics.

@@ -198,7 +198,7 @@ public class InGameShopManager : MonoBehaviour
         ResolveReferences();
         PrepareOverlayPresenter();
 
-        if (isOpen || session == null || !session.IsPlaying)
+        if (isOpen || session == null || !session.IsPlaying || Time.timeScale <= 0f)
         {
             ClearQueuedTutorialOffer();
             return false;
@@ -236,7 +236,7 @@ public class InGameShopManager : MonoBehaviour
         ResolveReferences();
         PrepareOverlayPresenter();
 
-        if (isOpen || session == null || !session.IsPlaying)
+        if (isOpen || session == null || !session.IsPlaying || Time.timeScale <= 0f)
         {
             return false;
         }
@@ -301,7 +301,7 @@ public class InGameShopManager : MonoBehaviour
 
     public void BuyCurrentOffer()
     {
-        if (!isOpen || currentOffer == null)
+        if (!isOpen || currentOffer == null || session == null || !session.IsPlaying)
         {
             return;
         }

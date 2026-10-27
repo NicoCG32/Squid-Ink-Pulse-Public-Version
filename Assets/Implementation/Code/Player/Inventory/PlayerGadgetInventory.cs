@@ -81,7 +81,7 @@ public class PlayerGadgetInventory : MonoBehaviour
 
     private bool TryUseActiveSlot(int slotIndex)
     {
-        if (session == null || !session.IsPlaying || InGameShopManager.BlocksInkPulseActivation)
+        if (session == null || !session.IsPlaying || Time.timeScale <= 0f || InGameShopManager.BlocksInkPulseActivation)
         {
             return false;
         }

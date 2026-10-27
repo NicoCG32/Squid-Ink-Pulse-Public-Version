@@ -2,7 +2,7 @@
 
 ## Alcance actual
 
-La suite automatizada combina pruebas EditMode deterministas con diecisiete pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de menús y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica opciones desktop de display, diez ciclos de pausa por zona, tres reintentos tras derrota y cinco flujos de cómics con control devuelto una sola vez.
+La suite automatizada combina pruebas EditMode deterministas con veintitrés pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de menús y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica opciones desktop de display, diez ciclos de pausa por zona, tres reintentos tras derrota, cinco flujos de cómics con control devuelto una sola vez y seis cruces entre overlays/entrada/estado terminal.
 
 Las pruebas viven en:
 
@@ -153,6 +153,8 @@ Las matrices no sustituyen routing, los dispositivos virtuales no certifican erg
 `LoreComicPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Lore Comic Preview Matrix`) genera imágenes/JSON/galería bajo `TestResults/LoreComicPreview`: los sprites configurados de inicio, portal, tienda y derrota en sus escenas reales y ocho formatos con cutouts laterales/tablet. Con el catálogo actual son 80 capturas y dos solicitudes omitidas por ausencia de sprite de salida sin compra. Comprueba área segura, proporción, separación del botón y fondo completo. No guarda perfil/escenas, ni certifica routing o ergonomía física.
 
 Las fixtures de tienda y cómics colocan el reloj virtual después de la transición Editor→Play y entregan los eventos al buffer Dynamic del player. El paquete Input System conserva los límites de esa transición aunque se sustituya su runtime de pruebas; eventos sintéticos anteriores pueden descartarse. El helper usa el entry point interno del SDK fijado y exige su presencia para detectar cambios de compatibilidad.
+
+Los seis casos de exclusión de `LoreComicTouchPlayModeTests` cruzan pausa con tienda/cómic, atajo P con Opciones abierta desde pausa, dos solicitudes de cómic, Game Over con una compra en el mismo frame, steering retenido/Space/uso de gadget durante cómic y Game Over durante una transición física de portal. Comprueban tiempo y selección del contexto, callback único, ausencia de coste/uso indebido, descarte de órdenes bloqueadas, gesto nuevo válido y ausencia de carga de zona tras derrota. El perfil y los gadgets son transitorios de Editor; las pruebas no certifican contacto natural con DealerFish ni una run física.
 
 ## Servidor de feria
 

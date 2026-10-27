@@ -128,6 +128,13 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     public bool TryPlay(LoreComicRequest request, Action onCompleted)
     {
+        // Keep the current consumer's view and completion callback intact.
+        if (activeRoutine != null) return false;
+        GameSessionController session = GameSessionController.Instance;
+        if (request.ComicEvent != LoreComicEvent.Defeat
+            && (InGameShopManager.IsShopOpen || (session != null && !session.IsPlaying)))
+            return false;
+
         ResolveReferences();
         PrepareView();
 
@@ -141,12 +148,6 @@ public sealed class LoreComicPresenter : MonoBehaviour
         if (!LoreComicEntrySelector.HasDisplayableSprite(entry))
         {
             return false;
-        }
-
-        if (activeRoutine != null)
-        {
-            StopCoroutine(activeRoutine);
-            activeRoutine = null;
         }
 
         activeCompletion = onCompleted;
@@ -226,6 +227,13 @@ public sealed class LoreComicPresenter : MonoBehaviour
         if (presenter == null)
         {
             yield break;
+        }
+
+        // Defeat must be presented after the current comic, never replace its callback.
+        if (request.ComicEvent == LoreComicEvent.Defeat)
+        {
+            while (presenter != null && presenter.activeRoutine != null) yield return null;
+            if (presenter == null) yield break;
         }
 
         bool completed = false;
@@ -379,6 +387,8 @@ public sealed class LoreComicPresenter : MonoBehaviour
         }
 
         pauseApplied = false;
+        GameSessionController session = GameSessionController.Instance;
+        if (session != null && !session.IsPlaying) return;
         Time.timeScale = timeScaleBeforePresentation;
     }
 

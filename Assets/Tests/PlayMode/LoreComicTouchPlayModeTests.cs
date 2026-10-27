@@ -190,6 +190,199 @@ namespace SquidInkPulse.Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        public IEnumerator ShopAndComic_RejectPauseAndCompetingOpenRequestsInBothZones()
+        {
+            foreach (string zone in new[] {"ZonaEpipelagica","ZonaAbisopelagica"})
+            {
+                yield return Load(zone);
+                var pause=Object.FindFirstObjectByType<PauseMenuManager>();
+                var lore=Object.FindFirstObjectByType<LoreComicPresenter>();
+                ShortenTimedEntries(lore);
+                InGameShopManager shop=InGameShopManager.Instance;
+                SetField(shop,"offerDurationSeconds",5f);
+                shop.QueueTutorialOffer(GadgetId.ShellShield,7);
+                Assert.That(shop.TryOpenTimedShop(),Is.True);
+                yield return PauseShortcut();
+                Assert.That(GameSessionController.Instance.IsPlaying,Is.True,"Pause must not take the shop's context.");
+                Assert.That(pause.CanTogglePauseNow,Is.False);
+                Assert.That(Time.timeScale,Is.Zero);
+                Assert.That(Field<GameObject>(pause,"menuRoot").activeSelf,Is.False);
+                LoreComicRequest request=PortalRequest(zone);
+                Assert.That(lore.TryPlay(request,()=>Assert.Fail("Rejected comic cannot complete.")),Is.False,
+                    "An unrelated comic must not replace an open shop.");
+                shop.CloseShop();
+                yield return WaitFor(()=>!InGameShopManager.BlocksInkPulseActivation);
+
+                int completions=0;
+                Assert.That(lore.TryPlay(request,()=>completions++),Is.True);
+                yield return PauseShortcut();
+                Assert.That(GameSessionController.Instance.IsPlaying,Is.True,"Pause must not take the comic's context.");
+                Assert.That(pause.CanTogglePauseNow,Is.False);
+                shop.QueueTutorialOffer(GadgetId.ShellShield,7);
+                Assert.That(shop.TryOpenTimedShop(),Is.False,"Opening a shop during a comic must not capture a zero time scale.");
+                Assert.That(InGameShopManager.TryOpenShopFromWorld(),Is.False);
+                Assert.That(Time.timeScale,Is.Zero);
+                yield return WaitFor(()=>completions==1);
+                Assert.That(Time.timeScale,Is.EqualTo(1f));
+                Assert.That(InGameShopManager.IsShopOpen,Is.False);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator OptionsFromPause_ConsumesPauseShortcutUntilClosedInBothZones()
+        {
+            foreach (string zone in new[] {"ZonaEpipelagica","ZonaAbisopelagica"})
+            {
+                yield return Load(zone);
+                var pause=Object.FindFirstObjectByType<PauseMenuManager>();
+                pause.TogglePause();
+                yield return WaitFor(()=>Field<Button>(pause,"optionsButton").IsInteractable()
+                    && Field<CanvasGroup>(pause,"canvasGroup").interactable);
+                yield return Tap(Field<Button>(pause,"optionsButton"));
+                var options=Field<OptionsMenuManager>(pause,"optionsMenu");
+                yield return WaitFor(()=>options.IsOpen);
+                yield return PauseShortcut();
+                yield return new WaitForSecondsRealtime(2f);
+                Assert.That(GameSessionController.Instance.IsPaused,Is.True,"P must not resume gameplay behind Options.");
+                Assert.That(Time.timeScale,Is.Zero);
+                Assert.That(pause.CanTogglePauseNow,Is.False);
+                Assert.That(Field<GameObject>(pause,"menuRoot").activeSelf,Is.False);
+                options.Close();
+                yield return WaitFor(()=>!options.IsOpen && pause.CanTogglePauseNow);
+                yield return Tap(Field<Button>(pause,"resumeButton"));
+                yield return WaitFor(()=>GameSessionController.Instance.IsPlaying);
+                Assert.That(Time.timeScale,Is.EqualTo(1f));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ConcurrentComics_PreserveFirstOwnerAndCompleteOnceInBothZones()
+        {
+            foreach (string zone in new[] {"ZonaEpipelagica","ZonaAbisopelagica"})
+            {
+                yield return Load(zone);
+                var lore=Object.FindFirstObjectByType<LoreComicPresenter>();
+                ShortenTimedEntries(lore);
+                int first=0, second=0;
+                Assert.That(lore.TryPlay(PortalRequest(zone),()=>first++),Is.True);
+                Assert.That(lore.TryPlay(PortalRequest(zone),()=>second++),Is.False,
+                    "A competing request must not abandon the first consumer's callback.");
+                yield return WaitFor(()=>first==1);
+                Assert.That(second,Is.Zero);
+                Assert.That(Time.timeScale,Is.EqualTo(1f));
+                Assert.That(Visible(lore),Is.False);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator GameOver_PreemptsShopAndKeepsTimeStoppedAfterDefeatInBothZones()
+        {
+            foreach (string zone in new[] {"ZonaEpipelagica","ZonaAbisopelagica"})
+            {
+                yield return Load(zone);
+                var lore=Object.FindFirstObjectByType<LoreComicPresenter>();
+                ShortenTimedEntries(lore);
+                InGameShopManager shop=InGameShopManager.Instance;
+                shop.QueueTutorialOffer(GadgetId.ShellShield,7);
+                Assert.That(shop.TryOpenTimedShop(),Is.True);
+                int closed=0; shop.onShopClosed.AddListener(()=>closed++);
+                GameSessionController.Instance.RequestGameOver();
+                int balance=PersistentPlayerProfile.TotalShrimps;
+                shop.BuyCurrentOffer();
+                Assert.That(PersistentPlayerProfile.TotalShrimps,Is.EqualTo(balance),"A terminal session must reject a purchase before the shop's next Update.");
+                Assert.That(RuntimeGadgetInventory.HasGadget(GadgetId.ShellShield),Is.False);
+                yield return WaitFor(()=>!InGameShopManager.IsShopOpen && !Visible(lore));
+                var gameOver=Object.FindFirstObjectByType<GameOverMenuManager>();
+                yield return WaitFor(()=>Field<CanvasGroup>(gameOver,"canvasGroup").interactable);
+                yield return PauseShortcut();
+                Assert.That(GameSessionController.Instance.IsGameOver,Is.True);
+                Assert.That(Time.timeScale,Is.Zero);
+                Assert.That(closed,Is.EqualTo(1));
+                Assert.That(Field<GameObject>(shop,"menuRoot").activeSelf,Is.False);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Comic_CancelsHeldSteeringAndConsumesCommandsUntilANewGestureInBothZones()
+        {
+            foreach (string zone in new[] {"ZonaEpipelagica","ZonaAbisopelagica"})
+            {
+                yield return Load(zone);
+                var lore=Object.FindFirstObjectByType<LoreComicPresenter>();
+                ShortenTimedEntries(lore);
+                var pulse=Object.FindFirstObjectByType<InkPulseController>();
+                pulse.ForceEmptyCharge(); Assert.That(pulse.TryForceReady(),Is.True);
+                int starts=0; pulse.PulseStarted+=()=>starts++;
+                Vector2 point=new(Screen.width*0.5f,Screen.height*0.5f);
+                int id=++pointer;
+                SyncInputClock(); BeginTouch(id,point,queueEventOnly:true,screen:screen);
+                currentTime+=0.02d; ProcessPlayerInput(); yield return WaitForTouch(id,true);
+                Assert.That(SquidInkPulseInputRuntime.Gameplay.HasSteerPosition,Is.True);
+                int completed=0;
+                Assert.That(lore.TryPlay(PortalRequest(zone),()=>completed++),Is.True);
+                Press(keyboard.spaceKey); yield return null; Release(keyboard.spaceKey); yield return null;
+                Assert.That(SquidInkPulseInputRuntime.Gameplay.HasSteerPosition,Is.False);
+                yield return WaitFor(()=>completed==1);
+                SyncInputClock(); EndTouch(id,point,queueEventOnly:true,screen:screen);
+                currentTime+=0.02d; ProcessPlayerInput(); yield return WaitForTouch(id,false);
+                Assert.That(SquidInkPulseInputRuntime.Gameplay.HasSteerPosition,Is.False,"The old pointer cannot regain ownership when the comic closes.");
+                Assert.That(starts,Is.Zero);
+                pulse.ForceEmptyCharge();
+                Assert.That(RuntimeGadgetInventory.Acquire(GadgetId.InkBottle,null,Color.white),Is.True);
+                int gadgetRequests=0;
+                SquidInkPulseInputRuntime.Gameplay.GadgetSlot1Requested+=()=>gadgetRequests++;
+                completed=0;
+                Assert.That(lore.TryPlay(PortalRequest(zone),()=>completed++),Is.True);
+                Press(keyboard.qKey); yield return null; Release(keyboard.qKey); yield return null;
+                Assert.That(gadgetRequests,Is.EqualTo(1),"The configured gadget action must actually reach its consumer.");
+                Assert.That(RuntimeGadgetInventory.HasGadget(GadgetId.InkBottle),Is.True);
+                Assert.That(pulse.IsCharged,Is.False);
+                yield return WaitFor(()=>completed==1);
+                Assert.That(RuntimeGadgetInventory.HasGadget(GadgetId.InkBottle),Is.True,"A blocked gadget command must not replay after close.");
+                var controls=Object.FindFirstObjectByType<TouchGameplayControlsController>();
+                controls.RefreshPresentation();
+                yield return Tap(controls.GadgetSlot1Button);
+                Assert.That(RuntimeGadgetInventory.HasGadget(GadgetId.InkBottle),Is.False);
+                Assert.That(pulse.IsCharged,Is.True);
+                controls.RefreshPresentation();
+                yield return Tap(controls.InkPulseButton);
+                Assert.That(starts,Is.EqualTo(1),"A new deliberate command remains available.");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator GameOver_DuringPortalComicCancelsSceneLoadAndSerializesDefeat()
+        {
+            yield return Load("ZonaEpipelagica");
+            var lore=Object.FindFirstObjectByType<LoreComicPresenter>();
+            ShortenTimedEntries(lore);
+            var portal=new GameObject("PortalForTerminalOverlayTest");
+            portal.transform.position=GameObject.FindGameObjectWithTag(GameplayTagCatalog.Player).transform.position;
+            portal.AddComponent<CircleCollider2D>(); portal.AddComponent<ScenePortal>();
+            yield return WaitFor(()=>Visible(lore));
+            GameSessionController.Instance.RequestGameOver();
+            var gameOver=Object.FindFirstObjectByType<GameOverMenuManager>();
+            Assert.That(Field<GameObject>(gameOver,"menuRoot").activeSelf,Is.False);
+            yield return WaitFor(()=>Field<CanvasGroup>(gameOver,"canvasGroup").interactable);
+            Assert.That(SceneManager.GetActiveScene().name,Is.EqualTo("ZonaEpipelagica"));
+            Assert.That(loads.ContainsKey("ZonaAbisopelagica"),Is.False);
+            Assert.That(GameSessionController.Instance.IsGameOver,Is.True);
+            Assert.That(Time.timeScale,Is.Zero);
+            Assert.That(Visible(lore),Is.False);
+        }
+
+        private IEnumerator PauseShortcut()
+        {
+            currentTime=Math.Max(currentTime,Time.realtimeSinceStartupAsDouble);
+            Press(keyboard.pKey); yield return null; Release(keyboard.pKey); yield return null;
+        }
+        private static LoreComicRequest PortalRequest(string zone) => zone=="ZonaEpipelagica"
+            ? new LoreComicRequest(LoreComicEvent.PortalEpipelagicToAbyssopelagic,LoreComicZone.Abyssopelagic)
+            : new LoreComicRequest(LoreComicEvent.PortalAbyssopelagicToEpipelagic,LoreComicZone.Epipelagic);
+        private static void SetField(object target,string name,object value) => target.GetType()
+            .GetField(name,BindingFlags.Instance|BindingFlags.NonPublic).SetValue(target,value);
+
         private static IEnumerator Load(string zone)
         {
             SceneFlowController.ResetRunScopedRuntimeState();

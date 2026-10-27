@@ -117,6 +117,8 @@ Sus bindings existentes de Keyboard&Mouse, Gamepad, Touch, Joystick y XR se mant
 
 `GameplayPauseInputPlayModeTests` comprueba además el timing real de pausa: `Gameplay` permanece activo con `timeScale = 0`, una pulsación de Ink-Pulse se recibe y consume sin ejecutar ni quedar latente, y una pulsación nueva después de reanudar produce exactamente un pulso.
 
+Ink-Pulse y el uso activo de gadgets requieren sesión Playing y `timeScale > 0`. Un cómic puede detener el tiempo sin cambiar la sesión; por eso el estado Playing por sí solo no autoriza la habilidad. Los consumidores vacían la solicitud antes de comprobar disponibilidad, de modo que las órdenes bloqueadas no se reproducen al cerrar. El lector y el mapa Gameplay siguen activos para conservar la navegación contextual.
+
 `PlayerVerticalMovementPolicyTests` caracteriza la migración del primer consumidor: prioridad y consumo temporal del impulso de Jellyfish, reanudación del objetivo del jugador, movimiento sin overshoot, ausencia de movimiento sin objetivo y acumulación `max/max` de impulsos repetidos.
 
 El routing real de `InputSystemUIInputModule` + `GraphicRaycaster`, la sensación de control y el multitouch final se validan al montar el prefab y además en hardware real.

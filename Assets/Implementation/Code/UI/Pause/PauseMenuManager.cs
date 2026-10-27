@@ -37,10 +37,18 @@ public class PauseMenuManager : MonoBehaviour
     private Vector2[] originalPositions = new Vector2[0];
     private GameplayCommandInputBinding pauseInputBinding;
 
-    public bool CanTogglePauseNow => PauseMenuCommandPolicy.ResolveToggle(
-        session != null ? (GameSessionState?)session.CurrentState : null,
-        menuRoot != null,
-        isAnimating) != PauseMenuCommandAction.None;
+    public bool CanTogglePauseNow => ResolveToggleAction() != PauseMenuCommandAction.None;
+
+    private PauseMenuCommandAction ResolveToggleAction()
+    {
+        bool anotherContextOwnsInput = (optionsMenu != null && optionsMenu.IsOpen)
+            || InGameShopManager.BlocksInkPulseActivation
+            || (session != null && session.IsPlaying && Time.timeScale <= 0f);
+        return PauseMenuCommandPolicy.ResolveToggle(
+            session != null ? (GameSessionState?)session.CurrentState : null,
+            menuRoot != null,
+            isAnimating || anotherContextOwnsInput);
+    }
 
     private void Awake()
     {
@@ -99,10 +107,7 @@ public class PauseMenuManager : MonoBehaviour
 
     public void TogglePause()
     {
-        PauseMenuCommandAction action = PauseMenuCommandPolicy.ResolveToggle(
-            session != null ? (GameSessionState?)session.CurrentState : null,
-            menuRoot != null,
-            isAnimating);
+        PauseMenuCommandAction action = ResolveToggleAction();
 
         if (action == PauseMenuCommandAction.RequestPause)
         {
@@ -126,7 +131,7 @@ public class PauseMenuManager : MonoBehaviour
 
     public void Reanudar()
     {
-        if (session == null || !isPaused || isAnimating)
+        if (session == null || !isPaused || ResolveToggleAction() != PauseMenuCommandAction.RequestResume)
         {
             return;
         }
