@@ -225,7 +225,20 @@ El APK se actualizó mediante `adb install -r` en Redmi Pad Pro (Android 16). Pe
 
 Los otros consumidores del cómic están cubiertos por PlayMode y la matriz visual; no se visitaron físicamente en este pase. Sigue pendiente la compra por contacto natural con DealerFish dentro de la revisión integral de overlays, además de Abisopelágica física, orientación opuesta, Back, ciclo de vida y rendimiento sostenido.
 
-Artefactos locales en `Build/AndroidDevelopment` y `Build/WindowsRelease`, fuente `df74208` más el mismo `TimeManager.asset` entrante preservado. Evidencia ignorada `TestResults/comics-20261024-*` (EditMode/preview), `TestResults/comics-20261025-*` (gates finales/builds/tablet/Windows) y galería. Estas builds son de revisión; no se actualizan las releases publicadas.
+Artefactos preservados en `Build/AndroidReview/df74208` y `Build/WindowsReview/df74208`, fuente `df74208` más el mismo `TimeManager.asset` entrante preservado. Evidencia ignorada `TestResults/comics-20261024-*` (EditMode/preview), `TestResults/comics-20261025-*` (gates finales/builds/tablet/Windows) y galería. Estas builds son de revisión; no se actualizan las releases publicadas.
+
+### Exclusión entre overlays y gameplay — 27 de octubre de 2026
+
+Fuente `d27fe8c`. La pausa respeta el contexto de Opciones, tienda y cómic; una oferta no se abre capturando el tiempo detenido de otro overlay. Los cómics concurrentes conservan el callback del primero y la derrota espera su finalización. Game Over impide comprar desde ese mismo frame y cancela la carga de un portal pendiente. Ink-Pulse y gadgets activos exigen tiempo avanzando, además de sesión Playing; sus consumidores descartan las órdenes bloqueadas antes de volver al juego.
+
+- Baseline: tres cruces reproducidos antes de la corrección (P sobre tienda, P detrás de Opciones y reemplazo del callback de cómic). Una prueba posterior reprodujo Space activando Ink-Pulse durante un cómic. Los cuatro comportamientos quedaron corregidos.
+- PlayMode completo: `23/23`, `151,72 s`, sin fallos ni omitidas. El caso de dedo retenido/Space/gadget se volvió a comprobar con el binding Q real y un contador de recepción: `1/1`, `5,49 s`, ambas zonas. EditMode: `334/334`, `12,12 s`.
+- APK Development: `Succeeded`, `246,28 s`, `514.360.713 bytes`, `0 errores/2 advertencias`. SHA-256 `6AFDB9CC340E184CDE4D853907C4DF895898A5CC703AFDA5F8321DE592719A29`.
+- Windows `None`: `Succeeded`, `22,32 s`, `0 errores/2 advertencias`; smoke oculto de 15 s vivo/responsivo, sin coincidencias críticas. No certifica run interactiva ni tamaño efectivo de ventana. Ambos prebuilds aprobaron composición.
+
+El APK se instaló mediante `adb install -r` en Redmi Pad Pro, Android 16. Los tres archivos de perfil, records y catálogo conservaron sus hashes entre antes de instalar y después del primer arranque. Se revisaron el cómic inicial, movimiento y dos derrotas naturales con Game Over/reintento; el log del proceso registró `0` coincidencias críticas. No se forzó estado, moneda ni spawn. La compra por contacto con DealerFish sigue pendiente de confirmación física; estas runs no alcanzaron al vendedor.
+
+Las escenas, prefabs y geometría no cambiaron: se conserva como evidencia visual la matriz anterior de 80 cómics, sin atribuirle una exportación nueva. Artefactos actuales en `Build/AndroidDevelopment` y `Build/WindowsRelease`, fuente `d27fe8c` más el mismo `TimeManager.asset` entrante, byte por byte preservado. Evidencia local ignorada `TestResults/overlay-exclusion-20261027-*`. Builds de revisión, sin publicación de una release nueva. Siguen pendientes orientación opuesta, Back, ciclo de vida y rendimiento sostenido.
 
 ## Capturar logs
 
