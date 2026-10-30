@@ -1,8 +1,36 @@
+<div align="center">
+
+<img src="Assets/Content/Art/UI/MainMenu/LogoHDCurved.png" alt="Identidad visual de Squid Ink-Pulse" width="330" />
+
 # Squid Ink-Pulse
+
+**Acércate al peligro. Carga Ink-Pulse. Sobrevive una run más.**
+
+[![Estado: Windows estable](https://img.shields.io/badge/Estado-Windows%20estable-255A89?style=flat-square&labelColor=263244)](#sobre-el-proyecto) [![Plataforma: Windows / Android beta](https://img.shields.io/badge/Plataforma-Windows%20%2F%20Android%20beta-386B8F?style=flat-square&labelColor=263244)](#usar-o-descargar) [![Licencia: Pendiente del equipo](https://img.shields.io/badge/Licencia-Pendiente%20del%20equipo-596273?style=flat-square&labelColor=263244)](LICENSING.md)
+
+[![Unity 6](https://img.shields.io/badge/Unity%206-20232A?style=for-the-badge&logo=unity&logoColor=FFFFFF)](#tecnologías) [![C#](https://img.shields.io/badge/C%23-603B9B?style=for-the-badge)](#tecnologías) [![URP](https://img.shields.io/badge/URP-455A64?style=for-the-badge&logo=unity&logoColor=FFFFFF)](#tecnologías) [![Input System](https://img.shields.io/badge/Input%20System-374151?style=for-the-badge)](#tecnologías)
+
+[Releases y descargas](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases) · [Documentación](Docs/README.md) · [Arquitectura](Docs/01-arquitectura-general.md) · [Inicio rápido](#ejecutar-desde-el-código)
+
+</div>
+
+---
+
+## Sobre el proyecto
 
 Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un calamar que esquiva amenazas, recoge camarones y se acerca al peligro para cargar Ink-Pulse; incluye zonas, jefes, tiendas y progreso local.
 
 **Estado:** Windows 1.0.0 estable y Android 1.0.0 beta 1 disponibles. El port móvil continúa en desarrollo. El juego base es local; el servidor de feria es opcional.
+
+## Tecnologías
+
+| Área                   | Tecnologías y responsabilidad                                      |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Motor y gameplay**   | Unity 6000.3.11f1, C#, URP 2D y Unity Input System.                |
+| **Progreso**           | Semillas JSON en Resources y guardado local en persistentDataPath. |
+| **Extensión de feria** | Servidor local opcional con Python y SQLite para leaderboard LAN.  |
+
+> **Enfoque técnico:** Juego base sin servidor obligatorio; port móvil y feria con alcance separado.
 
 ## Usar o descargar
 
