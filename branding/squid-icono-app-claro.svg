@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071226"/><stop offset=".50" stop-color="#0a1b3e"/><stop offset="1" stop-color="#071d4e"/></linearGradient>
+ <linearGradient id="bgLight" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4fbff"/><stop offset=".5" stop-color="#dbeafb"/><stop offset="1" stop-color="#c8d9f5"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#327ddf" stop-opacity=".78"/><stop offset=".48" stop-color="#184ab0" stop-opacity=".23"/><stop offset="1" stop-color="#0c1b4b" stop-opacity="0"/></radialGradient>
+ <radialGradient id="inkBlob"><stop stop-color="#153fbb"/><stop offset=".68" stop-color="#0d3189"/><stop offset="1" stop-color="#091b59"/></radialGradient>
+ <linearGradient id="inkLight" x1=".1" y1="0" x2=".8" y2="1"><stop stop-color="#3d8cf5"/><stop offset=".48" stop-color="#1451be"/><stop offset="1" stop-color="#09174f"/></linearGradient>
+ <linearGradient id="squidBody" x1="0" x2=".75" y1="0" y2="1"><stop stop-color="#ffe8e3"/><stop offset=".35" stop-color="#ffc7d3"/><stop offset=".77" stop-color="#ff9eb9"/><stop offset="1" stop-color="#f87fa9"/></linearGradient>
+ <linearGradient id="squidArm" x1="0" x2=".7" y1="0" y2="1"><stop stop-color="#ffd5d9"/><stop offset="1" stop-color="#f582ab"/></linearGradient>
+ <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#87f8f7"/><stop offset=".45" stop-color="#60b0ff"/><stop offset="1" stop-color="#eba9ff"/></linearGradient>
+ <radialGradient id="seaGlow"><stop stop-color="#6cdbfd" stop-opacity=".38"/><stop offset="1" stop-color="#6cdbfd" stop-opacity="0"/></radialGradient>
+ <pattern id="bubbles" width="150" height="146" patternUnits="userSpaceOnUse"><circle cx="30" cy="38" r="3" fill="#9fdbfa" opacity=".17"/><circle cx="120" cy="100" r="2" fill="#9fdbfa" opacity=".28"/></pattern>
+</defs><rect width="1024" height="1024" rx="227" fill="url(#bgLight)"/>
+ <circle cx="512" cy="488" r="449" fill="url(#halo)"/>
+ <circle cx="511" cy="492" r="392" fill="none" stroke="#52c8ff" stroke-width="8" stroke-opacity=".20" stroke-dasharray="6 25"/>
+ <circle cx="512" cy="494" r="339" fill="none" stroke="#80f3f5" stroke-width="8" stroke-opacity=".50" stroke-dasharray="227 48 70 95" transform="rotate(-29 512 494)"/>
+ <circle cx="512" cy="494" r="297" fill="none" stroke="#a9eeff" stroke-width="4" stroke-opacity=".32" stroke-dasharray="122 32 45 120" transform="rotate(41 512 494)"/>
+ <path d="M215 421 C134 388 129 309 184 287 C243 265 272 332 314 310 C339 294 311 210 379 181 C438 156 467 219 512 199 C570 175 585 120 655 171 C699 201 675 265 714 298 C751 326 806 281 844 329 C880 374 848 416 807 453 C768 489 843 538 838 600 C833 655 753 658 737 716 C727 749 768 804 717 836 C663 867 623 812 581 826 C542 840 531 892 475 871 C424 852 433 802 379 794 C333 787 301 839 251 808 C188 769 242 693 199 655 C166 625 105 632 112 558 C118 504 191 476 215 421Z" fill="url(#inkBlob)" stroke="#07123e" stroke-width="18" stroke-linejoin="round"/>
+ <path d="M207 387 Q169 329 208 305 C237 293 267 348 304 330 M658 183 Q698 207 692 258 M803 339 Q831 364 806 395 M730 787 Q688 821 655 787" fill="none" stroke="#6fbdff" stroke-opacity=".57" stroke-width="16" stroke-linecap="round"/>
+ <path d="M239 521 C253 541 265 556 288 560 M744 570 Q773 593 748 614" fill="none" stroke="#69b7ff" stroke-width="10" stroke-opacity=".5" stroke-linecap="round"/>
+ <circle cx="156" cy="214" r="25" fill="#2c58b3" stroke="#0c1d63" stroke-width="8"/><circle cx="801" cy="214" r="22" fill="#2d5abb" stroke="#0c1d63" stroke-width="6"/><circle cx="843" cy="758" r="17" fill="#366ed0" stroke="#0c1d63" stroke-width="5"/>
+ <circle cx="169" cy="206" r="9" fill="#9beaff"/><circle cx="797" cy="207" r="7" fill="#9beaff"/>
+ <!-- Soft ink energy bursts, vector -->
+ <path d="M175 465 L214 465 M805 518 L844 518 M470 148 L470 122 M568 841 L568 874" stroke="#7cecf6" stroke-opacity=".74" stroke-width="12" stroke-linecap="round"/>
+ <!-- Four curled tentacles; blue ink outline below coral -->
+ <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M441 482 C422 544 364 549 337 599 C300 667 343 736 387 717 C419 703 418 663 386 669" stroke="#08123f" stroke-width="73"/>
+ <path d="M441 482 C422 544 364 549 337 599 C300 667 343 736 387 717 C419 703 418 663 386 669" stroke="url(#squidArm)" stroke-width="54"/>
+ <path d="M480 496 C470 561 459 610 476 674 C484 705 509 731 540 716" stroke="#08123f" stroke-width="68"/>
+ <path d="M480 496 C470 561 459 610 476 674 C484 705 509 731 540 716" stroke="url(#squidArm)" stroke-width="49"/>
+ <path d="M547 494 C565 549 572 597 561 654 C550 711 588 733 620 707" stroke="#08123f" stroke-width="69"/>
+ <path d="M547 494 C565 549 572 597 561 654 C550 711 588 733 620 707" stroke="url(#squidArm)" stroke-width="50"/>
+ <path d="M585 484 C612 546 666 545 689 601 C715 660 687 718 653 698 C634 686 643 670 668 671" stroke="#08123f" stroke-width="74"/>
+ <path d="M585 484 C612 546 666 545 689 601 C715 660 687 718 653 698 C634 686 643 670 668 671" stroke="url(#squidArm)" stroke-width="55"/>
+ </g>
+ <!-- Little squid side fins -->
+ <path d="M417 371 Q355 339 372 445 L425 465Z" fill="#ff9fb5" stroke="#071443" stroke-width="19" stroke-linejoin="round"/>
+ <path d="M605 370 Q663 339 650 449 L600 463Z" fill="#ff9fb5" stroke="#071443" stroke-width="19" stroke-linejoin="round"/>
+ <!-- Mantle and face -->
+ <path d="M502 214 Q513 203 523 213 C592 270 628 343 627 409 C629 469 586 513 514 517 C440 515 394 469 398 409 C401 341 443 269 502 214Z" fill="url(#squidBody)" stroke="#071443" stroke-width="23" stroke-linejoin="round"/>
+ <path d="M495 252 C449 304 430 350 430 402" fill="none" stroke="#fff3ed" stroke-width="17" stroke-linecap="round" stroke-opacity=".82"/>
+ <path d="M541 237 Q601 316 602 390" fill="none" stroke="#ee789f" stroke-width="10" stroke-linecap="round" stroke-opacity=".42"/>
+ <ellipse cx="467" cy="413" rx="32" ry="42" fill="#10204e"/><ellipse cx="555" cy="413" rx="32" ry="42" fill="#10204e"/>
+ <ellipse cx="460" cy="400" rx="12" ry="16" fill="#ffffff"/><ellipse cx="548" cy="400" rx="12" ry="16" fill="#ffffff"/>
+ <circle cx="445" cy="454" r="19" fill="#ef6598" opacity=".45"/><circle cx="581" cy="454" r="19" fill="#ef6598" opacity=".45"/>
+ <path d="M499 470 Q512 485 527 470" fill="none" stroke="#8c315e" stroke-width="9" stroke-linecap="round"/>
+ <!-- Energy bulb above squid -->
+ <path d="M516 114 L529 146 L561 159 L529 172 L516 203 L502 172 L470 159 L502 146Z" fill="#aafaf8" opacity=".96"/>
+ <rect x="27" y="27" width="970" height="970" rx="202" fill="none" stroke="#85baf2" stroke-opacity=".25" stroke-width="5"/></svg>

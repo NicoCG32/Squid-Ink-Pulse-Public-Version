@@ -25,3 +25,13 @@ Son criterios de revisión, no certificaciones de accesibilidad ya obtenidas. La
 
 [README.md](../README.md) · [Docs/README.md](README.md) · [Docs/SoftwareArchitecture.md](SoftwareArchitecture.md) · [Docs/CoreSystems.md](CoreSystems.md) · [Docs/GameplaySystems.md](GameplaySystems.md) · [Docs/Testing.md](Testing.md) · [Docs/AndroidBuild.md](AndroidBuild.md).
 <!-- DOCUMENTACION:nivel-2026-10-29:END -->
+
+<!-- IDENTIDAD:2026-10-30 -->
+
+## Recursos de identidad y distribución
+
+[Catálogo de originales y variantes](../branding/README.md) · [Manifest de identidad](../branding/manifest.json).
+
+El menú principal utiliza el lettering del pack como Sprite, conservando proporción. ProjectSettings guarda el icono de aplicación para los siguientes builds. No se sustituyen sprites de gameplay ni audio; Matías conserva los créditos y la titularidad declarada. Las releases históricas mantienen sus binarios.
+
+Los banners de presentación se seleccionan por tema en el README. Las aplicaciones incorporan sólo los recursos necesarios, con dimensiones/proporción estables; las variantes y originales permanecen en branding. La identidad visual no amplía funcionalidades ni cambia las condiciones de uso.

@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="Assets/Content/Art/UI/MainMenu/LogoHDCurved.png" alt="Identidad visual de Squid Ink-Pulse" width="330" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="branding/squid-banner-oscuro.png" />
+  <img src="branding/squid-banner-claro.png" alt="Identidad visual de Squid Ink Pulse" width="100%" />
+</picture>
 
 # Squid Ink-Pulse
 
@@ -56,6 +59,8 @@ Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un
 | Técnica             | [Arquitectura y diagramas](Docs/01-arquitectura-general.md) · [Dominio y datos](Docs/04-base-de-datos.md)                                                                        |
 | Desarrollo          | [Etapas y metodología](Docs/17-desarrollo-y-metodologia.md) · [Proyección](Docs/15-escalabilidad-y-nuevos-mercados.md) · [Costos CLP/USD](Docs/18-analisis-economico-clp-usd.md) |
 | Académica/formativa | [Contexto e informes originales](Docs/academica/README.md)                                                                                                                       |
+
+[Identidad visual](branding/README.md): logos, banners y variantes de aplicación.
 
 ## Licencia y créditos
 

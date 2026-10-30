@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "project": "Squid Ink Pulse",
+  "bannerLight": "squid-banner-claro.png",
+  "bannerDark": "squid-banner-oscuro.png",
+  "resources": [
+    "apple-touch-icon.png",
+    "favicon.png",
+    "icon-192.png",
+    "icon-512.png",
+    "squid-banner-claro.png",
+    "squid-banner-claro.svg",
+    "squid-banner-oscuro.png",
+    "squid-banner-oscuro.svg",
+    "squid-icono-app-claro.png",
+    "squid-icono-app-claro.svg",
+    "squid-icono-app-oscuro.png",
+    "squid-icono-app-oscuro.svg",
+    "squid-identidad-cuadrada.png",
+    "squid-identidad-cuadrada.svg",
+    "squid-isotipo-transparente.png",
+    "squid-isotipo-transparente.svg",
+    "squid-logo-alta-resolucion.png",
+    "squid-logo-horizontal-transparente.png",
+    "squid-logo-horizontal-transparente.svg",
+    "squid-logo-original-limpio.png"
+  ]
+}
