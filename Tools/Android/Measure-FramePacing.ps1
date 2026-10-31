@@ -94,8 +94,10 @@ $memoryAfter | Set-Content -LiteralPath (Join-Path $output ($Label+'-memory-afte
 $summary=[ordered]@{
     Label=$Label;SourceCommit=$SourceCommit;ApkSha256=$apkHash;InstalledApkHashVerified=$true
     Configuration=$Configuration;Model=$model;StartedUtc=$started.ToString('o');RequestedSeconds=$Seconds;ElapsedSeconds=$elapsed
+    MeasurementScriptSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
     Layer=($selected -split "`n")[0];SurfaceFrameRateVote=(Read-Number $selected 'frameRate');AverageFps=(Read-Number $selected 'averageFPS')
     PresentedHistogramCount=$sampleCount;P50PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.50)
+    CountOverWallTimeFpsApprox=[Math]::Round($sampleCount/$elapsed,2)
     P95PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.95);P99PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.99)
     FramesInBucketsAtLeast34ms=(($buckets | Where-Object Ms -ge 34 | Measure-Object Count -Sum).Sum)
     DroppedFramesReported=(Read-Number $selected 'droppedFrames');JankyFramesReported=(Read-Number $selected 'jankyFrames')
@@ -103,7 +105,7 @@ $summary=[ordered]@{
     PssBeforeKiB=(Read-Pss $memoryBefore);PssAfterKiB=(Read-Pss $memoryAfter)
     ThermalStatusBefore=$thermalBefore;ThermalStatusAfter=$thermalAfter
     CpuGpuFrameTimesMs=$null;GcAllocations=$null
-    Limitations='Presented-frame histogram, quantized bucket percentiles. Scenario is caller-labelled; review screenshots. No script/GPU execution times, GC attribution or thermal endurance certification.'
+    Limitations='SurfaceFlinger averageFPS and percentiles may derive from millisecond histogram buckets (e.g. 16ms -> 62.5). Count/wall-time FPS is approximate and includes command latency. Scenario is caller-labelled; review screenshots. No script/GPU execution times, GC attribution or thermal endurance certification.'
 }
 $summary | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $output ($Label+'.json')) -Encoding utf8
-[pscustomobject]$summary | Select-Object Label,AverageFps,P95PresentIntervalBucketMs,P99PresentIntervalBucketMs,PresentedHistogramCount,PssAfterKiB
+[pscustomobject]$summary | Select-Object Label,SurfaceFrameRateVote,AverageFps,CountOverWallTimeFpsApprox,P95PresentIntervalBucketMs,P99PresentIntervalBucketMs,PresentedHistogramCount,PssAfterKiB

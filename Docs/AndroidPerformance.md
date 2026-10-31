@@ -76,6 +76,8 @@ El escenario es una etiqueta del operador, no una detección automática de esce
 
 SurfaceFlinger mide intervalos entre imágenes presentadas, según el procedimiento de [Android para sesiones lentas](https://developer.android.com/topic/performance/issues/slow-session). Los percentiles del script son **buckets cuantizados**, no tiempos exactos de ejecución. Un bucket de 17 ms es normal al presentar cerca de 60 FPS; no debe contarse automáticamente como un incumplimiento de 16,67 ms.
 
+`averageFPS` puede reflejar esa cuantización: 1000/16 da 62,5 aunque el player esté presentando aproximadamente 60 FPS. Se conserva el valor reportado y se añade una estimación por número de intervalos/tiempo de pared; esta última incluye latencia de comandos. Interpretar ambos junto con el voto de frecuencia y el histograma, sin afirmar precisión submilisegundo.
+
 Los tiempos de CPU/GPU por frame y las asignaciones de GC quedan `null` porque esta herramienta no los atribuye. Usar Unity Profiler o una traza de sistema para investigar esas causas. PSS es memoria del proceso, no el tamaño del APK ni una medición exclusiva de VRAM. El estado térmico global no sustituye una captura sostenida ni identifica por sí solo una causa de throttling.
 
 Comparar primero el ritmo de presentación. Si, con un objetivo de 60, persisten caídas o picos, medir CPU/GPU, cargas y memoria antes de cambiar resolución, HDR, texturas, audio o spawns.
