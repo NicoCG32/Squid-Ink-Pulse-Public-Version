@@ -2,7 +2,7 @@
 
 ## Estado
 
-El proyecto dispone de un comando reproducible para generar un APK Development. La compilación, inspección estática, instalación y apertura de `MainMenu` están verificadas en un teléfono Android ARM64 mediante ADB.
+El proyecto dispone de comandos para generar un APK Development o un APK sin Development. La compilación, inspección estática, instalación y apertura de `MainMenu` están verificadas en Android ARM64 mediante ADB. Los canales y artefactos publicados se describen en [Distribución](Distribution.md).
 
 Abrir el juego en Editor no sustituye esta prueba. La puerta de bootstrap Android sólo se cierra cuando el APK generado se instala y abre en Android sin un crash bloqueante.
 
@@ -47,7 +47,7 @@ El argumento `-buildTarget Android` es obligatorio en batch. El proceso devuelve
 
 ## Salida
 
-El builder es propietario de esta carpeta y la limpia antes de cada ejecución:
+El builder Development es propietario de esta carpeta y la limpia antes de cada ejecución:
 
 ```text
 Build/AndroidDevelopment/SquidInkPulse-development.apk
@@ -55,7 +55,13 @@ Build/AndroidDevelopment/SquidInkPulse-development.apk
 
 `Build/` y `*.apk` están ignorados por Git. No se deben agregar binarios Android al repositorio.
 
-El APK siempre se solicita con `BuildOptions.Development` y `AllowDebugging`; no es una candidata firmada para publicación. El postprocesador de feria se limita a Windows y no genera guías `.exe` ni scripts junto al APK.
+Este comando solicita `BuildOptions.Development` y `AllowDebugging`; no genera una candidata con firma de distribución. El postprocesador de feria se limita a Windows y no genera guías `.exe` ni scripts junto al APK.
+
+### APK sin Development
+
+Usar `Tools > Squid Ink Pulse > Build Android Performance APK (No Development)` o el método batch `AndroidDevelopmentBuilder.BuildAndroidPerformanceApk`, manteniendo `-buildTarget Android`. Genera `Build/AndroidPerformance/SquidInkPulse-performance.apk` con `BuildOptions.None` y rechaza una salida no vacía para conservar los artefactos previos. Comparte las cuatro escenas y la validación de composición del builder Development.
+
+Esta modalidad permite medir y distribuir una beta sin el coste de Development; no configura por sí sola firma de distribución. Registrar commit, versionCode, certificado y checksum antes de publicar. Véase [comparación de rendimiento](AndroidPerformance.md) y [canal Android beta](Distribution.md#android-beta).
 
 ## Verificar ADB
 

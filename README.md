@@ -23,7 +23,7 @@
 
 Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un calamar que esquiva amenazas, recoge camarones y se acerca al peligro para cargar Ink-Pulse; incluye zonas, jefes, tiendas y progreso local.
 
-**Estado:** Windows 1.0.0 estable y Android 1.0.0 beta 1 disponibles. El port móvil continúa en desarrollo. El juego base es local; el servidor de feria es opcional.
+**Estado:** Windows 1.0.0 estable y Android 1.0.0 beta 2 disponibles. El port móvil continúa en desarrollo. El juego base es local; el servidor de feria es opcional.
 
 ## Tecnologías
 
@@ -38,7 +38,7 @@ Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un
 ## Usar o descargar
 
 - [Windows estable: ZIP completo](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.0): descomprime todo y abre `JUGAR.cmd`.
-- [Android beta: APK ARM64 Development](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.0-beta.1): consulta requisitos y SHA-256 antes de instalar.
+- [Android beta 2: APK ARM64 sin Development](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.0-beta.2): objetivo de 60 FPS; consulta requisitos, límites y SHA-256 antes de instalar.
 - [Instalación, controles y límites de ambas entregas](Docs/Distribution.md). Los ZIP automáticos de código fuente no son el juego compilado.
 
 ## Ejecutar desde el código

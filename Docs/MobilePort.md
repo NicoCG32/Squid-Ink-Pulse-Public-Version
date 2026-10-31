@@ -182,7 +182,7 @@ La salida distingue `INFO`, `WARNING` y `ERROR`. En menú, los errores se inform
 
 ## Build de desarrollo Android
 
-`AndroidDevelopmentBuilder` genera un APK Development reproducible desde menú o batch, valida Android Build Support y las escenas obligatorias, confina la salida bajo `Build/` y registra versión de Unity, commit, target, escenas, duración, resultado y tamaño.
+`AndroidDevelopmentBuilder` genera un APK Development o un APK Performance con `BuildOptions.None` desde menú o batch, valida Android Build Support y las escenas obligatorias, confina la salida bajo `Build/` y registra versión de Unity, commit, target, escenas, duración, resultado y tamaño. La salida Performance rechaza una carpeta no vacía. La modalidad y la firma deben registrarse por separado; véanse [build Android](AndroidBuild.md) y [rendimiento](AndroidPerformance.md).
 
 El comando completo, la instalación mediante ADB, la captura de logcat y la evidencia del primer artefacto se mantienen en [AndroidBuild.md](AndroidBuild.md). Una compilación correcta no equivale a un arranque aceptado: la puerta de bootstrap exige instalar el mismo APK y observar `MainMenu` en Android.
 

@@ -22,7 +22,7 @@ En batch, desde la raíz del proyecto:
   -logFile TestResults/android-performance-build.log
 ```
 
-La salida es `Build/AndroidPerformance/SquidInkPulse-performance.apk`. El builder rechaza una salida no vacía: conservarla antes de repetir. Usa las cuatro escenas canónicas y el mismo prebuild de composición del APK Development. Sin una configuración de firma de distribución, continúa siendo un artefacto local firmado con el certificado de desarrollo; no equivale a una candidata publicada.
+La salida es `Build/AndroidPerformance/SquidInkPulse-performance.apk`. El builder rechaza una salida no vacía: conservarla antes de repetir. Usa las cuatro escenas canónicas y el mismo prebuild de composición del APK Development. Sin una configuración de firma de distribución, continúa firmado con el certificado de desarrollo; puede distribuirse como beta tras su validación, pero no equivale a una candidata estable. Consultar [canales y procedencia](Distribution.md#android-beta).
 
 Instalar mediante `adb install -r`, conservando los datos. Registrar el commit, checksum y las opciones de build del artefacto. La medición externa no necesita que el player sea debuggable; para atribuir costes de scripts con Unity Profiler, utilizar un APK Development de la misma revisión y registrar esa diferencia.
 
