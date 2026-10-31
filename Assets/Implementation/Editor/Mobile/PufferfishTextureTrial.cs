@@ -89,7 +89,7 @@ public static class PufferfishTextureTrial
 
     private static string SpriteContract(string path)
     {
-        // Compare serialized sprite definitions, GUID, and default/Standalone settings, excluding only Android overrides.
+        // Compare sprite layout/identity and default/Standalone settings across the Android-only format change.
         var importer = (TextureImporter)AssetImporter.GetAtPath(path);
         var parts = new List<string>
         {

@@ -74,6 +74,10 @@ La enumeración y la lectura GPU perturban los tiempos: excluir esas capturas de
 
 El ensayo `PufferfishTextureTrial.Probe` prueba ASTC 4×4 en una textura de PezGlobo y restaura su importador. `PufferfishTextureTrial.Apply` limita el cambio a las 47 texturas de esa familia en Android, sin reducir resolución; comprueba GUID, geometría de sprites, fuentes y ajustes default/Standalone. Su resultado es un ensayo, no aceptación visual ni mejora de FPS. Validar soporte nativo y memoria antes/después; [Unity documenta el fallback RGBA32 en dispositivos sin ASTC](https://docs.unity.com/en-us/engine/6000.3/manual/materials-and-shaders/textures/textures-getting-started/texture-compression-formats/texture-choose-format-by-platform).
 
+La configuración Android actual aplica ASTC 4×4 a esa familia, conservando 1440×1390 píxeles y los originales. En una comparación controlada de dos players Development en Redmi Pad Pro (Adreno 710/Vulkan), las mismas 47 texturas cargadas pasaron de RGBA32 a ASTC 4×4: Unity informó 369,42 frente a 92,93 MiB de memoria nativa. El contenido serializado de esa familia pasó de 359,31 a 90,28 MiB. Estos valores no son PSS del proceso ni residencia física en VRAM, y no prueban una mejora de FPS. La comparación de un frame representativo por GPU conservó la silueta; no certifica toda la animación ni sustituye la revisión en teléfonos.
+
+Para exportar también el BuildReport de una build sin Development, pasar `--sip-audit-label <etiqueta-unica> --sip-audit-source-commit <sha>` al comando batch `AndroidDevelopmentBuilder.BuildAndroidPerformanceApk`.
+
 `Tools/Android/Measure-FramePacing.ps1` requiere PowerShell 7, ADB y un único dispositivo autorizado. Desde la raíz:
 
 ```powershell

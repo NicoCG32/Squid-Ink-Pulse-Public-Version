@@ -25,6 +25,8 @@ public static class AndroidDevelopmentBuilder
     public static void BuildAndroidPerformanceApk()
     {
         BuildApk("Build/AndroidPerformance/SquidInkPulse-performance.apk", BuildOptions.None, "Performance");
+        if (Environment.GetCommandLineArgs().Contains("--sip-audit-label"))
+            AndroidResourceAuditExporter.ExportLatest();
     }
 
     [MenuItem("Tools/Squid Ink Pulse/Build Android Texture Audit APK")]
