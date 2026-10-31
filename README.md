@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="branding/squid-banner-oscuro.png" />
-  <img src="branding/squid-banner-claro.png" alt="Identidad visual de Squid Ink Pulse" width="100%" />
+  <source media="(prefers-color-scheme: dark)" srcset="branding/banners/squid-banner-oscuro.png" />
+  <img src="branding/banners/squid-banner-claro.png" alt="Identidad visual de Squid Ink Pulse" width="100%" />
 </picture>
 
 # Squid Ink-Pulse

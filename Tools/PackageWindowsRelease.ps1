@@ -78,7 +78,7 @@ https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases
 '@
 [IO.File]::WriteAllText((Join-Path $payload 'LEEME.txt'), $guide, [Text.UTF8Encoding]::new($false))
 Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSING.md') -Destination (Join-Path $payload 'LICENSING.md')
-Copy-Item -LiteralPath (Join-Path $projectRoot 'branding/squid-banner-claro.png') -Destination (Join-Path $payload 'IDENTIDAD.png')
+Copy-Item -LiteralPath (Join-Path $projectRoot 'branding/banners/squid-banner-claro.png') -Destination (Join-Path $payload 'IDENTIDAD.png')
 $source = (& git -C $projectRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot identify source commit.' }
 [ordered]@{ sourceCommit=$source; unity=$buildInfo.unity; target=$buildInfo.target;
