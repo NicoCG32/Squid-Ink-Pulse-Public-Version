@@ -1,14 +1,6 @@
 # 01 — Arquitectura por niveles
 
-<!-- DOCUMENTACION:nivel-2026-10-29:BEGIN -->
-
-**Nivel:** técnica.
-
 ## Arquitectura del sistema por niveles
-
-Revisión documental: 2026-10-29. Base `3feadba8f146` en `mobile/07-run-overlays`; 1 entradas de cambios locales conservadas al iniciar la revisión. La inspección de fuentes no sustituye pruebas de ejecución.
-
-**Estado y alcance:** Juego base Windows cerrado y jugable según documentación, con port móvil en evolución. ReleaseSource conserva Windows estable y APK Android beta Development; la rama mobile/07-run-overlays es más avanzada y tiene trabajo local conservado.
 
 ### Nivel 1 — Contexto y fronteras de ejecución
 
@@ -40,7 +32,7 @@ Endless runner 2D submarino: el graze carga Ink-Pulse y abre una ventaja tempora
 | Contenido  | Escenas, prefabs y recursos    | [Assets/Content](../Assets/Content)                                                                                                             |
 | Feria      | Servidor local opcional        | [Tools/FairServer](../Tools/FairServer)                                                                                                         |
 
-Las flechas del contexto representan comunicación/flujo. No se deduce una dependencia de código o transacción compartida sólo porque dos componentes intercambien datos.
+Las flechas muestran el flujo de información entre componentes. Las transacciones y dependencias de código se detallan en los contratos de cada módulo.
 
 ### Nivel 3 — Dominio, contratos y adaptadores
 
@@ -50,7 +42,7 @@ Datos iniciales en Resources/PersistentDbSeeds y progreso en Application.persist
 - Estado temporal de run, catálogo y progreso permanente tienen dueños distintos.
 - Los portales conservan el contrato de sesión al cambiar de zona.
 
-Consultar [04-base-de-datos.md](04-base-de-datos.md) para entidades, cardinalidades y representación; [05-motor-o-nucleo-de-negocio.md](05-motor-o-nucleo-de-negocio.md) para invariantes. En un prototipo, las piezas rotuladas propuestas no son clases implementadas.
+Consultar [04-base-de-datos.md](04-base-de-datos.md) para entidades, cardinalidades y representación; [05-motor-o-nucleo-de-negocio.md](05-motor-o-nucleo-de-negocio.md) para invariantes. Las piezas marcadas como propuestas pertenecen al diseño del prototipo.
 
 ### Nivel 4 — Despliegue y distribución
 
@@ -64,7 +56,7 @@ Consultar [04-base-de-datos.md](04-base-de-datos.md) para entidades, cardinalida
                                                           [Usuario y sus datos]
 ```
 
-La persistencia y los servicios del contexto anterior conservan sus propias fronteras. Distribuir un APK no incorpora automáticamente el servidor, una PWA no acredita un instalador y el firmware requiere dispositivo. El capítulo [09-instalacion-y-despliegue.md](09-instalacion-y-despliegue.md) concreta la puesta en marcha.
+Para Windows, distribuye el ZIP completo, con el ejecutable y sus dependencias. Android utiliza un APK independiente; consulta su canal beta y los requisitos de instalación. Conserva la compatibilidad del perfil local al actualizar. El capítulo [09-instalacion-y-despliegue.md](09-instalacion-y-despliegue.md) concreta la puesta en marcha.
 
 ### Calidad y límites arquitectónicos
 
@@ -73,9 +65,8 @@ La persistencia y los servicios del contexto anterior conservan sus propias fron
 - Memoria, rendimiento y suspensión móvil
 - Derechos de recursos de equipo y mezcla entre rama de desarrollo/release
 
-No se publican garantías de latencia, disponibilidad o escala sin medición para la revisión/entorno concretos. Un diagrama explica responsabilidades; no es una certificación de ejecución o seguridad del servicio desplegado.
+El rendimiento y la capacidad dependen del entorno de ejecución. Consulta las guías de instalación y las limitaciones de cada plataforma antes de desplegar.
 
-## Fuentes de implementación y contratos
+## Código y documentación relacionada
 
 [README.md](../README.md) · [Docs/README.md](README.md) · [Docs/SoftwareArchitecture.md](SoftwareArchitecture.md) · [Docs/CoreSystems.md](CoreSystems.md) · [Docs/GameplaySystems.md](GameplaySystems.md) · [Docs/Testing.md](Testing.md) · [Docs/AndroidBuild.md](AndroidBuild.md).
-<!-- DOCUMENTACION:nivel-2026-10-29:END -->

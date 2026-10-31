@@ -1,14 +1,6 @@
 # 15 — Justificación, proyección y escalabilidad
 
-<!-- DOCUMENTACION:nivel-2026-10-29:BEGIN -->
-
-**Nivel:** desarrollo del proyecto.
-
 ## Justificación y proyección
-
-Revisión documental: 2026-10-29. Base `3feadba8f146` en `mobile/07-run-overlays`; 1 entradas de cambios locales conservadas al iniciar la revisión. La inspección de fuentes no sustituye pruebas de ejecución.
-
-**Estado y alcance:** Juego base Windows cerrado y jugable según documentación, con port móvil en evolución. ReleaseSource conserva Windows estable y APK Android beta Development; la rama mobile/07-run-overlays es más avanzada y tiene trabajo local conservado.
 
 ### Ajuste entre problema y solución
 
@@ -24,14 +16,12 @@ Jugabilidad completa, comprensión de Ink-Pulse, estabilidad de perfil y rendimi
 
 Las entidades, reglas y fronteras de [04-base-de-datos.md](04-base-de-datos.md) permiten evaluar reutilización. Cambiar un nombre o una categoría no prueba compatibilidad con otro sector: datos, permisos, reglas, operación y costos deben validarse de nuevo.
 
-### Extensiones de contexto: hipótesis, no mercados validados
+### Posibles líneas de evolución
 
 - Distribución independiente de juego 2D
 - Eventos y muestras académicas
 - Otros escenarios con mecánica riesgo/recompensa
 - Experiencias móviles de sesiones cortas
-
-No se atribuyen clientes, ventas, demanda ni superioridad sobre competidores sin evidencia. La primera validación consiste en una necesidad concreta, un flujo útil y disposición real a adoptarlo. Para juegos, el valor inicial es una experiencia disfrutable, no ahorro de horas ni una promesa educativa no ensayada.
 
 ### Límites y trade-offs
 
@@ -50,7 +40,6 @@ No se atribuyen clientes, ventas, demanda ni superioridad sobre competidores sin
 
 Las cifras CLP/USD, supuestos, sensibilidad y retorno se presentan en [18-analisis-economico-clp-usd.md](18-analisis-economico-clp-usd.md); no son una valoración comercial del repositorio.
 
-## Fuentes de implementación y contratos
+## Código y documentación relacionada
 
 [README.md](../README.md) · [Docs/README.md](README.md) · [Docs/SoftwareArchitecture.md](SoftwareArchitecture.md) · [Docs/CoreSystems.md](CoreSystems.md) · [Docs/GameplaySystems.md](GameplaySystems.md) · [Docs/Testing.md](Testing.md) · [Docs/AndroidBuild.md](AndroidBuild.md).
-<!-- DOCUMENTACION:nivel-2026-10-29:END -->
