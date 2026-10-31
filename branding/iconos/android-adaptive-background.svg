@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071226"/><stop offset=".50" stop-color="#0a1b3e"/><stop offset="1" stop-color="#071d4e"/></linearGradient>
+ <linearGradient id="bgLight" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4fbff"/><stop offset=".5" stop-color="#dbeafb"/><stop offset="1" stop-color="#c8d9f5"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#327ddf" stop-opacity=".78"/><stop offset=".48" stop-color="#184ab0" stop-opacity=".23"/><stop offset="1" stop-color="#0c1b4b" stop-opacity="0"/></radialGradient>
+ <radialGradient id="inkBlob"><stop stop-color="#153fbb"/><stop offset=".68" stop-color="#0d3189"/><stop offset="1" stop-color="#091b59"/></radialGradient>
+ <linearGradient id="inkLight" x1=".1" y1="0" x2=".8" y2="1"><stop stop-color="#3d8cf5"/><stop offset=".48" stop-color="#1451be"/><stop offset="1" stop-color="#09174f"/></linearGradient>
+ <linearGradient id="squidBody" x1="0" x2=".75" y1="0" y2="1"><stop stop-color="#ffe8e3"/><stop offset=".35" stop-color="#ffc7d3"/><stop offset=".77" stop-color="#ff9eb9"/><stop offset="1" stop-color="#f87fa9"/></linearGradient>
+ <linearGradient id="squidArm" x1="0" x2=".7" y1="0" y2="1"><stop stop-color="#ffd5d9"/><stop offset="1" stop-color="#f582ab"/></linearGradient>
+ <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#87f8f7"/><stop offset=".45" stop-color="#60b0ff"/><stop offset="1" stop-color="#eba9ff"/></linearGradient>
+ <radialGradient id="seaGlow"><stop stop-color="#6cdbfd" stop-opacity=".38"/><stop offset="1" stop-color="#6cdbfd" stop-opacity="0"/></radialGradient>
+ <pattern id="bubbles" width="150" height="146" patternUnits="userSpaceOnUse"><circle cx="30" cy="38" r="3" fill="#9fdbfa" opacity=".17"/><circle cx="120" cy="100" r="2" fill="#9fdbfa" opacity=".28"/></pattern>
+</defs><rect width="1024" height="1024" fill="url(#bg)"/></svg>

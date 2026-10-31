@@ -18,6 +18,12 @@ Las rutas locales del SDK y JDK no se guardan en el proyecto.
 
 ## Generar el APK
 
+### Iconos de Android y Windows
+
+La configuración incluye el icono del calamar para Windows y los iconos Android legacy, redondo y adaptable. El adaptable usa un fondo opaco y una capa frontal transparente con margen para los recortes del launcher; sus originales están en `branding/iconos/android-adaptive-*.svg` y los PNG de build en `Assets/Content/Art/UI/Brand/`.
+
+Para reasignarlos, usar `Squid Ink-Pulse > Identity > Apply Android and Windows icons` o el método batch `ProjectBranding.ApplyPlayerIcons`. Este comando sólo modifica los iconos de Player Settings. Recompilar el APK y el ejecutable Windows para que incluyan el cambio; una build ya generada no se actualiza al editar el proyecto.
+
 ### Desde el menú
 
 ```text

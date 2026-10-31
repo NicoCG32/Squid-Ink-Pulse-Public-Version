@@ -33,6 +33,8 @@ Este catálogo reúne los originales y variantes de la identidad. Las dimensione
 | [squid-icono-app-oscuro.png](iconos/squid-icono-app-oscuro.png) | 1024 × 1024 | PNG     | 265.3 KiB |
 | [squid-icono-app-oscuro.svg](iconos/squid-icono-app-oscuro.svg) | 1024 × 1024 | SVG     |   6.6 KiB |
 
+Los originales por capas para Android están en [foreground](iconos/android-adaptive-foreground.svg) y [background](iconos/android-adaptive-background.svg), ambos con lienzo de 1024 × 1024. La ilustración conserva el margen de seguridad del icono adaptable; el launcher aplica su propia máscara. Los PNG utilizados por Unity están en `Assets/Content/Art/UI/Brand/` y su asignación se describe en [Build Android](../Docs/AndroidBuild.md#iconos-de-android-y-windows).
+
 ## Banners
 
 | Archivo                                                    | Dimensiones | Formato |     Tamaño |
