@@ -70,6 +70,8 @@ Para una comparación visual, añadir `--es sip-texture-preview 47 --ei sip-text
 
 La enumeración y la lectura GPU perturban los tiempos: excluir esas capturas de benchmarks. Para medir rendimiento normal, terminar el proceso y abrirlo sin extras. Los archivos quedan locales; no se envían por red. Relacionar nombres/dimensiones con el BuildReport y rechazar coincidencias ambiguas antes de atribuirlos a un asset.
 
+`Tools/Android/Summarize-TextureAudit.ps1 -SnapshotPath <captura.json> -ResourceAuditPath <auditoria.json> -FamilyPath Assets/Content/Animations/Enemies/PezGlobo` resume esa correlación. Exige el mismo build GUID en ambos informes y sólo atribuye nombres/dimensiones únicos sin redimensionado. Informa por separado objetos cargados, paths únicos, assets ausentes y bytes nativos desconocidos.
+
 El ensayo `PufferfishTextureTrial.Probe` prueba ASTC 4×4 en una textura de PezGlobo y restaura su importador. `PufferfishTextureTrial.Apply` limita el cambio a las 47 texturas de esa familia en Android, sin reducir resolución; comprueba GUID, geometría de sprites, fuentes y ajustes default/Standalone. Su resultado es un ensayo, no aceptación visual ni mejora de FPS. Validar soporte nativo y memoria antes/después; [Unity documenta el fallback RGBA32 en dispositivos sin ASTC](https://docs.unity.com/en-us/engine/6000.3/manual/materials-and-shaders/textures/textures-getting-started/texture-compression-formats/texture-choose-format-by-platform).
 
 `Tools/Android/Measure-FramePacing.ps1` requiere PowerShell 7, ADB y un único dispositivo autorizado. Desde la raíz:
