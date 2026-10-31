@@ -78,6 +78,42 @@ SurfaceFlinger mide intervalos entre imágenes presentadas, según el procedimie
 
 `averageFPS` puede reflejar esa cuantización: 1000/16 da 62,5 aunque el player esté presentando aproximadamente 60 FPS. Se conserva el valor reportado y se añade una estimación por número de intervalos/tiempo de pared; esta última incluye latencia de comandos. Interpretar ambos junto con el voto de frecuencia y el histograma, sin afirmar precisión submilisegundo.
 
+Si la diferencia relativa entre ambos supera el 15%, el informe marca `HistogramWallTimeReviewRequired`. Es una alerta heurística de comparabilidad, no un presupuesto de rendimiento. Revisar cambios de escena, reinicios, alcance temporal y posibles intervalos no representados; contrastar con una traza independiente antes de afirmar FPS sostenidos o atribuir duración a los tirones. Un p95/p99 pequeño no resuelve por sí solo esa discrepancia.
+
 Los tiempos de CPU/GPU por frame y las asignaciones de GC quedan `null` porque esta herramienta no los atribuye. Usar Unity Profiler o una traza de sistema para investigar esas causas. PSS es memoria del proceso, no el tamaño del APK ni una medición exclusiva de VRAM. El estado térmico global no sustituye una captura sostenida ni identifica por sí solo una causa de throttling.
 
+Cuando Android permite leer `/proc/<pid>/stat`, también se registra el tiempo de CPU del proceso sumando sus contadores de usuario y kernel, con el reloj `CLK_TCK` del dispositivo. Se comprueban PID y tiempo de inicio para descartar reinicios/reutilización. `ProcessCpuOneCorePercent` usa 100% por núcleo y puede superar 100%; incluye todos los hilos del juego y comandos de instrumentación en los extremos. No mide CPU por frame ni identifica qué hilo o función limita. Si faltan permisos, muestras o reloj válido, los valores permanecen `null`. Los [campos de `/proc` se documentan en el kernel](https://www.kernel.org/doc/html/latest/filesystems/proc.html).
+
 Comparar primero el ritmo de presentación. Si, con un objetivo de 60, persisten caídas o picos, medir CPU/GPU, cargas y memoria antes de cambiar resolución, HDR, texturas, audio o spawns.
+
+## Sesiones por ventanas
+
+`Measure-PerformanceSession.ps1` repite la captura sin enviar controles ni modificar el progreso. El juego debe estar abierto y tener foco. Puede jugarse normalmente durante la sesión:
+
+```powershell
+./Tools/Android/Measure-PerformanceSession.ps1 -AdbPath $adb `
+  -Label run-tablet-pase1 -SourceCommit $revision `
+  -ApkPath Build/AndroidPerformance/SquidInkPulse-performance.apk `
+  -Windows 12 -SecondsPerWindow 15
+```
+
+Usar el commit **del APK**, que puede diferir del checkout de las herramientas. La salida queda en `TestResults/MobilePerformance/<etiqueta>/`. `session.json` registra las ventanas completadas, los hashes de las herramientas, su duración y cualquier interrupción; los informes individuales verifican el APK instalado. Una carpeta existente se conserva y obliga a elegir otra etiqueta.
+
+Cada ventana empieza como `Unreviewed`. Revisar sus dos capturas, anotar zona/overlay y excluir transiciones o derrotas de las comparaciones de gameplay. Hay intervalos de instrumentación entre ventanas: la duración total incluye imágenes y comandos y no constituye una traza continua. No se calcula un FPS global que mezcle menú, run y Game Over. Una sesión completa sin revisar tampoco certifica rendimiento sostenido.
+
+## Recursos incluidos en la build
+
+`AndroidResourceAuditExporter` lee el [último Build Report guardado por Unity](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/build/reporting/buildreport/getlatestreport) y las opciones actuales de los importadores, sin reimportar ni modificar assets. Requiere que el último build sea Android correcto y que su APK todavía exista. Desde el menú: `Tools > Squid Ink Pulse > Export Last Android Resource Audit`. En batch:
+
+```powershell
+& $unity -batchmode -quit -buildTarget Android -projectPath $PWD `
+  -executeMethod AndroidResourceAuditExporter.ExportLatest `
+  --sip-audit-label android-baseline `
+  --sip-audit-source-commit $revision `
+  --sip-audit-build-guid $buildGuid --sip-audit-apk-sha256 $apkSha256 `
+  -logFile TestResults/android-resource-audit.log
+```
+
+Los parámetros de GUID y checksum permiten contrastar el reporte con el artefacto esperado. El commit debe tomarse de la procedencia del APK; es una etiqueta del operador y, si se omite, queda `unrecorded` en lugar de asumir el HEAD de las herramientas. La salida `TestResults/AndroidResourceAudit/<etiqueta>.json` conserva el GUID, SHA-256 del APK, tamaños de [contenido serializado por asset](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/build/reporting/packedassets), totales por carpeta/tipo y opciones Android de textura/audio. También registra los overrides globales del Editor y observa el formato de tres texturas dominantes.
+
+El tamaño serializado no equivale a APK comprimida ni a RAM/VRAM residente. Los niveles de escena, librerías nativas y otros archivos no están completamente atribuidos por esta tabla. Los importadores y overrides son los del checkout/Editor al capturar, no una instantánea histórica del build; los formatos observados en Editor tampoco prueban el formato residente en el teléfono. Comprobar estas diferencias antes de cambiar compresión, resolución, atlases o audio. El informe prioriza candidatos; no demuestra qué recurso causó un tirón.
