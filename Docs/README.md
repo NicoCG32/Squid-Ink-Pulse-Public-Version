@@ -40,6 +40,7 @@ Juego local con versión Windows y beta Android. La adaptación móvil continúa
 ## Guías especializadas
 
 - [Build e instalación Android](AndroidBuild.md).
+- [Rendimiento y medición Android](AndroidPerformance.md).
 - [Estándares de animación](AnimationStandards.md).
 - [Flujo de assets](AssetFlow.md).
 - [Sistemas núcleo](CoreSystems.md).
