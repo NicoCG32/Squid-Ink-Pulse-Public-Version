@@ -6,11 +6,11 @@ Este documento define el contrato técnico y de producto para portar Squid Ink-P
 
 El primer objetivo de plataforma es Android. iOS queda como una extensión posterior porque requiere un entorno de compilación, firma y validación distinto.
 
-Desde el 12 de octubre de 2026, la validación física activa se realiza en una Redmi Pad Pro (Android 16/API 36, ARM64, 2560×1600 en landscape 16:10, densidad 320 y 7,53 GiB de RAM visibles), por decisión del usuario. El POCO conserva su evidencia histórica; no se necesita conectarlo para continuar este corte. Se añade 16:10 a las comprobaciones de encuadre y HUD y se evita recortar el menú en superficies más estrechas que su composición 16:9. Esto amplía la matriz de trabajo al dispositivo disponible, sin afirmar compatibilidad final con todas las tablets ni sustituir las mediciones pendientes de rendimiento.
+La matriz de dispositivos incluye POCO X6 5G y Redmi Pad Pro, con Android 16/ARM64. El teléfono cubre pantallas extra-wide; la tablet, una superficie 16:10 de 2560×1600. Las comprobaciones abarcan encuadre, HUD y áreas seguras; la compatibilidad con otros dispositivos y el rendimiento sostenido requieren pruebas adicionales.
 
 ## Estado
 
-La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. La entrada ya cuenta con acciones semánticas y un lector runtime único que evita activar una segunda copia de `UI`, emite una solicitud por interacción y centraliza el esquema de control. Movimiento, Ink-Pulse, pausa, slots de gadgets y el atajo de compra `B` ya consumen el lector y conservan sus reglas; `B` sigue siendo Keyboard&Mouse-only y el botón `Comprar` es la vía móvil. La capa touch está montada en ambas zonas, el autoscroll avanza aunque no exista un dedo y la UI jugable preserva el alto de referencia dentro de una raíz derivada de `Screen.safeArea`. PlayMode recorre el módulo UI real y recrea controles/reader al cargar Abisopelágica. En un POCO X6 5G se validaron instalación actualizada, arranque, gameplay y encuadre extra-wide; la revisión física detectó y corrigió el acoplamiento inicial del avance al primer toque y el recorte vertical de HUD/menús. Todavía no existe una candidata móvil aceptada: persiste el probe de feria a `localhost:8080`, y aún faltan cerrar una run completa, adaptación integral de opciones/Back, orientación landscape opuesta y rendimiento sostenido. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md), el contrato de entrada en [Input.md](Input.md) y la evidencia Android en [AndroidBuild.md](AndroidBuild.md).
+La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. La entrada ya cuenta con acciones semánticas y un lector runtime único que evita activar una segunda copia de `UI`, emite una solicitud por interacción y centraliza el esquema de control. Movimiento, Ink-Pulse, pausa, slots de gadgets y el atajo de compra `B` ya consumen el lector y conservan sus reglas; `B` sigue siendo Keyboard&Mouse-only y el botón `Comprar` es la vía móvil. La capa touch está montada en ambas zonas, el autoscroll avanza aunque no exista un dedo y la UI jugable preserva el alto de referencia dentro de una raíz derivada de `Screen.safeArea`. PlayMode recorre el módulo UI real y recrea controles/reader al cargar Abisopelágica. En un POCO X6 5G se validaron instalación actualizada, arranque, gameplay y encuadre extra-wide; la revisión física detectó y corrigió el acoplamiento inicial del avance al primer toque y el recorte vertical de HUD/menús. Todavía no existe una candidata móvil aceptada: persiste el probe de feria a `localhost:8080`, y aún faltan cerrar una run completa, adaptación integral de opciones/Back, orientación landscape opuesta y rendimiento sostenido. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md), el contrato de entrada en [Input.md](Input.md) y la guía de compilación y comprobación Android en [AndroidBuild.md](AndroidBuild.md).
 
 Todas las zonas comparten un único contrato dimensional de HUD y gameplay. Epipelágica y Abisopelágica son las primeras consumidoras, pero cualquier `GameRoot_Zona*` futuro debe heredar los mismos Canvas, safe area, controles y prefabs HUD; sólo las dinámicas, enemigos, arte de zona o mecánicas de jefe pueden divergir. El port no acepta correcciones visuales copiadas por zona que creen layouts incompatibles.
 
@@ -95,16 +95,16 @@ El juego debe definir un comportamiento estable para:
 
 Back se interpreta como la acción contextual `Cancel` y sigue este contrato:
 
-| Contexto | Resultado |
-| --- | --- |
-| `MainMenu` raíz | No realiza una salida inmediata. Se ignora mientras no exista una confirmación explícita de salida. |
-| Opciones, tutorial gráfico o subpanel de menú | Cierra el subpanel actual y vuelve a su pantalla anterior. |
-| Tienda permanente | Regresa a `MainMenu`. |
-| Gameplay activo | Abre la pausa. |
-| Pausa | Reanuda la run si no hay otro subpanel abierto. |
-| Opciones abiertas desde pausa | Cierra opciones y regresa a pausa. |
-| Tienda temporal o comic narrativo | Ejecuta únicamente la acción de cierre o continuación que ese overlay permita; nunca confirma una compra. |
-| Game Over | No ejecuta retry ni abandona la pantalla sin una acción explícita del usuario. |
+| Contexto                                      | Resultado                                                                                                 |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `MainMenu` raíz                               | No realiza una salida inmediata. Se ignora mientras no exista una confirmación explícita de salida.       |
+| Opciones, tutorial gráfico o subpanel de menú | Cierra el subpanel actual y vuelve a su pantalla anterior.                                                |
+| Tienda permanente                             | Regresa a `MainMenu`.                                                                                     |
+| Gameplay activo                               | Abre la pausa.                                                                                            |
+| Pausa                                         | Reanuda la run si no hay otro subpanel abierto.                                                           |
+| Opciones abiertas desde pausa                 | Cierra opciones y regresa a pausa.                                                                        |
+| Tienda temporal o comic narrativo             | Ejecuta únicamente la acción de cierre o continuación que ese overlay permita; nunca confirma una compra. |
+| Game Over                                     | No ejecuta retry ni abandona la pantalla sin una acción explícita del usuario.                            |
 
 Back no debe terminar una run, confirmar una compra ni saltarse una decisión irreversible por accidente.
 
@@ -116,21 +116,21 @@ El add-on de feria no condiciona el port inicial. En Android debe quedar deshabi
 
 ## Plataforma y formato inicial
 
-| Decisión | Contrato inicial |
-| --- | --- |
-| Plataforma | Android |
-| Orientación | Landscape fijo con autorrotación entre landscape left y landscape right |
-| Portrait | Deshabilitado |
-| Movimiento touch | Seguimiento vertical continuo de un contacto activo sobre la superficie de gameplay |
-| Ink-Pulse | Botón explícito separado de la superficie de movimiento |
-| Gadgets | Un botón explícito por slot utilizable; slots no utilizables ocultos o deshabilitados |
-| Pausa y Back | Botón visible de pausa y acción `Cancel` contextual según la tabla anterior |
-| Formatos de teléfono | 16:9, 19.5:9 y 20:9 |
-| Cutout/notch | Debe respetarse mediante `Screen.safeArea` |
-| Tablets y plegables | Compatibilidad deseable, no criterio bloqueante inicial |
-| Artefacto de desarrollo | APK instalable |
-| Artefacto candidato | AAB reproducible |
-| Servicios remotos | No requeridos |
+| Decisión                | Contrato inicial                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| Plataforma              | Android                                                                               |
+| Orientación             | Landscape fijo con autorrotación entre landscape left y landscape right               |
+| Portrait                | Deshabilitado                                                                         |
+| Movimiento touch        | Seguimiento vertical continuo de un contacto activo sobre la superficie de gameplay   |
+| Ink-Pulse               | Botón explícito separado de la superficie de movimiento                               |
+| Gadgets                 | Un botón explícito por slot utilizable; slots no utilizables ocultos o deshabilitados |
+| Pausa y Back            | Botón visible de pausa y acción `Cancel` contextual según la tabla anterior           |
+| Formatos de teléfono    | 16:9, 19.5:9 y 20:9                                                                   |
+| Cutout/notch            | Debe respetarse mediante `Screen.safeArea`                                            |
+| Tablets y plegables     | Compatibilidad deseable, no criterio bloqueante inicial                               |
+| Artefacto de desarrollo | APK instalable                                                                        |
+| Artefacto candidato     | AAB reproducible                                                                      |
+| Servicios remotos       | No requeridos                                                                         |
 
 La orientación, identificador, versión mínima, arquitectura, backend de scripting y nivel de calidad deben fijarse en configuración versionada y comprobarse mediante una validación automática de Editor. No deben quedar como decisiones manuales del equipo que genera la build.
 
@@ -203,27 +203,27 @@ Los cambios de URP, calidad, textura, audio, shader o runtime se aceptan sólo s
 
 La siguiente matriz es el mínimo contractual. Los modelos concretos, versión de Android, resolución y memoria deben registrarse cuando se disponga de los dispositivos.
 
-| Entorno | Cobertura | Resultado requerido |
-| --- | --- | --- |
-| Unity Editor 16:9 | Regresión rápida de layout y gameplay | Sin errores y sin referencias rotas |
-| Unity Editor 19.5:9 / 20:9 | Aspect ratio y safe area simulada | Sin recortes ni solapamientos críticos |
-| Unity Editor 16:10 | Composición del menú, cámara y HUD de tablet | Sin recortes ni solapamientos críticos |
-| Emulador Android | Instalación, arranque, escenas y logs | `MainMenu` abre sin red |
-| Teléfono Android de gama baja | Touch, memoria, FPS y suspensión | Cumple presupuesto aceptado |
-| Teléfono Android de gama media | Experiencia objetivo y compatibilidad | Run completa y UI operable |
-| Windows | Regresión teclado/mouse y persistencia | Contrato desktop preservado |
+| Entorno                        | Cobertura                                    | Resultado requerido                    |
+| ------------------------------ | -------------------------------------------- | -------------------------------------- |
+| Unity Editor 16:9              | Regresión rápida de layout y gameplay        | Sin errores y sin referencias rotas    |
+| Unity Editor 19.5:9 / 20:9     | Aspect ratio y safe area simulada            | Sin recortes ni solapamientos críticos |
+| Unity Editor 16:10             | Composición del menú, cámara y HUD de tablet | Sin recortes ni solapamientos críticos |
+| Emulador Android               | Instalación, arranque, escenas y logs        | `MainMenu` abre sin red                |
+| Teléfono Android de gama baja  | Touch, memoria, FPS y suspensión             | Cumple presupuesto aceptado            |
+| Teléfono Android de gama media | Experiencia objetivo y compatibilidad        | Run completa y UI operable             |
+| Windows                        | Regresión teclado/mouse y persistencia       | Contrato desktop preservado            |
 
 ### Cupos de dispositivos
 
 Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. La ausencia de emulador, teléfono de referencia baja o PC de regresión impide aceptar la candidata final, pero no bloquea la implementación previa que pueda validarse en Editor. El teléfono de referencia media es obligatorio si está disponible; de lo contrario, su ausencia debe quedar registrada como limitación.
 
-| Cupo | Modelo | Sistema | RAM | Resolución | Estado | Condición de candidata |
-| --- | --- | --- | --- | --- | --- | --- |
-| Emulador Android | Por asignar | Por asignar | Por asignar | 16:9, 19.5:9 y 20:9 simulados | Pendiente; bootstrap cubierto en teléfono | Obligatorio antes de candidata final |
-| Teléfono Android de referencia baja | Por asignar | Por asignar | Por asignar | Por registrar | Pendiente | Obligatorio |
-| Teléfono Android de referencia media | POCO X6 5G | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480 | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso | Obligatorio; validación final pendiente |
-| PC de regresión Windows | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200` | 31,6 GiB | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados | Obligatorio |
-| Tablet activa de desarrollo | Redmi Pad Pro (2405CRPFDL) | Android 16, API 36 | 7,53 GiB visibles | 2560×1600 landscape; densidad 320 | APK actualizado instalado sin eliminar datos; menú/opciones y HUD 16:10 corregidos y aceptados; volumen persiste al reiniciar; Epi pausada capturada | Dispositivo principal de este corte; no cierra las pruebas de gama baja ni la run completa final |
+| Cupo                                 | Modelo                      | Sistema                         | RAM                | Resolución                             | Estado                                                                                                                                               | Condición de candidata                                                                           |
+| ------------------------------------ | --------------------------- | ------------------------------- | ------------------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Emulador Android                     | Por asignar                 | Por asignar                     | Por asignar        | 16:9, 19.5:9 y 20:9 simulados          | Pendiente; bootstrap cubierto en teléfono                                                                                                            | Obligatorio antes de candidata final                                                             |
+| Teléfono Android de referencia baja  | Por asignar                 | Por asignar                     | Por asignar        | Por registrar                          | Pendiente                                                                                                                                            | Obligatorio                                                                                      |
+| Teléfono Android de referencia media | POCO X6 5G                  | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480                | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso               | Obligatorio; validación final pendiente                                                          |
+| PC de regresión Windows              | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200`     | 31,6 GiB           | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados                                                                                                       | Obligatorio                                                                                      |
+| Tablet activa de desarrollo          | Redmi Pad Pro (2405CRPFDL)  | Android 16, API 36              | 7,53 GiB visibles  | 2560×1600 landscape; densidad 320      | APK actualizado instalado sin eliminar datos; menú/opciones y HUD 16:10 corregidos y aceptados; volumen persiste al reiniciar; Epi pausada capturada | Dispositivo principal de este corte; no cierra las pruebas de gama baja ni la run completa final |
 
 Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.
 

@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "project": "Squid Ink Pulse",
+  "bannerLight": "banners/squid-banner-claro.png",
+  "bannerDark": "banners/squid-banner-oscuro.png",
+  "resources": [
+    "banners/squid-banner-claro.png",
+    "banners/squid-banner-claro.svg",
+    "banners/squid-banner-oscuro.png",
+    "banners/squid-banner-oscuro.svg",
+    "iconos/apple-touch-icon.png",
+    "iconos/favicon.png",
+    "iconos/icon-192.png",
+    "iconos/icon-512.png",
+    "iconos/squid-icono-app-claro.png",
+    "iconos/squid-icono-app-claro.svg",
+    "iconos/squid-icono-app-oscuro.png",
+    "iconos/squid-icono-app-oscuro.svg",
+    "logos/squid-isotipo-transparente.png",
+    "logos/squid-isotipo-transparente.svg",
+    "logos/squid-logo-alta-resolucion.png",
+    "logos/squid-logo-horizontal-transparente.png",
+    "logos/squid-logo-horizontal-transparente.svg",
+    "logos/squid-logo-original-limpio.png",
+    "portadas/squid-identidad-cuadrada.png",
+    "portadas/squid-identidad-cuadrada.svg"
+  ],
+  "groups": {
+    "logos": [
+      "logos/squid-isotipo-transparente.png",
+      "logos/squid-isotipo-transparente.svg",
+      "logos/squid-logo-alta-resolucion.png",
+      "logos/squid-logo-horizontal-transparente.png",
+      "logos/squid-logo-horizontal-transparente.svg",
+      "logos/squid-logo-original-limpio.png"
+    ],
+    "iconos": [
+      "iconos/apple-touch-icon.png",
+      "iconos/favicon.png",
+      "iconos/icon-192.png",
+      "iconos/icon-512.png",
+      "iconos/squid-icono-app-claro.png",
+      "iconos/squid-icono-app-claro.svg",
+      "iconos/squid-icono-app-oscuro.png",
+      "iconos/squid-icono-app-oscuro.svg"
+    ],
+    "banners": [
+      "banners/squid-banner-claro.png",
+      "banners/squid-banner-claro.svg",
+      "banners/squid-banner-oscuro.png",
+      "banners/squid-banner-oscuro.svg"
+    ],
+    "portadas": [
+      "portadas/squid-identidad-cuadrada.png",
+      "portadas/squid-identidad-cuadrada.svg"
+    ],
+    "referencias": []
+  },
+  "metadata": {
+    "banners/squid-banner-claro.png": {
+      "format": "png",
+      "bytes": 1740721,
+      "sha256": "bc7a2bb8d1db7b525f959e27d2d76f90e8d73c8df34ffef46d8649f0f906ddbc",
+      "width": 3200,
+      "height": 1350,
+      "scalable": false,
+      "alpha": false
+    },
+    "banners/squid-banner-claro.svg": {
+      "format": "svg",
+      "bytes": 1416723,
+      "sha256": "2434b43e5503d4ccb06b0c3982caafe445ddd0fce9ee98d41fb452bf2947d446",
+      "width": 3200.0,
+      "height": 1350.0,
+      "viewBox": [0.0, 0.0, 3200.0, 1350.0],
+      "scalable": true
+    },
+    "banners/squid-banner-oscuro.png": {
+      "format": "png",
+      "bytes": 1586263,
+      "sha256": "e9bda7d7b1f3c9102f9d1efb9984de4f0acc03ac1b91916f759405ee8062ef06",
+      "width": 3200,
+      "height": 1350,
+      "scalable": false,
+      "alpha": false
+    },
+    "banners/squid-banner-oscuro.svg": {
+      "format": "svg",
+      "bytes": 1416704,
+      "sha256": "d67c37478ea244d976e2921cd627b40cb6954eb1c25c13acc51e3acf585728db",
+      "width": 3200.0,
+      "height": 1350.0,
+      "viewBox": [0.0, 0.0, 3200.0, 1350.0],
+      "scalable": true
+    },
+    "iconos/apple-touch-icon.png": {
+      "format": "png",
+      "bytes": 35723,
+      "sha256": "72d981e8242fe975fa6728c6cc99b9215fc41a3fa2adafe0acf972bad2b8290c",
+      "width": 180,
+      "height": 180,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/favicon.png": {
+      "format": "png",
+      "bytes": 7482,
+      "sha256": "bc990982dd2968b76fcc1060c9fe41150ab54ff06a307ac5a886543111f1eb15",
+      "width": 64,
+      "height": 64,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/icon-192.png": {
+      "format": "png",
+      "bytes": 39058,
+      "sha256": "c2df14f33193713a63b2be2443e9392c364c4f797cfb3ff2a1e6d740c1485e35",
+      "width": 192,
+      "height": 192,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/icon-512.png": {
+      "format": "png",
+      "bytes": 142120,
+      "sha256": "1e2553e77f7f2dac18ba098f8c802ac2ff3ac37bdfcd2c1ff8d759fe87bda498",
+      "width": 512,
+      "height": 512,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/squid-icono-app-claro.png": {
+      "format": "png",
+      "bytes": 293181,
+      "sha256": "81c4687d57140c087eb44e2c175564cb3adc6df8e809c3fd7179ea8df132d402",
+      "width": 1024,
+      "height": 1024,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/squid-icono-app-claro.svg": {
+      "format": "svg",
+      "bytes": 6732,
+      "sha256": "9df02a42868a101d5b8d51df8fa2afe781f4f81455c56b0b018a2de7dafc0f4b",
+      "width": 1024.0,
+      "height": 1024.0,
+      "viewBox": [0.0, 0.0, 1024.0, 1024.0],
+      "scalable": true
+    },
+    "iconos/squid-icono-app-oscuro.png": {
+      "format": "png",
+      "bytes": 271622,
+      "sha256": "75fb4516d836a972301bb13c7af510423b2db2f40eb38e5ce14f6bbefb53092e",
+      "width": 1024,
+      "height": 1024,
+      "scalable": false,
+      "alpha": true
+    },
+    "iconos/squid-icono-app-oscuro.svg": {
+      "format": "svg",
+      "bytes": 6727,
+      "sha256": "c2de18adf221681af954e4bb423fd527906dd0f4fdade7c540aadfcf95a1694f",
+      "width": 1024.0,
+      "height": 1024.0,
+      "viewBox": [0.0, 0.0, 1024.0, 1024.0],
+      "scalable": true
+    },
+    "logos/squid-isotipo-transparente.png": {
+      "format": "png",
+      "bytes": 247323,
+      "sha256": "a9ae85dc573c625416f8296d7240b6b523454b598a966065b6703ec912f2a7da",
+      "width": 1024,
+      "height": 1024,
+      "scalable": false,
+      "alpha": true
+    },
+    "logos/squid-isotipo-transparente.svg": {
+      "format": "svg",
+      "bytes": 6546,
+      "sha256": "ece78dc3020282166b5e7faf267f6d515c31e6443f87874299ffdec0a1728ba4",
+      "width": 1024.0,
+      "height": 1024.0,
+      "viewBox": [0.0, 0.0, 1024.0, 1024.0],
+      "scalable": true
+    },
+    "logos/squid-logo-alta-resolucion.png": {
+      "format": "png",
+      "bytes": 2826162,
+      "sha256": "2e3159acba4d9ba0c5de75c6f1b4163f8ddef85fa603cc66cd13129ceb02869a",
+      "width": 3320,
+      "height": 1634,
+      "scalable": false,
+      "alpha": true
+    },
+    "logos/squid-logo-horizontal-transparente.png": {
+      "format": "png",
+      "bytes": 1028202,
+      "sha256": "9f6cb034025f311c1dd352afb7d47a4468afd275f724eec6bcc653df537759ea",
+      "width": 2450,
+      "height": 850,
+      "scalable": false,
+      "alpha": true
+    },
+    "logos/squid-logo-horizontal-transparente.svg": {
+      "format": "svg",
+      "bytes": 1404933,
+      "sha256": "a155bdd2f29c9e3869cdb5c9e996cdf04e2b1cd59fc72140d6702db0c406cb3c",
+      "width": 2450.0,
+      "height": 850.0,
+      "viewBox": [0.0, 0.0, 2450.0, 850.0],
+      "scalable": true
+    },
+    "logos/squid-logo-original-limpio.png": {
+      "format": "png",
+      "bytes": 1020234,
+      "sha256": "ce52ab54d270333252e8d9e8e5546cb4974d1b06e1090d245950c539cfbf77ee",
+      "width": 1660,
+      "height": 817,
+      "scalable": false,
+      "alpha": true
+    },
+    "portadas/squid-identidad-cuadrada.png": {
+      "format": "png",
+      "bytes": 1342831,
+      "sha256": "852afe50ee305bf2810cb7512ba747bcf463f5e8e2bae1bd57df07836293a169",
+      "width": 1800,
+      "height": 2000,
+      "scalable": false,
+      "alpha": true
+    },
+    "portadas/squid-identidad-cuadrada.svg": {
+      "format": "svg",
+      "bytes": 1415562,
+      "sha256": "3edd10fcfc62421b38532f6b67c064e1ecfbf38dbd26ae8341189cd103131794",
+      "width": 1800.0,
+      "height": 2000.0,
+      "viewBox": [0.0, 0.0, 1800.0, 2000.0],
+      "scalable": true
+    }
+  }
+}

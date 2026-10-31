@@ -17,15 +17,27 @@ public static class AndroidDevelopmentBuilder
     [MenuItem(MenuPath)]
     public static void BuildAndroidDevelopmentApk()
     {
+        BuildApk(AndroidDevelopmentBuildRules.DefaultOutputRelativePath,
+            BuildOptions.Development | BuildOptions.AllowDebugging, "Development");
+    }
+
+    [MenuItem("Tools/Squid Ink Pulse/Build Android Performance APK (No Development)")]
+    public static void BuildAndroidPerformanceApk()
+    {
+        BuildApk("Build/AndroidPerformance/SquidInkPulse-performance.apk", BuildOptions.None, "Performance");
+    }
+
+    private static void BuildApk(string relativeOutput, BuildOptions buildOptions, string configuration)
+    {
         string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
         string outputPath = Path.GetFullPath(Path.Combine(
             projectRoot,
-            AndroidDevelopmentBuildRules.DefaultOutputRelativePath));
+            relativeOutput));
 
         if (!AndroidDevelopmentBuildRules.IsOutputInsideBuildDirectory(projectRoot, outputPath))
         {
             throw new BuildFailedException(
-                $"La salida Android debe permanecer bajo Build/: {AndroidDevelopmentBuildRules.DefaultOutputRelativePath}");
+                    $"La salida Android debe permanecer bajo Build/: {relativeOutput}");
         }
 
         string androidSupportError = AndroidDevelopmentBuildRules.GetAndroidSupportError(
@@ -83,6 +95,8 @@ public static class AndroidDevelopmentBuilder
 
             if (Directory.Exists(outputDirectory))
             {
+                if (configuration == "Performance" && Directory.EnumerateFileSystemEntries(outputDirectory).Any())
+                    throw new BuildFailedException("Preserve Build/AndroidPerformance antes de repetir el build.");
                 Directory.Delete(outputDirectory, true);
             }
 
@@ -91,8 +105,8 @@ public static class AndroidDevelopmentBuilder
             string commit = ResolveGitCommit(projectRoot);
             Debug.Log($"{LogPrefix} Unity={Application.unityVersion}");
             Debug.Log($"{LogPrefix} Commit={commit}");
-            Debug.Log($"{LogPrefix} Target=Android; Configuration=Development; Artifact=APK");
-            Debug.Log($"{LogPrefix} Output={AndroidDevelopmentBuildRules.DefaultOutputRelativePath}");
+            Debug.Log($"{LogPrefix} Target=Android; Configuration={configuration}; Options={buildOptions}; Artifact=APK");
+            Debug.Log($"{LogPrefix} Output={relativeOutput}");
             Debug.Log($"{LogPrefix} Scenes={string.Join(", ", enabledScenes)}");
 
             BuildPlayerOptions options = new()
@@ -100,7 +114,7 @@ public static class AndroidDevelopmentBuilder
                 scenes = enabledScenes,
                 locationPathName = outputPath,
                 target = BuildTarget.Android,
-                options = BuildOptions.Development | BuildOptions.AllowDebugging
+                options = buildOptions
             };
 
             BuildReport report = BuildPipeline.BuildPlayer(options);

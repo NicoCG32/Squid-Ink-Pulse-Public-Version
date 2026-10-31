@@ -88,6 +88,9 @@ public class ScenePortal : MonoBehaviour, IOffscreenCleanupEligibility
             yield return LoreComicPresenter.PlayPortalTransitionIfAvailable(targetScene);
         }
 
+        // A terminal session supersedes a transition waiting for its comic.
+        if (GameSessionController.HasInstance && GameSessionController.Instance.IsGameOver) yield break;
+
         if (sceneFlow.TryLoadPortalDestinationFromActiveScene())
         {
             PersistentPlayerProfile.RecordPortalCrossed();

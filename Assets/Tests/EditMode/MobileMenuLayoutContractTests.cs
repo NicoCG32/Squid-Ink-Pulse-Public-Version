@@ -62,7 +62,8 @@ namespace SquidInkPulse.Tests.EditMode
                 Assert.That(navigation.GetSiblingIndex(), Is.LessThan(Find(scene, "Character").GetSiblingIndex()));
                 Assert.That(brand.GetSiblingIndex(), Is.GreaterThan(Find(scene, "Character").GetSiblingIndex()));
                 Assert.That(scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SafeAreaAdapter>(true))
-                    .Count(adapter => adapter.GetComponentInParent<OptionsMenuManager>(true) == null), Is.EqualTo(4));
+                    .Count(adapter => adapter.GetComponentInParent<OptionsMenuManager>(true) == null
+                        && adapter.GetComponentInParent<LoreComicPresenter>(true) == null), Is.EqualTo(4));
             });
         }
 

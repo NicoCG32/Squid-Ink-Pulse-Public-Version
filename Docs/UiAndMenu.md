@@ -155,10 +155,13 @@ Prefab de vista:
 Input:
 - `P` o `Esc` alimentan `Gameplay/TogglePause`; `PauseMenuManager` consume una solicitud por frame y conserva `TogglePause()`/`PauseMenuCommandPolicy` como autoridad.
 - La suscripción se reemplaza mediante `GameplayChanged` y se dispone con el lector exacto, evitando comandos de otra escena o de una recreación anterior del scope.
+- La pausa rechaza Toggle/Resume mientras Opciones conserva su contexto, la tienda bloquea input o una sesión Playing tiene el tiempo detenido por un cómic. Las solicitudes se consumen aunque no se ejecuten; no quedan pendientes para cerrar la ventana después.
 
 Contrato de eventos:
 - Los `OnClick` persistentes configurados en Inspector no deben apagarse en runtime.
 - El cableado runtime de `PauseMenuManager` es respaldo defensivo y no reemplaza la auditoria visual/serializada del Inspector.
+
+Pausa usa `PauseSafeArea/PauseContent` en el prefab compartido. Botones y decoración viven bajo ese contenido; `FondoBurbuja` permanece fuera para cubrir y bloquear el viewport completo. El adaptador y el ajuste uniforme de referencia 1920×1080 se comparten con las demás pantallas móviles. Desktop conserva stretch de autoría; no se agregan Canvas ni EventSystem, y las referencias de elementos animados conservan sus posiciones locales.
 
 ## Game over
 
@@ -171,6 +174,7 @@ Responsabilidad:
 - Esperar el comic de derrota de `LoreComicPresenter.PlayDefeatIfAvailable()` antes de mostrar la vista de Game Over cuando exista una entrada valida.
 
 El overlay oscuro debe comportarse como pantalla completa, no como subventana.
+`Panel` conserva ese fondo completo; `GameOverSafeArea/GameOverContent` protege botones, decoración y ambos textos de puntaje. El ajuste móvil conserva la composición completa dentro del área segura sin modificar el cálculo ni el formato del score. Las dos zonas usan los mismos prefabs y el validador comprueba también sus instancias efectivas.
 `Reintentar` inicia una run nueva desde `SceneFlowController.primaryGameplaySceneName`, por defecto `ZonaEpipelagica`, incluso si la derrota ocurrio en `ZonaAbisopelagica`.
 
 Prefab de vista:
@@ -205,6 +209,10 @@ Reglas:
 - Las viñetas viven en `Assets/Content/Art/ComicLore/` separadas por dominio. Se reemplazan desde Inspector o prefab conservando sus `.meta`.
 - Las instalaciones base viven en `MainMenu` y en los prefabs `GameRoot_ZonaEpipelagica` y `GameRoot_ZonaAbisopelagica`.
 - Tienda in-game usa tres eventos: `ShopInGameFirst`, `ShopInGameLastPurchased` y `ShopInGameLastNoPurchase`.
+- `Comic/LoreSafeArea/LoreContent` protege la viñeta y `ContinuarBoton`; `Dimmer` sigue cubriendo el viewport completo fuera del área segura. El fitter compartido usa referencia móvil 1920×1080. `LoreComicMobileLayout` reserva espacio para el botón visible y encaja el sprite conservando proporción; desktop conserva la geometría de autoría.
+- `LoreComicContinueFocus` asigna el contexto Submit del EventSystem al botón visible. Mientras un cómic temporizado no tiene botón, limpia la selección del contenido de atrás. La navegación del botón queda temporalmente en `None`; al cerrar restaura la selección anterior sólo si aún conservaba su foco y el destino sigue disponible. No registra otra acción global de input.
+- Inicio conserva espera explícita y duración cero; portal, tienda y derrota conservan sus tres segundos y cierre automático configurado. Se mantienen las reglas de primera visualización y transición. La salida sin compra no tiene sprite configurado: se omite sin marcarla como vista ni retener el tiempo.
+- Un cómic activo conserva su callback: `TryPlay` rechaza solicitudes concurrentes y los cómics ordinarios no toman el contexto de pausa/tienda. La derrota espera a que termine el cómic vigente antes de presentar el suyo; al restaurar tiempo se respeta una sesión que ya haya dejado Playing. Un portal pendiente no carga otra zona después de Game Over.
 
 ## Tienda temporal
 
@@ -223,17 +231,21 @@ Reglas:
 - El manager recibe sus referencias de vista por campos serializados; no busca `InGameCanvas`, `Gadget`, `Precio`, `B`, `Comprar`, `SinSaldo` ni `Timer` por nombre en runtime.
 - Prefab de vista: `Assets/Content/Prefabs/UI/Menus/InGameShopMenu.prefab`.
 - Root esperado de la vista: `InGameCanvas`, asignado en `menuRoot`.
-- `timerText` es opcional mientras el prefab de vista no exponga un nodo visible de contador.
+- `timerText` referencia `SegundosRestantes` en ambas zonas de producto. El contador y la indicación `TOCA PARA COMPRAR` se muestran sólo en móvil; Windows conserva el atajo B y su presentación de autoría.
 - El contador usa tiempo real cuando `pauseGameplayWhileOpen` esta activo.
 - Los textos `B` y `Precio` pulsan para llamar la atencion.
 - `B` queda clasificada como atajo de producto exclusivo de Keyboard&Mouse y se recibe mediante `Gameplay/BuyShopOffer`. No se añade a Touch ni a un tap global; el botón `Comprar` es la vía móvil y comparte `BuyCurrentOffer()`.
 - `SinSaldo` aparece solo despues de intentar comprar sin saldo.
+- El aviso vive fuera de `Visual/Normal`, para permanecer visible también cuando touch deja el botón resaltado o presionado.
 - `Comprar` debe tener componente `Button`. `InGameShopManager` registra en runtime la accion `BuyCurrentOffer` sobre la referencia serializada, sin depender de una busqueda jerarquica.
 - `InGameShopManager` no debe desactivar listeners persistentes del Inspector.
 - No hay boton de salir: el cierre ocurre por tiempo o compra.
+- Abrir una oferta exige sesión Playing y tiempo avanzando: no se captura como tiempo previo el cero de otro overlay. Una compra se rechaza desde el momento en que la sesión deja Playing, sin esperar al siguiente Update que cierre la tienda.
 - Las ofertas se filtran por `RunGadgetUnlockService`; un gadget no habilitado por hitos no aparece.
 - Esta tienda es la unica que vende gadgets.
 - La primera salida de tienda desde `DealerFish` muestra comic de compra o no compra segun si se adquirio un gadget; las aperturas posteriores de la run no repiten esos comics.
+
+`InGameShopSafeArea/InGameShopContent` protege oferta, precio, compra, aviso y contador mediante el ajuste móvil 1920×1080 compartido. `FondoBurbuja` queda fuera y bloquea el viewport completo. La presentación móvil oculta las tres variantes de `Compra con B` y permite que precios largos se ajusten en una sola línea; el estado y tipografía desktop se restauran al reaplicar esa plataforma. No se altera duración de oferta, precios, catálogo, compra ni política de cómics. El cierre mantiene el bloqueo de Ink-Pulse durante su frame y el siguiente, incluso después de restaurar el tiempo; un gesto posterior deliberado sigue funcionando.
 
 ## Tienda out-of-game
 

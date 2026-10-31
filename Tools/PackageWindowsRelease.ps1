@@ -66,10 +66,19 @@ Pablo Guzman: SCRUM Master. Rodrigo Cortes: Product Owner.
 Mauricio Munoz: Gameplay Programmer. Matias Palacios: diseno visual y sonoro.
 Inti Santibanez: soporte de entrega.
 
+Menciones especiales:
+Matias Palacios: artista y compositor principal, autor y dueno de los
+soundtracks y sprites principales. Su reutilizacion requiere su permiso.
+Rodrigo Cortes: por su aporte a la base mecanica del juego.
+Mauricio Munoz: por ser un desarrollador confiable durante el proyecto.
+La licencia general de reutilizacion sigue pendiente del acuerdo del equipo.
+
 Fuente, notas, checksums y otras plataformas:
 https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases
 '@
 [IO.File]::WriteAllText((Join-Path $payload 'LEEME.txt'), $guide, [Text.UTF8Encoding]::new($false))
+Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSING.md') -Destination (Join-Path $payload 'LICENSING.md')
+Copy-Item -LiteralPath (Join-Path $projectRoot 'branding/banners/squid-banner-claro.png') -Destination (Join-Path $payload 'IDENTIDAD.png')
 $source = (& git -C $projectRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot identify source commit.' }
 [ordered]@{ sourceCommit=$source; unity=$buildInfo.unity; target=$buildInfo.target;

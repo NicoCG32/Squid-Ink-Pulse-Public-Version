@@ -1,46 +1,78 @@
-# Índice de documentación
+# Documentación de Squid Ink-Pulse
 
-Este directorio organiza la documentación técnica vigente de Squid Ink-Pulse como juego desarrollado, jugable y cerrado en su producto base. Los informes de `Docs/reports/` conservan caracter histórico y no se reescriben para reflejar cada cambio de implementación.
+Juego local con versión Windows y beta Android. La adaptación móvil continúa con ajustes de controles, interfaz, suspensión y rendimiento.
 
-## Base del proyecto
+## Documentación por cuatro tipos
 
-- [Distribution.md](Distribution.md) - descarga por plataforma, ZIP Windows, APK beta, checksums y validación de releases.
+| Tipo                    | Qué encontrarás                                                 | Por dónde empezar                                                                                                                                |
+| ----------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| General                 | Problemática, público, solución y motivación personal           | [Propuesta](00-problematica-cliente-y-valor.md) · [Origen](16-motivacion-y-contexto.md)                                                          |
+| Técnica                 | Arquitectura, dominio, datos, interfaz y puesta en marcha       | [Arquitectura](01-arquitectura-general.md) · [Instalación](09-instalacion-y-despliegue.md)                                                       |
+| Desarrollo del proyecto | Etapas, metodología, justificación, proyección y costos CLP/USD | [Metodología](17-desarrollo-y-metodologia.md) · [Proyección](15-escalabilidad-y-nuevos-mercados.md) · [Costos](18-analisis-economico-clp-usd.md) |
+| Académica/formativa     | Contexto del curso, informes y anexos de la etapa formativa     | [Catálogo académico](academica/README.md)                                                                                                        |
 
-- [ProjectOverview.md](ProjectOverview.md) - vision general, pilares y estado del producto base.
-- [SoftwareArchitecture.md](SoftwareArchitecture.md) - contrato de capas, dependencias, estados, especializaciones y excepciones.
-- [ProjectStructure.md](ProjectStructure.md) - organizacion de carpetas y criterios.
-- [RuntimeHierarchyAudit.md](RuntimeHierarchyAudit.md) - scripts esperados por nodo, prefab y responsabilidad.
-- [ZonaEpipelagica.md](ZonaEpipelagica.md) - estructura de escena, managers y jerarquía runtime.
-- [AssetFlow.md](AssetFlow.md) - entrada y uso de audio, arte, prefabs y animaciones.
-- [WorldScale.md](WorldScale.md) - escala canonica entre pixeles, unidades de mundo y boundaries.
-- [AnimationStandards.md](AnimationStandards.md) - reglas y pautas de animaciones runtime.
-- [Testing.md](Testing.md) - base mínima de pruebas EditMode y ejecución batch.
-- [MobilePort.md](MobilePort.md) - contrato, alcance y matriz de validación del port móvil Android.
-- [MobileBaseline.md](MobileBaseline.md) - referencia Windows reproducible anterior a los cambios del port.
-- [AndroidBuild.md](AndroidBuild.md) - generación reproducible, instalación ADB y evidencia del APK Development.
-- [Input.md](Input.md) - acciones semánticas, bindings de escritorio y separación segura entre UI y gameplay touch.
+## Rutas de lectura
 
-## Sistemas de juego
+- **Conocer el proyecto:** [propuesta](00-problematica-cliente-y-valor.md) → [motivación](16-motivacion-y-contexto.md) → [funcionalidades](02-funcionalidades.md).
+- **Utilizarlo o desplegarlo:** [recorrido](03-flujo-de-usuario.md) → [instalación](09-instalacion-y-despliegue.md).
+- **Desarrollar o contribuir:** [arquitectura](01-arquitectura-general.md) → [dominio y datos](04-base-de-datos.md) → [reglas](05-motor-o-nucleo-de-negocio.md).
+- **Evaluar su evolución:** [metodología](17-desarrollo-y-metodologia.md) → [proyección](15-escalabilidad-y-nuevos-mercados.md) → [costos](18-analisis-economico-clp-usd.md).
 
-- [CoreSystems.md](CoreSystems.md) - sesión, progresión, flujo de escenas y persistencia.
-- [PersistentProfile.md](PersistentProfile.md) - base JSON local `db`: catalogo de desbloqueables, perfil, records, leaderboard y script de limpieza de persistencia.
-- [FairServer.md](FairServer.md) - add-on opcional de feria con servidor LAN, SQLite en el host y leaderboard web; no reemplaza la persistencia local.
-- [FairEventSetupGuide.md](FairEventSetupGuide.md) - guía operativa para probar el add-on de feria, interpretar warnings de host y visualizar el leaderboard.
-- [GameplaySystems.md](GameplaySystems.md) - movimiento, Ink-Pulse, graze, colisiones, camarones y gadgets.
-- [EnemiesAndBosses.md](EnemiesAndBosses.md) - spawn, enemigos, SS Carnage y boss abisal.
-- [Portals.md](Portals.md) - portales entre zonas y reglas de carga.
-- [LoreComics.md](LoreComics.md) - viñetas narrativas de inicio, portales y derrota.
-- [ZoneLighting.md](ZoneLighting.md) - oscuridad de `ZonaAbisopelagica` y light graze visual independiente.
-- [WorldAndCamera.md](WorldAndCamera.md) - cámara, boundaries, parallax y limpieza fuera de pantalla.
-- [UiAndMenu.md](UiAndMenu.md) - menus, pausa, game over, tienda y HUD.
+## Tabla de contenidos
 
-- [Tutorial.md](Tutorial.md) - comic tutorial activo y tutorial jugable pendiente fuera del build.
+| Capítulo | Documento                                                                          |
+| -------- | ---------------------------------------------------------------------------------- |
+| 00       | [Problemática, cliente y solución](00-problematica-cliente-y-valor.md)             |
+| 01       | [Arquitectura por niveles](01-arquitectura-general.md)                             |
+| 02       | [Catálogo funcional](02-funcionalidades.md)                                        |
+| 03       | [Recorrido y estados](03-flujo-de-usuario.md)                                      |
+| 04       | [Dominio, entidades y persistencia](04-base-de-datos.md)                           |
+| 05       | [Reglas y núcleo](05-motor-o-nucleo-de-negocio.md)                                 |
+| 06       | [Integraciones y asistencia](06-capa-de-ia-o-analisis.md)                          |
+| 07       | [Diseño y accesibilidad](07-diseno-e-identidad.md)                                 |
+| 08       | [Salidas y entregables](08-exportacion-e-informes.md)                              |
+| 09       | [Puesta en marcha y distribución](09-instalacion-y-despliegue.md)                  |
+| 15       | [Justificación, proyección y escalabilidad](15-escalabilidad-y-nuevos-mercados.md) |
+| 16       | [Motivación personal y contexto](16-motivacion-y-contexto.md)                      |
+| 17       | [Etapas y metodología](17-desarrollo-y-metodologia.md)                             |
+| 18       | [Escenarios económicos CLP / USD](18-analisis-economico-clp-usd.md)                |
 
-- [SceneCompositionValidation.md](SceneCompositionValidation.md) - validacion Editor/batch de escenas, prefabs canonicos y busquedas globales restantes.
+## Guías especializadas
 
-## Estado del producto base y evolución
+- [Build e instalación Android](AndroidBuild.md).
+- [Rendimiento y medición Android](AndroidPerformance.md).
+- [Estándares de animación](AnimationStandards.md).
+- [Flujo de assets](AssetFlow.md).
+- [Sistemas núcleo](CoreSystems.md).
+- [Distribución del juego](Distribution.md).
+- [Enemigos y jefes](EnemiesAndBosses.md).
+- [Guía para probar el add-on de feria](FairEventSetupGuide.md).
+- [Add-on de feria: servidor local](FairServer.md).
+- [Sistemas de gameplay](GameplaySystems.md).
+- [Contrato de entrada](Input.md).
+- [Lore comics](LoreComics.md).
+- [Baseline funcional y técnico para el port móvil](MobileBaseline.md).
+- [Port móvil](MobilePort.md).
+- [Persistencia local](PersistentProfile.md).
+- [Portales](Portals.md).
+- [Resumen del proyecto](ProjectOverview.md).
+- [Informe breve del proyecto](ProjectReport.md).
+- [Estructura del proyecto](ProjectStructure.md).
+- [Referencia ampliada de uso](Referencia-de-uso.md).
+- [Estado del producto base y actualizaciones](ROADMAP.md).
+- [Auditoria de jerarquía runtime](RuntimeHierarchyAudit.md).
+- [Scene Composition Validation](SceneCompositionValidation.md).
+- [Arquitectura de software](SoftwareArchitecture.md).
+- [Maquinas de estado](StateMachines.md).
+- [Pruebas automatizadas](Testing.md).
+- [Tutorial](Tutorial.md).
+- [UI y menú](UiAndMenu.md).
+- [Mundo y cámara](WorldAndCamera.md).
+- [Escala estándar de mundo](WorldScale.md).
+- [Zona Epipelagica](ZonaEpipelagica.md).
+- [Iluminacion de ZonaAbisopelagica](ZoneLighting.md).
+- [reports/InformeSquidInkPulse.md](reports/InformeSquidInkPulse.md).
 
-- [StateMachines.md](StateMachines.md) - estados implementados y extensiones previstas.
-- [ROADMAP.md](ROADMAP.md) - estado del producto base, add-on de feria y actualizaciones posteriores posibles.
-- [ProjectReport.md](ProjectReport.md) - resumen breve del informe histórico.
-- [reports/InformeSquidInkPulse.md](reports/InformeSquidInkPulse.md) - informe histórico completo.
+## Uso y distribución
+
+[Presentación y descargas](../README.md) · [Licencia y créditos](../LICENSING.md).

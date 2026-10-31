@@ -296,7 +296,7 @@ public class InkPulseController : MonoBehaviour
 
     private bool IsGameplayActive()
     {
-        return session != null && session.IsPlaying;
+        return session != null && session.IsPlaying && Time.timeScale > 0f;
     }
 
     private void ResolveReferences()
