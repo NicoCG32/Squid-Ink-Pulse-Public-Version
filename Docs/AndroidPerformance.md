@@ -49,6 +49,29 @@ Cerrar el proceso sólo entre recorridos. Esperar a que finalice la carga y esta
 
 ## Captura reproducible
 
+### Inventario de texturas cargadas
+
+`AndroidDevelopmentBuilder.BuildAndroidTextureAuditApk` genera un player Development en `Build/AndroidTextureAudit/` y exporta el BuildReport. Conserva la salida antes de repetir. Para comparar memoria, usar las mismas opciones de build en ambos lados; Development no representa el coste de la beta sin Development.
+
+La captura de texturas está desactivada normalmente, incluso en este player. Se activa sólo para el proceso lanzado con el extra Android:
+
+```powershell
+& $adb -d shell am force-stop com.yecoworks.squidinkpulse
+& $adb -d shell am start -W `
+  -n com.yecoworks.squidinkpulse/com.unity3d.player.UnityPlayerGameActivity `
+  --ez sip-texture-audit true
+```
+
+Dos segundos después de cada cambio de escena activa, escribe un JSON en `files/Diagnostics/TextureAudit/` bajo la carpeta de la aplicación. Enumera los `Texture2D` ya cargados, con nombre, dimensiones, formato real, formato gráfico y memoria nativa informada por Unity. No carga ni descarga recursos, no fuerza enemigos y no modifica `db/`.
+
+`GetRuntimeMemorySizeLong` puede devolver cero cuando el Profiler no está disponible: ese cero significa dato desconocido. El inventario de objetos cargados y la memoria nativa informada tampoco prueban residencia física de toda la textura en VRAM. Véanse [memoria nativa](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityengine/profiling/profiler/getruntimememorysizelong) y [enumeración de objetos cargados](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityengine/resources/findobjectsoftypeall).
+
+Para una comparación visual, añadir `--es sip-texture-preview 47 --ei sip-texture-width 1440 --ei sip-texture-height 1390`. Exporta un PNG mediante la GPU únicamente si ya existe una textura cargada con esa identificación única. No resuelve ambigüedades por suposición. Usar el mismo dispositivo y ruta de renderizado para comparar antes/después.
+
+La enumeración y la lectura GPU perturban los tiempos: excluir esas capturas de benchmarks. Para medir rendimiento normal, terminar el proceso y abrirlo sin extras. Los archivos quedan locales; no se envían por red. Relacionar nombres/dimensiones con el BuildReport y rechazar coincidencias ambiguas antes de atribuirlos a un asset.
+
+El ensayo `PufferfishTextureTrial.Probe` prueba ASTC 4×4 en una textura de PezGlobo y restaura su importador. `PufferfishTextureTrial.Apply` limita el cambio a las 47 texturas de esa familia en Android, sin reducir resolución; comprueba GUID, geometría de sprites, fuentes y ajustes default/Standalone. Su resultado es un ensayo, no aceptación visual ni mejora de FPS. Validar soporte nativo y memoria antes/después; [Unity documenta el fallback RGBA32 en dispositivos sin ASTC](https://docs.unity.com/en-us/engine/6000.3/manual/materials-and-shaders/textures/textures-getting-started/texture-compression-formats/texture-choose-format-by-platform).
+
 `Tools/Android/Measure-FramePacing.ps1` requiere PowerShell 7, ADB y un único dispositivo autorizado. Desde la raíz:
 
 ```powershell
