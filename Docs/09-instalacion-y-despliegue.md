@@ -13,7 +13,7 @@ Abre la raíz del proyecto desde Unity Hub con la versión indicada del editor. 
 ### Secuencia de puesta en marcha
 
 1. Preparar el runtime/editor y la configuración que indiquen las fuentes enlazadas; usar valores de prueba y restaurar el lockfile apropiado.
-2. Ejecutar la modalidad local y sus comprobaciones existentes desde la carpeta indicada por esa guía. No confundir preview web con el runtime nativo o montaje físico.
+2. Prueba una partida completa, guardado y regreso al menú en la plataforma elegida; para Android revisa también controles e interrupciones.
 3. Construir/instalar el artefacto de ese target y comprobar recorrido principal, error relevante y reapertura/actualización antes de declararlo entregado.
 
 Ejecuta los comandos de comprobación antes de distribuir una compilación. Puedes consultar sus resultados remotos en la pestaña Actions del repositorio.

@@ -42,7 +42,7 @@ Datos iniciales en Resources/PersistentDbSeeds y progreso en Application.persist
 - Estado temporal de run, catálogo y progreso permanente tienen dueños distintos.
 - Los portales conservan el contrato de sesión al cambiar de zona.
 
-Consultar [04-base-de-datos.md](04-base-de-datos.md) para entidades, cardinalidades y representación; [05-motor-o-nucleo-de-negocio.md](05-motor-o-nucleo-de-negocio.md) para invariantes. Las piezas marcadas como propuestas pertenecen al diseño del prototipo.
+Consultar [04-base-de-datos.md](04-base-de-datos.md) para entidades, cardinalidades y representación; [05-motor-o-nucleo-de-negocio.md](05-motor-o-nucleo-de-negocio.md) para invariantes. Las propuestas de evolución se identifican por separado de las capacidades disponibles.
 
 ### Nivel 4 — Despliegue y distribución
 

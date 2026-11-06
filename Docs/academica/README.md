@@ -1,28 +1,22 @@
-# Documentación académica/formativa — Squid Ink-Pulse
+# Documentación académica — Squid Ink-Pulse
 
-## Nivel 4 — Documentación académica y formativa
+Desarrollé este proyecto junto a mi equipo en **Proyecto Integrador Programación Avanzada**, asignatura de **5 SCT** del **quinto semestre** de Ingeniería Civil en Computación Informática en la **Universidad Católica del Norte**.
 
-**Asignatura:** Proyecto Integrador Programación Avanzada · **Carga:** 5 SCT · **Ubicación:** 5.º semestre de Ingeniería Civil en Computación Informática · **Institución:** Universidad Católica del Norte.
-
-Los informes conservan lo que se presentó en su etapa. Son evidencia del proceso formativo y del diseño/entrega de ese momento; no reemplazan la especificación técnica actual ni certifican por sí solos la versión ejecutable más reciente.
+Aquí reúno los informes y anexos de esa etapa. Permiten seguir la propuesta, el proceso de desarrollo y lo que presentamos en el curso. Los conservo en su forma original; para instalar o modificar la versión actual, puedes seguir las [guías del proyecto](../README.md).
 
 ## Catálogo de originales
 
-| Documento                                                                                                     | Tipo                       | Vigencia                                           |
-| ------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------- |
-| [1. Informe Squid Ink Pulse.pdf](../reports/1.%20Informe%20Squid%20Ink%20Pulse.pdf)                           | Entregable publicado       | Histórico; alcance/fecha según el propio documento |
-| [2. Informe Squid Ink Pulse Actualizado.pdf](../reports/2.%20Informe%20Squid%20Ink%20Pulse%20Actualizado.pdf) | Entregable publicado       | Histórico; alcance/fecha según el propio documento |
-| [Informe Squid Ink Pulse 3.pdf](../reports/Informe%20Final/Informe%20Squid%20Ink%20Pulse%203.pdf)             | Entregable publicado       | Histórico; alcance/fecha según el propio documento |
-| [InformeSquidInkPulseFinal.md](../reports/Informe%20Final/InformeSquidInkPulseFinal.md)                       | Versión textual conservada | Histórico; alcance/fecha según el propio documento |
-| [InformeSquidInkPulse.md](../reports/InformeSquidInkPulse.md)                                                 | Versión textual conservada | Histórico; alcance/fecha según el propio documento |
-| [InformeSquidInkPulseActualizado.md](../reports/InformeSquidInkPulseActualizado.md)                           | Versión textual conservada | Histórico; alcance/fecha según el propio documento |
-
-Las figuras, estilos y anexos de apoyo permanecen junto a sus informes. Cada informe conserva el alcance y la fecha indicados en su contenido.
+| Documento                                                                                                     | Formato                |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| [1. Informe Squid Ink Pulse.pdf](../reports/1.%20Informe%20Squid%20Ink%20Pulse.pdf)                           | Informe o anexo en PDF |
+| [2. Informe Squid Ink Pulse Actualizado.pdf](../reports/2.%20Informe%20Squid%20Ink%20Pulse%20Actualizado.pdf) | Informe o anexo en PDF |
+| [Informe Squid Ink Pulse 3.pdf](../reports/Informe%20Final/Informe%20Squid%20Ink%20Pulse%203.pdf)             | Informe o anexo en PDF |
+| [InformeSquidInkPulseFinal.md](../reports/Informe%20Final/InformeSquidInkPulseFinal.md)                       | Versión en Markdown    |
+| [InformeSquidInkPulse.md](../reports/InformeSquidInkPulse.md)                                                 | Versión en Markdown    |
+| [InformeSquidInkPulseActualizado.md](../reports/InformeSquidInkPulseActualizado.md)                           | Versión en Markdown    |
 
 ## Cómo leer este nivel
 
-1. Consultar el problema, investigación y propuesta del período que indique el informe.
-2. Identificar alcance, metodología, participantes y evidencias dentro de ese documento.
-3. Contrastar decisiones técnicas con los capítulos vigentes del repositorio antes de ejecutar o modificar software.
+Los informes muestran la evolución del trabajo y los anexos amplían sus decisiones. Las figuras y los archivos editables permanecen junto a cada entrega para facilitar su lectura. El [origen personal y académico](../16-motivacion-y-contexto.md) conecta esa etapa con la continuidad del proyecto.
 
-[Volver al índice por niveles](../README.md).
+[Volver a la documentación](../README.md).

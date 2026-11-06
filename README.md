@@ -21,7 +21,7 @@
 
 ## Sobre el proyecto
 
-Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un calamar que esquiva amenazas, recoge camarones y se acerca al peligro para cargar Ink-Pulse; incluye zonas, jefes, tiendas y progreso local.
+Desarrollé Squid Ink-Pulse junto al equipo de Yeco Works en Proyecto Integrador Programación Avanzada de la Universidad Católica del Norte. Es un endless runner submarino donde acercarse al peligro carga Ink-Pulse; incluye zonas, jefes, tiendas y progreso local.
 
 **Estado:** Windows 1.0.0 estable y Android 1.0.0 beta 2 disponibles. El port móvil continúa en desarrollo. El juego base es local; el servidor de feria es opcional.
 
@@ -53,12 +53,12 @@ Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un
 
 [Índice completo y rutas de lectura](Docs/README.md) · [Instalación y controles](Docs/Distribution.md).
 
-| Tipo                | Lectura                                                                                                                                                                          |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| General             | [Problema, cliente y solución](Docs/00-problematica-cliente-y-valor.md) · [Motivación](Docs/16-motivacion-y-contexto.md)                                                         |
-| Técnica             | [Arquitectura y diagramas](Docs/01-arquitectura-general.md) · [Dominio y datos](Docs/04-base-de-datos.md)                                                                        |
-| Desarrollo          | [Etapas y metodología](Docs/17-desarrollo-y-metodologia.md) · [Proyección](Docs/15-escalabilidad-y-nuevos-mercados.md) · [Costos CLP/USD](Docs/18-analisis-economico-clp-usd.md) |
-| Académica/formativa | [Contexto e informes originales](Docs/academica/README.md)                                                                                                                       |
+| Tipo                | Lectura                                                                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| General             | [Problema, cliente y solución](Docs/00-problematica-cliente-y-valor.md) · [Motivación](Docs/16-motivacion-y-contexto.md)                                                               |
+| Técnica             | [Arquitectura y diagramas](Docs/01-arquitectura-general.md) · [Dominio y datos](Docs/04-base-de-datos.md)                                                                              |
+| Desarrollo          | [Etapas y metodología](Docs/17-desarrollo-y-metodologia.md) · [Proyección](Docs/15-escalabilidad-y-nuevos-mercados.md) · [Estimaciones CLP/USD](Docs/18-analisis-economico-clp-usd.md) |
+| Académica/formativa | [Contexto e informes originales](Docs/academica/README.md)                                                                                                                             |
 
 [Identidad visual](branding/README.md): logos, banners y variantes de aplicación.
 

@@ -2,6 +2,8 @@
 
 ## Justificación y proyección
 
+Me interesa la decisión de acercarse al peligro para cargar Ink-Pulse y convertir ese riesgo en una ventaja. Seguir trabajando en el juego y en su adaptación móvil me permite cuidar esa experiencia y llevarla a otra forma de jugar.
+
 ### Ajuste entre problema y solución
 
 | Necesidad                     | Razón del diseño                                                       |
@@ -12,16 +14,19 @@
 
 Jugabilidad completa, comprensión de Ink-Pulse, estabilidad de perfil y rendimiento por target; ventas/retención sólo se estiman tras datos de uso.
 
+Quiero que una persona pueda aprender la mecánica, completar una partida y retomar su progreso. En Android eso también exige comprobar controles, interrupciones y rendimiento en el dispositivo, además de las pruebas del Editor.
+
 ### Qué se puede abstraer y qué no
 
-Las entidades, reglas y fronteras de [04-base-de-datos.md](04-base-de-datos.md) permiten evaluar reutilización. Cambiar un nombre o una categoría no prueba compatibilidad con otro sector: datos, permisos, reglas, operación y costos deben validarse de nuevo.
+La mecánica de riesgo y recompensa puede inspirar nuevos escenarios del juego. El perfil local, las mejoras y la composición por zonas ofrecen una base de trabajo; cualquier nueva distribución debe cuidar la experiencia original y los derechos de todo el equipo.
 
 ### Posibles líneas de evolución
 
-- Distribución independiente de juego 2D
-- Eventos y muestras académicas
-- Otros escenarios con mecánica riesgo/recompensa
-- Experiencias móviles de sesiones cortas
+Son caminos que me gustaría explorar después del alcance actual.
+
+- **Nuevos escenarios del juego:** Podrían explorar variaciones de riesgo y recompensa sin perder la lectura de Ink-Pulse.
+- **Muestras y eventos:** El modo de feria puede acompañar partidas públicas con una configuración separada del juego local.
+- **Sesiones móviles cortas:** La adaptación permite revisar otra duración y forma de jugar, atendiendo a controles y ciclo de vida.
 
 ### Límites y trade-offs
 
@@ -32,13 +37,13 @@ Las entidades, reglas y fronteras de [04-base-de-datos.md](04-base-de-datos.md) 
 
 ### Prioridad de inversión
 
-| Prioridad   | Iniciativa                                               | Impacto a comprobar                                                                                                                                 | Criterio económico                                                    |
-| ----------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Alta        | Cierre de un gate móvil con run física, UI y rendimiento | Jugabilidad completa, comprensión de Ink-Pulse, estabilidad de perfil y rendimiento por target; ventas/retención sólo se estiman tras datos de uso. | Rango de esfuerzo y costo en capítulo 18; no presupuesto comprometido |
-| Media       | Reproducción, soporte y recuperación por plataforma      | Menos fallos de entrega y pérdida de datos                                                                                                          | Costo recurrente separado de implementación                           |
-| Estratégica | Validar una extensión/forma de sostenimiento             | Uso y aceptación fuera del contexto inicial                                                                                                         | Investigar costos, demanda y condiciones antes de monetizar           |
+| Prioridad | Iniciativa                                                    | Qué quiero conseguir                                          |
+| --------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
+| Alta      | Completar la evaluación móvil en dispositivo                  | Revisar partidas, interrupciones y rendimiento prolongado.    |
+| Media     | Conservar compatibilidad y distribución por plataforma        | Actualizar el juego sin perder progreso.                      |
+| Futura    | Acordar continuidad y posibles usos comerciales con el equipo | Definir contenido, autoría y sostenimiento de forma conjunta. |
 
-Las cifras CLP/USD, supuestos, sensibilidad y retorno se presentan en [18-analisis-economico-clp-usd.md](18-analisis-economico-clp-usd.md); no son una valoración comercial del repositorio.
+Las [estimaciones comerciales y de operación](18-analisis-economico-clp-usd.md) permiten conversar sobre estos alcances con referencias para Chile y el extranjero.
 
 ## Código y documentación relacionada
 

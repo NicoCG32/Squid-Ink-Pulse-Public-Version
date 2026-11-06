@@ -2,16 +2,20 @@
 
 ## Origen del proyecto
 
-Squid Ink-Pulse nace como proyecto de equipo en el curso Proyecto Integrador Programación Avanzada, de 5 SCT, del quinto semestre de Ingeniería Civil en Computación Informática de la Universidad Católica del Norte. La motivación académica es integrar programación, sistemas de juego, arte y sonido en una experiencia completa. La adaptación móvil prolonga el desarrollo de esa base.
+Desarrollé Squid Ink-Pulse junto a mi equipo en Proyecto Integrador Programación Avanzada, de 5 SCT, en el quinto semestre de Ingeniería Civil en Computación Informática de la Universidad Católica del Norte. Fue una oportunidad para integrar programación, diseño, arte y sonido en un juego completo.
 
 ## Qué busca aportar
 
-Endless runner 2D submarino: el graze carga Ink-Pulse y abre una ventaja temporal; zonas, enemigos, bosses, portales y economía local sostienen progresión. La base funciona sin servicios; feria es un add-on opcional y Android requiere controles/UI/ciclo de vida propios.
+Me interesa la decisión de acercarse al peligro para cargar Ink-Pulse y convertir ese riesgo en una ventaja. Seguir trabajando en el juego y en su adaptación móvil me permite cuidar esa experiencia y llevarla a otra forma de jugar.
 
 ## Cómo evaluar su aporte
 
-Jugabilidad completa, comprensión de Ink-Pulse, estabilidad de perfil y rendimiento por target; ventas/retención sólo se estiman tras datos de uso.
+Quiero que una persona pueda aprender la mecánica, completar una partida y retomar su progreso. En Android eso también exige comprobar controles, interrupciones y rendimiento en el dispositivo, además de las pruebas del Editor.
+
+## Un proyecto de equipo
+
+En esta historia quiero destacar a **Matías Palacios**, artista y compositor principal y dueño de los soundtracks y sprites principales; a **Rodrigo Cortés**, por su aporte a la base mecánica del juego; y a **Mauricio Muñoz**, por ser un desarrollador confiable a lo largo del proyecto. Sus contribuciones forman parte de lo que hace reconocible al juego.
 
 [Problemática, público y solución](00-problematica-cliente-y-valor.md) · [Proyección](15-escalabilidad-y-nuevos-mercados.md).
 
-[Informes y contexto formativo](academica/README.md).
+[Contexto del curso y materiales](academica/README.md).

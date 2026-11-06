@@ -1,54 +1,30 @@
-# 18 — Escenarios económicos CLP / USD
+# 18 — Estimaciones comerciales y sostenimiento
 
-## Escenarios económicos de Squid Ink-Pulse
+El proyecto nació como una entrega de equipo y conserva ese carácter. Para continuar su desarrollo separaría una reserva técnica del posible precio de una futura edición. Cualquier decisión comercial debe acordarse con quienes tienen derechos sobre el código, el arte y la música.
 
-**Finalidad:** presupuestar decisiones futuras, no tasar el repositorio ni declarar costos/ventas históricos. Alcance modelado: **Cierre de un gate móvil con run física, UI y rendimiento**. No hay precio de venta o ingresos de equipo confirmados. Publicación gratuita no elimina tiempo de mantenimiento ni derechos/licencias de recursos.
+## Referencias para conversar sobre un alcance
 
-### Moneda y supuestos
+Estos rangos son mi propuesta inicial para evaluar trabajos o ediciones futuras. La columna CLP está pensada para clientes en Chile y la columna USD para clientes internacionales. El presupuesto final se acuerda según el alcance y el acompañamiento necesario en cada caso.
 
-Conversión: **USD 1 = CLP 994,29**, valor del **27-10-2026** en la [tabla oficial SII](https://www.sii.cl/valores_y_fechas/dolar/dolar2026.htm), utilizado como referencia para los escenarios de este capítulo. CLP = USD × R; USD = CLP / R, con R = 994,29.
+| Propuesta                             | Alcance de referencia                                                 | Clientes en Chile · CLP | Clientes internacionales · USD |
+| ------------------------------------- | --------------------------------------------------------------------- | ----------------------- | ------------------------------ |
+| Adaptación técnica de alcance acotado | Un ajuste de plataforma con pruebas; sujeto a acuerdo del equipo      | CLP 500.000–1.000.000   | USD 800–1.500                  |
+| Posible edición individual futura     | Rango para discutir con el equipo, sin cambiar las descargas actuales | CLP 3.000–6.000         | USD 5–10                       |
 
-Para valorizar esfuerzo se supone **CLP 15.000/h** (USD 15,09/h). Es una tasa elegida para comparar escenarios, no una tarifa profesional ni un presupuesto de implementación. Rangos de horas, mantenimiento y reservas también son supuestos; no se deducen de SCT, commits o líneas de código.
+Los servicios puntuales se estiman por entrega; los que indican soporte mensual se estiman por mes. Los rangos se presentan antes de impuestos y comisiones. Acordaría entregables, plazo y dedicación de soporte antes de iniciar un trabajo.
 
-### Inversión del siguiente alcance
+## Recursos y operación
 
-| Concepto                        | Base del escenario                       | CLP                     | USD                   |
-| ------------------------------- | ---------------------------------------- | ----------------------- | --------------------- |
-| Tiempo del siguiente alcance    | 24–56 h a CLP 15.000/h                   | CLP 360.000–CLP 840.000 | USD 362,07–USD 844,82 |
-| Reserva de materiales           | Supuesto; equipo existente no valorizado | CLP 0                   | USD 0,00              |
-| Total de inversión de escenario | No es inversión histórica ni cotización  | CLP 360.000–CLP 840.000 | USD 362,07–USD 844,82 |
+Para una etapa pequeña de mantenimiento reservaría CLP 50.000–100.000 mensuales o USD 80–150 mensuales de dedicación técnica. El juego base funciona localmente; un evento con servidor de feria tiene necesidades de operación adicionales.
 
-### Operación mensual
+Las reservas de operación cubren recursos o dedicación, según se indica; no se suman automáticamente a una propuesta de servicio. Para una implementación concreta, definiría quién contrata la infraestructura y cómo se reparte el mantenimiento.
 
-Servicios obligatorios en el escenario local: USD 0/mes; no significa costo total cero. Equipo, tiempo, consumibles, distribución, almacenamiento y servicios opcionales deben presupuestarse cuando se necesiten.
+## Qué valor quiero comprobar
 
-| Concepto                        | Base                               | CLP/mes    | USD/mes   |
-| ------------------------------- | ---------------------------------- | ---------- | --------- |
-| Mantenimiento de escenario      | 2 h/mes                            | CLP 30.000 | USD 30,17 |
-| Servicios externos de escenario | Ver composición; no factura actual | CLP 0      | USD 0,00  |
-| Costo mensual modelado          | Tiempo + servicios                 | CLP 30.000 | USD 30,17 |
+Evaluaría la continuidad por la experiencia del jugador, la estabilidad de su progreso y la posibilidad de mantener las entregas. Para considerar una venta futura, el equipo tendría que acordar también el trabajo de soporte y las condiciones de sus recursos.
 
-No se suman aquí impuestos, comisiones, dominio, sobreconsumo, reposición extraordinaria o equipo no valorizado. Costos de nube por proyecto/organización y cuotas gratuitas deben revisarse para la cuenta concreta. Una cuota de nube no sustituye la arquitectura ni la validación necesarias para escalar.
+## Qué puede cambiar el presupuesto
 
-### Justificación y retorno
+Estas estimaciones no conceden permisos de reutilización comercial. Matías Palacios es el dueño de los soundtracks y sprites principales; sus derechos y los de los demás participantes se conservan según [autoría y condiciones](../LICENSING.md). Arte nuevo, música y eventos se presupuestan aparte.
 
-No se monetiza la diversión o el aprendizaje como si fueran caja. Si se explora una venta, ingreso bruto = unidades × precio; faltan precio aceptado, demanda, comisiones, impuestos y soporte para calcular utilidad.
-
-Jugabilidad completa, comprensión de Ink-Pulse, estabilidad de perfil y rendimiento por target; ventas/retención sólo se estiman tras datos de uso.
-
-ROI sólo se calcula cuando beneficios y costos comparables estén medidos: (beneficio − costo) / costo, indicando período y si el tiempo valorizado realmente se convierte en ahorro. Un costo de caja bajo no acredita rentabilidad ni valor comercial de la idea.
-
-### Sensibilidad y decisión
-
-- Con R ±10 %, cambia en ±10 % el costo CLP de servicios fijados en USD; el gasto local CLP no cambia por ese supuesto.
-- Separar creación puntual de mantenimiento recurrente y reserva física de consumo.
-- Registrar facturas/uso, horas observadas y aceptación antes de reemplazar estos escenarios por un presupuesto comprometido.
-- Las monedas ficticias de un videojuego, saldos de clientes e inventario de una empresa no son ingresos del software.
-
-### Referencias de servicios
-
-[Supabase](https://supabase.com/pricing): Free y Pro desde USD 25/mes; [Vercel](https://vercel.com/pricing): Hobby y Pro desde USD 20/mes. Son referencias consultadas, no planes asignados al proyecto. [Gemini](https://ai.google.dev/gemini-api/docs/pricing) y [Firebase](https://firebase.google.com/pricing) requieren revisar producto/modelo, cuotas y condiciones antes de cuantificar consumo. El plan actual de Lovable u otro proveedor no se deduce de estas tarifas.
-
-## Código y documentación relacionada
-
-[README.md](../README.md) · [Docs/README.md](README.md) · [Docs/SoftwareArchitecture.md](SoftwareArchitecture.md) · [Docs/CoreSystems.md](CoreSystems.md) · [Docs/GameplaySystems.md](GameplaySystems.md) · [Docs/Testing.md](Testing.md) · [Docs/AndroidBuild.md](AndroidBuild.md).
+[Proyección y prioridades](15-escalabilidad-y-nuevos-mercados.md) · [Etapas y metodología](17-desarrollo-y-metodologia.md).
