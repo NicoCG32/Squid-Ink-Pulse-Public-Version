@@ -1,78 +1,41 @@
-# Documentación de Squid Ink-Pulse
+# Documentación · Squid Ink-Pulse
 
-Juego local con versión Windows y beta Android. La adaptación móvil continúa con ajustes de controles, interfaz, suspensión y rendimiento.
+> **Cinco puertas de entrada, un solo proyecto.** Ordenamos la documentación para que una persona que quiere jugar, otra que quiere comprender el código y quien revisa la entrega universitaria puedan encontrar lo que necesitan sin leer archivos que no les corresponden.
 
-## Documentación por cuatro tipos
+[← Volver a la portada](../README.md) · [Créditos y derechos](../LICENSING.md)
 
-| Tipo                    | Qué encontrarás                                                 | Por dónde empezar                                                                                                                                |
-| ----------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| General                 | Problemática, público, solución y motivación personal           | [Propuesta](00-problematica-cliente-y-valor.md) · [Origen](16-motivacion-y-contexto.md)                                                          |
-| Técnica                 | Arquitectura, dominio, datos, interfaz y puesta en marcha       | [Arquitectura](01-arquitectura-general.md) · [Instalación](09-instalacion-y-despliegue.md)                                                       |
-| Desarrollo del proyecto | Etapas, metodología, justificación, proyección y costos CLP/USD | [Metodología](17-desarrollo-y-metodologia.md) · [Proyección](15-escalabilidad-y-nuevos-mercados.md) · [Costos](18-analisis-economico-clp-usd.md) |
-| Académica/formativa     | Contexto del curso, informes y anexos de la etapa formativa     | [Catálogo académico](academica/README.md)                                                                                                        |
+## Las cinco áreas
+
+| Área | Para quién | Documentos de entrada |
+| --- | --- | --- |
+| **01 · General** | Personas que quieren conocer el proyecto | [Presentación y alcance](01-general/README.md) |
+| **02 · Técnica** | Lectores de arquitectura y responsables de sistemas | [Mapa técnico](02-tecnica/README.md), [arquitectura](02-tecnica/arquitectura.md) |
+| **03 · Desarrollo** | Quien modifica código, escenas o builds | [Guía de desarrollo](03-desarrollo/README.md), [validación](03-desarrollo/pruebas-y-validacion.md) |
+| **04 · Académica y formativa** | Profesorado, evaluadores y estudiantes | [Contexto e informes originales](04-academica/README.md) |
+| **05 · Diseño y experiencia de juego** | Jugadores, diseñadores y desarrolladores de gameplay | [GDD](05-diseno-y-experiencia-de-juego/gdd.md), [manual de juego](05-diseno-y-experiencia-de-juego/manual-del-jugador.md) |
 
 ## Rutas de lectura
 
-- **Conocer el proyecto:** [propuesta](00-problematica-cliente-y-valor.md) → [motivación](16-motivacion-y-contexto.md) → [funcionalidades](02-funcionalidades.md).
-- **Utilizarlo o desplegarlo:** [recorrido](03-flujo-de-usuario.md) → [instalación](09-instalacion-y-despliegue.md).
-- **Desarrollar o contribuir:** [arquitectura](01-arquitectura-general.md) → [dominio y datos](04-base-de-datos.md) → [reglas](05-motor-o-nucleo-de-negocio.md).
-- **Evaluar su evolución:** [metodología](17-desarrollo-y-metodologia.md) → [proyección](15-escalabilidad-y-nuevos-mercados.md) → [costos](18-analisis-economico-clp-usd.md).
+- **Quiero jugar:** [manual](05-diseno-y-experiencia-de-juego/manual-del-jugador.md) → [descargas](02-tecnica/compilacion-y-distribucion.md) → [zonas y amenazas](05-diseno-y-experiencia-de-juego/zonas-y-amenazas.md).
+- **Quiero entender cómo funciona:** [arquitectura C1–C3](02-tecnica/arquitectura.md) → [dominio y guardados](02-tecnica/dominio-y-persistencia.md) → [máquinas de estado](02-tecnica/estados-y-flujos.md).
+- **Quiero continuar el desarrollo:** [guía de desarrollo](03-desarrollo/README.md) → [estructura y convenciones](03-desarrollo/estructura-y-contribucion.md) → [pruebas](03-desarrollo/pruebas-y-validacion.md).
+- **Quiero revisar el trabajo universitario:** [contexto](04-academica/README.md) → [informes en su versión original](reports/) → [decisiones del juego](05-diseno-y-experiencia-de-juego/gdd.md).
 
-## Tabla de contenidos
+## Qué documentación es vigente y cuál es histórica
 
-| Capítulo | Documento                                                                          |
-| -------- | ---------------------------------------------------------------------------------- |
-| 00       | [Problemática, cliente y solución](00-problematica-cliente-y-valor.md)             |
-| 01       | [Arquitectura por niveles](01-arquitectura-general.md)                             |
-| 02       | [Catálogo funcional](02-funcionalidades.md)                                        |
-| 03       | [Recorrido y estados](03-flujo-de-usuario.md)                                      |
-| 04       | [Dominio, entidades y persistencia](04-base-de-datos.md)                           |
-| 05       | [Reglas y núcleo](05-motor-o-nucleo-de-negocio.md)                                 |
-| 06       | [Integraciones y asistencia](06-capa-de-ia-o-analisis.md)                          |
-| 07       | [Diseño y accesibilidad](07-diseno-e-identidad.md)                                 |
-| 08       | [Salidas y entregables](08-exportacion-e-informes.md)                              |
-| 09       | [Puesta en marcha y distribución](09-instalacion-y-despliegue.md)                  |
-| 15       | [Justificación, proyección y escalabilidad](15-escalabilidad-y-nuevos-mercados.md) |
-| 16       | [Motivación personal y contexto](16-motivacion-y-contexto.md)                      |
-| 17       | [Etapas y metodología](17-desarrollo-y-metodologia.md)                             |
-| 18       | [Escenarios económicos CLP / USD](18-analisis-economico-clp-usd.md)                |
+**Vigente:** estos cinco índices, sus capítulos y las referencias de código/escenas enlazadas. La documentación de la release siempre se contrasta con las notas del release correspondiente.
 
-## Guías especializadas
+**Histórica:** los PDF, Markdown y figuras de `Docs/reports/`. Los conservamos para registrar fielmente las etapas del curso; no los reescribimos para hacer coincidir sus afirmaciones con el código más reciente.
 
-- [Build e instalación Android](AndroidBuild.md).
-- [Rendimiento y medición Android](AndroidPerformance.md).
-- [Estándares de animación](AnimationStandards.md).
-- [Flujo de assets](AssetFlow.md).
-- [Sistemas núcleo](CoreSystems.md).
-- [Distribución del juego](Distribution.md).
-- [Enemigos y jefes](EnemiesAndBosses.md).
-- [Guía para probar el add-on de feria](FairEventSetupGuide.md).
-- [Add-on de feria: servidor local](FairServer.md).
-- [Sistemas de gameplay](GameplaySystems.md).
-- [Contrato de entrada](Input.md).
-- [Lore comics](LoreComics.md).
-- [Baseline funcional y técnico para el port móvil](MobileBaseline.md).
-- [Port móvil](MobilePort.md).
-- [Persistencia local](PersistentProfile.md).
-- [Portales](Portals.md).
-- [Resumen del proyecto](ProjectOverview.md).
-- [Informe breve del proyecto](ProjectReport.md).
-- [Estructura del proyecto](ProjectStructure.md).
-- [Referencia ampliada de uso](Referencia-de-uso.md).
-- [Estado del producto base y actualizaciones](ROADMAP.md).
-- [Auditoria de jerarquía runtime](RuntimeHierarchyAudit.md).
-- [Scene Composition Validation](SceneCompositionValidation.md).
-- [Arquitectura de software](SoftwareArchitecture.md).
-- [Maquinas de estado](StateMachines.md).
-- [Pruebas automatizadas](Testing.md).
-- [Tutorial](Tutorial.md).
-- [UI y menú](UiAndMenu.md).
-- [Mundo y cámara](WorldAndCamera.md).
-- [Escala estándar de mundo](WorldScale.md).
-- [Zona Epipelagica](ZonaEpipelagica.md).
-- [Iluminacion de ZonaAbisopelagica](ZoneLighting.md).
-- [reports/InformeSquidInkPulse.md](reports/InformeSquidInkPulse.md).
+**Referencia técnica detallada existente:** los documentos especializados que ya estaban en la raíz de `Docs/` siguen disponibles y complementan los capítulos sintéticos. No se convierten automáticamente en una garantía de que el comportamiento no haya cambiado.
 
-## Uso y distribución
+| Tema | Profundización |
+| --- | --- |
+| Arquitectura y runtime | [SoftwareArchitecture](SoftwareArchitecture.md) · [CoreSystems](CoreSystems.md) · [ProjectStructure](ProjectStructure.md) · [RuntimeHierarchyAudit](RuntimeHierarchyAudit.md) |
+| Gameplay | [GameplaySystems](GameplaySystems.md) · [EnemiesAndBosses](EnemiesAndBosses.md) · [Portals](Portals.md) · [StateMachines](StateMachines.md) |
+| Controles y UI | [Input](Input.md) · [UiAndMenu](UiAndMenu.md) · [LoreComics](LoreComics.md) · [Tutorial](Tutorial.md) |
+| Mundo y assets | [WorldAndCamera](WorldAndCamera.md) · [WorldScale](WorldScale.md) · [AssetFlow](AssetFlow.md) · [AnimationStandards](AnimationStandards.md) · [ZoneLighting](ZoneLighting.md) |
+| Datos e integración | [PersistentProfile](PersistentProfile.md) · [FairServer](FairServer.md) · [FairEventSetupGuide](FairEventSetupGuide.md) |
+| Plataformas y calidad | [Distribution](Distribution.md) · [AndroidBuild](AndroidBuild.md) · [MobilePort](MobilePort.md) · [AndroidPerformance](AndroidPerformance.md) · [Testing](Testing.md) · [SceneCompositionValidation](SceneCompositionValidation.md) |
 
-[Presentación y descargas](../README.md) · [Licencia y créditos](../LICENSING.md).
+Los documentos especializados no sustituyen el acceso por áreas: están enlazados donde resultan útiles, no repetidos en una lista interminable de capítulos. La [auditoría documental](03-desarrollo/auditoria-documental.md) explica qué afirmaciones fueron corregidas y qué falta verificar.
