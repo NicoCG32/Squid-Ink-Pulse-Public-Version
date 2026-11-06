@@ -164,7 +164,7 @@ public class MainMenu : MonoBehaviour
     {
         if (!FairModeSettings.IsEnabled)
         {
-            Debug.LogWarning("[MainMenu] El login de feria esta desactivado por --fair-disabled.", this);
+            Debug.LogWarning("[MainMenu] El modo feria no esta disponible en esta plataforma o esta desactivado.", this);
             return;
         }
 
