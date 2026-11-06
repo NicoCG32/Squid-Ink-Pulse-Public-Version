@@ -4,6 +4,8 @@
 
 ## 1. La idea
 
+La asignatura nos permitió elegir libremente el tipo de videojuego. Una vez conformado nuestro grupo mediante sorteo, surgieron tanto la identidad del equipo como las conversaciones sobre qué crear. **Squid Ink-Pulse fue la idea seleccionada tras una lluvia creativa de posibles videojuegos.**
+
 Hicimos un *endless runner* submarino 2D donde controlar un pequeño calamar exige algo más que huir. Si el jugador se aproxima a los peligros sin colisionar, llena el recurso **Ink-Pulse**. Activarlo le permite atravesar una situación difícil y seguir avanzando.
 
 La tensión central es **arriesgarse para obtener una ventaja**. Quedarse demasiado lejos es más seguro, pero puede dejar al jugador sin recurso cuando realmente lo necesite.

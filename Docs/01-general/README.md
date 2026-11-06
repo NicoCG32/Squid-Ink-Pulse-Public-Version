@@ -6,6 +6,10 @@
 
 Squid Ink-Pulse es un videojuego de acción submarina en 2D, del tipo *endless runner*. Lo desarrollamos en equipo como Yeco Works para llevar una idea jugable a un producto completo dentro de una asignatura universitaria, y el repositorio reúne también las iteraciones posteriores.
 
+### Cómo surgieron el equipo y el juego
+
+En **Proyecto Integrador Programación Avanzada** teníamos que desarrollar un videojuego, pero no nos imponían uno en particular: podíamos escoger qué queríamos crear. Primero se sortearon los grupos. A partir de ahí fuimos dando forma **en paralelo** a dos cosas: la identidad con la que trabajaríamos juntos, **Yeco Works**, y el juego que presentaríamos. **Squid Ink-Pulse surgió después de una lluvia de ideas de videojuegos**. Por eso el nombre del equipo y el concepto del juego nacieron dentro de la misma experiencia formativa, no como una empresa o franquicia anterior a la asignatura.
+
 La propuesta parte de una regla sencilla: **el peligro no solo se evita; también puede convertirse en una oportunidad**. Al pasar cerca de amenazas sin chocar, el pequeño calamar carga Ink-Pulse y obtiene una herramienta para salir de situaciones más difíciles. Ese ciclo une destreza, timing y riesgo.
 
 No tratamos el juego como un servicio comercial con «clientes», objetivos de ventas o infraestructura empresarial. Su contexto conocido es **formativo** y su resultado es un videojuego ejecutable. Cualquier intención comercial futura requerirá una decisión propia del equipo y una revisión de licencias.

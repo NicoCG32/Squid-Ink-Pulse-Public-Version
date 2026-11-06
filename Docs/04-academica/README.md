@@ -4,6 +4,8 @@
 
 Squid Ink-Pulse nació como proyecto grupal de **Proyecto Integrador Programación Avanzada**, asignatura del **quinto semestre de Ingeniería Civil en Computación Informática**, **Universidad Católica del Norte**, con valor de **5 SCT**.
 
+La asignatura nos daba libertad para elegir el videojuego a desarrollar. **Los grupos se conformaron por sorteo** y, ya con el equipo definido, surgió en paralelo nuestra identidad **Yeco Works**. Después de una lluvia creativa de ideas de videojuegos, escogimos la propuesta que se convirtió en **Squid Ink-Pulse**. Ambos nombres nacieron en el contexto de esta asignatura; no presentamos Yeco Works como un estudio previamente establecido.
+
 El equipo **Yeco Works** estuvo formado por:
 
 - Pablo Guzmán.

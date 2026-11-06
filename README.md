@@ -30,7 +30,7 @@ A esa mecánica sumamos enemigos, jefes, camarones como recurso, gadgets, mejora
 
 ## Nació como un proyecto universitario
 
-Desarrollamos el juego en grupo para **Proyecto Integrador Programación Avanzada**, asignatura del **quinto semestre de Ingeniería Civil en Computación Informática** de la **Universidad Católica del Norte**, con una carga de **5 SCT**.
+Desarrollamos el juego en grupo para **Proyecto Integrador Programación Avanzada**, asignatura del **quinto semestre de Ingeniería Civil en Computación Informática** de la **Universidad Católica del Norte**, con una carga de **5 SCT**. La asignatura proponía crear un videojuego de libre elección: una vez sorteados los grupos, fuimos construyendo en paralelo la identidad del equipo, **Yeco Works**, y la idea de nuestro juego. **Squid Ink-Pulse** nació de una lluvia de ideas creativa, no de un encargo externo ni de una empresa preexistente.
 
 El equipo Yeco Works estuvo integrado por **Pablo Guzmán, Rodrigo Cortés, Mauricio Muñoz, Inti Santibáñez y Matías Palacios**. Los roles y los derechos sobre recursos específicos se explican en [LICENSING.md](LICENSING.md). Los informes originales se mantienen íntegros en la [documentación académica](Docs/04-academica/README.md): representan el trabajo que presentamos en cada etapa, no la versión exacta de todas las actualizaciones posteriores.
 
