@@ -16,6 +16,8 @@ El add-on permite levantar un servidor Python en un PC host, guardar datos en SQ
 
 Por tanto, la persistencia principal del juego sigue siendo local por dispositivo. El servidor de feria es un complemento operativo, no el sistema oficial de guardado remoto del juego.
 
+En Android, el complemento queda deshabilitado y el juego local no consulta el servidor al arrancar. Windows conserva el cliente de feria y su configuración. El contrato de la build Android y sus permisos se detalla en [Android sin conexión](AndroidOffline.md).
+
 ## Estructura
 
 ```text
@@ -33,7 +35,7 @@ La guia operativa para preparar una prueba de feria esta en [FairEventSetupGuide
 
 ## Warnings esperados sin host
 
-Si Unity o el build se abren sin servidor de feria activo, pueden aparecer warnings rojos asociados a la falta de host, `localhost:8080` o una conexión rechazada. Para probar el juego principal esos warnings se ignoran, siempre que no existan errores de compilación C# ni referencias rotas de escena.
+Si el Editor o el build Windows con feria habilitada se abren sin servidor activo, pueden aparecer warnings asociados a la falta de host, `localhost:8080` o una conexión rechazada. Para probar el juego principal esos warnings se ignoran, siempre que no existan errores de compilación C# ni referencias rotas de escena. Android omite esta consulta.
 
 Solo deben investigarse cuando el objetivo sea probar explicitamente el add-on de feria. En ese caso, primero se levanta el servidor en el host y luego se comprueba el leaderboard web.
 

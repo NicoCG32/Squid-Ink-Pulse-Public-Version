@@ -151,3 +151,7 @@ La adaptación móvil comprende controles táctiles, menús, opciones y área se
 - Legibilidad con distintas relaciones de aspecto, recortes de pantalla y rendimiento sostenido.
 
 Las pruebas de Editor y las capturas automáticas complementan la prueba física. El alcance y los requisitos del port se describen en [MobilePort](MobilePort.md); las comprobaciones de escritorio se mantienen en [Testing](Testing.md).
+
+## Juego local y permisos
+
+El player Android omite la integración de feria. La build normal sin Development se empaqueta sin permiso de Internet y se comprueba también con modo avión y Wi-Fi apagado. El postproceso deja intacta la variante Development para depuración. Consulta [Android sin conexión y modo feria](AndroidOffline.md) para revisar los permisos del APK final y el alcance de la comprobación por plataforma.
