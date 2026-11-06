@@ -298,6 +298,9 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         }
         else if (context.action == togglePause)
         {
+            // Android Back is also Escape. Its contextual Cancel route owns it.
+            if (MobileBackNavigation.IsActive && context.control is KeyControl key && key.keyCode == Key.Escape)
+                return;
             PauseToggleRequested?.Invoke();
         }
         else if (context.action == useGadgetSlot1)

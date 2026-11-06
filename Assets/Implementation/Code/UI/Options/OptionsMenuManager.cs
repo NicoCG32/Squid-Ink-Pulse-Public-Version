@@ -39,6 +39,7 @@ public class OptionsMenuManager : MonoBehaviour
     private DisplayResolutionOption[] resolutionOptions = new DisplayResolutionOption[0];
     private Coroutine animationRoutine;
     private bool isOpen;
+    private bool isClosing;
     private Canvas sizingCanvas;
 
     public bool IsOpen => isOpen;
@@ -76,6 +77,7 @@ public class OptionsMenuManager : MonoBehaviour
         ResolveUiReferences();
         NormalizeRenderableScale();
         onClosedCallback = onClosed;
+        isClosing = false;
         isOpen = true;
         SetVisible(true);
         StartAnimation(AnimateIn());
@@ -89,6 +91,8 @@ public class OptionsMenuManager : MonoBehaviour
 
     public void Close()
     {
+        if (!isOpen || isClosing) return;
+        isClosing = true;
         StartAnimation(AnimateOutThenClose());
     }
 
@@ -315,6 +319,7 @@ public class OptionsMenuManager : MonoBehaviour
         {
             SetVisible(false);
             isOpen = false;
+            isClosing = false;
             onClosedCallback?.Invoke();
             onClosedCallback = null;
             yield break;
@@ -325,6 +330,7 @@ public class OptionsMenuManager : MonoBehaviour
         
         SetVisible(false);
         isOpen = false;
+        isClosing = false;
         onClosedCallback?.Invoke();
         onClosedCallback = null;
     }

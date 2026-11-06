@@ -93,6 +93,8 @@ public sealed class LoreComicPresenter : MonoBehaviour
     private float timeScaleBeforePresentation = 1f;
     private LoreComicView view;
 
+    public bool IsPresenting => activeRoutine != null;
+
     private void Awake()
     {
         ResolveReferences();

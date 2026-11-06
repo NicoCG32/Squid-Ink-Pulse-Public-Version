@@ -62,6 +62,10 @@ public class MainMenu : MonoBehaviour
     private int lastDemoShrimpTextInputFrame = -1;
     private CanvasScaler[] platformCanvasScalers;
 
+    public bool IsLoading => isLoading;
+    public bool IsTutorialOpen => tutorialComicsOpen;
+    public void CerrarTutorial() => CloseTutorialImmediate();
+
     private void Awake()
     {
         ResolveUiReferences();
