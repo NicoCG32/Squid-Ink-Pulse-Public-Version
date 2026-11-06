@@ -6,6 +6,18 @@ Squid Ink-Pulse nació como proyecto grupal de **Proyecto Integrador Programaci�
 
 La asignatura nos daba libertad para elegir el videojuego a desarrollar. **Los grupos se conformaron por sorteo** y, ya con el equipo definido, surgió en paralelo nuestra identidad **Yeco Works**. Después de una lluvia creativa de ideas de videojuegos, escogimos la propuesta que se convirtió en **Squid Ink-Pulse**. Ambos nombres nacieron en el contexto de esta asignatura; no presentamos Yeco Works como un estudio previamente establecido.
 
+### Por qué nos llamamos Yeco Works
+
+Elegimos **Yeco Works**, escrito con **c**, en homenaje al **pato yeco**, característico de nuestra universidad y recordado, entre otras cosas, por las heces que deja en el entorno universitario. Ese guiño local forma parte de la identidad que construimos para la asignatura.
+
+El informe final conserva una imagen identificada allí como **logotipo de Yeco Works**. La enlazamos desde su ubicación original, sin modificar los recursos entregados:
+
+<p align="center">
+  <img src="../reports/Informe%20Final/media/image4.png" alt="Logotipo de Yeco Works conservado en el informe final" width="260">
+</p>
+
+Durante la asignatura también contamos con **Fabián**, un estudiante de **noveno semestre** asignado como **PM** para supervisar y guiar nuestro proyecto. Él solía llamarnos «Yeko Works». Era una forma informal de referirse a nosotros, no el nombre oficial ni una identidad alternativa. Su función de acompañamiento es distinta de la autoría de los cinco integrantes del grupo.
+
 El equipo **Yeco Works** estuvo formado por:
 
 - Pablo Guzmán.
