@@ -2,7 +2,7 @@
 
 [← Área técnica](README.md)
 
-El juego tiene varias máquinas de estado, y cada una responde a una pregunta distinta. No conviene mezclarlas en una sola máquina gigantesca.
+La sesión, el jugador, Ink-Pulse y los eventos de partida tienen estados propios. Cada controlador aplica las transiciones de su sistema.
 
 ## Flujo del jugador y escenas
 
@@ -28,11 +28,11 @@ flowchart TD
   Retry -->|No| Menu
 ```
 
-El diagrama es una **vista de navegación**; no significa que todas las tiendas o eventos estén disponibles en cualquier momento ni especifica el orden exacto de los bosses.
+Las tiendas, jefes y portales aparecen según la progresión y los perfiles de cada zona.
 
 ## Sesión global
 
-Estados comprobados en `GameSessionState.cs`: `Playing`, `Paused`, `GameOver`.
+Estados de `GameSessionState.cs`: `Playing`, `Paused`, `GameOver`.
 
 ```mermaid
 stateDiagram-v2
@@ -59,7 +59,7 @@ stateDiagram-v2
   PostBossWindow --> Normal: continuar sin portal
 ```
 
-Esta es una **secuencia conceptual de eventos**; revisar condiciones y tiempos exactos en `RunProgressionDirector`.
+`RunProgressionDirector` controla las condiciones y los tiempos de estos eventos.
 
 ## Jugador e Ink-Pulse
 
@@ -84,7 +84,7 @@ stateDiagram-v2
   Active --> Idle: efecto termina
 ```
 
-Los estados formales están en `PlayerRuntimeState.cs` e `InkPulseState.cs`. El graze proporciona carga, pero **graze no equivale a colisión dañina**. El control de la habilidad aplica sus propias restricciones durante tienda, portal y otros estados.
+Los estados formales están en `PlayerRuntimeState.cs` e `InkPulseState.cs`. El graze carga Ink-Pulse al pasar cerca de una amenaza sin chocar. El controlador de la habilidad restringe su activación durante tiendas, portales y otros estados bloqueantes.
 
 ## Estados adicionales
 
@@ -94,4 +94,4 @@ Los estados formales están en `PlayerRuntimeState.cs` e `InkPulseState.cs`. El 
 | Cámara | `Follow`, `WideEvent`, `ReturningToFollow` |
 | SS Carnage | `Inactive`, `Warning`, `DeployingNet`, `NetActive`, `Resolved`, `Failed`, `Exiting`, `Finished` |
 
-Los enum indican las fases **posibles**, no prueban por sí solos todas sus transiciones. Para detalles y guardas de cada sistema, consultar [StateMachines](../StateMachines.md).
+Los efectos y las condiciones de transición se detallan en [máquinas de estado](../StateMachines.md).

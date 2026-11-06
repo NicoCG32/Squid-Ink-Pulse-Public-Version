@@ -14,7 +14,7 @@ flowchart LR
   Visitor["Otro dispositivo<br/>en la LAN"] --> Web
 ```
 
-El servidor expone rutas técnicas de participantes, recuperación, snapshots, rank, heartbeat, checkout, clasificación y health. Esas rutas existen en código, pero **no justifican afirmar que está validada una recuperación o sincronización universal entre distintos PCs**. La finalidad presentada y comprobable es el ranking del host.
+El servidor conserva los resultados del PC anfitrión y sirve la clasificación a los navegadores de la LAN. Su API incluye participantes, recuperación, snapshots, rank, heartbeat, checkout y health. La sincronización completa de progreso entre PCs queda fuera del alcance actual.
 
 ## Puesta en marcha del servidor
 
@@ -33,6 +33,6 @@ sequenceDiagram
   A-->>B: Página de leaderboard
 ```
 
-**Advertencia:** esta secuencia representa el recorrido de feria previsto para el host y no certifica escritura remota desde cualquier instalación del juego. Los detalles de los endpoints y las condiciones operativas se explican en [FairServer](../FairServer.md), [guía del evento](../FairEventSetupGuide.md) y [servidor fuente](../../Tools/FairServer/server.py).
+Los endpoints y la configuración se explican en [servidor de feria](../FairServer.md), [preparación del evento](../FairEventSetupGuide.md) y [server.py](../../Tools/FairServer/server.py). Android omite este complemento; en Windows se puede desactivar con `--fair-disabled`.
 
 Antes de borrar la base, cerrar el servidor y respaldar `Tools/FairServer/data/fair_server.sqlite3`. Eliminar el archivo elimina los datos almacenados en ese host.

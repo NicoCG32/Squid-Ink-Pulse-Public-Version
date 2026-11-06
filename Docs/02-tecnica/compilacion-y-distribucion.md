@@ -2,34 +2,33 @@
 
 [← Área técnica](README.md)
 
-## Releases publicados
+## Descargas
 
-| Sistema | Versión | Estado |
+| Plataforma | Versión publicada | Instalación |
 | --- | --- | --- |
-| Windows x64 | [v1.0.1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.1) | Estable. |
-| Android ARM64 | [v1.0.1 beta 1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.1-beta.1) | Beta, con firma de desarrollo. |
+| Windows x64 | [v1.0.1, estable](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.1) | Extraer el ZIP completo y abrir `JUGAR.cmd`. |
+| Android ARM64 | [v1.0.1 beta 1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.1-beta.1) | Instalar el APK en Android 7.1/API 25 o posterior. |
 
-Ambas versiones se publicaron el **31 de octubre de 2026**. Windows 1.0.1 actualiza el icono y acumula ajustes visuales; Android 1.0.1 beta 1 actualiza iconos adaptativos y mantiene la validación móvil pendiente. Las notas de release distinguen expresamente **las pruebas ejecutadas para ese corte** de las suites del runtime anterior. No convertimos una prueba anterior en una certificación nueva.
-
-Los adjuntos `SHA256SUMS.txt`, `source-info.json` y `SOURCE.patch` permiten comprobar integridad y procedencia. El botón automático «Source code» no descarga el ejecutable ni el APK.
+Los adjuntos `SHA256SUMS.txt`, `source-info.json` y `SOURCE.patch` identifican la integridad y procedencia de cada entrega. «Source code» descarga el proyecto de Unity. Las mejoras posteriores del repositorio llegan al juego instalado cuando se compila y publica una nueva versión.
 
 ## Abrir el proyecto
 
-1. Instalar Unity Hub y el editor **6000.3.11f1** (según `ProjectSettings/ProjectVersion.txt`).
-2. Importar el repositorio como proyecto existente.
-3. Abrir `Assets/Scenes/MainMenu/MainMenu.unity`.
-4. Revisar errores de consola y referencias antes de iniciar Play Mode.
+1. Instalar Unity Hub y **Unity 6000.3.11f1**, indicado en `ProjectSettings/ProjectVersion.txt`.
+2. Añadir el módulo Windows Build Support o Android Build Support según el destino. Para Android, usar también SDK, NDK y OpenJDK de Unity Hub.
+3. Añadir el repositorio como proyecto existente y esperar la importación de paquetes.
+4. Abrir `Assets/Scenes/MainMenu/MainMenu.unity` y ejecutar Play Mode.
 
-Las cuatro escenas activas de `ProjectSettings/EditorBuildSettings.asset` son `MainMenu`, `ZonaEpipelagica`, `ZonaAbisopelagica` y `ShopMenu`. El tutorial jugable aislado queda fuera del build.
+Las escenas habilitadas son `MainMenu`, `ZonaEpipelagica`, `ZonaAbisopelagica` y `ShopMenu`. El cómic de «Cómo jugar» está disponible en el menú; `ZonaTutorial` queda fuera de compilación.
 
-## Generación de Windows
+## Generar builds
 
-El proyecto incluye `WindowsReleaseBuilder` en `Assets/Implementation/Editor/`. La guía especializada [Distribution](../Distribution.md) explica el procedimiento de build, la ubicación del ZIP y las comprobaciones de la entrega. No incluir `Library/`, carpetas de builds locales ni perfiles reales del jugador como material fuente.
+- **Windows:** `WindowsReleaseBuilder.BuildWindowsRelease` crea el player sin Development. [Distribución](../Distribution.md) explica la compilación y el empaquetado.
+- **Android:** `AndroidDevelopmentBuilder` ofrece APK Development y APK sin Development. [Build Android](../AndroidBuild.md) incluye comandos, instalación, firma y revisión de permisos.
 
-## Android beta
+Antes de distribuir, ejecutar las [pruebas y recorridos de validación](../03-desarrollo/pruebas-y-validacion.md). Mantener los binarios en los adjuntos de Releases y conservar sus notas y checksums.
 
-Requiere Android **7.1 / API 25 o posterior** y **ARM64**. Aunque el APK no es una compilación Development, conserva una **firma Debug**, distinta de una futura firma de publicación. Desinstalar puede borrar los datos locales; conviene respaldar antes de cambiar firma o reinstalar. Revisar [AndroidBuild](../AndroidBuild.md) y [MobilePort](../MobilePort.md) para limitaciones y validación física.
+## Datos al actualizar
 
-## Progreso local
+En Windows, el perfil se guarda en `%USERPROFILE%/AppData/LocalLow/Yeco Works/Squid Ink-Pulse/db`. Cambiar la carpeta del ejecutable conserva esos archivos.
 
-En Windows, el perfil se conserva bajo `%USERPROFILE%/AppData/LocalLow/Yeco Works/Squid Ink-Pulse/db`. Actualizar la carpeta portátil del ejecutable no restablece ese guardado. Los datos del servidor de feria son otro almacén y no se deben mezclar.
+La beta Android mantiene firma de desarrollo. Actualizar requiere un certificado compatible; desinstalar puede borrar el progreso. La futura candidata necesita firma de distribución y completar el [recorrido móvil](../MobilePort.md). Los datos del servidor de feria se respaldan por separado.

@@ -37,8 +37,8 @@ Este diagrama recoge responsabilidades del sistema; para frecuencias, pesos, lí
 
 Los eventos de jefe no implican detener toda aparición normal: la progresión puede aumentar la presión. El equilibrio de cada perfil es parte del contenido y puede ajustarse sin cambiar el principio de riesgo/recompensa.
 
-## Una precisión importante
+## Tutorial
 
-La escena `ZonaTutorial.unity` y sus componentes se conservan como trabajo técnico, **pero no forman una tercera zona jugable del build publicado**. El tutorial disponible para el jugador es el cómic del menú principal.
+El tutorial disponible es el cómic del menú principal. `ZonaTutorial.unity` queda fuera de las escenas de distribución.
 
 [Volver al GDD](gdd.md) · [Mecánicas técnicas](../GameplaySystems.md).

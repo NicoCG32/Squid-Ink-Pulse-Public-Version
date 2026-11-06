@@ -18,11 +18,9 @@ Las pruebas del repositorio comprenden clases en `Assets/Tests/EditMode/` y esce
 | Android | Entrada táctil, safe areas, suspensión, rendimiento y datos tras actualización en dispositivo real. |
 | Feria | Host HTTP/SQLite y visualización del ranking por LAN, si se entrega ese complemento. |
 
-## Distinguir resultados históricos y actuales
+## Registro de una entrega
 
-Las notas de las releases 1.0.1 señalan **334 pruebas EditMode y 23 PlayMode** ejecutadas sobre el runtime anterior a los cambios de iconos/versionado; no fueron repetidas íntegramente para ese corte. Es correcto citarlas como evidencia previa, no afirmar que una batería nueva acaba de pasar.
-
-Nunca sustituir los resultados por «todo probado» si no se ejecutó la matriz manual completa. Registrar plataforma, versión, revisión fuente, pruebas efectivamente realizadas, resultado y pendiente.
+Anotar plataforma, versión, revisión fuente, pruebas ejecutadas y resultados junto a las notas de la entrega. Los comandos y herramientas están en [Testing](../Testing.md).
 
 ## Flujo recomendado
 

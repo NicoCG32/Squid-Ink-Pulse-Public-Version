@@ -87,7 +87,7 @@ public sealed class TutorialPresentationController : MonoBehaviour
         if (freezeActive)
         {
             freezeActive = false;
-            if (session == null || session.IsPlaying)
+            if (!MobileApplicationLifecycle.PauseBeforeGameplayTimeRestored() && (session == null || session.IsPlaying))
             {
                 Time.timeScale = timeScaleBeforePresentation;
             }

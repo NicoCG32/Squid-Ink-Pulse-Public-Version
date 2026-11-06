@@ -93,7 +93,7 @@ El soundtrack dinámico no agrega una maquina de estado propia. `InkPulseMusicCr
 | Estado | Efecto |
 | --- | --- |
 | `Closed` | No hay oferta visible. |
-| `Offering` | La tienda muestra gadget, precio y contador. La compra se intenta con `B`. |
+| `Offering` | La tienda muestra gadget, precio y contador. La compra se intenta con `B` o el botón Comprar. |
 
 `InGameShopOpenSource` no es un estado visible; clasifica la causa de apertura de la oferta (`Timed`, `Tutorial` o `DealerFish`). Esa causa decide reglas laterales, como si al cerrar corresponde intentar el comic final de DealerFish.
 

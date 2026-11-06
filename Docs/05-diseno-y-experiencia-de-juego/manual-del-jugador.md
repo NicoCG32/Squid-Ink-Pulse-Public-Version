@@ -6,14 +6,14 @@
 
 Controlamos a **Baby Squid**, un pequeño calamar en un mundo submarino. El escenario avanza y aparecen peligros: hay que esquivarlos, recoger camarones y decidir cuándo acercarnos lo suficiente para cargar **Ink-Pulse**. La habilidad se puede usar cuando está lista; no es necesario activarla en cuanto se carga.
 
-El menú principal incluye **Cómo jugar**, presentado mediante páginas de cómic. No exige entrar a una escena tutorial adicional.
+El menú principal incluye **Cómo jugar**, presentado mediante páginas de cómic.
 
 ## Instalar el juego
 
 - **Windows:** descargar [Windows 1.0.1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.1), extraer todo el ZIP y abrir `JUGAR.cmd` o el ejecutable incluido. Mantener juntos los archivos.
 - **Android:** descargar [Android 1.0.1 beta 1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.1-beta.1), instalar el APK ARM64 en Android 7.1/API 25 o superior. Sigue siendo una versión beta, por lo que controles y rendimiento deben evaluarse en cada dispositivo.
 
-No descargues el ZIP que GitHub genera automáticamente con la etiqueta «Source code» para intentar jugar: contiene código y assets del proyecto, no un player instalado.
+Los adjuntos ZIP Windows y APK Android son las descargas para jugar. «Source code» contiene el proyecto de Unity.
 
 ## Controles Windows
 
@@ -26,7 +26,18 @@ No descargues el ZIP que GitHub genera automáticamente con la etiqueta «Source
 | Comprar oferta de tienda durante la partida | B |
 | Navegar menús y cómics | Mouse |
 
-En Android se utiliza una interfaz táctil específica; su adaptación y comprobaciones siguen en desarrollo. No extrapolamos botones o gestos exactos sin validar la distribución móvil.
+## Controles Android
+
+| Acción | Control táctil |
+| --- | --- |
+| Dirigir a Baby Squid | Mantener y mover un dedo en el área de juego; al soltar, el avance continúa y se conserva la altura. |
+| Activar Ink-Pulse | Botón Ink-Pulse cuando la barra indique LISTO. |
+| Pausar | Botón de pausa; Reanudar vuelve a la partida. |
+| Usar un gadget | Botón de su espacio en el HUD. |
+| Comprar | Botón Comprar de la oferta visible. |
+| Menús y cómics | Tocar sus botones. |
+
+En el código actual, Atrás cierra opciones y tutorial, vuelve desde la tienda permanente y abre la pausa durante la partida. Al regresar de otra aplicación o de bloquear la pantalla, la partida requiere Reanudar. Estas mejoras posteriores a la beta publicada se incluyen en la próxima build; consulta [navegación e interrupciones](../AndroidLifecycle.md).
 
 ## Cómo se juega
 
@@ -45,7 +56,6 @@ El progreso es **local por dispositivo**. En Windows se guarda bajo `%USERPROFIL
 ## Dificultades frecuentes
 
 - **No abre el ZIP:** primero extrae el contenido completo; no muevas solo el .exe.
-- **No puedo jugar desde «Source code»:** necesitas el adjunto ZIP Windows o APK Android de una release.
 - **No hay servidor de feria:** no es obligatorio para la experiencia principal.
 - **Falla la tienda o se pierde una compra:** evita sobrescribir archivos de guardado sin respaldo y registra la versión y los pasos para reproducir el error.
 

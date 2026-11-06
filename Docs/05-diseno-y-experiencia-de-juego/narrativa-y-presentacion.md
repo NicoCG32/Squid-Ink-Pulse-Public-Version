@@ -6,7 +6,7 @@
 
 El protagonista es **Baby Squid**. Su desplazamiento por entornos submarinos, el peligro creciente y los encuentros con otras criaturas construyen la atmósfera del juego. La historia se presenta mediante cómics y eventos; la documentación académica conserva cómo se describía su argumento en cada entrega del curso.
 
-Evito convertir una interpretación del relato en un hecho nuevo: para giros narrativos, parentescos y escenas concretas, la referencia histórica es [el informe final](../reports/Informe%20Final/InformeSquidInkPulseFinal.md), y la implementación visual actual se revisa en [LoreComics](../LoreComics.md).
+El argumento se desarrolla en [el informe final](../reports/Informe%20Final/InformeSquidInkPulseFinal.md). Las viñetas y su aparición durante la partida se describen en [LoreComics](../LoreComics.md).
 
 ## Identidad y experiencia visual
 
@@ -31,6 +31,6 @@ El gráfico representa cómo vinculamos el feedback con decisiones de juego; cad
 
 La identidad visual del repositorio se encuentra en [branding](../../branding/README.md), con banners claro/oscuro, isotipos y variantes de icono.
 
-**Matías Palacios** figura en los créditos como artista y compositor principal. No debe interpretarse que publicar el repositorio autoriza a reutilizar su música o sprites. Consultar los derechos y reconocimientos en [LICENSING.md](../../LICENSING.md).
+**Matías Palacios** es el artista y compositor principal. Los derechos sobre música, sprites y demás recursos se detallan en [LICENSING.md](../../LICENSING.md).
 
 Para reglas de presentación y estructura de recursos: [AnimationStandards](../AnimationStandards.md), [AssetFlow](../AssetFlow.md), [UiAndMenu](../UiAndMenu.md) y [ZoneLighting](../ZoneLighting.md).

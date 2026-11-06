@@ -1,4 +1,4 @@
-# Auditoria de jerarquía runtime
+# Jerarquía de escenas y prefabs
 
 ## Proposito
 
@@ -239,7 +239,7 @@ Reglas:
 - Las escenas asignan el `ChargeBar` al `InkPulseController` del jugador.
 - Los botones de prefabs UI no deben serializar eventos persistentes hacia managers externos de escena.
 - Los botones que llaman a un componente del mismo prefab pueden conservar `OnClick` persistente autocontenido.
-- Los managers de escena pueden cablear listeners en runtime solo como respaldo defensivo; el contrato preferido es que referencias y acciones relevantes sean visibles o serializadas para auditoria.
+- Los managers de escena pueden cablear listeners en runtime solo como respaldo defensivo; el contrato preferido es que referencias y acciones relevantes sean visibles o serializadas en el Inspector.
 - Los managers de escena no deben desactivar listeners persistentes del Inspector. No usar `SetPersistentListenerState` ni helpers tipo `DisablePersistentOnClick`.
 - `PauseMenuManager` y `GameOverMenuManager` conservan las referencias de escena hacia las instancias visuales y pueden mantener resolucion defensiva por nombre mientras se refactorizan.
 - `InGameShopManager` consume referencias serializadas de la vista de tienda temporal; no resuelve `InGameCanvas` ni controles internos por nombre en runtime.
@@ -304,17 +304,6 @@ Reglas:
 - Cada fuente puede declarar `grazeAnchor`, `lightShapeScale` y titileo para ajustar lectura local de una entidad concreta.
 - El fallback legacy puede crear `LightGrazeMask` y `LightGrazeFeather` como hijos runtime si se desactiva `useCompositeLightOverlay`.
 - `GrazeDetector` y `LightGrazeSource` no deben compartir estado ni cargar el mismo recurso.
-
-## Scripts retirados o reemplazados
-
-| Script anterior | Estado | Motivo |
-| --- | --- | --- |
-| `CameraFollowHorizontal` | eliminado | Duplicaba responsabilidades de `CameraController` y `HorizontalTracker`. |
-| `PauseButtonAnimation` | reemplazado por `MenuButtonAnimation` | Su uso ya no es exclusivo del menú de pausa. |
-| `PauseBubbles` | eliminado | `MenuBubbles` cubre la animación decorativa compartida. |
-| `GadgetPickup` | reemplazado | Los gadgets se compran, no se recogen directamente. |
-| `ShopPickup` | reemplazado por `DealerFish` | El ente de tienda tiene identidad propia. |
-| `PlayerInkPulseVisualController` | reemplazado en jerarquía por `PlayerVisualStateController` | Ink-Pulse ya no puede ser el unico dueno visual porque portal e Ink-Pulse compiten por ocultar el cuerpo. |
 
 ## Invariantes de mantenimiento
 

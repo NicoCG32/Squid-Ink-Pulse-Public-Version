@@ -23,7 +23,7 @@ Responsabilidad:
 
 Si el lector todavía no recibió una posición válida, no existe objetivo vertical. `(0,0)` sigue siendo una coordenada válida y no se usa como sentinel. El binding versionado de `SteerPosition` continúa siendo sólo mouse, pero `TouchSteeringSurface` puede inyectar posiciones de pantalla desde un único dedo con prioridad temporal. Al soltar o cancelar vuelve al último mouse válido, o invalida el objetivo si no existe fallback. La superficie vive en la instancia de `TouchControls.prefab` montada bajo el HUD de ambos GameRoot activos.
 
-La ausencia de objetivo vertical nunca detiene el avance horizontal. `PlayerMovementFramePolicy` compone el autoscroll X con la decisión vertical: sin mouse/dedo conserva Y, mientras que un target o impulso sólo modifica Y. Pausa, Game Over, supresión y límites de escena continúan siendo los únicos gates que pueden congelar el movimiento completo.
+La ausencia de objetivo vertical nunca detiene el avance horizontal. `PlayerMovementFramePolicy` compone el autoscroll X con la decisión vertical: sin mouse/dedo conserva Y, mientras que un target o impulso sólo modifica Y. Pausa, Game Over, supresión y límites de escena continúan siendo las condiciones que pueden detener el movimiento completo.
 
 Contrato de límites:
 - No usa `minY` ni `maxY` serializados.

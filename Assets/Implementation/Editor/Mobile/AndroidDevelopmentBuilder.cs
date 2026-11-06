@@ -25,6 +25,15 @@ public static class AndroidDevelopmentBuilder
     public static void BuildAndroidPerformanceApk()
     {
         BuildApk("Build/AndroidPerformance/SquidInkPulse-performance.apk", BuildOptions.None, "Performance");
+        if (Environment.GetCommandLineArgs().Contains("--sip-audit-label"))
+            AndroidResourceAuditExporter.ExportLatest();
+    }
+
+    [MenuItem("Tools/Squid Ink Pulse/Build Android Texture Audit APK")]
+    public static void BuildAndroidTextureAuditApk()
+    {
+        BuildApk("Build/AndroidTextureAudit/SquidInkPulse-texture-audit.apk", BuildOptions.Development, "TextureAudit");
+        AndroidResourceAuditExporter.ExportLatest();
     }
 
     private static void BuildApk(string relativeOutput, BuildOptions buildOptions, string configuration)
@@ -95,8 +104,8 @@ public static class AndroidDevelopmentBuilder
 
             if (Directory.Exists(outputDirectory))
             {
-                if (configuration == "Performance" && Directory.EnumerateFileSystemEntries(outputDirectory).Any())
-                    throw new BuildFailedException("Preserve Build/AndroidPerformance antes de repetir el build.");
+                if (configuration != "Development" && Directory.EnumerateFileSystemEntries(outputDirectory).Any())
+                    throw new BuildFailedException($"Preserve {relativeOutput} antes de repetir el build.");
                 Directory.Delete(outputDirectory, true);
             }
 

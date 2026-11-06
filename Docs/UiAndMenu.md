@@ -87,7 +87,7 @@ El Canvas de `MainMenu` conserva la composición de referencia en móvil con `Mo
 
 La escena protege el contenido con tres contenedores full-stretch y `SafeAreaAdapter`: `NavigationSafeArea` para botones, `BrandSafeArea` para el logo y `CounterSafeArea` para camarones. Conservan el orden de dibujo y no añaden Canvas ni EventSystem. Fondo y personaje siguen cubriendo el frame. En móvil, Cómo Jugar se ancla al borde izquierdo seguro, y logo/contador al derecho, conservando sus posiciones de referencia y sin acumular desplazamientos al reaplicar la presentación. Desktop mantiene los anchors y posiciones de autoría.
 
-`MainMenuPlatformPolicy` reserva el botón Salir y su acción para desktop; Android lo oculta y no ejecuta quit desde ese callback. Los botones mantienen los eventos y estados visuales existentes: un Down touch muestra pressed y el click no requiere hover. El Back contextual de Android sigue siendo un corte posterior del port.
+`MainMenuPlatformPolicy` reserva el botón Salir y su acción para desktop; Android lo oculta y no ejecuta quit desde ese callback. Los botones mantienen los eventos y estados visuales existentes: un Down touch muestra pressed y el click no requiere hover. El [Back contextual de Android](AndroidLifecycle.md) cierra el panel apropiado y respeta la pausa y los cómics.
 
 El tutorial gráfico también consume `MobileCanvasScalePolicy`: su Canvas raíz y los tres de página adoptan ancho en 16:10 y altura en teléfono ancho, sin modificar los scalers de autoría ni Windows. `TutorialSafeArea/TutorialContent` contiene las tres páginas y Next, con las referencias y orden originales. `SafeAreaAdapter` delimita el espacio disponible y `MobileReferenceContentFitter` centra/escala uniformemente la composición 1920×1080 dentro de él, incluyendo muescas que estrechan 16:9. El dimmer permanece fuera, cubriendo el frame. El ajuste geométrico no genera UI ni reactiva el tutorial jugable aislado.
 
@@ -159,7 +159,7 @@ Input:
 
 Contrato de eventos:
 - Los `OnClick` persistentes configurados en Inspector no deben apagarse en runtime.
-- El cableado runtime de `PauseMenuManager` es respaldo defensivo y no reemplaza la auditoria visual/serializada del Inspector.
+- El cableado runtime de `PauseMenuManager` es respaldo defensivo y no reemplaza la composición visual y las referencias serializadas del Inspector.
 
 Pausa usa `PauseSafeArea/PauseContent` en el prefab compartido. Botones y decoración viven bajo ese contenido; `FondoBurbuja` permanece fuera para cubrir y bloquear el viewport completo. El adaptador y el ajuste uniforme de referencia 1920×1080 se comparten con las demás pantallas móviles. Desktop conserva stretch de autoría; no se agregan Canvas ni EventSystem, y las referencias de elementos animados conservan sus posiciones locales.
 

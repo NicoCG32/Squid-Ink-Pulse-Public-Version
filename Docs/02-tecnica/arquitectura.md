@@ -2,85 +2,78 @@
 
 [← Área técnica](README.md)
 
-Documentamos la implementación que existe en el repositorio, no una arquitectura aspiracional. Unity y los componentes de sus escenas ejecutan el juego; un complemento independiente ofrece el ranking de feria.
+Unity ejecuta el juego, su interfaz y el guardado local. Windows puede conectarse además a un servidor de feria en red local; Android mantiene la experiencia sin conexión.
 
-## C1 · Contexto
+## Contexto y ejecución
 
-```mermaid
-flowchart LR
-    P["Jugador"] --> G["Squid Ink-Pulse<br/>Unity · Windows / Android"]
-    G --> L[("Archivos JSON<br/>en el dispositivo")]
-    G -. "solo modo feria configurado" .-> S["Servidor de feria<br/>Python · LAN"]
-    S --> DB[("SQLite del host")]
-    V["Visitantes de feria"] --> W["Leaderboard web"]
-    S --> W
+```text
+[Jugador]
+    |
+    v
+[Juego Unity: Windows / Android] <--> [Perfil y récords JSON del dispositivo]
+    |
+    | Windows, modo feria opcional
+    v
+[Servidor HTTP Python en el host] <--> [SQLite del evento]
+    ^
+    | clasificación web
+[Navegadores de la misma LAN]
 ```
 
-La línea punteada indica una integración **opcional**. No representa una cuenta en la nube ni un servicio de guardado universal.
+El complemento de feria almacena y muestra los resultados del PC anfitrión. Su base de datos es independiente del perfil local del juego. La operación del evento se explica en [integración de feria](integracion-feria.md).
 
-## C2 · Contenedores de ejecución
+## Componentes de Unity
 
-```mermaid
-flowchart TB
-  subgraph Dispositivo["Dispositivo del jugador"]
-    Unity["Player de Unity"]
-    Json[("Perfil / récords / catálogo / ranking<br/>JSON local")]
-    Unity <--> Json
-  end
-  subgraph Feria["PC host de feria — opcional"]
-    Python["Servidor HTTP<br/>Python stdlib"]
-    SQLite[("SQLite")]
-    Web["Página de clasificación"]
-    Python <--> SQLite
-    Python --> Web
-  end
-  Unity -. "API local de feria<br/>cuando procede" .-> Python
-  Browser["Navegador en la misma LAN"] --> Web
+```text
+[Mouse / teclado / UI táctil]
+             |
+             v
+[Lector de comandos] --> [Movimiento / Ink-Pulse / gadgets]
+                                      |
+                              [Colisión y graze]
+                                      |
+                               [HUD / audio / visuales]
+
+[GameSessionController] <--> [RunProgressionDirector]
+             |                         |
+             v                         v
+[SceneFlowController]          [LevelSpawner + perfiles]
+             |                         |
+       [Zonas / portales]        [Enemigos / jefes / tiendas]
+
+[Tiendas / resultados] --> [Servicios de perfil] --> [JSON local]
 ```
 
-**Límite operativo:** la presentación validada del complemento se centra en resultados guardados desde el PC host y visualización web en otros dispositivos. La API tiene más endpoints, pero no se debe anunciar como sincronización completa de progreso multi-PC.
+El esquema agrupa responsabilidades. Los controladores aplican reglas; los estados describen fases; los perfiles y catálogos contienen configuración.
 
-## C3 · Componentes principales de Unity
+| Componente | Responsabilidad |
+| --- | --- |
+| `GameSessionController` | Partida activa, pausa y Game Over. |
+| `RunProgressionDirector` | Score, ritmo y eventos de la partida. |
+| `SceneFlowController` | Navegación y cambio de zona. |
+| `SquidInkPulseGameplayInputReader` | Comandos semánticos de entrada. |
+| `PlayerMovement`, `InkPulseController`, `PlayerGadgetInventory` | Movimiento, habilidad e inventario temporal. |
+| `LevelSpawner` | Aparición de entidades a partir de perfiles de zona. |
+| `PersistentPlayerProfile`, `PlayerProfileRepository` | Perfil, economía y persistencia local. |
+| `MobileBackNavigation`, `MobileApplicationLifecycle` | Atrás e interrupciones de Android. |
 
-```mermaid
-flowchart TB
-    Input["Input System<br/>lector semántico"] --> Player["Jugador<br/>movimiento / estado / habilidades"]
-    Session["GameSessionController<br/>RunProgressionDirector"] --> Player
-    Session --> Spawn["LevelSpawner<br/>perfiles de spawn"]
-    Spawn --> Enemy["Enemigos y jefes"]
-    Player --> Collision["Colisión / graze / camarones"]
-    Collision --> Pulse["InkPulseController"]
-    Pulse --> UI["HUD y audio"]
-    Session --> UI
-    Session --> Scene["SceneFlowController<br/>portales y escenas"]
-    Player --> Shop["Gadgets / tiendas"]
-    Shop --> Profile["Perfil y catálogo"]
-    Session --> Profile
-    Profile --> Json[("JSON local")]
-```
-
-Este nivel representa **responsabilidades y dependencias conceptuales**, no una lista literal de llamadas entre clases. La dirección efectiva debe contrastarse con los scripts y referencias de cada prefab/escena.
-
-## C4 · Estructura y despliegue
+## Estructura y compilación
 
 | Ruta | Función |
 | --- | --- |
 | `Assets/Scenes/` | Escenas serializadas. |
-| `Assets/Implementation/Code/` | Controladores, dominio, interfaz y adaptadores Unity en C#. |
-| `Assets/Implementation/Config/` | Perfiles de configuración. |
-| `Assets/Content/` | Prefabs, arte, animaciones, audio. |
-| `Assets/Implementation/Resources/PersistentDbSeeds/` | Semillas JSON para nuevas instalaciones. |
-| `Packages/` y `ProjectSettings/` | Dependencias y configuración del editor. |
-| `Tools/FairServer/` | Add-on Python/SQLite de feria. |
+| `Assets/Implementation/Code/` | Lógica y adaptadores Unity en C#. |
+| `Assets/Implementation/Config/` | Perfiles de configuración e Input System. |
+| `Assets/Content/` | Prefabs, arte, animaciones y audio. |
+| `Assets/Implementation/Resources/PersistentDbSeeds/` | Semillas JSON de nuevas instalaciones. |
+| `Packages/` y `ProjectSettings/` | Dependencias y configuración del proyecto. |
+| `Tools/FairServer/` | Servidor Python/SQLite de feria. |
 
-**Escenas activas según `ProjectSettings/EditorBuildSettings.asset`:** `MainMenu`, `ZonaEpipelagica`, `ZonaAbisopelagica`, `ShopMenu`. `ZonaTutorial` existe, pero está excluida de compilación.
-
-```mermaid
-flowchart LR
-  Src["Fuentes Unity + paquetes"] --> Editor["Unity 6000.3.11f1"]
-  Editor --> Windows["ZIP Windows x64"]
-  Editor --> Android["APK Android ARM64 beta"]
-  Server["Tools/FairServer<br/>Python"] --> Host["PC host de feria opcional"]
+```text
+[Fuentes + paquetes] --> [Unity 6000.3.11f1] --> [Player Windows x64] --> [ZIP]
+                                           \-> [Player Android ARM64] --> [APK]
 ```
 
-La arquitectura detallada, componentes y contratos se desarrollan en [SoftwareArchitecture](../SoftwareArchitecture.md), [CoreSystems](../CoreSystems.md), [ProjectStructure](../ProjectStructure.md) y [Input](../Input.md).
+Las escenas habilitadas son `MainMenu`, `ZonaEpipelagica`, `ZonaAbisopelagica` y `ShopMenu`. `ZonaTutorial` permanece fuera del build; el tutorial activo es el cómic del menú.
+
+Detalles: [arquitectura de software](../SoftwareArchitecture.md), [jerarquía de escenas y prefabs](../SceneHierarchy.md), [sistemas centrales](../CoreSystems.md), [estructura](../ProjectStructure.md) e [Input](../Input.md).

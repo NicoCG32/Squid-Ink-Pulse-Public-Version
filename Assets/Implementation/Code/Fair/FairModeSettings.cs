@@ -11,7 +11,8 @@ public static class FairModeSettings
     private const string ServerBaseUrlPrefsKey = "FairMode.ServerBaseUrl";
     private const string DefaultServerBaseUrl = "http://localhost:8080";
 
-    public static bool IsEnabled => !HasArgument(DisabledArgument);
+    public static bool SupportsCurrentPlatform => FairModePlatformPolicy.Supports(Application.platform);
+    public static bool IsEnabled => FairModePlatformPolicy.IsEnabled(Application.platform, HasArgument(DisabledArgument));
     public static bool HasExplicitServerArgument => !string.IsNullOrWhiteSpace(GetArgumentValue(ServerArgument, ServerArgumentPrefix));
 
     public static string ServerBaseUrl

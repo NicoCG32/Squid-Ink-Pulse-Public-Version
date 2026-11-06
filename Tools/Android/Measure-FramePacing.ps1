@@ -10,6 +10,7 @@ param(
     [string]$OutputDirectory='TestResults/MobilePerformance'
 )
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'ProcessCpu.ps1')
 $package='com.yecoworks.squidinkpulse'
 $activity="$package/com.unity3d.player.UnityPlayerGameActivity"
 function Invoke-Adb([string[]]$Arguments) {
@@ -37,6 +38,19 @@ function Read-Pss([string]$text) {
     $match=[regex]::Match($text,'TOTAL PSS:\s+(\d+)')
     if ($match.Success) { return [long]$match.Groups[1].Value }; return $null
 }
+function Read-GameCpu {
+    # Optional app-only counters. Unsupported permissions/clock rates never become zero CPU usage.
+    try {
+        $gamePid=((& $AdbPath -d shell pidof $package 2>$null) -join '').Trim()
+        if ($LASTEXITCODE -ne 0 -or $gamePid -notmatch '^\d+$') { return $null }
+        $stat=(& $AdbPath -d shell cat ('/proc/'+$gamePid+'/stat') 2>$null) -join ''
+        if ($LASTEXITCODE -ne 0) { return $null }
+    } catch { return $null }
+    $sample=ConvertFrom-AndroidProcessStat $stat
+    if ($null -eq $sample) { return $null }
+    $sample | Add-Member -NotePropertyName ObservedTicks -NotePropertyValue ([Diagnostics.Stopwatch]::GetTimestamp())
+    return $sample
+}
 function Get-BucketPercentile($buckets,[double]$percentile) {
     $count=($buckets | Measure-Object Count -Sum).Sum
     if ($count -le 0) { return $null }
@@ -61,6 +75,12 @@ $memoryBefore=(Invoke-Adb @('shell','dumpsys','meminfo',$package)) -join "`n"
 $batteryBefore=(Invoke-Adb @('shell','dumpsys','battery')) -join "`n"
 $thermalBefore=(Invoke-Adb @('shell','dumpsys','thermalservice') | Select-String '^Thermal Status:') -join ''
 Save-GameScreenshot ($Label+'-before.png')
+$clockTicks=0.0
+try {
+    $tickText=((& $AdbPath -d shell getconf CLK_TCK 2>$null) -join '').Trim()
+    if ($LASTEXITCODE -eq 0) { [void][double]::TryParse($tickText,[Globalization.NumberStyles]::Float,[Globalization.CultureInfo]::InvariantCulture,[ref]$clockTicks) }
+} catch { $clockTicks=0.0 }
+$cpuBefore=Read-GameCpu
 try {
     Invoke-Adb @('shell','dumpsys','SurfaceFlinger','--timestats','-clear','-enable') | Out-Null
     $started=[DateTime]::UtcNow
@@ -69,6 +89,12 @@ try {
     $allLines=@(Invoke-Adb @('shell','dumpsys','SurfaceFlinger','--timestats','-dump'))
     $elapsed=([DateTime]::UtcNow-$started).TotalSeconds
 } finally { Invoke-Adb @('shell','dumpsys','SurfaceFlinger','--timestats','-disable') | Out-Null }
+$cpuAfter=Read-GameCpu
+$cpu=$null
+if ($null -ne $cpuBefore -and $null -ne $cpuAfter) {
+    $cpuElapsed=($cpuAfter.ObservedTicks-$cpuBefore.ObservedTicks)/[double][Diagnostics.Stopwatch]::Frequency
+    $cpu=Get-AndroidProcessCpuDelta $cpuBefore $cpuAfter $clockTicks $cpuElapsed
+}
 $sections=[Collections.Generic.List[string]]::new()
 for ($index=0;$index -lt $allLines.Count;$index++) {
     if ($allLines[$index] -notmatch '^layerName = .*SurfaceView\[com\.yecoworks\.squidinkpulse/') { continue }
@@ -83,6 +109,10 @@ if (-not $histogram.Success) { throw 'Missing present-to-present histogram.' }
 $buckets=@([regex]::Matches($histogram.Groups[1].Value,'(\d+)ms=(\d+)') | ForEach-Object { [pscustomobject]@{Ms=[int]$_.Groups[1].Value;Count=[long]$_.Groups[2].Value} } | Sort-Object Ms)
 $sampleCount=($buckets | Measure-Object Count -Sum).Sum
 if ($sampleCount -lt 2) { throw 'Too few presented frames to compute intervals.' }
+$histogramFps=Read-Number $selected 'averageFPS'
+$countWallFps=$sampleCount/$elapsed
+$relativeDifference=$null
+if ($histogramFps -gt 0) { $relativeDifference=[Math]::Abs($countWallFps/$histogramFps-1) }
 $memoryAfter=(Invoke-Adb @('shell','dumpsys','meminfo',$package)) -join "`n"
 $batteryAfter=(Invoke-Adb @('shell','dumpsys','battery')) -join "`n"
 $thermalAfter=(Invoke-Adb @('shell','dumpsys','thermalservice') | Select-String '^Thermal Status:') -join ''
@@ -95,9 +125,16 @@ $summary=[ordered]@{
     Label=$Label;SourceCommit=$SourceCommit;ApkSha256=$apkHash;InstalledApkHashVerified=$true
     Configuration=$Configuration;Model=$model;StartedUtc=$started.ToString('o');RequestedSeconds=$Seconds;ElapsedSeconds=$elapsed
     MeasurementScriptSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
-    Layer=($selected -split "`n")[0];SurfaceFrameRateVote=(Read-Number $selected 'frameRate');AverageFps=(Read-Number $selected 'averageFPS')
+    CpuHelperSha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'ProcessCpu.ps1') -Algorithm SHA256).Hash
+    ProcessCpuCountersAvailable=($null -ne $cpu);ProcessCpuTimeMs=$(if ($null -ne $cpu) { $cpu.CpuTimeMs } else { $null })
+    ProcessCpuOneCorePercent=$(if ($null -ne $cpu) { $cpu.OneCorePercent } else { $null })
+    ProcessCpuElapsedSeconds=$(if ($null -ne $cpu) { $cpu.ElapsedSeconds } else { $null })
+    Layer=($selected -split "`n")[0];SurfaceFrameRateVote=(Read-Number $selected 'frameRate');AverageFps=$histogramFps
     PresentedHistogramCount=$sampleCount;P50PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.50)
-    CountOverWallTimeFpsApprox=[Math]::Round($sampleCount/$elapsed,2)
+    CountOverWallTimeFpsApprox=[Math]::Round($countWallFps,2)
+    HistogramWallTimeRelativeDifference=$relativeDifference
+    HistogramWallTimeReviewRequired=$(if ($null -ne $relativeDifference) { $relativeDifference -gt 0.15 } else { $null })
+    HistogramWallTimeReviewThreshold=0.15
     P95PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.95);P99PresentIntervalBucketMs=(Get-BucketPercentile $buckets 0.99)
     FramesInBucketsAtLeast34ms=(($buckets | Where-Object Ms -ge 34 | Measure-Object Count -Sum).Sum)
     DroppedFramesReported=(Read-Number $selected 'droppedFrames');JankyFramesReported=(Read-Number $selected 'jankyFrames')
@@ -105,7 +142,7 @@ $summary=[ordered]@{
     PssBeforeKiB=(Read-Pss $memoryBefore);PssAfterKiB=(Read-Pss $memoryAfter)
     ThermalStatusBefore=$thermalBefore;ThermalStatusAfter=$thermalAfter
     CpuGpuFrameTimesMs=$null;GcAllocations=$null
-    Limitations='SurfaceFlinger averageFPS and percentiles may derive from millisecond histogram buckets (e.g. 16ms -> 62.5). Count/wall-time FPS is approximate and includes command latency. Scenario is caller-labelled; review screenshots. No script/GPU execution times, GC attribution or thermal endurance certification.'
+    Limitations='SurfaceFlinger averageFPS and percentiles may derive from millisecond histogram buckets (e.g. 16ms -> 62.5). Count/wall-time FPS includes command latency. Optional process CPU is aggregate user+kernel time across app threads, 100% per core, spanning timestats/foreground commands; not per-frame/thread timing or a bottleneck diagnosis. Scenario is caller-labelled; review screenshots. No GPU/GC attribution or thermal endurance certification.'
 }
 $summary | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $output ($Label+'.json')) -Encoding utf8
 [pscustomobject]$summary | Select-Object Label,SurfaceFrameRateVote,AverageFps,CountOverWallTimeFpsApprox,P95PresentIntervalBucketMs,P99PresentIntervalBucketMs,PresentedHistogramCount,PssAfterKiB

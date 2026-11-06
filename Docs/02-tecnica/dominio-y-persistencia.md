@@ -2,7 +2,7 @@
 
 [← Área técnica](README.md)
 
-No hay una base SQL única para el juego. Separamos **datos de una partida**, **progreso permanente** y **complemento de feria**. Esta distinción evita dibujar tablas inexistentes o confundir los camarones de una partida con dinero real.
+El juego mantiene el estado temporal de la partida en memoria y el progreso permanente en archivos JSON del dispositivo. El complemento de feria utiliza una base SQLite propia en el PC anfitrión.
 
 ## Modelo conceptual
 
@@ -50,7 +50,7 @@ classDiagram
     Run ..> PlayerProfile : utiliza mejoras vigentes
 ```
 
-Las asociaciones anteriores son **conceptuales**. En los archivos JSON no se implementan claves foráneas SQL.
+Las asociaciones muestran cómo se relacionan los datos del juego. El perfil referencia el contenido mediante sus identificadores.
 
 ## Archivos persistidos
 
@@ -84,7 +84,7 @@ sequenceDiagram
   R->>F: Guardar resultado local
 ```
 
-La implementación exacta de escritura, restauración y migración se detalla en [PersistentProfile](../PersistentProfile.md). Este esquema es de alto nivel, no una transcripción de todas las ramas de error del repositorio.
+La escritura atómica, recuperación y migración se detallan en [persistencia local](../PersistentProfile.md).
 
 ## Base SQLite del servidor de feria
 
@@ -114,6 +114,4 @@ erDiagram
   }
 ```
 
-Es un **extracto de columnas relevantes** del esquema creado en `Tools/FairServer/server.py`; hay columnas adicionales que se consultan en el archivo fuente. `fair_events.participant_id` es nullable: el diagrama expresa relación lógica y **no certifica una restricción de clave foránea declarada**, ya que el SQL mostrado no la define. Los datos se almacenan en `Tools/FairServer/data/fair_server.sqlite3` del host.
-
-No se propone un diagrama ER para los JSON locales porque **no son tablas relacionales**. Para ellos, el diagrama de clases anterior es una representación más fiel.
+El diagrama resume las columnas principales de [server.py](../../Tools/FairServer/server.py). La asociación es lógica: `fair_events.participant_id` admite nulos y carece de una restricción SQL de clave foránea. El archivo se guarda en `Tools/FairServer/data/fair_server.sqlite3` del host.

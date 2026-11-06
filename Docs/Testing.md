@@ -1,171 +1,81 @@
-# Pruebas automatizadas
+# Pruebas y herramientas de validación
 
-## Alcance actual
+La suite combina pruebas EditMode de reglas y contratos con pruebas PlayMode de interacción y transiciones. Los tests viven en `Assets/Tests/EditMode/` y `Assets/Tests/PlayMode/`; referencian `SquidInkPulse.Runtime` y quedan fuera de los builds normales.
 
-La suite automatizada combina pruebas EditMode deterministas con veintitrés pruebas PlayMode focalizadas. EditMode cubre reglas de dominio, persistencia, contratos de escenas/prefabs, preparación Android, entrada mediante dispositivos simulados, autoscroll sin target vertical, escala extra-wide, safe area, layouts responsive de menús y ownership de la superficie touch. PlayMode protege el timing de una solicitud recibida durante pausa, ejerce el routing real de `InputSystemUIInputModule` con un touchscreen virtual a través de Epipelágica y Abisopelágica, comprueba encuadre y posiciones de spawn en los aspectos móviles y recorre opciones/tutorial/tienda/Jugar desde MainMenu sin mouse. También verifica opciones desktop de display, diez ciclos de pausa por zona, tres reintentos tras derrota, cinco flujos de cómics con control devuelto una sola vez y seis cruces entre overlays/entrada/estado terminal.
-
-Las pruebas viven en:
-
-```text
-Assets/Tests/EditMode/
-Assets/Tests/PlayMode/
-```
-
-El código runtime se compila en `SquidInkPulse.Runtime`. Las asambleas de tests referencian esa frontera sin incluir pruebas en los builds normales. La rama de contrato de entrada usa además `Unity.InputSystem.TestFramework` para aislar dispositivos y estado global.
-
-## Ejecución desde Unity
+## Ejecutar en Unity
 
 1. Abrir `Window > General > Test Runner`.
-2. Ejecutar `EditMode` y luego `PlayMode`.
-3. Confirmar que ambas pestañas terminan sin fallos, omitidas ni inconclusas.
+2. Ejecutar EditMode y después PlayMode.
+3. Revisar los fallos, pruebas omitidas e inconclusas.
 
-## Ejecución batch en Windows
+## Ejecutar en batch
 
-Cerrar antes cualquier instancia de Unity que tenga abierto el proyecto y ejecutar desde la raíz del repositorio:
+Cerrar cualquier instancia de Unity que tenga abierto el proyecto. Desde la raíz del repositorio, ejecutar cada proceso por separado:
 
 ```powershell
 & 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
-  -batchmode `
-  -nographics `
-  -projectPath "$PWD" `
-  -runTests `
-  -testPlatform EditMode `
+  -batchmode -nographics -projectPath "$PWD" `
+  -runTests -testPlatform EditMode `
   -testResults "$PWD\TestResults\editmode-results.xml" `
   -logFile "$PWD\TestResults\editmode-unity.log"
 ```
 
-El proceso debe devolver código `0`. El XML informa cantidad de pruebas ejecutadas, aprobadas, fallidas y omitidas.
-
-Ejecutar PlayMode en un segundo proceso, después de EditMode:
+Después de terminar EditMode:
 
 ```powershell
 & 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
-  -batchmode `
-  -nographics `
-  -projectPath "$PWD" `
-  -runTests `
-  -testPlatform PlayMode `
+  -batchmode -nographics -projectPath "$PWD" `
+  -runTests -testPlatform PlayMode `
   -testResults "$PWD\TestResults\playmode-results.xml" `
   -logFile "$PWD\TestResults\playmode-unity.log"
 ```
 
-Las pruebas PlayMode no sustituyen el smoke del ejecutable ni la validación en hardware Android. Se reservan para interacciones cuyo orden depende del PlayerLoop y no puede demostrarse de forma honesta con una política pura.
+Un proceso correcto devuelve `0`; el XML registra los resultados. `TestResults/` contiene artefactos locales y está ignorado por Git.
 
-`MainMenuTouchNavigationPlayModeTests` carga MainMenu y usa touches reales del módulo UI para abrir/cerrar opciones, recorrer las tres páginas de Cómo Jugar, cargar ShopMenu y volver mediante su botón. Después toca Jugar y el botón explícito del cómic inicial hasta entrar a Epipelágica con HUD activo y `Time.timeScale = 1`; comprueba que el cómic mantiene el tiempo pausado antes de continuar. Comprueba raycast y estado pressed durante Down, sin mouse. Espera la actualización de UI tras activar el tutorial o una escena antes de comprobar los botones recién creados; no cambia la apariencia ni despacha OnClick directamente.
+## Cobertura
 
-El fixture de routing touch alinea su reloj simulado con `Time.realtimeSinceStartupAsDouble` al comenzar. Unity descarta eventos fechados durante la transición del Editor a Play Mode; reiniciar el reloj a cero entre fixtures podía colocar touches válidos dentro de ese intervalo y hacer fallar la suite conjunta aunque la prueba aislada pasara. Se conservan los asserts de routing y los tiempos de un frame, sin modificar políticas runtime de foco ni silenciar errores.
+| Área | Contratos principales |
+| --- | --- |
+| Dominio y perfil | Cálculos, precios, saldo, desbloqueos, migración y recuperación de JSON. |
+| Entrada | Acciones, bindings, un comando por pulsación, dispositivos simulados y cancelación del contacto táctil. |
+| Gameplay | Autoscroll sin objetivo vertical, graze, Ink-Pulse, gadgets, pausas y reintentos. |
+| Escenas y prefabs | Jerarquía, referencias, áreas seguras, escala y ausencia de infraestructura duplicada. |
+| Cámara y spawn | Encuadre, límites y posiciones de aparición en los formatos móviles. |
+| Menús y tiendas | Navegación sin mouse, opciones por plataforma, compra, equipamiento, paginación y rechazo sin saldo. |
+| Cómics y overlays | Inicio, portales, tienda, derrota y exclusión entre entrada, pausa y estados terminales. |
+| Android | Atrás contextual, foco/pausa, audio, cambio de escena y manifiesto sin Internet. |
 
-`OptionsPlatformPresentationTests` carga el prefab real de opciones: simula la presentación móvil/desktop, comprueba los dos controles de display ocultos sólo en móvil y mantiene visibles volumen/regreso, con valores y posiciones intactos. Reaplica la política y restaura presentación desktop; no guarda el prefab ni escribe preferencias del jugador. Complementa las pruebas puras ya existentes de resolución.
+Las pruebas PlayMode utilizan el módulo UI y el PlayerLoop de Unity. Los fixtures de compra y navegación aíslan el perfil con datos transitorios y restauran el estado al terminar. Los casos de tiempo, contacto y transición están en `GameplayPauseInputPlayModeTests`, los fixtures de touch y `MobilePlatformPlayModeTests`.
 
-Las pruebas EditMode de touch llaman el adaptador uGUI con `ExtendedPointerEventData` clasificado como `Touch` y verifican segundo dedo, UI interactiva, pausa, tienda, overlays, foco, suspensión y reemplazo de lector. El contrato del prefab comprueba además cuatro comandos exclusivos, la etiqueta `INK-PULSO`, ownership por botón, hit targets mínimos, superficie detrás de los botones y ausencia de Canvas/EventSystem/Collider propios. El contrato de GameRoot exige una instancia anidada del mismo prefab en Epipelágica y Abisopelágica, cero en tutorial, referencias HUD intactas, una sola raíz de safe area y ningún EventSystem o módulo de entrada adicional. PlayMode confirma el primer raycast efectivo, steering, Ink-Pulse, pausa y recreación del reader al cargar Abisopelágica. Esto no sustituye la ergonomía multitouch, la orientación opuesta ni una run completa en hardware.
+La [validación de composición](SceneCompositionValidation.md) revisa el contrato de escenas y prefabs antes de compilar. Los validadores y tests de HUD comparten `MobileGameRootCatalog` para aplicar las mismas reglas a ambas zonas.
 
-`MobileMenuLayoutContractTests` congela las decisiones que dependen del formato: los cuatro Canvas del cómic `Cómo Jugar` preservan los 1080 de alto, `Character` mantiene exactamente 3/4 de su ancho dentro del borde derecho y los letreros de categorías de `ShopMenu` conservan proporción 3:1 y margen derecho sin stretch.
+## Previsualizaciones de interfaz
 
-Las pruebas de HUD, escala y touch consumen el inventario de `MobileGameRootCatalog`, compartido con el validador de composición. El contrato HUD compara geometría y fuente anidada con Epipelágica; seis casos negativos alteran en memoria posición de InkBar, anchor de score, tamaño de controles y escala, rotación u offset de la raíz segura para verificar que se rechazan divergencias. Esas instancias se descargan sin guardar prefabs. La comprobación de escenas carga sus instancias efectivas, incluidas sustituciones locales de elementos HUD. Compilar los tests con un compilador C# externo no equivale a ejecutarlos en Unity ni valida legibilidad en teléfono.
+Los exportadores de `Assets/Implementation/Editor/` cargan escenas y prefabs reales, aplican formatos de pantalla en memoria y generan PNG, JSON y galerías HTML bajo `TestResults/`. Requieren Edit Mode, escenas sin cambios sin guardar y un dispositivo gráfico disponible. Restauran la sesión sin guardar los cambios de previsualización.
 
-`TestResults/` es un artefacto generado y no debe versionarse.
-
-`MobileCameraFramingPlayModeTests` carga las dos escenas reales en 16:9, 19.5:9 y 20:9. Mantiene al jugador inmóvil y desactiva spawners/progresión para aislar geometría mientras `CameraController` sigue ejecutándose en el PlayerLoop. Comprueba cuerpo y graze en los extremos verticales y el centro, viewport dentro de `CameraBoundaries`, estabilidad al deshabilitar el trigger de graze, vista amplia y regreso a seguimiento. Con el perfil de spawn de cada escena, verifica camarones en la intersección vertical visible, portales/enemigos dentro del rango del jugador y todos los puntos desde el borde derecho de cámara. Estas pruebas aíslan el Input System mediante `InputTestFixture` y restauran el estado aleatorio al muestrear spawn; no certifican una run, rendimiento ni ergonomía.
-
-## Matriz visual estática del HUD
-
-`Tools > Squid Ink Pulse > Mobile > Export HUD Preview Matrix` carga las dos escenas de gameplay y exporta catorce PNG, una galería HTML y medidas JSON a `TestResults/MobileHudPreview/`. Requiere Edit Mode, escenas sin cambios sin guardar y un dispositivo gráfico disponible. Descarta las modificaciones de previsualización y restaura las escenas abiertas; no guarda escenas ni prefabs.
-
-También puede ejecutarse desde la raíz del repositorio, con el proyecto cerrado en otras instancias de Unity:
-
-```powershell
-& 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
-  -batchmode -quit -projectPath "$PWD" `
-  -executeMethod MobileHudPreviewExporter.Export `
-  -logFile "$PWD\TestResults\hud-preview.log"
-```
-
-Este comando necesita gráficos: omitir `-nographics`. Incluye 1920×1080 (16:9), 2340×1080 (19.5:9), 2400×1080 (20:9), cutouts laterales de 108 px en ambos sentidos y 2712×1220 con inset izquierdo de 122 px. Los cutouts son simulados, no mediciones de un teléfono.
-
-La captura usa la escena de autoría, Canvas sobre cámara y la política compartida de escala, barra llena y controles touch visibles. Comprueba bounds dentro del área segura y solapamientos entre los cuatro botones; excluye la superficie de steering que ocupa toda la pantalla. Las intersecciones entre contenedores HUD se registran como observaciones que requieren inspeccionar contenido visible: sus rects pueden incluir espacio transparente. Las observaciones TMP distinguen texto fuera de su rect de clipping: `Overflow` permite mostrar glifos fuera del rect. No se ejecutan animaciones, presentación de estados gameplay, routing de entrada ni una run; tampoco se certifican framing dinámico, ergonomía o rendimiento móvil.
-
-`SafeAreaAdapterTests` carga además los prefabs reales con destino serializado sin asignar y exige que `Apply` resuelva el RectTransform local. Este caso protege la semántica de null de objetos Unity, que no equivale siempre a null CLR en el Editor.
-
-La matriz incorpora también 2560×1600 (tablet 16:10), con catorce capturas de autoría en total. Las pruebas de cámara incluyen ese aspecto además de los tres formatos de teléfono. `MobileMenuCanvasScalePolicyTests` comprueba que el viewport lógico contenga la composición de referencia: ancho para superficies landscape más estrechas que 16:9, altura para las equivalentes o más anchas. Dimensiones portrait iniciales se normalizan a landscape; Windows conserva su match de autoría y los tamaños inválidos no fuerzan un cambio.
-
-## Matriz visual estática del menú
-
-`Tools > Squid Ink Pulse > Mobile > Export Main Menu Preview Matrix` (o batch `-executeMethod MainMenuPreviewExporter.Export`, con gráficos) exporta seis PNG y `report.json` a `TestResults/MainMenuPreview/`. Cubre 16:9, 20:9, tablet 16:10 y márgenes laterales simulados. Aplica escala/presentación móvil en memoria, oculta opciones/tutorial/Salir y mide los cuatro botones visibles, logo y contador. No guarda la escena; restaura la sesión del Editor. Los 36 bounds complementan los tests de jerarquía y la navegación PlayMode, sin certificar animación, ergonomía ni una run.
-
-## Matriz visual de Cómo Jugar
-
-`MainMenuTutorialPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Main Menu Tutorial Preview Matrix`) requiere gráficos y genera dieciocho PNG, JSON y galería en `TestResults/MainMenuTutorialPreview/`. Recorre las tres páginas reales en 16:9/20:9, con márgenes laterales simulados en ambos sentidos, y tablet 16:10. Aplica la misma política de escala, área segura y ajuste de referencia móvil sin guardar la escena. Comprueba los quads de glifos TMP emitidos y el hit area de Next contra el área segura; los quads pueden incluir padding SDF. No convierte el overflow del rect de texto en clipping ni certifica legibilidad, arte o routing físico.
-
-`MobileReferenceContentFitterTests` comprueba que la composición completa quepa con márgenes simétricos, conserve proporción al redimensionar y no acumule transformaciones. Desktop y tamaños inválidos preservan la geometría previa. El contrato de escena comprueba la jerarquía segura, las referencias de páginas/Next y la ausencia de Canvas adicional.
-
-## Matriz de opciones
-
-`OptionsMenuPreviewExporter.Export`, también disponible en `Tools > Squid Ink Pulse > Mobile > Export Options Preview Matrix`, requiere gráficos y genera 24 PNG, galería y JSON bajo `TestResults/OptionsMenuPreview/`. Carga el prefab efectivo en MainMenu, ShopMenu, Epipelágica y Abisopelágica. Cubre 16:9, 20:9 con cutouts laterales y tablet 16:10; comprueba cuatro rects de controles/placas por captura, los extremos y centro del handle de volumen y cobertura completa del fondo. Descarta cambios sin guardar escenas, assets ni preferencias. No certifica animación, routing o ergonomía en hardware.
-
-Los tests de opciones inspeccionan prefab y cuatro instancias de escena, incluyendo el Canvas anidado de MainMenu y su ajuste al cambiar el viewport. El validador prebuild comprueba jerarquía, referencias, dimmer y ausencia de Canvas/raycaster extra. El fixture PlayMode del menú añade raycast de fondo en una esquina y ajuste del slider con touchscreen virtual; durante esa comprobación desconecta/restaura sólo el listener de persistencia para no escribir las preferencias del usuario del Editor.
-
-`MobileTutorialCopyTests` protege overrides parciales, reaplicación y retorno a la copia desktop. El contrato de la escena exige instrucciones de arrastre/INK-PULSO y la matriz del tutorial renderiza las variantes móviles reales, conservando las ilustraciones.
-
-## Tienda permanente móvil
-
-`PermanentShopPreviewExporter.Export` genera `TestResults/PermanentShopPreview/index.html` y `report.json` desde la escena real. Cubre ocho formatos: 16:9 sin cutout/con cutout izquierdo/derecho, 19,5:9 y 20:9 con cutout en ambos lados, y tablet 16:10. Comprueba fondo completo, trece hitboxes dentro del área segura y un mínimo diagnóstico de 48 píxeles de preview por lado; esa medida no certifica tamaño físico ni ergonomía. Recorre los nombres, descripciones y precios de las cuatro mejoras y ocho skins visibles del catálogo semilla, midiendo glifos TMP y overflow. Carga sprites mediante el presentador de slots y no carga ni guarda el perfil del usuario. Las capturas son evidencia complementaria: no prueban routing ni compras.
-
-`PermanentShopTouchPlayModeTests` carga ShopMenu y usa touchscreen virtual, raycast real y feedback pressed sin mouse. Recorre compra de mejora/skin, equipar/quitar sin descuento adicional, paginación que limpia selección, falta de saldo y exclusión de una entrada futura sin sprite. La acción Cancel del módulo UI cierra opciones antes de regresar al menú. El fixture inyecta perfil/registros/catálogo en memoria, exige las escrituras transitorias de Editor y restaura el estado al terminar; no acredita fondos ni compra sobre datos del usuario. No se ejecuta en players. La revisión de Back Android físico, orientaciones y ciclo de vida sigue siendo independiente.
-
-El caso desktop del mismo fixture conserva la presentación de autoría: nombre sin auto size móvil y aviso de compra móvil oculto. Abre opciones desde ShopMenu, exige resolución/fullscreen visibles y comprueba que Escape no active la navegación Cancel exclusiva de móvil. Cierra opciones y regresa a MainMenu mediante los botones existentes; no cambia resolución, fullscreen ni preferencias. Complementa las pruebas de políticas y la compilación/smoke Windows, sin certificar interacción física de teclado/mouse.
-
-`PermanentShopMobileCompositionTests` protege los contenedores, contador, ausencia de infraestructura UI adicional, referencias de navegación y feedback de compra oculto por defecto. PlayMode comprueba además que el TMP visible refleja `EQUIPADA` y `SIN CAMARONES`; el exporter valida los estados largos dentro del área segura. `MobileBackgroundCoverTests` comprueba cobertura proporcional, repetición/redimensionado y preservación de autoría desktop.
-
-La cobertura de menú y tienda se reparte entre verificaciones complementarias:
-
-| Contrato | Evidencia automatizada | Complemento visual/físico |
+| Método de exportación | Cobertura | Carpeta de salida |
 | --- | --- | --- |
-| Opciones por plataforma | Política, prefab y cuatro instancias; PlayMode móvil/desktop | Matriz de opciones y volumen en tablet |
-| Tutorial y entrada a run | Touch sin mouse, tres páginas, regreso, Jugar y cómic inicial | Matrices de menú/tutorial y recorrido en tablet |
-| Compra, equipamiento y navegación | Touch, perfil transitorio, rechazo, paginación y Cancel contextual | Selección, precios, rechazo sin saldo y Back Android en tablet |
-| Safe area y referencias | Contratos de escenas/prefabs y validador prebuild | Matrices con cutouts simulados y tablet 16:10 |
-| Regresión Windows | Presentación desktop y opciones de display en escena real | Build standalone y smoke de arranque |
+| `MobileHudPreviewExporter.Export` | HUD de ambas zonas, formatos y áreas seguras | `MobileHudPreview/` |
+| `MainMenuPreviewExporter.Export` | Menú en teléfono y tablet | `MainMenuPreview/` |
+| `MainMenuTutorialPreviewExporter.Export` | Tres páginas de Cómo jugar | `MainMenuTutorialPreview/` |
+| `OptionsMenuPreviewExporter.Export` | Opciones en menú, tienda y zonas | `OptionsMenuPreview/` |
+| `PermanentShopPreviewExporter.Export` | Controles, catálogo y textos de tienda permanente | `PermanentShopPreview/` |
+| `RunMenuPreviewExporter.Export` | Pausa y Game Over de ambas zonas | `RunMenuPreview/` |
+| `InGameShopPreviewExporter.Export` | Ofertas, precio, contador y aviso sin saldo | `InGameShopPreview/` |
+| `LoreComicPreviewExporter.Export` | Viñetas y botón de continuación | `LoreComicPreview/` |
 
-Las matrices no sustituyen routing, los dispositivos virtuales no certifican ergonomía y el smoke de arranque no acredita una run interactiva. La evidencia de builds y tablet, con sus límites, se registra en [AndroidBuild.md](AndroidBuild.md).
+Están disponibles en `Tools > Squid Ink Pulse > Mobile`. En batch, usar `-executeMethod` con el método de la tabla y mantener habilitados los gráficos. Revisar las capturas junto con el JSON para detectar recortes, solapamientos y textos fuera del área segura.
 
-## Pausa y Game Over
+## Recorrido en plataforma
 
-`RunMenuSafeAreaCompositionTests` y `RunMenuMobileCompositionContract` verifican prefabs compartidos y las instancias de ambas zonas: jerarquías seguras, encaje 1920×1080, referencias de botones/textos/animación, fondos bloqueantes fuera del contenido seguro y ausencia de infraestructura UI extra. Un caso negativo mueve Reanudar fuera del contenido y exige que el contrato lo rechace. El validador prebuild usa el mismo contrato.
-
-`RunMenuTouchPlayModeTests` carga las escenas reales, usa touchscreen virtual sin mouse y comprueba raycasts efectivos. Repite diez ciclos de pausa/reanudación por zona, abre/cierra opciones manteniendo pausa, vuelve al menú y comprueba recuperación del steering. Declara Game Over mediante la frontera real de sesión, espera el cómic de derrota y la animación originales, reintenta tres veces desde Abisopelágica hacia Epipelágica y termina regresando al menú tras una cuarta derrota. Exige lectores nuevos y anteriores deshabilitados, `Time.timeScale` correcto y entrada funcional después de cada transición. Aísla avance/spawners para probar UI sin depender de colisiones aleatorias; no prueba física de daño ni una run. Perfil y registros usan escrituras transitorias de Editor, con estado restaurado al terminar.
-
-`RunMenuPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Run Menu Preview Matrix`) necesita gráficos y genera 32 PNG, JSON y galería bajo `TestResults/RunMenuPreview/`: dos zonas × dos menús × ocho formatos. Cubre 16:9, 19,5:9, 20:9 con cutouts laterales simulados y tablet 16:10. Comprueba 112 rectángulos de controles/textos, glifos de puntajes hasta `long.MaxValue` y fondos completos. Simula el estado final de reposo, sin animación ni routing; no guarda escenas ni perfil. La revisión física y el smoke standalone siguen siendo independientes.
-
-## Tienda dentro de la run
-
-`InGameShopMobilePresentationTests` protege aplicación repetida y retorno a la presentación desktop, incluidos hints de teclado inactivos de autoría y el ajuste/wrapping del precio. `InGameShopMobileCompositionTests` usa prefab e instancias reales de ambas zonas: safe area/fitter, referencias de controles y contador, fondo completo y aviso independiente de estados del botón. Un caso negativo vuelve a insertar SinSaldo en Normal y exige rechazo. El validador prebuild usa el mismo contrato y exige el contador conectado.
-
-`InGameShopTouchPlayModeTests` abre ofertas reales en ambas zonas mediante la API de la tienda, con touchscreen virtual y perfil transitorio restaurado. Verifica rechazo sin saldo visible después de seleccionar el botón, ausencia de descuento/adquisición, tiempo de gameplay detenido mientras el contador avanza, expiración, compra y descuento únicos, adquisición y retorno del steering. Un observador de cierre exige que Ink-Pulse siga bloqueado en ese frame después de restaurar el tiempo; el toque de compra no activa el pulso y otro toque deliberado posterior sí. El caso desktop conserva los hints y compra mediante B. Duración y precio se fijan sólo en la instancia de prueba para aislar el resultado; no se prueban aquí el spawn/contacto de DealerFish ni sus cómics.
-
-`InGameShopPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export In Game Shop Preview Matrix`) genera 32 capturas, JSON y galería bajo `TestResults/InGameShopPreview/`: ambas ofertas de los prefabs reales, dos zonas y ocho formatos de teléfono/tablet con cutouts simulados. Comprueba fondo, controles/textos, glifos con precio `int.MaxValue` y pulso máximo, contador visible y aviso sin saldo en Normal/Destacado/Presionado. No carga ni guarda perfil, escenas o prefabs; no certifica animación, routing ni ergonomía física.
-
-## Cómics narrativos
-
-`LoreComicMobileLayoutTests` comprueba márgenes, espacio del botón y restauración desktop; `LoreComicContinueFocusTests` comprueba selección modal, ausencia de Submit detrás de un cómic temporizado y restauración sin quitar foco a otro sistema. `LoreComicMobileCompositionTests` valida prefab y MainMenu/ambas zonas con el mismo contrato prebuild, preservando sprites, proporción y tiempos/esperas configurados.
-
-`LoreComicTouchPlayModeTests` usa escenas reales, touchscreen y teclado virtuales sin mouse, perfil transitorio y contadores de carga. Comprueba inicio por Submit, portales físicos Epi→Abis→Epi y persistencia de primera visualización, apertura desde la API del vendedor/compra/salida, expiración sin compra con salida no configurada omitida y derrota→Game Over/retry desde ambas zonas. Exige contexto de selección correcto, coste/cierres únicos y tiempo devuelto al consumidor adecuado. Las entradas temporizadas y la oferta sin compra usan 0,75 s sólo en las instancias de prueba; la autoría conserva 3 s. Los helpers de touch de tienda/cómics esperan que el dispositivo consuma el evento antes de comprobar el EventSystem, sin relajar la barrera de cierre. Movimiento y spawners se aíslan; el portal se activa mediante Collider2D real, el vendedor mediante su frontera de apertura y la derrota mediante sesión. No certifica spawn/contacto natural de DealerFish, daño físico ni hardware.
-
-`LoreComicPreviewExporter.Export` (menú `Tools > Squid Ink Pulse > Mobile > Export Lore Comic Preview Matrix`) genera imágenes/JSON/galería bajo `TestResults/LoreComicPreview`: los sprites configurados de inicio, portal, tienda y derrota en sus escenas reales y ocho formatos con cutouts laterales/tablet. Con el catálogo actual son 80 capturas y dos solicitudes omitidas por ausencia de sprite de salida sin compra. Comprueba área segura, proporción, separación del botón y fondo completo. No guarda perfil/escenas, ni certifica routing o ergonomía física.
-
-Las fixtures de tienda y cómics colocan el reloj virtual después de la transición Editor→Play y entregan los eventos al buffer Dynamic del player. El paquete Input System conserva los límites de esa transición aunque se sustituya su runtime de pruebas; eventos sintéticos anteriores pueden descartarse. El helper usa el entry point interno del SDK fijado y exige su presencia para detectar cambios de compatibilidad.
-
-Los seis casos de exclusión de `LoreComicTouchPlayModeTests` cruzan pausa con tienda/cómic, atajo P con Opciones abierta desde pausa, dos solicitudes de cómic, Game Over con una compra en el mismo frame, steering retenido/Space/uso de gadget durante cómic y Game Over durante una transición física de portal. Comprueban tiempo y selección del contexto, callback único, ausencia de coste/uso indebido, descarte de órdenes bloqueadas, gesto nuevo válido y ausencia de carga de zona tras derrota. El perfil y los gadgets son transitorios de Editor; las pruebas no certifican contacto natural con DealerFish ni una run física.
+Las capturas revisan composición y las pruebas simuladas revisan interacción. La comodidad, orientación, rendimiento y comportamiento de Android se comprueban en dispositivo físico. El [recorrido de entrega](03-desarrollo/pruebas-y-validacion.md) reúne los casos de Windows y Android; la [matriz móvil](MobilePort.md) detalla instalación, actualización e interrupciones.
 
 ## Servidor de feria
 
-El servidor opcional mantiene su smoke test independiente:
+El complemento mantiene un smoke test separado. Con un servidor de prueba en ejecución, ejecutar desde la raíz del repositorio:
 
 ```powershell
-python Tools\FairServer\smoke_test.py
+python .\Tools\FairServer\smoke_test.py
 ```
 
-Este script requiere que `Tools/FairServer/server.py` esté escuchando en `127.0.0.1:8080`.
-
-## Extensión posterior
-
-Las siguientes incorporaciones deben priorizar caracterización de flujos que se vayan a refactorizar. No se deben añadir tests masivamente sin identificar primero qué contrato protegen.
+La preparación del servidor y de los datos de prueba se explica en [FairServer](FairServer.md) y [la guía de evento](FairEventSetupGuide.md).

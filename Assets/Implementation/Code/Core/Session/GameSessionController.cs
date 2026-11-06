@@ -63,7 +63,7 @@ public class GameSessionController : MonoBehaviour
 
     public void RequestResume()
     {
-        if (CurrentState == GameSessionState.Paused)
+        if (CurrentState == GameSessionState.Paused && !MobileApplicationLifecycle.IsSuspended)
         {
             ApplyState(GameSessionState.Playing);
         }

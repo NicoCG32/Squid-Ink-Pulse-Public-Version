@@ -1,22 +1,32 @@
 using System;
 using System.Collections;
-using System.Text;
 using UnityEngine;
+#if !UNITY_ANDROID || UNITY_EDITOR
+using System.Text;
 using UnityEngine.Networking;
+#endif
 
 public sealed class FairApiClient
 {
+#if !UNITY_ANDROID || UNITY_EDITOR
     private readonly string baseUrl;
     private readonly int timeoutSeconds;
+#endif
 
     public FairApiClient(string baseUrl, float timeoutSeconds)
     {
+#if !UNITY_ANDROID || UNITY_EDITOR
         this.baseUrl = string.IsNullOrWhiteSpace(baseUrl) ? "http://localhost:8080" : baseUrl.TrimEnd('/');
         this.timeoutSeconds = Mathf.Max(1, Mathf.CeilToInt(timeoutSeconds));
+#endif
     }
 
     public IEnumerator CheckHealth(Action<FairApiResult<FairHealthResponse>> onCompleted, bool logFailure = true)
     {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        onCompleted?.Invoke(Unavailable<FairHealthResponse>());
+        yield break;
+#else
         using UnityWebRequest webRequest = UnityWebRequest.Get($"{baseUrl}/health");
         webRequest.timeout = timeoutSeconds;
         webRequest.SetRequestHeader("Accept", "application/json");
@@ -50,6 +60,7 @@ public sealed class FairApiClient
         }
 
         onCompleted?.Invoke(FairApiResult<FairHealthResponse>.Fail(errorCode, message, webRequest.responseCode));
+#endif
     }
 
     public IEnumerator CreateParticipant(
@@ -124,6 +135,10 @@ public sealed class FairApiClient
         TRequest request,
         Action<FairApiResult<TResponse>> onCompleted)
     {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        onCompleted?.Invoke(Unavailable<TResponse>());
+        yield break;
+#else
         string json = JsonUtility.ToJson(request);
         byte[] body = Encoding.UTF8.GetBytes(json);
         using UnityWebRequest webRequest = new($"{baseUrl}{path}", method)
@@ -160,7 +175,11 @@ public sealed class FairApiClient
             : webRequest.error;
         Debug.LogWarning($"[FairApiClient] {method} {baseUrl}{path} failed. Result={webRequest.result}. Code={webRequest.responseCode}. Error={webRequest.error}");
         onCompleted?.Invoke(FairApiResult<TResponse>.Fail(errorCode, message, webRequest.responseCode));
+#endif
     }
+
+    private static FairApiResult<T> Unavailable<T>() =>
+        FairApiResult<T>.Fail("fair_unavailable", "El modo feria no esta disponible en Android.", 0);
 
     private static FairErrorResponse TryParseError(string text)
     {

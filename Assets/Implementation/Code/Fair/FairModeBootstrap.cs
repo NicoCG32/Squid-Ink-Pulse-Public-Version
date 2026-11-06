@@ -8,6 +8,11 @@ public static class FairModeBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize()
     {
+        if (!FairModeSettings.SupportsCurrentPlatform)
+        {
+            Debug.Log("[FairMode] Android local play: network bootstrap disabled.");
+            return;
+        }
         if (initialized || !FairModeSettings.IsEnabled)
         {
             return;
@@ -25,7 +30,7 @@ public sealed class FairModeStartupProbe : MonoBehaviour
 
     public static void EnsureInstance()
     {
-        if (instance != null)
+        if (!FairModeSettings.IsEnabled || instance != null)
         {
             return;
         }
@@ -37,6 +42,11 @@ public sealed class FairModeStartupProbe : MonoBehaviour
 
     private IEnumerator Start()
     {
+        if (!FairModeSettings.IsEnabled)
+        {
+            Destroy(gameObject);
+            yield break;
+        }
         string serverUrl = FairModeSettings.ServerBaseUrl;
         FairApiClient client = new(serverUrl, FairModeSettings.StartupProbeTimeoutSeconds);
         bool serverAvailable = false;

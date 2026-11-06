@@ -283,22 +283,6 @@ Para reiniciar el progreso local sin tocar las semillas del repositorio:
 2. Ejecutar `Tools/CleanPersistentData.bat` o `.\Tools\CleanPersistentData.ps1`.
 3. Abrir nuevamente Play Mode o el build.
 
-Reinicio aplicado el 2026-06-30 en el equipo de trabajo:
-
-```text
-C:\Users\<usuario>\AppData\LocalLow\Yeco Works\Squid Ink-Pulse\db
-```
-
-Resultado verificado:
-
-- niveles de mejoras `0,0,0,0`;
-- `skin.default` como unica skin desbloqueada y equipada;
-- `totalShrimps = 0`;
-- `bestScore = 0`;
-- `totalRuns = 0`;
-- leaderboard vacio;
-- catalogo versión `8` con `9` skins implementadas.
-
 ## Compatibilidad De Datos
 
 Si existe el formato antiguo:
@@ -321,7 +305,7 @@ Mapeo desde `player-profile.json` versión 2:
 - `gadgets.unlockedGadgetIds` pasa a `runGadgetUnlocks.unlockedRunGadgetIds`.
 - `activeSkillIds` se descarta porque las skills persistentes no forman parte del contrato de entrega. Las mejoras permanentes ocupan ese rol mediante ids de upgrade y niveles.
 
-## Comprobacion de cierre
+## Contrato de semillas y tienda
 
 La persistencia de cierre debe conservar semillas legibles para:
 

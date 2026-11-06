@@ -34,7 +34,7 @@ flowchart LR
   Rewards --> Advance
 ```
 
-Las tiendas, los jefes y los portales modifican o interrumpen temporalmente este ciclo. No sustituye la descripción técnica de cuándo está permitido el pulso.
+Las tiendas, los jefes y los portales modifican o interrumpen temporalmente este ciclo.
 
 ## 4. Mecánicas implementadas
 
@@ -42,13 +42,13 @@ Las tiendas, los jefes y los portales modifican o interrumpen temporalmente este
 - **Graze e Ink-Pulse**: proximidad segura a peligros para cargar la habilidad; activación sujeta a estado.
 - **Enemigos y jefes**: patrones con perfiles de aparición y eventos especiales.
 - **Progresión de run**: dificultad y ritmo de aparición cambian durante la partida.
-- **Camarones**: recurso del juego para compras y mejoras; no dinero real.
+- **Camarones**: recurso del juego para compras y mejoras.
 - **Gadgets de partida**: entre ellos Shell Shield e Ink-Bottle; la tienda temporal los ofrece durante la run.
 - **Tienda permanente**: mejoras y aspectos visuales que se conservan entre partidas.
 - **Portales**: cambio entre zona epipelágica y abisopelágica, preservando el estado temporal pertinente.
 - **Relato visual y audio**: cómics, efectos y música reactiva.
 
-Los nombres de las mejoras, precios, reglas exactas y parámetros se obtienen del catálogo y scripts, no de una cifra inventada en esta guía: [GameplaySystems](../GameplaySystems.md), [EnemiesAndBosses](../EnemiesAndBosses.md), [PersistentProfile](../PersistentProfile.md).
+Los precios y las mejoras se definen en el catálogo. Las reglas se detallan en [sistemas de juego](../GameplaySystems.md), [enemigos y jefes](../EnemiesAndBosses.md) y [perfil persistente](../PersistentProfile.md).
 
 ## 5. Progreso de una partida y progreso permanente
 
@@ -65,11 +65,11 @@ flowchart TD
   Store --> Menu
 ```
 
-Los gadgets de run y la carga en curso no deben confundirse con mejoras compradas permanentemente. Las reglas de reinicio dependen de `GameSessionController` y sus estados.
+Los gadgets y la carga de Ink-Pulse acompañan la partida al cruzar un portal y se reinician en Game Over. Las mejoras compradas y los desbloqueos permanecen en el perfil.
 
-## 6. Alcance y límites
+## 6. Modalidad y tutorial
 
-El jugador principal es una persona en un dispositivo local. No describimos cooperativo, online o sincronización compartida como características entregadas. La feria es un complemento separado.
+La experiencia es para un jugador, con progreso local por dispositivo. Windows ofrece además un complemento de feria para mostrar resultados en una red local.
 
 El tutorial activo es un cómic en el menú. La escena de tutorial jugable existe en código, pero se mantiene fuera de las escenas de distribución.
 

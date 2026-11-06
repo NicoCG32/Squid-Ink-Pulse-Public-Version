@@ -1,10 +1,8 @@
 # Build e instalación Android
 
-## Estado
+## Modalidades
 
-El proyecto dispone de comandos para generar un APK Development o un APK sin Development. La compilación, inspección estática, instalación y apertura de `MainMenu` están verificadas en Android ARM64 mediante ADB. Los canales y artefactos publicados se describen en [Distribución](Distribution.md).
-
-Abrir el juego en Editor no sustituye esta prueba. La puerta de bootstrap Android sólo se cierra cuando el APK generado se instala y abre en Android sin un crash bloqueante.
+El proyecto ofrece APK Development para depuración y APK sin Development para evaluación de rendimiento y distribución beta. Los canales publicados están en [Distribución](Distribution.md).
 
 ## Requisitos locales
 
@@ -17,6 +15,12 @@ Abrir el juego en Editor no sustituye esta prueba. La puerta de bootstrap Androi
 Las rutas locales del SDK y JDK no se guardan en el proyecto.
 
 ## Generar el APK
+
+### Iconos de Android y Windows
+
+La configuración incluye el icono del calamar para Windows y los iconos Android legacy, redondo y adaptable. El adaptable usa un fondo opaco y una capa frontal transparente con margen para los recortes del launcher; sus originales están en `branding/iconos/android-adaptive-*.svg` y los PNG de build en `Assets/Content/Art/UI/Brand/`.
+
+Para reasignarlos, usar `Squid Ink-Pulse > Identity > Apply Android and Windows icons` o el método batch `ProjectBranding.ApplyPlayerIcons`. Este comando sólo modifica los iconos de Player Settings. Recompilar el APK y el ejecutable Windows para que incluyan el cambio; una build ya generada no se actualiza al editar el proyecto.
 
 ### Desde el menú
 
@@ -61,7 +65,7 @@ Este comando solicita `BuildOptions.Development` y `AllowDebugging`; no genera u
 
 Usar `Tools > Squid Ink Pulse > Build Android Performance APK (No Development)` o el método batch `AndroidDevelopmentBuilder.BuildAndroidPerformanceApk`, manteniendo `-buildTarget Android`. Genera `Build/AndroidPerformance/SquidInkPulse-performance.apk` con `BuildOptions.None` y rechaza una salida no vacía para conservar los artefactos previos. Comparte las cuatro escenas y la validación de composición del builder Development.
 
-Esta modalidad permite medir y distribuir una beta sin el coste de Development; no configura por sí sola firma de distribución. Registrar commit, versionCode, certificado y checksum antes de publicar. Véase [comparación de rendimiento](AndroidPerformance.md) y [canal Android beta](Distribution.md#android-beta).
+Esta modalidad permite medir y distribuir una beta sin el coste de Development; no configura por sí sola firma de distribución. Registrar commit, versionCode, certificado y checksum antes de publicar. Véase [comparación de rendimiento](AndroidPerformance.md) y [canal Android beta](Distribution.md#generar-android).
 
 ## Verificar ADB
 
@@ -128,13 +132,11 @@ La validación mínima de arranque debe confirmar:
 
 La persistencia permanente JSON ya escribe de forma inmediata y atómica; por ello el checkpoint de ciclo de vida no vuelve a serializar perfil, records, catálogo ni leaderboard, y tampoco captura estado transitorio de una run. Las preferencias conocidas conservan su confirmación inmediata y cualquier cambio que permanezca pendiente se vacía una sola vez al recibir pausa o pérdida de foco en un player móvil.
 
-La APK actualizada se instaló sobre los datos existentes y se comprobó en el mismo POCO X6 5G con este recorrido: modificar el volumen, volver a `MainMenu`, enviar la aplicación a segundo plano, terminar el proceso y reabrirla. `MasterVolume` reapareció con el valor modificado (`0.3565277`); `player-profile.json`, `player-records.json` y `unlockables-catalog.json` conservaron sus SHA-256 previos, mientras `local-leaderboard.json` siguió ausente por su creación diferida. El proceso y la actividad regresaron al primer plano y logcat filtrado registró cero errores `Unity:E` y `AndroidRuntime:E`.
-
-La validación complementaria aprobó `159/159` pruebas EditMode, auditor Android con `0` errores, `0` advertencias y `10` datos, composición canónica válida y APK de 514.213.206 bytes. El build Windows compartido permaneció receptivo a 1280x720 y no registró excepciones.
+Para comprobarlo, cambiar el volumen, enviar la aplicación a segundo plano, cerrar el proceso y reabrir. Revisar el valor recuperado y la conservación de perfil, récords y catálogo.
 
 ## Alcance de la beta y comprobaciones
 
-El APK generado por esta guía es Development y permite depuración. La beta publicada se encuentra en [GitHub Releases](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases); consulta las notas y el checksum de su archivo para identificar la versión que instalas.
+El comando Development permite depuración; el comando Performance utiliza `BuildOptions.None`. La beta publicada se encuentra en [GitHub Releases](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases); consulta las notas y el checksum de su archivo para identificar la versión que instalas.
 
 La adaptación móvil comprende controles táctiles, menús, opciones y área segura. Antes de distribuir una versión final, comprueba:
 
@@ -145,3 +147,7 @@ La adaptación móvil comprende controles táctiles, menús, opciones y área se
 - Legibilidad con distintas relaciones de aspecto, recortes de pantalla y rendimiento sostenido.
 
 Las pruebas de Editor y las capturas automáticas complementan la prueba física. El alcance y los requisitos del port se describen en [MobilePort](MobilePort.md); las comprobaciones de escritorio se mantienen en [Testing](Testing.md).
+
+## Juego local y permisos
+
+El player Android omite la integración de feria. La build normal sin Development se empaqueta sin permiso de Internet y se comprueba también con modo avión y Wi-Fi apagado. El postproceso deja intacta la variante Development para depuración. Consulta [Android sin conexión y modo feria](AndroidOffline.md) para revisar los permisos del APK final y el alcance de la comprobación por plataforma.
