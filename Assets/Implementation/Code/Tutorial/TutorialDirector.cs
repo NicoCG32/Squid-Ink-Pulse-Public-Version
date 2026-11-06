@@ -1109,7 +1109,7 @@ public sealed class TutorialDirector : MonoBehaviour
         }
 
         presentationFreezeActive = false;
-        if (session == null || session.IsPlaying)
+        if (!MobileApplicationLifecycle.PauseBeforeGameplayTimeRestored() && (session == null || session.IsPlaying))
         {
             Time.timeScale = timeScaleBeforePresentation;
         }

@@ -13,7 +13,7 @@
 - `Assets/Implementation/Config/`: configuración técnica.
 - `Assets/Implementation/Config/Input/`: asset versionado del Input System con mapas `Gameplay` y `UI`.
 - `Assets/Implementation/Config/Spawning/`: assets `ZoneSpawnProfile` por zona (`ZonaEpipelagicaSpawnProfile`, `ZonaAbisopelagicaSpawnProfile`).
-- `Assets/Implementation/Editor/`: soporte de build final. Actualmente contiene el postprocesador que genera instrucciones y scripts de reinicio para builds de feria.
+- `Assets/Implementation/Editor/`: builders, validadores, exportadores de previsualización y postprocesadores de distribución.
 - `Assets/Content/Prefabs/`: prefabs runtime.
 - `Assets/Content/Audio/`: soundtrack y SFX.
 - `Assets/Content/Art/`: arte runtime.

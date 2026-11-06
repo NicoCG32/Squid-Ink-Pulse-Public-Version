@@ -20,7 +20,7 @@ public sealed class FairParticipantSession : MonoBehaviour
         }
     }
 
-    public static bool HasActiveSession => instance != null && instance.IsActive;
+    public static bool HasActiveSession => FairModeSettings.IsEnabled && instance != null && instance.IsActive;
 
     public bool IsActive => !string.IsNullOrWhiteSpace(ParticipantId);
     public string ParticipantId { get; private set; }
@@ -29,6 +29,11 @@ public sealed class FairParticipantSession : MonoBehaviour
 
     private void Awake()
     {
+        if (!FairModeSettings.IsEnabled)
+        {
+            Destroy(this);
+            return;
+        }
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -42,7 +47,7 @@ public sealed class FairParticipantSession : MonoBehaviour
 
     public static void EnsureInstance()
     {
-        if (instance != null)
+        if (!FairModeSettings.IsEnabled || instance != null)
         {
             return;
         }

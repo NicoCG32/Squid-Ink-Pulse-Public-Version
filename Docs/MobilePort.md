@@ -1,293 +1,75 @@
-# Port móvil
+# Adaptación móvil
 
-## Propósito
+Android comparte la base de gameplay de Windows y añade entrada táctil, interfaz con área segura y coordinación del ciclo de vida. La versión móvil continúa en beta.
 
-Este documento define el contrato técnico y de producto para portar Squid Ink-Pulse a teléfonos mediante Unity. El port extiende la base jugable existente; no reemplaza el juego de escritorio ni redefine su loop principal.
+## Plataforma
 
-El primer objetivo de plataforma es Android. iOS queda como una extensión posterior porque requiere un entorno de compilación, firma y validación distinto.
+| Ajuste | Configuración |
+| --- | --- |
+| Plataforma | Android ARM64, IL2CPP |
+| Versión mínima | Android 7.1 / API 25 |
+| Orientación | Landscape, con rotación izquierda/derecha; portrait deshabilitado |
+| Formatos de interfaz | 16:9, 19,5:9, 20:9 y tablet 16:10 |
+| Área segura | `Screen.safeArea` |
+| Datos | JSON local en `Application.persistentDataPath/db/` |
+| Red | Juego local; complemento de feria deshabilitado |
+| Distribución actual | APK beta; candidata con firma de distribución pendiente |
 
-La matriz de dispositivos incluye POCO X6 5G y Redmi Pad Pro, con Android 16/ARM64. El teléfono cubre pantallas extra-wide; la tablet, una superficie 16:10 de 2560×1600. Las comprobaciones abarcan encuadre, HUD y áreas seguras; la compatibilidad con otros dispositivos y el rendimiento sostenido requieren pruebas adicionales.
+## Entrada y presentación
 
-## Estado
+`SquidInkPulseGameplayInputReader` publica comandos semánticos de movimiento, Ink-Pulse, pausa y gadgets. `TouchSteeringSurface` captura un dedo sobre el área de juego y los botones publican los mismos comandos que consume escritorio. Soltar el dedo conserva la altura y el avance horizontal continúa.
 
-La iniciativa completó contrato, baseline, bootstrap Android y la rama de persistencia móvil: semillas empaquetadas, migración/recuperación y checkpoints de preferencias ante pausa o pérdida de foco. La entrada ya cuenta con acciones semánticas y un lector runtime único que evita activar una segunda copia de `UI`, emite una solicitud por interacción y centraliza el esquema de control. Movimiento, Ink-Pulse, pausa, slots de gadgets y el atajo de compra `B` ya consumen el lector y conservan sus reglas; `B` sigue siendo Keyboard&Mouse-only y el botón `Comprar` es la vía móvil. La capa touch está montada en ambas zonas, el autoscroll avanza aunque no exista un dedo y la UI jugable preserva el alto de referencia dentro de una raíz derivada de `Screen.safeArea`. PlayMode recorre el módulo UI real y recrea controles/reader al cargar Abisopelágica. En un POCO X6 5G se validaron instalación actualizada, arranque, gameplay y encuadre extra-wide; la revisión física detectó y corrigió el acoplamiento inicial del avance al primer toque y el recorte vertical de HUD/menús. Todavía no existe una candidata móvil aceptada: persiste el probe de feria a `localhost:8080`, y aún faltan cerrar una run completa, adaptación integral de opciones/Back, orientación landscape opuesta y rendimiento sostenido. La referencia Windows está registrada en [MobileBaseline.md](MobileBaseline.md), el contrato de entrada en [Input.md](Input.md) y la guía de compilación y comprobación Android en [AndroidBuild.md](AndroidBuild.md).
+Los gestos iniciados sobre botones quedan separados del steering. Pausar, abrir una tienda o cómic, perder foco o cambiar de escena libera el contacto; continuar requiere una pulsación nueva. El contrato completo está en [Input](Input.md).
 
-Todas las zonas comparten un único contrato dimensional de HUD y gameplay. Epipelágica y Abisopelágica son las primeras consumidoras, pero cualquier `GameRoot_Zona*` futuro debe heredar los mismos Canvas, safe area, controles y prefabs HUD; sólo las dinámicas, enemigos, arte de zona o mecánicas de jefe pueden divergir. El port no acepta correcciones visuales copiadas por zona que creen layouts incompatibles.
+Las zonas comparten prefabs de HUD, controles y ajuste de referencia. Los menús, opciones, tiendas y cómics adaptan su composición al área segura. Resolución de ventana y fullscreen se ocultan en Android. El volumen se conserva al cerrar y reabrir.
 
-## Alcance del primer port
+## Interrupciones y guardado
 
-### Gameplay
+[Atrás y el ciclo de vida](AndroidLifecycle.md) tienen una política común: cerrar el contexto apropiado y volver de segundo plano con la partida pausada. El audio y los comandos pendientes se coordinan con los avisos de foco y pausa de Android.
 
-La versión móvil debe conservar:
+Las semillas se cargan como `TextAsset` desde `Resources/PersistentDbSeeds`; los guardados se escriben en el directorio persistente del dispositivo. El juego conserva perfiles y migraciones; cerrar el proceso inicia de nuevo el menú y conserva el progreso permanente. Consulta [persistencia local](PersistentProfile.md).
 
-- movimiento continuo y límites de `PlayerBoundaries`;
-- carga y activación de Ink-Pulse;
-- graze, camarones, gadgets y economía de run;
-- enemigos comunes, Ray, Jellyfish y bosses ya integrados;
-- transición por portales entre `ZonaEpipelagica` y `ZonaAbisopelagica`;
-- pausa, muerte, Game Over y retry.
+El player Android excluye el cliente HTTP de feria y la build normal se empaqueta sin permiso de Internet. Los detalles están en [Android sin conexión](AndroidOffline.md).
 
-La interacción móvil debe permitir completar una run sin teclado, mouse ni gamepad:
+## Pruebas en dispositivo
 
-- mantener un dedo sobre la superficie de gameplay controla el objetivo vertical mediante la posición del contacto;
-- la superficie de gameplay sólo conserva el control mientras ese contacto continúa activo;
-- un botón explícito activa Ink-Pulse;
-- un botón visible abre la pausa;
-- los gadgets disponibles se ejecutan desde botones de sus slots;
-- los gestos iniciados sobre botones no se interpretan también como movimiento;
-- liberar, cancelar o perder el foco de un dedo no deja movimiento retenido.
+El trabajo móvil ha utilizado **POCO X6 5G** y **Redmi Pad Pro**, ambos con Android 16/ARM64. El teléfono cubre un formato extra ancho y la tablet un formato 16:10. La evaluación final debe ampliar la cobertura a un teléfono de menores recursos y a sesiones prolongadas.
 
-### Definición de run completa
+### Recorrido de partida
 
-Para este port, una run completa es el recorrido verificable:
+1. Iniciar desde MainMenu y controlar al calamar mediante touch.
+2. Cargar y activar Ink-Pulse, realizar graze y usar un gadget disponible.
+3. Abrir y cerrar una oferta de la tienda temporal.
+4. Cruzar un portal hacia Abisopelágica conservando controles, HUD y estado temporal.
+5. Llegar a Game Over, reintentar y regresar al menú.
 
-1. iniciar en `MainMenu` y comenzar una partida;
-2. controlar al jugador en `ZonaEpipelagica` mediante touch;
-3. cargar y activar Ink-Pulse, realizar graze y usar al menos un gadget disponible;
-4. abrir y cerrar correctamente la tienda temporal cuando aparezca;
-5. atravesar un portal hacia `ZonaAbisopelagica` y conservar controles, HUD y estado de run;
-6. morir, visualizar el flujo de derrota y llegar a Game Over;
-7. ejecutar retry o regresar a `MainMenu` sin perder el control ni dejar `Time.timeScale` bloqueado.
+### Recorridos de plataforma
 
-Ray, Jellyfish, bosses y eventos aleatorios deben conservar su comportamiento, pero una aparición concreta no se exige en cada repetición de este recorrido. Se validan también mediante recorridos dirigidos o checks separados.
+| Área | Comprobación |
+| --- | --- |
+| Instalación | Instalar desde cero y actualizar sobre una versión compatible conservando progreso. |
+| Menús | Opciones, Cómo jugar, tienda permanente, compra y equipamiento. |
+| Narrativa | Cómics de inicio, portal, tienda y derrota. |
+| Navegación | Atrás en cada contexto; evitar compras o reintentos accidentales. |
+| Interrupciones | Home, cambio de aplicación y bloqueo de pantalla en ambas zonas y overlays. |
+| Reapertura | Cierre del proceso desde segundo plano y arranque con datos persistidos. |
+| Pantalla | Ambas orientaciones landscape, distintas proporciones y recortes laterales. |
+| Sin conexión | Arranque y partida con modo avión y Wi-Fi apagado. |
+| Rendimiento | Cargas, memoria y ritmo de presentación durante una sesión prolongada. |
+| Regresión | Pruebas automáticas y recorrido Windows de los sistemas compartidos. |
 
-### UI y navegación
+## Herramientas
 
-Deben poder operarse mediante touch:
-
-- `MainMenu`;
-- opciones aplicables a móvil;
-- comic de `Cómo Jugar` ya disponible;
-- tienda permanente;
-- HUD de ambas zonas;
-- pausa y Game Over;
-- tienda temporal de run;
-- comics narrativos de inicio, portales, tienda y derrota.
-
-La UI debe respetar el área segura del dispositivo, funcionar en las relaciones de aspecto objetivo y conservar estados pressed, disabled y selected sin depender de hover de mouse.
-
-Las opciones exclusivas de escritorio —por ejemplo, cambiar resolución de ventana o fullscreen— no deben presentarse como si fueran aplicables a un teléfono. Volumen y preferencias que sí tengan sentido en móvil deben conservarse.
-
-### Datos locales
-
-El port debe conservar por dispositivo:
-
-- perfil del jugador;
-- camarones y economía;
-- mejoras permanentes y skins equipadas;
-- gadgets desbloqueados;
-- records y leaderboard local;
-- comics cuya visualización se persiste.
-
-Los archivos runtime continúan bajo `Application.persistentDataPath/db/`. La fuente única de semillas vive en `Assets/Implementation/Resources/PersistentDbSeeds/`: Android las obtiene como `TextAsset` mediante `ResourcesJsonSeedProvider`, sin aplicar `File.Exists` ni `File.ReadAllText` sobre el APK. Editor conserva lectura directa de la fuente y los builds Windows reciben una copia derivada para sus scripts de reset.
-
-La ausencia de red no debe impedir el arranque ni el gameplay local.
-
-### Ciclo de vida Android
-
-El juego debe definir un comportamiento estable para:
-
-- botón Back del sistema;
-- pérdida y recuperación de foco;
-- suspensión y reanudación;
-- bloqueo de pantalla;
-- terminación del proceso desde background.
-
-Back se interpreta como la acción contextual `Cancel` y sigue este contrato:
-
-| Contexto                                      | Resultado                                                                                                 |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `MainMenu` raíz                               | No realiza una salida inmediata. Se ignora mientras no exista una confirmación explícita de salida.       |
-| Opciones, tutorial gráfico o subpanel de menú | Cierra el subpanel actual y vuelve a su pantalla anterior.                                                |
-| Tienda permanente                             | Regresa a `MainMenu`.                                                                                     |
-| Gameplay activo                               | Abre la pausa.                                                                                            |
-| Pausa                                         | Reanuda la run si no hay otro subpanel abierto.                                                           |
-| Opciones abiertas desde pausa                 | Cierra opciones y regresa a pausa.                                                                        |
-| Tienda temporal o comic narrativo             | Ejecuta únicamente la acción de cierre o continuación que ese overlay permita; nunca confirma una compra. |
-| Game Over                                     | No ejecuta retry ni abandona la pantalla sin una acción explícita del usuario.                            |
-
-Back no debe terminar una run, confirmar una compra ni saltarse una decisión irreversible por accidente.
-
-El estado guardable pendiente debe persistirse antes de que la aplicación abandone el primer plano. Reanudar debe ser idempotente: no puede duplicar listeners, overlays, audio ni acción de input.
-
-### Add-on de feria
-
-El add-on de feria no condiciona el port inicial. En Android debe quedar deshabilitado o inerte, sin probes de red que impidan el arranque ni permisos innecesarios. El modo feria de Windows conserva su contrato documentado en [FairServer.md](FairServer.md).
-
-## Plataforma y formato inicial
-
-| Decisión                | Contrato inicial                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------- |
-| Plataforma              | Android                                                                               |
-| Orientación             | Landscape fijo con autorrotación entre landscape left y landscape right               |
-| Portrait                | Deshabilitado                                                                         |
-| Movimiento touch        | Seguimiento vertical continuo de un contacto activo sobre la superficie de gameplay   |
-| Ink-Pulse               | Botón explícito separado de la superficie de movimiento                               |
-| Gadgets                 | Un botón explícito por slot utilizable; slots no utilizables ocultos o deshabilitados |
-| Pausa y Back            | Botón visible de pausa y acción `Cancel` contextual según la tabla anterior           |
-| Formatos de teléfono    | 16:9, 19.5:9 y 20:9                                                                   |
-| Cutout/notch            | Debe respetarse mediante `Screen.safeArea`                                            |
-| Tablets y plegables     | Compatibilidad deseable, no criterio bloqueante inicial                               |
-| Artefacto de desarrollo | APK instalable                                                                        |
-| Artefacto candidato     | AAB reproducible                                                                      |
-| Servicios remotos       | No requeridos                                                                         |
-
-La orientación, identificador, versión mínima, arquitectura, backend de scripting y nivel de calidad deben fijarse en configuración versionada y comprobarse mediante una validación automática de Editor. No deben quedar como decisiones manuales del equipo que genera la build.
-
-## Contrato semántico de entrada
-
-El mapa versionado `Gameplay` expresa `SteerPosition`, `ActivateInkPulse`, `TogglePause`, `UseGadgetSlot1`, `UseGadgetSlot2` y `BuyShopOffer`. Keyboard&Mouse mantiene posición del mouse, click/`Space`, `P`/`Escape`, `Q`/`W` y `B`; la compra no tiene binding Touch.
-
-`SquidInkPulseGameplayInputReader` habilita exclusivamente ese mapa, publica posición continua y eventos discretos, y resuelve el último esquema que produjo una acción gameplay en un solo lugar. Su scope vive en el prefab del jugador y dispone el lector al abandonar gameplay. `Gameplay` continúa habilitado durante pausa y tienda para permitir reanudar o comprar; los consumidores descartan solicitudes no autorizadas. No acumula comandos: cada habilitación rechaza eventos anteriores al nuevo ciclo y limpia su estado transitorio al deshabilitarse. Movimiento, Ink-Pulse, pausa, gadgets y compra por teclado consumen ya sus operaciones semánticas; `GameplayChanged` reemplaza bindings si cambia la instancia del scope.
-
-Touch no se enlaza directamente a estas acciones: `UI/Point` y `UI/Click` son los únicos bindings touchscreen actuales. `TouchSteeringSurface` traduce una región explícita a posición vertical semántica con ownership de un solo dedo, prioridad sobre mouse y cancelación de lifecycle. `TouchControls.prefab` añade botones para pulso, pausa y ambos slots; cada botón posee un pointer y publica el mismo comando semántico del lector, que conserva los guards autoritativos de cada consumidor. Epipelágica y Abisopelágica montan una instancia del prefab bajo su HUD; tutorial permanece aislado. El detalle y el estado de migración se mantienen en [Input.md](Input.md).
-
-Esta integración aún no constituye la validación física: el routing real del módulo UI, una transición completa Epipelágica→Abisopelágica y la ergonomía multitouch se prueban en el corte siguiente mediante Play Mode y un APK en hardware.
-
-La visibilidad de esa capa se resuelve en runtime mediante `Application.platform`, delegado a una política pura. Android queda visible; los players desktop, WebGL e iPhone permanecen ocultos aunque el flag de previsualización haya quedado serializado; los Editors de Windows, macOS y Linux sólo la muestran cuando la instancia activa `showInEditor`. iOS continúa fuera del alcance inicial y debe incorporarse explícitamente cuando exista entorno de build y validación; este corte no declara todavía gameplay touch validado en hardware.
-
-## Auditor de preparación Android
-
-`AndroidReadinessAuditor` inspecciona la configuración sin modificarla. Comprueba:
-
-- versión exacta de Unity y disponibilidad de Android Build Support;
-- escenas habilitadas y su orden;
-- Input System activo;
-- Company Name e identificador Android;
-- orientación landscape y rotaciones permitidas;
-- ARM64 e IL2CPP;
-- presencia de las cuatro semillas de persistencia.
-
-Desde Unity se ejecuta mediante:
-
-```text
-Tools > Squid Ink Pulse > Audit Android Readiness
-```
-
-Desde la raíz del repositorio en PowerShell, con el proyecto cerrado en otras instancias de Unity:
+`AndroidReadinessAuditor` comprueba configuración, escenas, Input System, orientación, ARM64/IL2CPP y semillas sin modificarlos. Está en `Tools > Squid Ink Pulse > Audit Android Readiness`. En batch:
 
 ```powershell
-New-Item -ItemType Directory -Force "$PWD\TestResults" | Out-Null
-
-& 'C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.com' `
-  -batchmode `
-  -nographics `
-  -quit `
-  -projectPath "$PWD" `
+& $unity -batchmode -nographics -quit -projectPath $PWD `
   -executeMethod AndroidReadinessAuditor.RunAndroidReadinessAudit `
-  -logFile "$PWD\TestResults\android-readiness.log"
+  -logFile TestResults/android-readiness.log
 ```
 
-La salida distingue `INFO`, `WARNING` y `ERROR`. En menú, los errores se informan sin corregir valores. En batch, cualquier `ERROR` produce código de salida distinto de cero para bloquear una build o integración incompatible. `TestResults/` permanece ignorado por Git.
+Los errores producen una salida distinta de cero. [Build Android](AndroidBuild.md) explica la compilación, instalación y captura de logs; [Testing](Testing.md) reúne tests y exportadores de interfaz; [rendimiento Android](AndroidPerformance.md) describe las mediciones.
 
-## Build de desarrollo Android
+## Compatibilidad
 
-`AndroidDevelopmentBuilder` genera un APK Development o un APK Performance con `BuildOptions.None` desde menú o batch, valida Android Build Support y las escenas obligatorias, confina la salida bajo `Build/` y registra versión de Unity, commit, target, escenas, duración, resultado y tamaño. La salida Performance rechaza una carpeta no vacía. La modalidad y la firma deben registrarse por separado; véanse [build Android](AndroidBuild.md) y [rendimiento](AndroidPerformance.md).
-
-El comando completo, la instalación mediante ADB, la captura de logcat y la evidencia del primer artefacto se mantienen en [AndroidBuild.md](AndroidBuild.md). Una compilación correcta no equivale a un arranque aceptado: la puerta de bootstrap exige instalar el mismo APK y observar `MainMenu` en Android.
-
-## Rendimiento y tamaño
-
-No se prescribe una optimización de arte por anticipado. Primero debe medirse en hardware real:
-
-- frame time y FPS durante una run representativa;
-- memoria y picos al cambiar de zona o abrir UI pesada;
-- tiempo de arranque y carga de escenas;
-- tamaño de APK/AAB y tamaño instalado;
-- comportamiento en una sesión sostenida y evidencia de throttling;
-- errores y hotspots observados en el Profiler.
-
-Los cambios de URP, calidad, textura, audio, shader o runtime se aceptan sólo si tienen una medición antes/después y una verificación visual o auditiva equivalente. El perfil móvil no debe degradar intencionalmente el perfil Windows.
-
-## Matriz de validación
-
-La siguiente matriz es el mínimo contractual. Los modelos concretos, versión de Android, resolución y memoria deben registrarse cuando se disponga de los dispositivos.
-
-| Entorno                        | Cobertura                                    | Resultado requerido                    |
-| ------------------------------ | -------------------------------------------- | -------------------------------------- |
-| Unity Editor 16:9              | Regresión rápida de layout y gameplay        | Sin errores y sin referencias rotas    |
-| Unity Editor 19.5:9 / 20:9     | Aspect ratio y safe area simulada            | Sin recortes ni solapamientos críticos |
-| Unity Editor 16:10             | Composición del menú, cámara y HUD de tablet | Sin recortes ni solapamientos críticos |
-| Emulador Android               | Instalación, arranque, escenas y logs        | `MainMenu` abre sin red                |
-| Teléfono Android de gama baja  | Touch, memoria, FPS y suspensión             | Cumple presupuesto aceptado            |
-| Teléfono Android de gama media | Experiencia objetivo y compatibilidad        | Run completa y UI operable             |
-| Windows                        | Regresión teclado/mouse y persistencia       | Contrato desktop preservado            |
-
-### Cupos de dispositivos
-
-Los cupos se mantienen explícitos aunque todavía no haya un modelo asignado. La ausencia de emulador, teléfono de referencia baja o PC de regresión impide aceptar la candidata final, pero no bloquea la implementación previa que pueda validarse en Editor. El teléfono de referencia media es obligatorio si está disponible; de lo contrario, su ausencia debe quedar registrada como limitación.
-
-| Cupo                                 | Modelo                      | Sistema                         | RAM                | Resolución                             | Estado                                                                                                                                               | Condición de candidata                                                                           |
-| ------------------------------------ | --------------------------- | ------------------------------- | ------------------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Emulador Android                     | Por asignar                 | Por asignar                     | Por asignar        | 16:9, 19.5:9 y 20:9 simulados          | Pendiente; bootstrap cubierto en teléfono                                                                                                            | Obligatorio antes de candidata final                                                             |
-| Teléfono Android de referencia baja  | Por asignar                 | Por asignar                     | Por asignar        | Por registrar                          | Pendiente                                                                                                                                            | Obligatorio                                                                                      |
-| Teléfono Android de referencia media | POCO X6 5G                  | HyperOS 3.0; Android 16, API 36 | 11,02 GiB visibles | 1220x2712; densidad 480                | Bootstrap, persistencia, suspensión/reapertura, gameplay touch, autoscroll y safe area base aprobados; pulido visual de menús en curso               | Obligatorio; validación final pendiente                                                          |
-| PC de regresión Windows              | Ryzen 5 7500F / RTX 5060 Ti | Windows 11 Pro `10.0.26200`     | 31,6 GiB           | Medición a 1280x720; monitor 1920x1080 | Baseline técnico y smoke interactivo aprobados                                                                                                       | Obligatorio                                                                                      |
-| Tablet activa de desarrollo          | Redmi Pad Pro (2405CRPFDL)  | Android 16, API 36              | 7,53 GiB visibles  | 2560×1600 landscape; densidad 320      | APK actualizado instalado sin eliminar datos; menú/opciones y HUD 16:10 corregidos y aceptados; volumen persiste al reiniciar; Epi pausada capturada | Dispositivo principal de este corte; no cierra las pruebas de gama baja ni la run completa final |
-
-Los modelos, versiones, memoria y resoluciones deben completarse antes de fijar presupuestos finales de rendimiento. Las métricas obtenidas en dispositivos distintos no se comparan como si pertenecieran al mismo baseline.
-
-### Flujos obligatorios fuera de una run
-
-Además de la run completa, la candidata debe verificar por separado:
-
-1. opciones aplicables a móvil y persistencia de preferencias;
-2. comic `Cómo Jugar` y regreso a `MainMenu`;
-3. navegación, compra y equipamiento en la tienda permanente;
-4. comics narrativos de inicio, portal, tienda y derrota;
-5. primer arranque, cierre forzado, reapertura y actualización sobre datos existentes;
-6. comportamiento de Back, pérdida de foco, suspensión, bloqueo de pantalla y retorno.
-
-En cada dispositivo móvil deben ejecutarse, como mínimo:
-
-1. instalación limpia y primer arranque;
-2. arranque en modo avión;
-3. Main Menu, opciones, comic tutorial y tienda permanente;
-4. run con movimiento, graze, Ink-Pulse, gadgets, Ray y Jellyfish;
-5. transición por portal a la segunda zona;
-6. pausa, reanudación, Game Over, retry y regreso al menú;
-7. tienda temporal y comics narrativos cuando correspondan;
-8. botón Back en cada contexto;
-9. suspensión, bloqueo y retorno a la aplicación;
-10. cierre forzado y reapertura con datos persistidos;
-11. actualización instalada sobre una versión previa;
-12. sesión sostenida para detectar degradación progresiva.
-
-## Criterios de aceptación
-
-El primer port móvil se considera aceptable cuando:
-
-- un APK Android instala y abre `MainMenu` sin servicios externos;
-- una run básica se completa sólo con touch;
-- Ink-Pulse, pausa, gadgets, Game Over, tiendas, opciones y comics son operables;
-- la pantalla no corta controles ni información crítica en los formatos objetivo;
-- la persistencia sobrevive suspensión, cierre y reapertura;
-- el botón Back tiene comportamiento contextual documentado;
-- el add-on de feria no bloquea la experiencia local;
-- existen métricas mínimas de rendimiento y memoria en hardware real;
-- existe un AAB candidato reproducible sin versionar secretos;
-- las pruebas automatizadas pertinentes pasan y Windows no presenta regresiones no autorizadas.
-
-## Fuera de alcance
-
-No forma parte de este primer port:
-
-- iOS y su cadena de firma;
-- publicación en Google Play o App Store;
-- cloud save, login, analítica, publicidad o crash reporting;
-- sincronización remota de perfiles o feria móvil;
-- rediseño completo del juego;
-- nuevas zonas, enemigos, bosses o skins;
-- tablets como garantía contractual;
-- reactivación del tutorial jugable aislado;
-- optimización masiva de assets sin evidencia.
-
-## Regla de compatibilidad
-
-Toda modificación móvil debe indicar si:
-
-1. conserva el comportamiento del producto base;
-2. adapta su presentación o entrada sólo a la plataforma;
-3. amplía el contrato de producto.
-
-Una adaptación de plataforma no debe introducir silenciosamente cambios de dificultad, economía, spawn, daño, duración de Ink-Pulse ni progresión. Si el port revela un defecto común a todas las plataformas, se debe tratar como una corrección separada y verificable.
+Las adaptaciones de plataforma conservan dificultad, economía, daño, duración de Ink-Pulse y progresión. Las texturas y la calidad específicas de Android se comprueban sin alterar los recursos de Windows. iOS y la publicación en tiendas requieren una iniciativa y una cadena de firma propias.

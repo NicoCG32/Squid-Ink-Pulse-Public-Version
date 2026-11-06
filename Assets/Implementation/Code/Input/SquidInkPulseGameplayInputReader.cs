@@ -41,6 +41,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
     public event Action GadgetSlot2Requested;
     public event Action ShopPurchaseRequested;
     public event Action<string> ControlSchemeChanged;
+    public event Action TransientStateReset;
 
     public SquidInkPulseGameplayInputReader(InputActionAsset inputActions)
     {
@@ -106,6 +107,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         InputSystem.onDeviceChange -= OnInputDeviceChange;
         gameplay.Disable();
         ResetTransientState();
+        TransientStateReset?.Invoke();
     }
 
     public void Dispose()
@@ -298,6 +300,9 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         }
         else if (context.action == togglePause)
         {
+            // Android Back is also Escape. Its contextual Cancel route owns it.
+            if (MobileBackNavigation.IsActive && context.control is KeyControl key && key.keyCode == Key.Escape)
+                return;
             PauseToggleRequested?.Invoke();
         }
         else if (context.action == useGadgetSlot1)

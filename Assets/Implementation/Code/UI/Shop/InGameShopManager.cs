@@ -106,6 +106,8 @@ public class InGameShopManager : MonoBehaviour
         bool purchaseRequested = purchaseInputBinding?.TryConsumeRequest() ?? false;
         ResolveReferences();
 
+        if (!MobileApplicationLifecycle.CanAdvancePresentation) return;
+
         if (!isOpen)
         {
             return;
@@ -301,7 +303,8 @@ public class InGameShopManager : MonoBehaviour
 
     public void BuyCurrentOffer()
     {
-        if (!isOpen || currentOffer == null || session == null || !session.IsPlaying)
+        if (!MobileApplicationLifecycle.CanAdvancePresentation
+            || !isOpen || currentOffer == null || session == null || !session.IsPlaying)
         {
             return;
         }
@@ -427,6 +430,7 @@ public class InGameShopManager : MonoBehaviour
     private void RestoreTimeScaleIfNeeded()
     {
         EnsureTimeScaleHold();
+        MobileApplicationLifecycle.PauseBeforeGameplayTimeRestored();
         timeScaleHold.End(session == null || session.IsPlaying);
     }
 

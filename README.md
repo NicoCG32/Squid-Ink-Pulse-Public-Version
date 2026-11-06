@@ -1,73 +1,82 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="branding/banners/squid-banner-oscuro.png" />
-  <img src="branding/banners/squid-banner-claro.png" alt="Identidad visual de Squid Ink Pulse" width="100%" />
+  <source media="(prefers-color-scheme: dark)" srcset="branding/banners/squid-banner-oscuro.png">
+  <img src="branding/banners/squid-banner-claro.png" alt="Squid Ink-Pulse — videojuego submarino de Yeco Works" width="100%">
 </picture>
 
 # Squid Ink-Pulse
 
-**Acércate al peligro. Carga Ink-Pulse. Sobrevive una run más.**
+**Acércate al peligro. Carga Ink-Pulse. Sobrevive una partida más.**
 
-[![Estado: Windows estable](https://img.shields.io/badge/Estado-Windows%20estable-255A89?style=flat-square&labelColor=263244)](#sobre-el-proyecto) [![Plataforma: Windows / Android beta](https://img.shields.io/badge/Plataforma-Windows%20%2F%20Android%20beta-386B8F?style=flat-square&labelColor=263244)](#usar-o-descargar) [![Licencia: Pendiente del equipo](https://img.shields.io/badge/Licencia-Pendiente%20del%20equipo-596273?style=flat-square&labelColor=263244)](LICENSING.md)
+[![Unity 6](https://img.shields.io/badge/Unity-6000.3.11f1-222831?logo=unity&logoColor=white)](ProjectSettings/ProjectVersion.txt)
+[![C%23](https://img.shields.io/badge/Lenguaje-C%23-673AB7)](Assets/Implementation/Code)
+[![Windows](https://img.shields.io/badge/Windows-1.0.1-2979B9)](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.1)
+[![Android](https://img.shields.io/badge/Android-1.0.1%20beta%201-387f60)](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.1-beta.1)
 
-[![Unity 6](https://img.shields.io/badge/Unity%206-20232A?style=for-the-badge&logo=unity&logoColor=FFFFFF)](#tecnologías) [![C#](https://img.shields.io/badge/C%23-603B9B?style=for-the-badge)](#tecnologías) [![URP](https://img.shields.io/badge/URP-455A64?style=for-the-badge&logo=unity&logoColor=FFFFFF)](#tecnologías) [![Input System](https://img.shields.io/badge/Input%20System-374151?style=for-the-badge)](#tecnologías)
-
-[Releases y descargas](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases) · [Documentación](Docs/README.md) · [Arquitectura](Docs/01-arquitectura-general.md) · [Inicio rápido](#ejecutar-desde-el-código)
+[**Descargar**](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases) · [**Cómo jugar**](Docs/05-diseno-y-experiencia-de-juego/manual-del-jugador.md) · [**Documentación**](Docs/README.md) · [**Créditos y derechos**](LICENSING.md)
 
 </div>
 
----
+## Resumen ejecutivo
 
-## Sobre el proyecto
+Squid Ink-Pulse es un *endless runner* submarino 2D creado por **Yeco Works** en la Universidad Católica del Norte. Controlas a Baby Squid: pasar cerca del peligro sin chocar carga **Ink-Pulse**, una habilidad que convierte el riesgo en una ventaja temporal. El juego reúne dos zonas, enemigos, jefes, gadgets y mejoras con progreso local; está disponible para **Windows** y como **beta para Android**.
 
-Endless runner 2D submarino de Yeco Works, desarrollado en Unity. Controlas a un calamar que esquiva amenazas, recoge camarones y se acerca al peligro para cargar Ink-Pulse; incluye zonas, jefes, tiendas y progreso local.
+## Descarga e instalación
 
-**Estado:** Windows 1.0.0 estable y Android 1.0.0 beta 2 disponibles. El port móvil continúa en desarrollo. El juego base es local; el servidor de feria es opcional.
+| Plataforma | Entrega publicada | Cómo iniciar |
+| --- | --- | --- |
+| **Windows x64** | [v1.0.1, estable](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.1) | Extrae el ZIP completo y abre `JUGAR.cmd`. |
+| **Android ARM64** | [v1.0.1 beta 1](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.1-beta.1) | Instala el APK en Android 7.1/API 25 o posterior. |
 
-## Tecnologías
+Descarga el ZIP Windows o el APK adjunto a la release. Los archivos «Source code» contienen el proyecto de Unity. Las notas de cada versión incluyen requisitos y checksums; Android mantiene firma de desarrollo y continúa en beta.
 
-| Área                   | Tecnologías y responsabilidad                                      |
-| ---------------------- | ------------------------------------------------------------------ |
-| **Motor y gameplay**   | Unity 6000.3.11f1, C#, URP 2D y Unity Input System.                |
-| **Progreso**           | Semillas JSON en Resources y guardado local en persistentDataPath. |
-| **Extensión de feria** | Servidor local opcional con Python y SQLite para leaderboard LAN.  |
+El progreso se guarda en el dispositivo. En Windows, actualizar la carpeta del juego conserva los datos de `%USERPROFILE%/AppData/LocalLow/Yeco Works/Squid Ink-Pulse/db`. En Android, desinstalar puede borrar el progreso.
 
-> **Enfoque técnico:** Juego base sin servidor obligatorio; port móvil y feria con alcance separado.
+## Cómo jugar
 
-## Usar o descargar
+Acércate a las amenazas para cargar la barra de tinta, activa Ink-Pulse cuando lo necesites y recoge camarones para las tiendas. Los portales conectan las zonas epipelágica y abisopelágica. El menú incluye un cómic de **Cómo jugar**.
 
-- [Windows estable: ZIP completo](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/windows-v1.0.0): descomprime todo y abre `JUGAR.cmd`.
-- [Android beta 2: APK ARM64 sin Development](https://github.com/NicoCG32/Squid-Ink-Pulse-Public-Version/releases/tag/android-v1.0.0-beta.2): objetivo de 60 FPS; consulta requisitos, límites y SHA-256 antes de instalar.
-- [Instalación, controles y límites de ambas entregas](Docs/Distribution.md). Los ZIP automáticos de código fuente no son el juego compilado.
+| Acción | Windows | Android |
+| --- | --- | --- |
+| Dirigir al calamar | Mouse | Mantener y mover un dedo sobre el área de juego |
+| Activar Ink-Pulse | Clic o Espacio | Botón Ink-Pulse |
+| Pausa | P o Escape | Botón de pausa |
+| Usar gadgets | Q / W | Botón del espacio correspondiente |
+| Comprar durante la partida | B o botón Comprar | Botón Comprar |
 
-## Ejecutar desde el código
+[Manual del jugador](Docs/05-diseno-y-experiencia-de-juego/manual-del-jugador.md)
 
-1. Añade la raíz del repositorio a Unity Hub y ábrela con **Unity 6000.3.11f1**.
-2. Espera la importación y abre [MainMenu.unity](Assets/Scenes/MainMenu/MainMenu.unity).
-3. Pulsa **Play** y consulta **Cómo jugar** desde el menú.
+## Abrir el proyecto
 
-[Build y distribución](Docs/09-instalacion-y-despliegue.md) · [Port móvil](Docs/MobilePort.md). Las releases identifican su propia revisión fuente.
+1. Clona el repositorio y añade su carpeta a Unity Hub.
+2. Abre con **Unity 6000.3.11f1** y espera a que se importen los paquetes.
+3. Abre `Assets/Scenes/MainMenu/MainMenu.unity` y pulsa **Play**.
+
+| Tecnología | Uso |
+| --- | --- |
+| Unity y C# | Escenas, lógica y compilación del juego. |
+| Universal Render Pipeline 2D | Renderizado, luces y efectos. |
+| Unity Input System | Entrada de mouse, teclado y controles táctiles. |
+| JSON local | Perfil, catálogo, récords y clasificación del dispositivo. |
+| Python y SQLite | Complemento opcional de feria para Windows, con ranking web en red local. |
+
+Para generar un ejecutable o APK, consulta [compilación y distribución](Docs/02-tecnica/compilacion-y-distribucion.md).
 
 ## Documentación
 
-[Índice completo y rutas de lectura](Docs/README.md) · [Instalación y controles](Docs/Distribution.md).
+| Área | Contenido |
+| --- | --- |
+| [General](Docs/01-general/README.md) | Origen, propuesta, alcance y equipo. |
+| [Técnica](Docs/02-tecnica/README.md) | Arquitectura, datos, estados, plataformas y feria. |
+| [Desarrollo](Docs/03-desarrollo/README.md) | Metodología, estructura, pruebas y próximos pasos. |
+| [Académica y formativa](Docs/04-academica/README.md) | Contexto del curso e informes originales. |
+| [Diseño y experiencia de juego](Docs/05-diseno-y-experiencia-de-juego/README.md) | GDD, controles, zonas, narrativa y presentación. |
 
-| Tipo                | Lectura                                                                                                                                                                          |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| General             | [Problema, cliente y solución](Docs/00-problematica-cliente-y-valor.md) · [Motivación](Docs/16-motivacion-y-contexto.md)                                                         |
-| Técnica             | [Arquitectura y diagramas](Docs/01-arquitectura-general.md) · [Dominio y datos](Docs/04-base-de-datos.md)                                                                        |
-| Desarrollo          | [Etapas y metodología](Docs/17-desarrollo-y-metodologia.md) · [Proyección](Docs/15-escalabilidad-y-nuevos-mercados.md) · [Costos CLP/USD](Docs/18-analisis-economico-clp-usd.md) |
-| Académica/formativa | [Contexto e informes originales](Docs/academica/README.md)                                                                                                                       |
+## Equipo y condiciones de uso
 
-[Identidad visual](branding/README.md): logos, banners y variantes de aplicación.
+Yeco Works estuvo integrado por **Pablo Guzmán, Rodrigo Cortés, Mauricio Muñoz, Inti Santibáñez y Matías Palacios**. Desarrollamos el juego en **Proyecto Integrador Programación Avanzada**, quinto semestre, 5 SCT, de la Universidad Católica del Norte.
 
-## Licencia y créditos
+El nombre Yeco Works homenajea al pato yeco del entorno universitario; su historia y el logo original están en la [sección académica](Docs/04-academica/README.md).
 
-Proyecto de Yeco Works. Licencia general de reutilización pendiente de acuerdo del equipo. [Autores, créditos y condiciones](LICENSING.md).
-
-Menciones especiales:
-
-- **Matías Palacios:** artista y compositor principal, autor y dueño de los soundtracks y sprites principales.
-- **Rodrigo Cortés:** por su aporte a la base mecánica del juego.
-- **Mauricio Muñoz:** por ser un desarrollador confiable a lo largo del proyecto.
+Los roles, las contribuciones artísticas y los derechos se detallan en [LICENSING.md](LICENSING.md). La licencia general de reutilización sigue pendiente de acuerdo entre sus titulares.

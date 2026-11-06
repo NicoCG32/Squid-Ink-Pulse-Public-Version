@@ -65,7 +65,7 @@ La entrada cruda Touch pertenece por ahora al mapa `UI`:
 
 `TouchSteeringSurface` implementa el canal explícito de movimiento. Recibe `PointerEventData.position` en píxeles de pantalla, sólo acepta eventos que `InputSystemUIInputModule` clasifica como `Touch` y captura un único `pointerId`. Un segundo dedo, un drag sin Down aceptado y un gesto iniciado sobre `Selectable` u otro handler interactivo quedan inertes. El prefab `TouchControls` añade cuatro botones independientes para Ink-Pulse, pausa y los dos slots; cada uno traduce su pointer propietario al mismo comando semántico que consume escritorio, sin simular un tap global en el asset.
 
-La exclusión permanece estructural en el asset: ningún Touchscreen dispara por sí mismo una acción `Gameplay`; sólo una región explícita puede traducirlo a semántica. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. Aunque el prefab ya está montado, el routing real entre superficie y botones mediante `GraphicRaycaster` queda para el gate Play Mode y hardware.
+La exclusión permanece estructural en el asset: ningún Touchscreen dispara por sí mismo una acción `Gameplay`; sólo una región explícita puede traducirlo a semántica. En escritorio, click izquierdo y `Escape` pueden alcanzar tanto acciones UI como acciones `Gameplay`; la garantía vigente es un único efecto autorizado por sesión, tienda o overlay, no la ausencia de ambos callbacks. El routing entre superficie y botones usa el `GraphicRaycaster` del HUD y se cubre con las pruebas de interacción PlayMode.
 
 La superficie cancela ownership al pausar, entrar en Game Over, abrir la tienda, bloquear un overlay mediante `SetOverlayInteractionAllowed(false)`, perder foco, suspender la app, desactivarse o recibir un lector nuevo. También rechaza movimiento cuando `timeScale` no avanza. Reanudar o cerrar el overlay no readquiere un dedo todavía apoyado: hace falta un Down nuevo. La regla temporal de tienda reutiliza actualmente `InGameShopManager.BlocksInkPulseActivation`, incluida su breve gracia de cierre, para evitar click-through.
 
@@ -121,4 +121,4 @@ Ink-Pulse y el uso activo de gadgets requieren sesión Playing y `timeScale > 0`
 
 `PlayerVerticalMovementPolicyTests` caracteriza la migración del primer consumidor: prioridad y consumo temporal del impulso de Jellyfish, reanudación del objetivo del jugador, movimiento sin overshoot, ausencia de movimiento sin objetivo y acumulación `max/max` de impulsos repetidos.
 
-El routing real de `InputSystemUIInputModule` + `GraphicRaycaster`, la sensación de control y el multitouch final se validan al montar el prefab y además en hardware real.
+PlayMode comprueba el routing de `InputSystemUIInputModule` y `GraphicRaycaster`. La sensación de control y el multitouch se revisan en dispositivo físico.

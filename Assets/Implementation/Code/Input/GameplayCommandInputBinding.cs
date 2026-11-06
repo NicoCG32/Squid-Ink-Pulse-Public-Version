@@ -24,6 +24,7 @@ public sealed class GameplayCommandInputBinding : IDisposable
             : throw new ArgumentNullException(nameof(inputReader));
         this.command = command;
         Subscribe();
+        inputReader.TransientStateReset += ClearRequest;
     }
 
     public bool TryConsumeRequest()
@@ -45,6 +46,7 @@ public sealed class GameplayCommandInputBinding : IDisposable
         }
 
         Unsubscribe();
+        inputReader.TransientStateReset -= ClearRequest;
         inputReader = null;
         requested = false;
     }
@@ -94,6 +96,8 @@ public sealed class GameplayCommandInputBinding : IDisposable
                 break;
         }
     }
+
+    private void ClearRequest() => requested = false;
 
     private void HandleRequested()
     {

@@ -26,6 +26,7 @@ public sealed class ShopMenuCancelNavigation : MonoBehaviour
 
     private void HandleCancel(InputAction.CallbackContext context)
     {
+        if (MobileBackNavigation.IsActive) return;
         if (options!=null && options.IsOpen) options.Close();
         else if (menu!=null) menu.VolverAlMenuPrincipal();
     }

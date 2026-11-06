@@ -22,7 +22,7 @@ En batch, desde la raíz del proyecto:
   -logFile TestResults/android-performance-build.log
 ```
 
-La salida es `Build/AndroidPerformance/SquidInkPulse-performance.apk`. El builder rechaza una salida no vacía: conservarla antes de repetir. Usa las cuatro escenas canónicas y el mismo prebuild de composición del APK Development. Sin una configuración de firma de distribución, continúa firmado con el certificado de desarrollo; puede distribuirse como beta tras su validación, pero no equivale a una candidata estable. Consultar [canales y procedencia](Distribution.md#android-beta).
+La salida es `Build/AndroidPerformance/SquidInkPulse-performance.apk`. El builder rechaza una salida no vacía: conservarla antes de repetir. Usa las cuatro escenas canónicas y el mismo prebuild de composición del APK Development. Sin una configuración de firma de distribución, continúa firmado con el certificado de desarrollo; puede distribuirse como beta tras su validación, pero no equivale a una candidata estable. Consultar [canales y procedencia](Distribution.md#generar-android).
 
 Instalar mediante `adb install -r`, conservando los datos. Registrar el commit, checksum y las opciones de build del artefacto. La medición externa no necesita que el player sea debuggable; para atribuir costes de scripts con Unity Profiler, utilizar un APK Development de la misma revisión y registrar esa diferencia.
 
@@ -48,6 +48,35 @@ Para volver al objetivo normal de 60, terminar el proceso y lanzar sin el extra:
 Cerrar el proceso sólo entre recorridos. Esperar a que finalice la carga y estabilizar el escenario antes de medir. El log `[AndroidFramePacing]` identifica objetivo, build GUID, calidad y si el player es Development.
 
 ## Captura reproducible
+
+### Inventario de texturas cargadas
+
+`AndroidDevelopmentBuilder.BuildAndroidTextureAuditApk` genera un player Development en `Build/AndroidTextureAudit/` y exporta el BuildReport. Conserva la salida antes de repetir. Para comparar memoria, usar las mismas opciones de build en ambos lados; Development no representa el coste de la beta sin Development.
+
+La captura de texturas está desactivada normalmente, incluso en este player. Se activa sólo para el proceso lanzado con el extra Android:
+
+```powershell
+& $adb -d shell am force-stop com.yecoworks.squidinkpulse
+& $adb -d shell am start -W `
+  -n com.yecoworks.squidinkpulse/com.unity3d.player.UnityPlayerGameActivity `
+  --ez sip-texture-audit true
+```
+
+Dos segundos después de cada cambio de escena activa, escribe un JSON en `files/Diagnostics/TextureAudit/` bajo la carpeta de la aplicación. Enumera los `Texture2D` ya cargados, con nombre, dimensiones, formato real, formato gráfico y memoria nativa informada por Unity. No carga ni descarga recursos, no fuerza enemigos y no modifica `db/`.
+
+`GetRuntimeMemorySizeLong` puede devolver cero cuando el Profiler no está disponible: ese cero significa dato desconocido. El inventario de objetos cargados y la memoria nativa informada tampoco prueban residencia física de toda la textura en VRAM. Véanse [memoria nativa](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityengine/profiling/profiler/getruntimememorysizelong) y [enumeración de objetos cargados](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityengine/resources/findobjectsoftypeall).
+
+Para una comparación visual, añadir `--es sip-texture-preview 47 --ei sip-texture-width 1440 --ei sip-texture-height 1390`. Exporta un PNG mediante la GPU únicamente si ya existe una textura cargada con esa identificación única. No resuelve ambigüedades por suposición. Usar el mismo dispositivo y ruta de renderizado para comparar antes/después.
+
+La enumeración y la lectura GPU perturban los tiempos: excluir esas capturas de benchmarks. Para medir rendimiento normal, terminar el proceso y abrirlo sin extras. Los archivos quedan locales; no se envían por red. Relacionar nombres/dimensiones con el BuildReport y rechazar coincidencias ambiguas antes de atribuirlos a un asset.
+
+`Tools/Android/Summarize-TextureAudit.ps1 -SnapshotPath <captura.json> -ResourceAuditPath <recursos.json> -FamilyPath Assets/Content/Animations/Enemies/PezGlobo` resume esa correlación. Exige el mismo build GUID en ambos informes y sólo atribuye nombres/dimensiones únicos sin redimensionado. Informa por separado objetos cargados, paths únicos, assets ausentes y bytes nativos desconocidos.
+
+El ensayo `PufferfishTextureTrial.Probe` prueba ASTC 4×4 en una textura de PezGlobo y restaura su importador. `PufferfishTextureTrial.Apply` limita el cambio a las 47 texturas de esa familia en Android, sin reducir resolución; comprueba GUID, geometría de sprites, fuentes y ajustes default/Standalone. Su resultado es un ensayo, no aceptación visual ni mejora de FPS. Validar soporte nativo y memoria antes/después; [Unity documenta el fallback RGBA32 en dispositivos sin ASTC](https://docs.unity.com/en-us/engine/6000.3/manual/materials-and-shaders/textures/textures-getting-started/texture-compression-formats/texture-choose-format-by-platform).
+
+La configuración Android aplica ASTC 4×4 a las 47 texturas de PezGlobo, conservando 1440×1390 píxeles, los originales y las opciones de Windows. Comparar formato nativo, memoria y calidad visual al evaluar otro dispositivo.
+
+Para exportar también el BuildReport de una build sin Development, pasar `--sip-audit-label <etiqueta-unica> --sip-audit-source-commit <sha>` al comando batch `AndroidDevelopmentBuilder.BuildAndroidPerformanceApk`.
 
 `Tools/Android/Measure-FramePacing.ps1` requiere PowerShell 7, ADB y un único dispositivo autorizado. Desde la raíz:
 
@@ -78,6 +107,42 @@ SurfaceFlinger mide intervalos entre imágenes presentadas, según el procedimie
 
 `averageFPS` puede reflejar esa cuantización: 1000/16 da 62,5 aunque el player esté presentando aproximadamente 60 FPS. Se conserva el valor reportado y se añade una estimación por número de intervalos/tiempo de pared; esta última incluye latencia de comandos. Interpretar ambos junto con el voto de frecuencia y el histograma, sin afirmar precisión submilisegundo.
 
+Si la diferencia relativa entre ambos supera el 15%, el informe marca `HistogramWallTimeReviewRequired`. Es una alerta heurística de comparabilidad, no un presupuesto de rendimiento. Revisar cambios de escena, reinicios, alcance temporal y posibles intervalos no representados; contrastar con una traza independiente antes de afirmar FPS sostenidos o atribuir duración a los tirones. Un p95/p99 pequeño no resuelve por sí solo esa discrepancia.
+
 Los tiempos de CPU/GPU por frame y las asignaciones de GC quedan `null` porque esta herramienta no los atribuye. Usar Unity Profiler o una traza de sistema para investigar esas causas. PSS es memoria del proceso, no el tamaño del APK ni una medición exclusiva de VRAM. El estado térmico global no sustituye una captura sostenida ni identifica por sí solo una causa de throttling.
 
+Cuando Android permite leer `/proc/<pid>/stat`, también se registra el tiempo de CPU del proceso sumando sus contadores de usuario y kernel, con el reloj `CLK_TCK` del dispositivo. Se comprueban PID y tiempo de inicio para descartar reinicios/reutilización. `ProcessCpuOneCorePercent` usa 100% por núcleo y puede superar 100%; incluye todos los hilos del juego y comandos de instrumentación en los extremos. No mide CPU por frame ni identifica qué hilo o función limita. Si faltan permisos, muestras o reloj válido, los valores permanecen `null`. Los [campos de `/proc` se documentan en el kernel](https://www.kernel.org/doc/html/latest/filesystems/proc.html).
+
 Comparar primero el ritmo de presentación. Si, con un objetivo de 60, persisten caídas o picos, medir CPU/GPU, cargas y memoria antes de cambiar resolución, HDR, texturas, audio o spawns.
+
+## Sesiones por ventanas
+
+`Measure-PerformanceSession.ps1` repite la captura sin enviar controles ni modificar el progreso. El juego debe estar abierto y tener foco. Puede jugarse normalmente durante la sesión:
+
+```powershell
+./Tools/Android/Measure-PerformanceSession.ps1 -AdbPath $adb `
+  -Label run-tablet-pase1 -SourceCommit $revision `
+  -ApkPath Build/AndroidPerformance/SquidInkPulse-performance.apk `
+  -Windows 12 -SecondsPerWindow 15
+```
+
+Usar el commit **del APK**, que puede diferir del checkout de las herramientas. La salida queda en `TestResults/MobilePerformance/<etiqueta>/`. `session.json` registra las ventanas completadas, los hashes de las herramientas, su duración y cualquier interrupción; los informes individuales verifican el APK instalado. Una carpeta existente se conserva y obliga a elegir otra etiqueta.
+
+Cada ventana empieza como `Unreviewed`. Revisar sus dos capturas, anotar zona/overlay y excluir transiciones o derrotas de las comparaciones de gameplay. Hay intervalos de instrumentación entre ventanas: la duración total incluye imágenes y comandos y no constituye una traza continua. No se calcula un FPS global que mezcle menú, run y Game Over. Una sesión completa sin revisar tampoco certifica rendimiento sostenido.
+
+## Recursos incluidos en la build
+
+`AndroidResourceAuditExporter` lee el [último Build Report guardado por Unity](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/build/reporting/buildreport/getlatestreport) y las opciones actuales de los importadores, sin reimportar ni modificar assets. Requiere que el último build sea Android correcto y que su APK todavía exista. Desde el menú: `Tools > Squid Ink Pulse > Export Last Android Resource Audit`. En batch:
+
+```powershell
+& $unity -batchmode -quit -buildTarget Android -projectPath $PWD `
+  -executeMethod AndroidResourceAuditExporter.ExportLatest `
+  --sip-audit-label android-baseline `
+  --sip-audit-source-commit $revision `
+  --sip-audit-build-guid $buildGuid --sip-audit-apk-sha256 $apkSha256 `
+  -logFile TestResults/android-resource-audit.log
+```
+
+Los parámetros de GUID y checksum permiten contrastar el reporte con el artefacto esperado. El commit debe tomarse de la procedencia del APK; es una etiqueta del operador y, si se omite, queda `unrecorded` en lugar de asumir el HEAD de las herramientas. La salida `TestResults/AndroidResourceAudit/<etiqueta>.json` conserva el GUID, SHA-256 del APK, tamaños de [contenido serializado por asset](https://docs.unity.com/en-us/engine/6000.3/script-reference/unityeditor/build/reporting/packedassets), totales por carpeta/tipo y opciones Android de textura/audio. También registra los overrides globales del Editor y observa el formato de tres texturas dominantes.
+
+El tamaño serializado no equivale a APK comprimida ni a RAM/VRAM residente. Los niveles de escena, librerías nativas y otros archivos no están completamente atribuidos por esta tabla. Los importadores y overrides son los del checkout/Editor al capturar, no una instantánea histórica del build; los formatos observados en Editor tampoco prueban el formato residente en el teléfono. Comprobar estas diferencias antes de cambiar compresión, resolución, atlases o audio. El informe prioriza candidatos; no demuestra qué recurso causó un tirón.

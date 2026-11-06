@@ -2,9 +2,7 @@
 
 ## Proposito
 
-Este documento formaliza la arquitectura runtime de Squid Ink-Pulse. Su objetivo es que cada sistema tenga un propietario claro, que las máquinas de estado sean visibles, y que el crecimiento hacia tienda permanente, skins, zonas y enemigos no produzca scripts redundantes o contradictorios.
-
-El informe histórico en `Docs/reports/` no se reescribe. Este documento describe el contrato arquitectonico de la entrega.
+La arquitectura runtime de Squid Ink-Pulse asigna un propietario a cada sistema. Los controladores coordinan el flujo; los estados describen fases; los servicios, perfiles y adaptadores separan las reglas de su presentación en Unity.
 
 ## Tesis arquitectonica
 
@@ -18,7 +16,7 @@ Dominio
             `-- Datos locales: catalogos, perfiles, tuning, repositorios y definiciones
 ```
 
-La frase "el estado se encarga de la especializacion" debe entenderse de forma precisa: el estado formal modela la fase del sistema; el controlador o manager es quien ejecuta la transición y aplica sus efectos sobre las especializaciones. En C#, muchos `...State` son `enum` puros y por tanto no deben llamar directamente a componentes Unity.
+El estado formal modela la fase del sistema. El controlador o manager ejecuta la transición y aplica sus efectos sobre los componentes. Muchos `...State` son enumeraciones puras.
 
 ## Capas
 
@@ -292,75 +290,17 @@ No es aceptable usar estas busquedas como mecanismo primario para boundaries, ru
 
 ### Herramientas de editor
 
-`Assets/Implementation/Editor/` queda reservado para soporte de build final. Las herramientas historicas de reorganizacion de assets no forman parte de la entrega runtime.
+`Assets/Implementation/Editor/` contiene builders, validadores y exportadores de previsualización. Estas herramientas quedan fuera del player distribuido.
 
-## Resultado de auditoria arquitectonica
+## Distribución de responsabilidades
 
-### Cumplimientos fuertes
+La sesión global pertenece a `GameSessionController`, la progresión a `RunProgressionDirector` y la aparición de entidades a `LevelSpawner`. El spawner delega selección, posición y configuración en `EnemySpawnSelector`, `SpawnPositionResolver` y `SpawnedObjectConfigurator`.
 
-- La sesión global esta centralizada en `GameSessionController`.
-- La dificultad macro esta centralizada en `RunProgressionDirector`.
-- El spawn de entidades runtime esta centralizado en `LevelSpawner`.
-- Los boundaries se resuelven por contrato de jerarquía mediante `BoundaryReferenceResolver`.
-- La persistencia permanente esta encapsulada en `PersistentPlayerProfile` y `PlayerProfileRepository`.
-- El jugador ya tiene separacion entre movimiento, estado runtime y visuales.
-- La tienda in-run no autogenera canvas; usa el canvas de escena.
-- `ZonaAbisopelagica` no debe cargar SS Carnage ni `BossNetWall` bajo el contrato actual.
+`PersistentPlayerProfile` y `PlayerProfileRepository` encapsulan el progreso permanente. Las tiendas delegan precios y transacciones en servicios de dominio; `OutOfGameShopManager` presenta `ShopMenu`, mientras `PlayerSkinApplier` aplica las skins al personaje.
 
-### Riesgos controlados
+`MainMenu` conserva sus métodos serializados y delega navegación y código secreto en `MainMenuSceneNavigator` y `MainMenuSecretCodeProgress`. `LoreComicPresenter` coordina pausa y corrutinas, con selección, persistencia y vista separadas.
 
-- `LevelSpawner` conserva la autoridad unica de aparición runtime, pero ya no concentra seleccion, cálculo de posiciones ni configuración repetible de instancias. Si crece de nuevo, la regla es extraer otro servicio interno antes de crear un segundo spawner.
-- `MainMenu` no sigue sufijo `Controller`. Se conserva asi por estabilidad de referencias serializadas de escena; cualquier renombre posterior debe hacerse como refactor controlado.
-- `InkPulseMusicCrossfader` es un adaptador de audio, no un controlador de gameplay. Su nombre es valido porque describe una especializacion técnica.
-- `SoundtrackPitchProgression` tambien es un adaptador de audio. Consume `RuntimePlayerPace` como dato de progresión, pero no gobierna dificultad, input, spawn, score ni estado de sesión.
-- `LightGrazeSource.EnsureOn()` agrega componentes si la zona tiene iluminacion. Es una excepción visual deliberada para entidades spawneadas.
-- `InGameShopManager` orquesta apertura, cierre, lore y estado de la tienda temporal. La transaccion, temporizacion y presentacion viven en servicios/presenters separados; la seleccion y calculo de precio permanecen en helpers puros.
-- `MainMenu` conserva los metodos publicos usados por botones serializados, pero delega resolucion de escenas a `MainMenuSceneNavigator` y el codigo secreto a `MainMenuSecretCodeProgress`.
-- `LoreComicPresenter` conserva corrutinas, pausa y busqueda del presenter activo; seleccion, persistencia y vista se separan en `LoreComicEntrySelector`, `LoreComicPersistencePolicy` y `LoreComicView`.
-- `OutOfGameShopManager` es el presenter de `ShopMenu`. Coordina seleccion, pagina de skins, interactividad y texto opcional; `PermanentShopService` conserva la autoridad de precios, metas, saldo, límites y persistencia. La aplicacion visual de skins se realiza mediante `PlayerSkinApplier`, fuera de los controladores de gameplay.
-
-### Refactor aplicado
-
-Se extrajeron tipos de estado y datos que estaban incrustados en orquestadores:
-- `RunEventState`
-- `RunDifficultySnapshot`
-- `CameraEventMode`
-- `InkPulseState`
-- `PlayerRuntimeState`
-- `ShopEventState`
-- `SSCarnageAttackState`
-- `EnemySpawnProfile`
-- `PufferfishEnemyTuning`
-- `FishingRodEnemyTuning`
-- `ZoneSpawnProfile`
-- `PortalSpawnPolicy`
-- `ShopGadgetOffer`
-- `BoundaryReferenceDomain`
-- `EnemySpawnContext`
-- `IEnemySpawnContextReceiver`
-- `GadgetId`
-- `GadgetActivationKind`
-- `GadgetCatalog`
-
-Tambien se marcaron con `DisallowMultipleComponent` componentes que no deben duplicarse en el mismo nodo:
-- `LevelSpawner`
-- `CameraController`
-- `GrazeDetector`
-- `ChargeBar`
-- `InkBarFillPresenter`
-- `HorizontalTracker`
-- `MenuButtonAnimation`
-
-Se extrajeron servicios internos sin estado Unity para bajar responsabilidades de orquestadores:
-- `EnemySpawnSelector`
-- `SpawnPositionResolver`
-- `SpawnedObjectConfigurator`
-- `ShopOfferSelector`
-- `ShopPriceCalculator`
-- `UnlockablesCatalogQuery`
-- `RunGadgetUnlockService`
-- `PermanentShopService`
-- `PermanentUpgradeEffectResolver`
+Los adaptadores de audio y luz observan el estado del juego. `InkPulseMusicCrossfader` mezcla pistas, `SoundtrackPitchProgression` ajusta pitch y `LightGrazeSource` declara fuentes visuales para las zonas iluminadas.
 
 ### UI como fachada y presentación
 

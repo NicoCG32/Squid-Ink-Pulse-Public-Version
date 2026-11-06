@@ -62,6 +62,10 @@ public class MainMenu : MonoBehaviour
     private int lastDemoShrimpTextInputFrame = -1;
     private CanvasScaler[] platformCanvasScalers;
 
+    public bool IsLoading => isLoading;
+    public bool IsTutorialOpen => tutorialComicsOpen;
+    public void CerrarTutorial() => CloseTutorialImmediate();
+
     private void Awake()
     {
         ResolveUiReferences();
@@ -160,7 +164,7 @@ public class MainMenu : MonoBehaviour
     {
         if (!FairModeSettings.IsEnabled)
         {
-            Debug.LogWarning("[MainMenu] El login de feria esta desactivado por --fair-disabled.", this);
+            Debug.LogWarning("[MainMenu] El modo feria no esta disponible en esta plataforma o esta desactivado.", this);
             return;
         }
 

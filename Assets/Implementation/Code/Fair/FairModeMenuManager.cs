@@ -26,6 +26,7 @@ public sealed class FairModeMenuManager : MonoBehaviour
 
     public static FairModeMenuManager EnsureInstance()
     {
+        if (!FairModeSettings.IsEnabled) return null;
         if (instance != null)
         {
             return instance;
@@ -39,6 +40,11 @@ public sealed class FairModeMenuManager : MonoBehaviour
 
     private void Awake()
     {
+        if (!FairModeSettings.IsEnabled)
+        {
+            Destroy(this);
+            return;
+        }
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
