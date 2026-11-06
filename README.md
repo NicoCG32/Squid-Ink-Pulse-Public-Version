@@ -77,4 +77,6 @@ Para generar un ejecutable o APK, consulta [compilación y distribución](Docs/0
 
 Yeco Works estuvo integrado por **Pablo Guzmán, Rodrigo Cortés, Mauricio Muñoz, Inti Santibáñez y Matías Palacios**. Desarrollamos el juego en **Proyecto Integrador Programación Avanzada**, quinto semestre, 5 SCT, de la Universidad Católica del Norte.
 
+El nombre Yeco Works homenajea al pato yeco del entorno universitario; su historia y el logo original están en la [sección académica](Docs/04-academica/README.md).
+
 Los roles, las contribuciones artísticas y los derechos se detallan en [LICENSING.md](LICENSING.md). La licencia general de reutilización sigue pendiente de acuerdo entre sus titulares.

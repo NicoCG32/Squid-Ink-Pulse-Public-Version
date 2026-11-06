@@ -8,6 +8,18 @@ El curso nos daba libertad para elegir el videojuego. Los grupos se conformaron 
 
 El equipo estuvo formado por **Pablo Guzmán, Rodrigo Cortés, Mauricio Muñoz, Inti Santibáñez y Matías Palacios**. Sus roles y los derechos sobre los recursos se registran en [LICENSING.md](../../LICENSING.md).
 
+## El nombre y el logo del equipo
+
+Elegimos **Yeco Works**, escrito con **c**, en homenaje al **pato yeco**, característico de nuestra universidad y recordado también por las heces que deja en el entorno universitario. Ese guiño local formó parte de la identidad que construimos durante la asignatura.
+
+El informe final conserva el logotipo original del equipo:
+
+<p align="center">
+  <img src="../reports/Informe%20Final/media/image4.png" alt="Logotipo de Yeco Works del informe final" width="260">
+</p>
+
+Durante el curso contamos con **Fabián**, estudiante de **noveno semestre** asignado como **PM** para supervisar y guiar el proyecto. Él solía llamarnos informalmente «Yeko Works», una anécdota que quedó en la historia del grupo.
+
 ## Informes originales
 
 | Documento | Formato |

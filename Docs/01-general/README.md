@@ -25,6 +25,8 @@ El proyecto nos permitió integrar programación, diseño, arte y sonido en una 
 | Guardado | Archivos JSON locales por dispositivo. |
 | Feria | Complemento opcional de Windows con ranking web en una red local. |
 
+El nombre **Yeco Works**, escrito con **c**, homenajea al pato yeco del entorno universitario. La historia del nombre, el logo original y el acompañamiento del PM están en la [sección académica](../04-academica/README.md).
+
 ## Equipo
 
 Yeco Works estuvo integrado por **Pablo Guzmán, Rodrigo Cortés, Mauricio Muñoz, Inti Santibáñez y Matías Palacios**. Destacamos a Matías como artista y compositor principal, a Rodrigo por su aporte a la base mecánica y a Mauricio por su trabajo constante de desarrollo. Los roles y derechos de todos los integrantes se detallan en [LICENSING.md](../../LICENSING.md).
