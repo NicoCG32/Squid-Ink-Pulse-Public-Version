@@ -125,6 +125,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
     public void Continue()
     {
+        if (!MobileApplicationLifecycle.CanAdvancePresentation) return;
         continueRequested = true;
     }
 
@@ -306,7 +307,12 @@ public sealed class LoreComicPresenter : MonoBehaviour
 
         if (displaySeconds > 0f)
         {
-            yield return new WaitForSecondsRealtime(displaySeconds);
+            float elapsed = 0f;
+            while (elapsed < displaySeconds)
+            {
+                yield return null;
+                if (MobileApplicationLifecycle.CanAdvancePresentation) elapsed += Time.unscaledDeltaTime;
+            }
         }
 
         if (canWaitForContinue)
@@ -389,6 +395,7 @@ public sealed class LoreComicPresenter : MonoBehaviour
         }
 
         pauseApplied = false;
+        if (MobileApplicationLifecycle.PauseBeforeGameplayTimeRestored()) return;
         GameSessionController session = GameSessionController.Instance;
         if (session != null && !session.IsPlaying) return;
         Time.timeScale = timeScaleBeforePresentation;

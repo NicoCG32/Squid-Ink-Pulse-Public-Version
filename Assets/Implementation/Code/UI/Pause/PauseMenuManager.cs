@@ -42,6 +42,7 @@ public class PauseMenuManager : MonoBehaviour
     private PauseMenuCommandAction ResolveToggleAction()
     {
         bool anotherContextOwnsInput = (optionsMenu != null && optionsMenu.IsOpen)
+            || MobileApplicationLifecycle.IsSuspended
             || InGameShopManager.BlocksInkPulseActivation
             || (session != null && session.IsPlaying && Time.timeScale <= 0f);
         return PauseMenuCommandPolicy.ResolveToggle(
@@ -117,6 +118,15 @@ public class PauseMenuManager : MonoBehaviour
         {
             Reanudar();
         }
+    }
+
+    public void InterruptForApplicationPause()
+    {
+        StopAllCoroutines();
+        isAnimating = false;
+        isPaused = session != null && session.IsPaused;
+        MenuScreenAnimation.ResetElements(animatedElements, originalPositions);
+        SetVisible(isPaused && (optionsMenu == null || !optionsMenu.IsOpen));
     }
 
     private void HandleGameplayInputChanged(SquidInkPulseGameplayInputReader inputReader)

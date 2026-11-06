@@ -85,6 +85,8 @@ La ausencia de red no debe impedir el arranque ni el gameplay local.
 
 ### Ciclo de vida Android
 
+La navegación contextual y el coordinador de interrupciones están implementados en `MobileBackNavigation` y `MobileApplicationLifecycle`. La partida vuelve de segundo plano en pausa y requiere Reanudar; las ofertas y los cómics conservan su contexto antes de mostrarla. El contrato efectivo y las comprobaciones se describen en [Navegación e interrupciones en Android](AndroidLifecycle.md). Esto no completa por sí solo la candidata móvil ni los demás gates de plataforma.
+
 El juego debe definir un comportamiento estable para:
 
 - botón Back del sistema;

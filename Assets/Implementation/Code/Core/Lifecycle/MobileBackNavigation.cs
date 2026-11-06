@@ -56,7 +56,15 @@ public sealed class MobileBackNavigation : MonoBehaviour
         if (instance == this) instance = null;
     }
 
-    private void HandleCancel(InputAction.CallbackContext context) => cancelRequested = true;
+    public static void DiscardPendingCancel()
+    {
+        if (instance != null) instance.cancelRequested = false;
+    }
+
+    private void HandleCancel(InputAction.CallbackContext context)
+    {
+        if (!MobileApplicationLifecycle.IsSuspended) cancelRequested = true;
+    }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -77,6 +85,7 @@ public sealed class MobileBackNavigation : MonoBehaviour
     {
         if (!cancelRequested) return;
         cancelRequested = false;
+        if (!MobileApplicationLifecycle.CanAdvancePresentation) return;
         GameSessionController session = GameSessionController.Instance;
         MobileBackAction action = MobileBackNavigationPolicy.Resolve(
             (menu != null && menu.IsLoading) || (comic != null && comic.IsPresenting),

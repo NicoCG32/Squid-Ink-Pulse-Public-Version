@@ -41,6 +41,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
     public event Action GadgetSlot2Requested;
     public event Action ShopPurchaseRequested;
     public event Action<string> ControlSchemeChanged;
+    public event Action TransientStateReset;
 
     public SquidInkPulseGameplayInputReader(InputActionAsset inputActions)
     {
@@ -106,6 +107,7 @@ public sealed class SquidInkPulseGameplayInputReader : IDisposable
         InputSystem.onDeviceChange -= OnInputDeviceChange;
         gameplay.Disable();
         ResetTransientState();
+        TransientStateReset?.Invoke();
     }
 
     public void Dispose()
